@@ -7,7 +7,7 @@ export default function Navbar() {
         <div className="flex flex-col ">
             <div className="w-[1280px] m-auto py-2 flex justify-end text-sm text-gray-500 gap-4">
                 <div className="flex gap-4">
-                <Link href="/signin">로그인 / 회원가입</Link>
+                <Link href="/signin">로그인 / 회원가입.</Link>
                 <Link href="/shop">내상점</Link>
                 </div>
             </div>
