@@ -28,7 +28,7 @@ export default function Navbar() {
                             name="name"
                         />
                         <button className="absolute right-4 top-1/2 -translate-y-1/2 w-4 cursor-pointer">
-                            <img className="" src="/search.svg" alt="검색" />
+                            <img className="" src="/icon/search.svg" alt="검색" />
                         </button>
                     </div>
                 </div>

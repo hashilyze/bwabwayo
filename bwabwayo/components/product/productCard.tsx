@@ -47,7 +47,7 @@ export default function productCard({product}: Props) {
       className="group rounded-[12px] overflow-hidden border border-[#eee] cursor-pointer"
       onClick={handleCardClick}
     >
-      <div>
+      <div className='relative'>
         <div className="h-[290px] overflow-hidden">
           <img
             className="w-full transform transition-transform duration-300 group-hover:scale-105"
@@ -55,19 +55,19 @@ export default function productCard({product}: Props) {
             alt={product.title}
           />
         </div>
-        <div className="heartIcon">
-          <img src="" alt="" />
+        <div className="heartIcon absolute top-4 right-4">
+          <img src="/icon/heart-on.svg" alt="" />
         </div>
       </div>
       <div className="p-4">
         <p className="text-md block h-[48px]">{product.title}</p>
         <p className="text-[20px] font-bold mt-2 mb-4">{product.price}원</p>
-        <div className="flex justify-between">
+        <div className="flex justify-between items-center">
           <p className="text-sm text-[#7c7c7c]">
             찜 {product.view_count} · 조회 {product.wish_count}
           </p>
           <div>
-            <Link href={`/chat/${product.id}/${product.seller_id}?${queryString}`}>
+            <Link className='btn-gradient text-white px-3 py-2 rounded-md text-sm block' href={`/chat/${product.id}/${product.seller_id}?${queryString}`}>
               화상거래예약
             </Link>
           </div>
