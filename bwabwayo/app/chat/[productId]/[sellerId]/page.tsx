@@ -1,5 +1,13 @@
-import ClientChat from './ClientChat';
+import ClientChat from './ClientChat'
 
-export default function ChatPage({ params }: { params: { productId: string; sellerId: string } }) {
-  return <ClientChat productId={params.productId} sellerId={params.sellerId} />;
+interface ChatPageProps {
+  params: {
+    productId: string
+    sellerId: string
+  }
+}
+
+export default function ChatPage({ params }: ChatPageProps) {
+  const { productId, sellerId } = params
+  return <ClientChat productId={productId} sellerId={sellerId} />
 }
