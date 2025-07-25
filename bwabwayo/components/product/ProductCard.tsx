@@ -20,7 +20,7 @@ type Props = {
   product: Product;
 };
 
-export default function productCard({product}: Props) {
+export default function ProductCard({product}: Props) {
   const router = useRouter()
 
   // 카드 전체 클릭 시 상세페이지 이동
