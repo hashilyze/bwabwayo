@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import ProductCard from "@/components/product/productCard";
+import ProductCard from "@/components/product/ProductCard";
 import Chatbot from '@/components/chat/Chatbot';
 import React from 'react';
 
