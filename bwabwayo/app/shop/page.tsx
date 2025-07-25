@@ -18,6 +18,10 @@ type Product = {
 
 // --- 메인 페이지 컴포넌트 (Main Page Component) ---
 export default function SellerShopInfo() {
+  const trustScore = 834;
+  const maxTrustScore = 1000;
+  // 신뢰지수를 퍼센트로 변환합니다. (현재 점수 / 최대 점수) * 100
+  const trustPercentage = (trustScore / maxTrustScore) * 100;
   const [sellingProducts, setSellingProducts] = useState<Product[]>([]);
   
   return (
@@ -44,15 +48,17 @@ export default function SellerShopInfo() {
                 <div className="text-gray-500 mb-4">
                   깨끗하고 사용감 적은 제품을 판매합니다.
                 </div>
-                {/* 신뢰지수 막대 동적 처리 */}
-                <div className="flex items-center gap-4 mb-4">
-                  <span className="text-red-500 font-medium">신뢰지수 234</span>
+                {/* --- 신뢰지수 막대 동적 처리 --- */}
+               <div className="flex items-center gap-4 mb-4">
+                  <span className="text-red-500 font-medium">신뢰지수 {trustScore}</span>
                   <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div
                       className="h-2 bg-green-500 rounded-full transition-all duration-500"
+                      // style 속성에 동적으로 계산된 퍼센트 값을 적용합니다.
+                      style={{ width: `${trustPercentage}%` }}
                     />
                   </div>
-                  <span className="text-gray-500">1000</span>
+                  <span className="text-gray-500">{maxTrustScore}</span>
                 </div>
               </div>
               <div className="flex flex-col items-start sm:items-end mt-4 sm:mt-0">
