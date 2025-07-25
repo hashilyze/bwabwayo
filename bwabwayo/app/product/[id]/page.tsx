@@ -49,7 +49,7 @@ export default function ProductDetailPage() {
             <div>
               <div className="text-lg font-bold">고윤정님의 상점 <span className="text-gray-400 text-base font-light ml-2">4.8 (12)</span></div>
               <div className="flex items-center gap-2 mt-2">
-                <span className="text-red-500 font-medium">신뢰지수 236</span>
+                <span className="text-red-500 font-medium">신뢰지수 800</span>
                 <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div className="h-2 bg-green-500 rounded-full" style={{ width: "30%" }}></div>
                 </div>
