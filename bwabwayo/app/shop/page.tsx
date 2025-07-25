@@ -19,39 +19,7 @@ type Product = {
 // --- 메인 페이지 컴포넌트 (Main Page Component) ---
 export default function SellerShopInfo() {
   const [sellingProducts, setSellingProducts] = useState<Product[]>([]);
-
-  useEffect(() => {
-    async function fetchData() {
-      // 실제 fetch로 변경 가능
-      const data = [
-        {
-          id: 1,
-          seller_id: 5524,
-          title: "팝마트 라부부 코카콜라 시리즈 인형 키링",
-          thumbnail:"https://picsum.photos/200/300?random=1",
-          price:70000,
-          wish_count:5,
-          view_count:23,
-          is_like:true,
-          status:true
-        },
-        {
-          id: 2,
-          seller_id: 2,
-          title: "상품2",
-          thumbnail:"https://picsum.photos/200/300?random=2",
-          price:30000,
-          wish_count:5,
-          view_count:23,
-          is_like:false,
-          status:false
-        },
-      ];
-      setSellingProducts(data);
-    }
-    fetchData();
-  }, []);
-
+  
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
