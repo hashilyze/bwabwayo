@@ -67,9 +67,9 @@ export default function ProductCard({product}: Props) {
             찜 {product.view_count} · 조회 {product.wish_count}
           </p>
           <div>
-            <Link className='btn-gradient text-white px-3 py-2 rounded-md text-sm block' href={`/chat/${product.id}/${product.seller_id}?${queryString}`}>
+            <div className='btn-gradient text-white px-3 py-2 rounded-md text-sm block' href={`/chat/${product.id}/${product.seller_id}?${queryString}`}>
               화상거래예약
-            </Link>
+            </div>
           </div>
         </div>
       </div>
