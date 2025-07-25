@@ -1,9 +1,3 @@
-/*
-======================================================================
-  이 코드는 app/shop/page.tsx 파일의 전체 내용입니다.
-  각 컴포넌트는 별도의 파일에서 import하여 사용합니다.
-======================================================================
-*/
 'use client';
 
 import React, { MouseEvent } from "react";
@@ -70,7 +64,7 @@ const MOCK_PRODUCTS: Product[] = [
 // --- 메인 페이지 컴포넌트 (Main Page Component) ---
 export default function SellerShopInfo() {
   // --- 데이터 (Data) ---
-  const trustScore = 236;
+  const trustScore = 200;
   const maxTrustScore = 1000;
   const trustPercentage = (trustScore / maxTrustScore) * 100;
 
@@ -113,7 +107,7 @@ export default function SellerShopInfo() {
               <div className="flex flex-col items-start sm:items-end mt-4 sm:mt-0">
                 <div className="flex gap-8 mb-4">
                   <div><span className="text-gray-400 text-sm">판매상품</span><span className="ml-2 text-lg font-semibold">4</span></div>
-                  <div><span className="text-gray-400 text-sm">거래후기</span><span className="ml-2 text-lg font-semibold">5</span></div>
+                  <div><span className="  ext-sm">거래후기</span><span className="ml-2 text-lg font-semibold">5</span></div>
                   <div><span className="text-gray-400 text-sm">화상거래</span><span className="ml-2 text-lg font-semibold">1</span></div>
                 </div>
                 <button className="bg-blue-600 text-white rounded-lg px-6 py-2 text-sm font-medium hover:bg-blue-700 transition">
@@ -137,12 +131,7 @@ export default function SellerShopInfo() {
           {/* 판매 물품 */}
           <section className="mb-12">
             <h3 className="text-xl font-bold mb-6">판매 물품</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* ProductCard 컴포넌트를 사용하여 상품 목록을 렌더링합니다. */}
-              {MOCK_PRODUCTS.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+
           </section>
 
           {/* 상점 후기 */}
