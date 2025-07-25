@@ -1,48 +1,39 @@
-// app/chat/[productId]/[sellerId]/ClientChat.tsx
-
 'use client'
 
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-type SellerProduct = {
-  id: number
-  title: string
-  price: number
-}
-
-type Props = {
+export default function ClientChat({
+  productId,
+  sellerId,
+}: {
   productId: string
   sellerId: string
-}
-
-export default function ClientChat({ productId, sellerId }: Props) {
+}) {
   const searchParams = useSearchParams()
 
   const title = searchParams.get('title') ?? '제목 없음'
   const thumbnail = searchParams.get('thumbnail') ?? ''
-  const priceStr = searchParams.get('price') ?? '0'
-  const priceNum = Number(priceStr)
-  const displayPrice = isNaN(priceNum) ? '가격 정보 없음' : `${priceNum.toLocaleString()}원`
+  const price = Number(searchParams.get('price') ?? '0')
+  const displayPrice = isNaN(price) ? '가격 정보 없음' : `${price.toLocaleString()}원`
 
-  const [sellerProducts, setSellerProducts] = useState<SellerProduct[]>([])
+  const [sellerProducts, setSellerProducts] = useState<
+    { id: number; title: string; price: number }[]
+  >([])
 
   useEffect(() => {
-    const dummyProducts: SellerProduct[] = [
+    setSellerProducts([
       { id: 1, title: '상품 A', price: 10000 },
       { id: 2, title: '상품 B', price: 25000 },
       { id: 3, title: '상품 C', price: 15000 },
-    ]
-    setSellerProducts(dummyProducts)
+    ])
   }, [sellerId])
 
   return (
     <div>
       <h1>채팅방 - 상품 예약</h1>
       <h2>{title}</h2>
-      {thumbnail && (
-        <img src={thumbnail} alt={title} loading="lazy" style={{ width: 200 }} />
-      )}
+      {thumbnail && <img src={thumbnail} alt={title} loading="lazy" style={{ width: 200 }} />}
       <p>{displayPrice}</p>
 
       <h3>판매자의 다른 상품</h3>
