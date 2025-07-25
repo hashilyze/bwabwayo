@@ -1,17 +1,20 @@
 'use client'
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import MyVideo from "../chat/MyVideo"
 
 export default function WebTest(){
     const [showVideo, setShowVideo] = useState(false)
     const videoRef = useRef<{ startVideo: () => void }>(null)
 
-    const handleStart = () => {
-        setShowVideo(true)
-        setTimeout(() => {
+    useEffect(() => {
+      if (showVideo) {
         videoRef.current?.startVideo()
-        }, 0)
+      }
+    }, [showVideo])
+  
+    const handleStart = () => {
+      setShowVideo(true)
     }
 
     return(
@@ -19,13 +22,11 @@ export default function WebTest(){
         {showVideo &&
             <div
                 className={`
-                    absolute top-1/2 left-1/2 
-                    transform -translate-x-1/2 -translate-y-1/2 
-                    w-0 h-0 opacity-0 
-                    bg-white rounded-xl overflow-hidden shadow-lg
-                    transition-all duration-500 ease-out
-                    scale-50
-                    animate-show-video
+                  absolute top-1/2 left-1/2 
+                  transform -translate-x-1/2 -translate-y-1/2 
+                  bg-white rounded-xl overflow-hidden shadow-lg
+                  transition-all duration-500 ease-out
+                  scale-100
                 `}
                 style={{
                 width: '480px',
