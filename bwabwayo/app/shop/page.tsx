@@ -132,10 +132,7 @@ export default function SellerShopInfo() {
           <section className="mb-12">
             <h3 className="text-xl font-bold mb-6">판매 물품</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* ProductCard 컴포넌트를 사용하여 상품 목록을 렌더링합니다. */}
-              {MOCK_PRODUCTS.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+                <ProductCard />
             </div>
           </section>
 
