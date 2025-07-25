@@ -5,7 +5,7 @@ import React from 'react';
 
 async function getSellingProducts() {
   // 실제로는 fetch 사용, 지금은 임의 데이터 반환
-  // const res = await fetch("http://43.203.212.189:8081/", { cache: "no-store" });
+  // const res = await fetch("httpS://43.203.212.189:8081/", { cache: "no-store" });
   // const data = await res.json();
 
   const data = [
