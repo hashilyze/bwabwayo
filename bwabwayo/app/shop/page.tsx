@@ -1,47 +1,56 @@
 'use client';
 
-import React, { MouseEvent } from "react";
-
 import Sidebar from "@/components/shop/Sidebar";
-import ProductCard from "@/components/product/ProductCard";
+import React, { useEffect, useState, MouseEvent } from 'react';
+import ProductCard from '@/components/product/ProductCard';
 
-async function getSellingProducts() {
-  // 실제로는 fetch 사용, 지금은 임의 데이터 반환
-  // const res = await fetch("http://43.203.212.189:8081/", { cache: "no-store" });
-  // const data = await res.json();
-
-  const data = [
-    {
-      id: 1,
-      seller_id: 5524,
-      title: "팝마트 라부부 코카콜라 시리즈 인형 키링",
-      thumbnail:"https://picsum.photos/200/300?random=1",
-      price:70000,
-      wish_count:5,
-      view_count:23,
-      is_like:true,
-      status:true
-    },
-    {
-      id: 2,
-      seller_id: 2,
-      title: "상품2",
-      thumbnail:"https://picsum.photos/200/300?random=2",
-      price:30000,
-      wish_count:5,
-      view_count:23,
-      is_like:false,
-      status:false
-    },
-  ];
-
-  return data;
-}
-
+type Product = {
+  id: number;
+  seller_id: number;
+  title: string;
+  thumbnail: string;
+  price: number;
+  wish_count: number;
+  view_count: number;
+  is_like: boolean;
+  status: boolean;
+};
 
 // --- 메인 페이지 컴포넌트 (Main Page Component) ---
-export default async function SellerShopInfo() {
-  const sellingProducts = await getSellingProducts();
+export default function SellerShopInfo() {
+  const [sellingProducts, setSellingProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    async function fetchData() {
+      // 실제 fetch로 변경 가능
+      const data = [
+        {
+          id: 1,
+          seller_id: 5524,
+          title: "팝마트 라부부 코카콜라 시리즈 인형 키링",
+          thumbnail:"https://picsum.photos/200/300?random=1",
+          price:70000,
+          wish_count:5,
+          view_count:23,
+          is_like:true,
+          status:true
+        },
+        {
+          id: 2,
+          seller_id: 2,
+          title: "상품2",
+          thumbnail:"https://picsum.photos/200/300?random=2",
+          price:30000,
+          wish_count:5,
+          view_count:23,
+          is_like:false,
+          status:false
+        },
+      ];
+      setSellingProducts(data);
+    }
+    fetchData();
+  }, []);
 
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
@@ -103,16 +112,10 @@ export default async function SellerShopInfo() {
           </section>
 
           {/* 판매 물품 */}
-          <section className="mb-12">
+          <div className="mb-12">
             <h3 className="text-xl font-bold mb-6">판매 물품</h3>
-            <ul className="grid grid-cols-4 gap-[40px]">
-              {sellingProducts.map((product) => (
-                <li key={product.id}>
-                  <ProductCard product={product} />
-                </li>
-              ))}
-            </ul>
-          </section>
+            <ProductCard products={sellingProducts} />
+          </div>
 
           {/* 상점 후기 */}
           <section>

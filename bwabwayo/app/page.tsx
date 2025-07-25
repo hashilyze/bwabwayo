@@ -51,13 +51,7 @@ export default async function Home() {
 
       <div>
         <h1 className="text-2xl font-bold mb-5">판매상품</h1>
-        <ul className="grid grid-cols-4 gap-[40px]">
-          {sellingProducts.map((product) => (
-            <li key={product.id}>
-              <ProductCard product={product} />
-            </li>
-          ))}
-        </ul>
+        <ProductCard products={sellingProducts} />
       </div>
     </div>
   );
