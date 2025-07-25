@@ -1,3 +1,5 @@
+// app/chat/[productId]/[sellerId]/ClientChat.tsx
+
 'use client'
 
 import { useSearchParams } from 'next/navigation'
@@ -17,7 +19,6 @@ type Props = {
 export default function ClientChat({ productId, sellerId }: Props) {
   const searchParams = useSearchParams()
 
-  // 쿼리 파라미터
   const title = searchParams.get('title') ?? '제목 없음'
   const thumbnail = searchParams.get('thumbnail') ?? ''
   const priceStr = searchParams.get('price') ?? '0'
@@ -26,15 +27,7 @@ export default function ClientChat({ productId, sellerId }: Props) {
 
   const [sellerProducts, setSellerProducts] = useState<SellerProduct[]>([])
 
-  // 🔧 실제 API 호출 또는 더미 데이터 사용
   useEffect(() => {
-    // 실제 API 호출 시 사용
-    // fetch(`http://your-api-url/api/users/${sellerId}/products`)
-    //   .then((res) => res.json())
-    //   .then((data) => setSellerProducts(data))
-    //   .catch((err) => console.error(err))
-
-    // 더미 데이터 예시
     const dummyProducts: SellerProduct[] = [
       { id: 1, title: '상품 A', price: 10000 },
       { id: 2, title: '상품 B', price: 25000 },
@@ -60,8 +53,6 @@ export default function ClientChat({ productId, sellerId }: Props) {
           </li>
         ))}
       </ul>
-
-      {/* TODO: 채팅 UI 구성 */}
     </div>
   )
 }

@@ -2,13 +2,12 @@
 
 import ClientChat from './ClientChat'
 
-type Props = {
-  params: {
-    productId: string,
-    sellerId: string
-  }
-}
+export default function ChatPage({
+  params,
+}: {
+  params: { productId: string; sellerId: string }
+}) {
+  const { productId, sellerId } = params
 
-export default function ChatPage({ params }: Props) {
-  return <ClientChat productId={params.productId} sellerId={params.sellerId} />
+  return <ClientChat productId={productId} sellerId={sellerId} />
 }
