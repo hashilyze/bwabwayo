@@ -1,8 +1,7 @@
-// 파일 경로: components/shop/Sidebar.tsx
 import React from "react";
 
-// Sidebar 컴포넌트를 정의합니다.
-const Sidebar = () => (
+export default function Sidebar(){
+  return(
     <aside className="w-64 flex-shrink-0 bg-white rounded-xl shadow p-8 hidden lg:block">
         <h2 className="text-3xl font-bold mb-10">마이페이지</h2>
         <nav>
@@ -36,7 +35,6 @@ const Sidebar = () => (
             </ul>
         </nav>
     </aside>
-);
-
-// *** 중요: 다른 파일에서 이 컴포넌트를 import 할 수 있도록 default로 export 해줍니다. ***
-export default Sidebar;
+  )
+}
+    

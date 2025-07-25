@@ -1,72 +1,49 @@
 'use client';
 
 import React, { MouseEvent } from "react";
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 
-// --- 컴포넌트 임포트 (Component Imports) ---
-// 각 컴포넌트를 해당 경로의 파일에서 가져옵니다.
 import Sidebar from "@/components/shop/Sidebar";
 import ProductCard from "@/components/product/ProductCard";
 
-// --- 데이터 및 타입 정의 (Data & Types) ---
-// Product 타입을 별도의 타입 파일(e.g., /types/product.ts)로 분리하여 관리할 수도 있습니다.
-export type Product = {
-    id: number;
-    seller_id: number;
-    title: string;
-    thumbnail: string;
-    price: number;
-    wish_count: number;
-    view_count: number;
-    is_like: boolean;
-    status: "판매중" | "판매완료";
-};
+async function getSellingProducts() {
+  // 실제로는 fetch 사용, 지금은 임의 데이터 반환
+  // const res = await fetch("http://43.203.212.189:8081/", { cache: "no-store" });
+  // const data = await res.json();
 
-// API를 통해 받아올 가상 데이터입니다.
-const MOCK_PRODUCTS: Product[] = [
-  {
-    id: 1,
-    seller_id: 5524,
-    title: "팝마트 라부부 코카콜라 시리즈 인형 키링",
-    price: 70000,
-    thumbnail: "https://picsum.photos/290/290?random=1",
-    wish_count: 4,
-    view_count: 23,
-    is_like: true,
-    status: "판매중",
-  },
-  {
-    id: 2,
-    seller_id: 5524,
-    title: "포켓몬스터 카드 151",
-    price: 85000,
-    thumbnail: "https://picsum.photos/290/290?random=2",
-    wish_count: 12,
-    view_count: 55,
-    is_like: false,
-    status: "판매중",
-  },
-  {
-    id: 3,
-    seller_id: 5524,
-    title: "레고 스타워즈 임페리얼 스타 디스트로이어",
-    price: 250000,
-    thumbnail: "https://picsum.photos/290/290?random=3",
-    wish_count: 8,
-    view_count: 41,
-    is_like: false,
-    status: "판매완료",
-  },
-];
+  const data = [
+    {
+      id: 1,
+      seller_id: 5524,
+      title: "팝마트 라부부 코카콜라 시리즈 인형 키링",
+      thumbnail:"https://picsum.photos/200/300?random=1",
+      price:70000,
+      wish_count:5,
+      view_count:23,
+      is_like:true,
+      status:true
+    },
+    {
+      id: 2,
+      seller_id: 2,
+      title: "상품2",
+      thumbnail:"https://picsum.photos/200/300?random=2",
+      price:30000,
+      wish_count:5,
+      view_count:23,
+      is_like:false,
+      status:false
+    },
+  ];
+
+  return data;
+}
 
 
 // --- 메인 페이지 컴포넌트 (Main Page Component) ---
-export default function SellerShopInfo() {
-  // --- 데이터 (Data) ---
-  const trustScore = 200;
-  const maxTrustScore = 1000;
-  const trustPercentage = (trustScore / maxTrustScore) * 100;
+
+export default async function SellerShopInfo() {
+  const sellingProducts = await getSellingProducts();
+
 
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
@@ -94,14 +71,13 @@ export default function SellerShopInfo() {
                 </div>
                 {/* 신뢰지수 막대 동적 처리 */}
                 <div className="flex items-center gap-4 mb-4">
-                  <span className="text-red-500 font-medium">신뢰지수 {trustScore}</span>
+                  <span className="text-red-500 font-medium">신뢰지수 234</span>
                   <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div
                       className="h-2 bg-green-500 rounded-full transition-all duration-500"
-                      style={{ width: `${trustPercentage}%` }}
                     />
                   </div>
-                  <span className="text-gray-500">{maxTrustScore}</span>
+                  <span className="text-gray-500">1000</span>
                 </div>
               </div>
               <div className="flex flex-col items-start sm:items-end mt-4 sm:mt-0">
@@ -131,6 +107,14 @@ export default function SellerShopInfo() {
           {/* 판매 물품 */}
           <section className="mb-12">
             <h3 className="text-xl font-bold mb-6">판매 물품</h3>
+
+            <ul className="grid grid-cols-4 gap-[40px]">
+              {sellingProducts.map((product) => (
+                <li key={product.id}>
+                  <ProductCard product={product} />
+                </li>
+              ))}
+            </ul>
 
           </section>
 
