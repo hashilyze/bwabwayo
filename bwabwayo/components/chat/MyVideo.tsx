@@ -21,8 +21,8 @@ const MyVideo = forwardRef((props, ref) => {
   }))
 
   return (
-    <div>
-      <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', maxWidth: 480 }} />
+    <div className='flex-1'>
+      <video ref={videoRef} autoPlay playsInline muted style={{ height: '100%' }} />
     </div>
   )
 })

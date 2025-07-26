@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from "react"
-import MyVideo from "../chat/MyVideo"
+import MyVideo from "@/components/chat/MyVideo"
+import ChatInput from "@/components/chat/ChatInput"
 
 export default function WebTest(){
     const [showVideo, setShowVideo] = useState(false)
@@ -18,23 +19,48 @@ export default function WebTest(){
     }
 
     return(
-        <div className="custom-gradient rounded-lg flex gap-10 items-center px-8 py-12 relative">
+        <div className="custom-gradient rounded-lg flex gap-10 items-center px-8 py-12 relative overflow-hidden">
         {showVideo &&
+        <div className="
+          absolute top-1/2 left-1/2 z-1
+          transform -translate-x-1/2 -translate-y-1/2
+          transform -translate-x-1/2 -translate-y-1/2 
+          w-full h-full
+          flex items-center justify-center
+          bg-black/50
+        ">
             <div
                 className={`
-                  absolute top-1/2 left-1/2 
-                  transform -translate-x-1/2 -translate-y-1/2 
+                  grid grid-cols-2
+                  w-[98%] h-[95%]
                   bg-white rounded-xl overflow-hidden shadow-lg
-                  transition-all duration-500 ease-out
-                  scale-100
                 `}
-                style={{
-                width: '480px',
-                height: '320px',
-                }}
             >
                 <MyVideo ref={videoRef} />
+                <div className="flex flex-col flex-wrap">
+                  {/* chat-title */}
+                  <div className="chat-title flex flex-col gap-2 border-b-1 border-[#eee] p-4">
+                    <div className="title-wrap flex justify-between">
+                      <div className="font-bold text-lg">본인</div>
+                      <ul className="flex gap-1 items-center cursor-pointer">
+                        <li className="w-1 h-1 rounded bg-[#7c7c7c]"></li>
+                        <li className="w-1 h-1 rounded bg-[#7c7c7c]"></li>
+                        <li className="w-1 h-1 rounded bg-[#7c7c7c]"></li>
+                      </ul>
+                    </div>
+                    <div className="text-wrap">
+                      <p>여기서 채팅을 테스트 해보세요</p>
+                    </div>
+                  </div>
+                  {/* chat */}
+                  <div className="flex-1 p-4 bg-blue-300">
+                  채팅방
+                  </div>
+                  {/* input */}
+                  <ChatInput />
+                </div>
             </div>
+        </div>
         }
         <div>
           <div className="flex gap-2 items-center"><img width={16} src="/icon/security-green.svg" alt="" /><p className="text-[#BBF7D0]">안심하고 믿을만하게 할 수 있는</p></div>
