@@ -1,20 +1,40 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
+import Category from './Category';
 
 export default function Navbar() {
-    const [query, setQuery] = useState('')
+    const [title, setTitle] = useState('')
+    const [showCategory, setShowCategory] = useState(false);
+    const categoryRef = useRef<HTMLDivElement>(null);
     const router = useRouter()
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        router.push(`/search?query=${encodeURIComponent(query)}`)
+        router.push(`/search?title=${encodeURIComponent(title)}`)
     }
 
+    // 바깥 클릭 시 카테고리 닫기
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) {
+                setShowCategory(false);
+            }
+        }
+        if (showCategory) {
+            document.addEventListener('mousedown', handleClickOutside);
+        } else {
+            document.removeEventListener('mousedown', handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showCategory]);
+
     return (
-        <nav className="top-nav">
+        <nav className="border-b-1 border-[#eee]">
             {/* top-nav */}
             <div className="flex flex-col ">
                 <div className="w-[1280px] m-auto py-2 flex justify-end text-sm text-gray-500 gap-4">
@@ -36,8 +56,8 @@ export default function Navbar() {
                             <input
                                 type="text"
                                 placeholder="상품명을 검색해보세요."
-                                value={query}
-                                onChange={(e)=> setQuery(e.target.value)}
+                                value={title}
+                                onChange={(e)=> setTitle(e.target.value)}
                                 className="w-full border border-[#2B6CEE] rounded-tl-sm rounded-bl-sm px-4 py-3 text-sm focus:outline-none focus:unset"
                             />
                             <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 w-4 cursor-pointer">
@@ -53,20 +73,27 @@ export default function Navbar() {
                 </div>
             </div>
 
-        {/* btm-nav */}
-        <div className="btm-nav py-5">
-            <div className="category-wrap w-[1280px] m-auto flex items-center gap-5">
-                <ul className="w-6 h-5 flex flex-col justify-between cursor-pointer">
-                    <li className="h-0.5 bg-gray-700 rounded"></li>
-                    <li className="h-0.5 bg-gray-700 rounded"></li>
-                    <li className="h-0.5 bg-gray-700 rounded"></li>
-                </ul>
-
-                <button className="text-xs border px-3 py-1 rounded-full text-blue-500 border-blue-300 hover:bg-blue-50">
-                    봐봐요 고객센터
-                </button>
+            {/* btm-nav */}
+            <div className="btm-nav py-5">
+                <div className="category-wrap relative w-[1280px] m-auto flex items-center gap-5" ref={categoryRef}>
+                    <div className="flex gap-3 items-center bg-[#212121] rounded-lg px-4 py-3 cursor-pointer" onClick={() => setShowCategory(v => !v)}>
+                        <ul className="category-btn w-4 h-3 flex flex-col justify-between">
+                            <li className="h-0.5 bg-white rounded"></li>
+                            <li className="h-0.5 bg-white rounded"></li>
+                            <li className="h-0.5 bg-white rounded"></li>
+                        </ul>
+                        <div className="text-white text-sm">카테고리</div>
+                    </div>
+                    <ul className="flex items-center gap-7 ml-2 text-[15px] font-normal">
+                        <li><Link href="#">고객센터</Link></li>
+                    </ul>
+                    {showCategory && (
+                    <div className="absolute left-0 top-14 mt-2 z-20">
+                        <Category />
+                    </div>
+                    )}
+                </div>
             </div>
-        </div>
         </nav>
   )
 }

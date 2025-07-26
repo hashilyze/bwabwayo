@@ -1,9 +1,13 @@
+import Category from "@/components/Category"
+
 export default function SearchPage({
     searchParams,
 }: {
-    searchParams: { query?: string }
+    searchParams: { title?: string }
 }) {
   return(
-    <div>{searchParams.query}</div>
+    <div>
+      <div>{searchParams.title}</div>
+    </div>
   )
 }
