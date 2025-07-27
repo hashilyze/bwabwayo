@@ -1,10 +1,18 @@
+/*
+======================================================================
+  이 코드는 app/shop/[id]/page.tsx 파일의 전체 내용입니다.
+======================================================================
+*/
 'use client';
 
-import Sidebar from "@/components/shop/Sidebar";
-import React, { useEffect, useState, MouseEvent } from 'react';
-import ProductCard from '@/components/product/ProductCard';
+import React, { useEffect, useState } from 'react';
 
-type Product = {
+// --- 컴포넌트 임포트 ---
+import Sidebar from "@/components/shop/Sidebar";
+import ProductCard from "@/components/product/ProductCard";
+
+// --- 데이터 및 타입 정의 (Data & Types) ---
+export type Product = {
   id: number;
   seller_id: number;
   title: string;
@@ -13,23 +21,63 @@ type Product = {
   wish_count: number;
   view_count: number;
   is_like: boolean;
-  status: boolean;
+  status: "판매중" | "판매완료";
 };
 
-// --- 메인 페이지 컴포넌트 (Main Page Component) ---
-export default function SellerShopInfo() {
+// API를 통해 받아올 가상 데이터입니다.
+const MOCK_PRODUCTS: Product[] = [
+  {
+    id: 1,
+    seller_id: 5524,
+    title: "팝마트 라부부 코카콜라 시리즈 인형 키링",
+    price: 70000,
+    thumbnail: "https://picsum.photos/290/290?random=1",
+    wish_count: 4,
+    view_count: 23,
+    is_like: true,
+    status: "판매중",
+  },
+  {
+    id: 2,
+    seller_id: 5524,
+    title: "포켓몬스터 카드 151",
+    price: 85000,
+    thumbnail: "https://picsum.photos/290/290?random=2",
+    wish_count: 12,
+    view_count: 55,
+    is_like: false,
+    status: "판매중",
+  },
+  {
+    id: 3,
+    seller_id: 5524,
+    title: "레고 스타워즈 임페리얼 스타 디스트로이어",
+    price: 250000,
+    thumbnail: "https://picsum.photos/290/290?random=3",
+    wish_count: 8,
+    view_count: 41,
+    is_like: false,
+    status: "판매완료",
+  },
+];
+
+// --- 페이지 컴포넌트 ---
+export default function SellerShopInfo({ params }: { params: { id: string } }) {
+  // --- 데이터 ---
   const trustScore = 834;
   const maxTrustScore = 1000;
-  // 신뢰지수를 퍼센트로 변환합니다. (현재 점수 / 최대 점수) * 100
   const trustPercentage = (trustScore / maxTrustScore) * 100;
   const [sellingProducts, setSellingProducts] = useState<Product[]>([]);
   
+  useEffect(() => {
+    setSellingProducts(MOCK_PRODUCTS);
+  }, []);
+
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
         
-        {/* Sidebar 컴포넌트를 여기서 사용합니다. */}
-        <Sidebar />
+        <Sidebar userId={params.id} />
 
         <main className="flex-1">
           {/* 상점 프로필 */}
@@ -48,13 +96,11 @@ export default function SellerShopInfo() {
                 <div className="text-gray-500 mb-4">
                   깨끗하고 사용감 적은 제품을 판매합니다.
                 </div>
-                {/* --- 신뢰지수 막대 동적 처리 --- */}
-               <div className="flex items-center gap-4 mb-4">
+                <div className="flex items-center gap-4 mb-4">
                   <span className="text-red-500 font-medium">신뢰지수 {trustScore}</span>
                   <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div
                       className="h-2 bg-green-500 rounded-full transition-all duration-500"
-                      // style 속성에 동적으로 계산된 퍼센트 값을 적용합니다.
                       style={{ width: `${trustPercentage}%` }}
                     />
                   </div>
@@ -64,7 +110,7 @@ export default function SellerShopInfo() {
               <div className="flex flex-col items-start sm:items-end mt-4 sm:mt-0">
                 <div className="flex gap-8 mb-4">
                   <div><span className="text-gray-400 text-sm">판매상품</span><span className="ml-2 text-lg font-semibold">4</span></div>
-                  <div><span className="  ext-sm">거래후기</span><span className="ml-2 text-lg font-semibold">5</span></div>
+                  <div><span className="text-gray-400 text-sm">거래후기</span><span className="ml-2 text-lg font-semibold">5</span></div>
                   <div><span className="text-gray-400 text-sm">화상거래</span><span className="ml-2 text-lg font-semibold">1</span></div>
                 </div>
                 <button className="bg-blue-600 text-white rounded-lg px-6 py-2 text-sm font-medium hover:bg-blue-700 transition">
@@ -86,10 +132,11 @@ export default function SellerShopInfo() {
           </section>
 
           {/* 판매 물품 */}
-          <div className="mb-12">
+          <section className="mb-12">
             <h3 className="text-xl font-bold mb-6">판매 물품</h3>
+            {/* ProductCard 컴포넌트에 상품 배열 전체를 넘겨줍니다. */}
             <ProductCard products={sellingProducts} />
-          </div>
+          </section>
 
           {/* 상점 후기 */}
           <section>
