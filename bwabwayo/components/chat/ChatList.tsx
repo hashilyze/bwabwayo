@@ -46,7 +46,7 @@ const ChatList: React.FC = () => {
         <div className="w-full md:w-1/2 bg-white border-r border-gray-200 flex flex-col">
           <div className="p-6 border-b border-gray-200 flex-shrink-0">
             <h2 className="text-2xl font-bold text-black">전체 대화</h2>
-          </div>
+          </div> 
           <div className="flex-1 overflow-y-auto">
             {chatData.map((chat) => (
               <div

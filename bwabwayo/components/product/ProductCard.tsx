@@ -4,7 +4,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { MouseEvent } from 'react'
 
-type Product = {
+
+export type Product = {
   id: number;
   seller_id: number;
   title: string;
@@ -13,7 +14,7 @@ type Product = {
   wish_count: number;
   view_count: number;
   is_like: boolean;
-  status: string;
+  status: "거래중" | "판매중" | "판매완료";
 }
 
 type Props = {

@@ -1,8 +1,3 @@
-/*
-======================================================================
-  이 코드는 app/shop/[id]/page.tsx 파일의 전체 내용입니다.
-======================================================================
-*/
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -10,19 +5,9 @@ import React, { useEffect, useState } from 'react';
 // --- 컴포넌트 임포트 ---
 import Sidebar from "@/components/shop/Sidebar";
 import ProductCard from "@/components/product/ProductCard";
+import { Product } from '@/components/product/ProductCard';
 
-// --- 데이터 및 타입 정의 (Data & Types) ---
-export type Product = {
-  id: number;
-  seller_id: number;
-  title: string;
-  thumbnail: string;
-  price: number;
-  wish_count: number;
-  view_count: number;
-  is_like: boolean;
-  status: "판매중" | "판매완료";
-};
+
 
 // API를 통해 받아올 가상 데이터입니다.
 const MOCK_PRODUCTS: Product[] = [
