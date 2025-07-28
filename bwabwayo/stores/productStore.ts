@@ -44,7 +44,7 @@ const dummyProducts: Product[] = [
     price: 45000,
     wish_count: 12,
     view_count: 45,
-    is_like: true,
+    is_like: true, 
     status: '판매중'
   },
   {
@@ -86,10 +86,8 @@ interface ProductStore {
   products: Product[]
   loading: boolean
   error: string | null
-  searchProducts: (query: string) => Promise<void>
-  getProductsByCategory: (categoryId: number) => Promise<void>
+  getProducts: (options?: { title?: string; category_id?: number; minPrice?: number; maxPrice?: number }) => Promise<void>
   clearProducts: () => void
-  getAllProducts: () => Promise<void>
 }
 
 export const useProductStore = create<ProductStore>((set) => ({
@@ -97,66 +95,57 @@ export const useProductStore = create<ProductStore>((set) => ({
   loading: false,
   error: null,
 
-  searchProducts: async (query: string) => {
+  getProducts: async (options = {}) => {
     set({ loading: true, error: null })
     try {
-      // API 호출 주석처리
-      // const response = await fetch(`/api/products/search?q=${encodeURIComponent(query)}`)
-      // if (!response.ok) {
-      //   throw new Error('검색에 실패했습니다')
-      // }
-      // const data = await response.json()
-      
-      // 더미데이터로 검색 필터링
-      const filteredProducts = dummyProducts.filter(product => 
-        product.title.toLowerCase().includes(query.toLowerCase())
-      )
-      
-      set({ products: filteredProducts, loading: false })
-    } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
-        loading: false 
-      })
-    }
-  },
+      // URL 파라미터 구성
+      const params = new URLSearchParams()
+      if (options.title) params.append('title', options.title)
+      if (options.category_id) params.append('category_id', options.category_id.toString())
+      if (options.minPrice) params.append('minPrice', options.minPrice.toString())
 
-  getProductsByCategory: async (categoryId: number) => {
-    set({ loading: true, error: null })
-    try {
-      // API 호출 주석처리
-      // const response = await fetch(`/api/products/category/${categoryId}`)
-      // if (!response.ok) {
-      //   throw new Error('카테고리 조회에 실패했습니다')
-      // }
-      // const data = await response.json()
+      const queryString = params.toString()
+      const url = `/api/products${queryString ? `?${queryString}` : ''}`
       
-      // 더미데이터로 카테고리 필터링 (간단한 예시)
-      const categoryProducts = dummyProducts.filter(product => 
-        product.id % categoryId === 0 || product.id === categoryId
-      )
-      
-      set({ products: categoryProducts, loading: false })
-    } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
-        loading: false 
-      })
-    }
-  },
-
-  getAllProducts: async () => {
-    set({ loading: true, error: null })
-    try {
-      // API 호출 주석처리
-      // const response = await fetch('/api/products')
+      // API 호출 주석처리 (실제 사용 시 주석 해제)
+      // const response = await fetch(url)
       // if (!response.ok) {
       //   throw new Error('상품 조회에 실패했습니다')
       // }
       // const data = await response.json()
+      // set({ products: data, loading: false })
       
-      // 더미데이터 반환
-      set({ products: dummyProducts, loading: false })
+      // 더미데이터 필터링 (개발용)
+      let filteredProducts = [...dummyProducts]
+      
+      // title로 필터링
+      if (options.title) {
+        filteredProducts = filteredProducts.filter(product => 
+          product.title.toLowerCase().includes(options.title!.toLowerCase())
+        )
+      }
+      
+      // category_id로 필터링
+      if (options.category_id) {
+        filteredProducts = filteredProducts.filter(product => 
+          product.id % options.category_id! === 0 || product.id === options.category_id
+        )
+      }
+      
+      // 가격 범위로 필터링
+      if (options.minPrice !== undefined) {
+        filteredProducts = filteredProducts.filter(product => 
+          product.price >= options.minPrice!
+        )
+      }
+      
+      if (options.maxPrice !== undefined) {
+        filteredProducts = filteredProducts.filter(product => 
+          product.price <= options.maxPrice!
+        )
+      }
+      
+      set({ products: filteredProducts, loading: false })
     } catch (error) {
       set({ 
         error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',

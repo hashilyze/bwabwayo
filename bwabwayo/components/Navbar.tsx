@@ -1,17 +1,25 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import Category from './Category'
+
+import Category from './Category';
+import { useCategoryStore } from '../stores/categoryStore';
 import LoginModal from './auth/LoginModal'
 
 export default function Navbar() {
-  const [title, setTitle] = useState('')
-  const [showCategory, setShowCategory] = useState(false)
-  const [showLoginModal, setShowLoginModal] = useState(false) // 모달 상태 추가
-  const categoryRef = useRef<HTMLDivElement>(null)
-  const router = useRouter()
+    const [title, setTitle] = useState('')
+    const [showCategory, setShowCategory] = useState(false);
+    const [showLoginModal, setShowLoginModal] = useState(false) // 모달 상태 추가
+    const categoryRef = useRef<HTMLDivElement>(null);
+    const router = useRouter()
+    const { getCategories } = useCategoryStore();
+
+    // 컴포넌트 마운트 시 카테고리 데이터 로드
+    useEffect(() => {
+        getCategories();
+    }, [getCategories]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
