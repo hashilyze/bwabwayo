@@ -16,22 +16,7 @@ export default function Navbar() {
         router.push(`/search?title=${encodeURIComponent(title)}`)
     }
 
-    // 바깥 클릭 시 카테고리 닫기
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) {
-                setShowCategory(false);
-            }
-        }
-        if (showCategory) {
-            document.addEventListener('mousedown', handleClickOutside);
-        } else {
-            document.removeEventListener('mousedown', handleClickOutside);
-        }
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [showCategory]);
+
 
     return (
         <nav className="border-b-1 border-[#eee]">
@@ -48,21 +33,65 @@ export default function Navbar() {
             {/* center-nav */}
             <div className="center-nav border-t border-[#eee]">
                 <div className="w-[1280px] m-auto py-4 flex items-center justify-between">
-                    <div className="logo-wrap flex items-center gap-2">
+                    <div className="logo-wrap flex items-center gap-2 flex-1 mr-16">
                         <div className="logo text-xl font-bold">
                             <Link href="/">봐봐요</Link>
                         </div>
-                        <form className="flex relative ml-[120px] w-[400px]" onSubmit={handleSubmit}>
+                        <form className="flex items-center ml-[120px] flex-1 px-2 border-1 border-[#f9f9f9] rounded-lg bg-[#F1F4F6]" onSubmit={handleSubmit}>
+                            <div className="flex items-center px-3">
+                                <svg 
+                                    width="16" 
+                                    height="16" 
+                                    viewBox="0 0 16 16" 
+                                    fill="none" 
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path 
+                                        d="M7.5 13.5C10.8137 13.5 13.5 10.8137 13.5 7.5C13.5 4.18629 10.8137 1.5 7.5 1.5C4.18629 1.5 1.5 4.18629 1.5 7.5C1.5 10.8137 4.18629 13.5 7.5 13.5Z" 
+                                        stroke="#9CA3AF" 
+                                        strokeWidth="1.5" 
+                                        strokeLinecap="round" 
+                                        strokeLinejoin="round"
+                                    />
+                                    <path 
+                                        d="M11.5 11.5L14.5 14.5" 
+                                        stroke="#9CA3AF" 
+                                        strokeWidth="1.5" 
+                                        strokeLinecap="round" 
+                                        strokeLinejoin="round"
+                                    />
+                                </svg>
+                            </div>
                             <input
                                 type="text"
                                 placeholder="상품명을 검색해보세요."
                                 value={title}
                                 onChange={(e)=> setTitle(e.target.value)}
-                                className="w-full border border-[#2B6CEE] rounded-tl-sm rounded-bl-sm px-4 py-3 text-sm focus:outline-none focus:unset"
+                                className="flex-1 pl-0 pr-3 py-3 text-sm focus:outline-none bg-transparent"
                             />
-                            <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 w-4 cursor-pointer">
-                                <img className="" src="/icon/search.svg" alt="검색" />
-                            </button>
+                            {title && (
+                                <button 
+                                    type="button" 
+                                    onClick={() => setTitle('')}
+                                    className="flex items-center justify-center w-4 h-4 mx-3 cursor-pointer bg-gray-400 rounded-full"
+                                >
+                                    <svg 
+                                        width="12" 
+                                        height="12" 
+                                        viewBox="0 0 12 12" 
+                                        fill="none" 
+                                        xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                        <path 
+                                            d="M9 3L3 9M3 3L9 9" 
+                                            stroke="#ffffff" 
+                                            strokeWidth="1.5" 
+                                            strokeLinecap="round" 
+                                            strokeLinejoin="round"
+                                        />
+                                    </svg>
+                                </button>
+                            )}
                         </form>
                     </div>
                     <div className="nav-btn-wrap flex gap-3">
@@ -74,9 +103,13 @@ export default function Navbar() {
             </div>
 
             {/* btm-nav */}
-            <div className="btm-nav py-5">
+            <div className="btm-nav py-4">
                 <div className="category-wrap relative w-[1280px] m-auto flex items-center gap-5" ref={categoryRef}>
-                    <div className="flex gap-3 items-center bg-[#212121] rounded-lg px-4 py-3 cursor-pointer" onClick={() => setShowCategory(v => !v)}>
+                    <div 
+                        className="flex gap-3 items-center bg-[#212121] rounded-lg px-4 py-3 cursor-pointer group relative before:absolute before:left-0 before:top-full before:w-full before:h-4 before:bg-transparent before:z-10"
+                        onMouseEnter={() => setShowCategory(true)}
+                        onMouseLeave={() => setShowCategory(false)}
+                    >
                         <ul className="category-btn w-4 h-3 flex flex-col justify-between">
                             <li className="h-0.5 bg-white rounded"></li>
                             <li className="h-0.5 bg-white rounded"></li>
@@ -88,7 +121,11 @@ export default function Navbar() {
                         <li><Link href="#">고객센터</Link></li>
                     </ul>
                     {showCategory && (
-                    <div className="absolute left-0 top-14 mt-2 z-20">
+                    <div 
+                        className="absolute left-0 top-full mt-4 z-20"
+                        onMouseEnter={() => setShowCategory(true)}
+                        onMouseLeave={() => setShowCategory(false)}
+                    >
                         <Category />
                     </div>
                     )}

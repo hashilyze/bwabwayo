@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useProductStore } from '../../stores/productStore';
+import ProductCard from '../../components/product/ProductCard';
 
 // Category.tsx의 CATEGORIES 참고
 const CATEGORIES = [
@@ -141,6 +143,7 @@ export default function SearchPage({
     searchParams: { title?: string, category?: string }
 }) {
   const router = useRouter();
+  const { products, loading, error, searchProducts, getProductsByCategory, clearProducts } = useProductStore();
   const [showMajorCategories, setShowMajorCategories] = useState<boolean>(false);
   const [showMinorCategories, setShowMinorCategories] = useState<boolean>(false);
   const [selectedMajorCategory, setSelectedMajorCategory] = useState<string>('');
@@ -149,7 +152,7 @@ export default function SearchPage({
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
 
-  // 쿼리 파라미터에서 카테고리 정보 설정
+  // 쿼리 파라미터에서 카테고리 정보 설정 및 API 호출
   React.useEffect(() => {
     if (searchParams.category) {
       const categoryId = parseInt(searchParams.category);
@@ -159,6 +162,7 @@ export default function SearchPage({
       if (majorCategory) {
         setSelectedMajorCategory(majorCategory.name);
         setSelectedCategoryPath(`전체 > ${majorCategory.name}`);
+        getProductsByCategory(categoryId);
         return;
       }
       
@@ -169,11 +173,23 @@ export default function SearchPage({
           setSelectedMajorCategory(majorCat.name);
           setSelectedMinorCategory(minorCategory.name);
           setSelectedCategoryPath(`전체 > ${majorCat.name} > ${minorCategory.name}`);
+          getProductsByCategory(categoryId);
           return;
         }
       }
+    } else if (searchParams.title) {
+      // 검색어가 있으면 검색 API 호출
+      searchProducts(searchParams.title);
+    } else {
+      // category 파라미터가 없으면 카테고리 초기화
+      setSelectedMajorCategory('');
+      setSelectedMinorCategory('');
+      setSelectedCategoryPath('전체');
+      setShowMajorCategories(false);
+      setShowMinorCategories(false);
+      clearProducts();
     }
-  }, [searchParams.category]);
+  }, [searchParams.category, searchParams.title, searchProducts, getProductsByCategory, clearProducts]);
 
   // 전체 클릭 시
   const handleAllCategoryClick = () => {
@@ -385,7 +401,7 @@ export default function SearchPage({
                       value={minPrice}
                       onChange={(e) => setMinPrice(e.target.value)}
                       onWheel={(e) => (e.target as HTMLInputElement).blur()}
-                      className="w-36 px-3 py-2 border border-gray-200 rounded-sm text-sm text-gray-400 focus:outline-none focus:border-[#000000] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="w-36 px-3 py-2 border border-gray-200 rounded-sm text-sm text-black focus:outline-none focus:border-[#000000] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                   </div>
                   {/* 구분선 */}
@@ -398,7 +414,7 @@ export default function SearchPage({
                       value={maxPrice}
                       onChange={(e) => setMaxPrice(e.target.value)}
                       onWheel={(e) => (e.target as HTMLInputElement).blur()}
-                      className="w-36 px-3 py-2 border border-gray-200 rounded-sm text-sm text-gray-400 focus:outline-none focus:border-[#000000] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="w-36 px-3 py-2 border border-gray-200 rounded-sm text-sm text-black focus:outline-none focus:border-[#000000] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                   </div>
 
@@ -415,7 +431,21 @@ export default function SearchPage({
           </tbody>
         </table>
       </div>
-      <div>{searchParams.title}</div>
+      {loading ? (
+        <div className="flex justify-center items-center py-8">
+          <div className="text-lg">로딩 중...</div>
+        </div>
+      ) : error ? (
+        <div className="flex justify-center items-center py-8">
+          <div className="text-lg text-red-500">{error}</div>
+        </div>
+      ) : products.length > 0 ? (
+        <ProductCard products={products} />
+      ) : (
+        <div className="flex justify-center items-center py-8">
+          <div className="text-lg text-gray-500">검색 결과가 없습니다.</div>
+        </div>
+      )}
     </div>
   )
 }
