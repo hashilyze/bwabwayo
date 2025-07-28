@@ -1,34 +1,37 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
-import Category from './Category';
+import Category from './Category'
+import LoginModal from './auth/LoginModal'
 
 export default function Navbar() {
-    const [title, setTitle] = useState('')
-    const [showCategory, setShowCategory] = useState(false);
-    const categoryRef = useRef<HTMLDivElement>(null);
-    const router = useRouter()
+  const [title, setTitle] = useState('')
+  const [showCategory, setShowCategory] = useState(false)
+  const [showLoginModal, setShowLoginModal] = useState(false) // 모달 상태 추가
+  const categoryRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        router.push(`/search?title=${encodeURIComponent(title)}`)
-    }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    router.push(`/search?title=${encodeURIComponent(title)}`)
+  }
 
+  return (
+    <nav className="border-b-1 border-[#eee]">
+      {/* top-nav */}
+      <div className="flex flex-col">
+        <div className="w-[1280px] m-auto py-2 flex justify-end text-sm text-gray-500 gap-4">
+          <div className="flex gap-4">
+            <button onClick={() => setShowLoginModal(true)} className="text-sm text-gray-500 hover:underline">
+              로그인/회원가입
+            </button>
+            <Link href="/shop">내상점</Link>
+          </div>
+        </div>
+      </div>
 
-
-    return (
-        <nav className="border-b-1 border-[#eee]">
-            {/* top-nav */}
-            <div className="flex flex-col ">
-                <div className="w-[1280px] m-auto py-2 flex justify-end text-sm text-gray-500 gap-4">
-                    <div className="flex gap-4">
-                        <Link href="/signin">로그인/회원가입</Link>
-                        <Link href="/shop">내상점</Link>
-                    </div>
-                </div>
-            </div>
 
             {/* center-nav */}
             <div className="center-nav border-t border-[#eee]">
@@ -131,6 +134,16 @@ export default function Navbar() {
                     )}
                 </div>
             </div>
+                {/* ✅ 모달은 nav 바깥에서 조건부로 렌더링 */}
+    {showLoginModal && (
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
+    )}
+
         </nav>
+        
+        
   )
 }

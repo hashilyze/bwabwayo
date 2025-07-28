@@ -2,6 +2,9 @@ import React from "react";
 
 // --- 페이지 컴포넌트 (Page Component) ---
 export default function ProductDetailPage() {
+  const trustScore = 334;
+  const maxTrustScore = 1000;
+  const trustPercentage = (trustScore / maxTrustScore) * 100;
   return (
     <div className="bg-[#fafdff] min-h-screen">
       <main className="max-w-7xl mx-auto py-12 px-4 flex flex-col lg:flex-row gap-12">
@@ -43,20 +46,33 @@ export default function ProductDetailPage() {
             </div>
           </div>
           
-          {/* Seller Info */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 flex items-center gap-6">
-            <img src="https://placehold.co/80x80" alt="판매자 프로필 이미지" className="rounded-full border-2 border-blue-200 w-20 h-20 object-cover" />
-            <div>
-              <div className="text-lg font-bold">고윤정님의 상점 <span className="text-gray-400 text-base font-light ml-2">4.8 (12)</span></div>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-red-500 font-medium">신뢰지수 800</span>
+        {/* Seller Info */}
+        <div className="bg-white rounded-2xl shadow-lg p-8 flex items-center gap-6">
+          <img
+            src="https://placehold.co/80x80"
+            alt="판매자 프로필 이미지"
+            className="rounded-full border-2 border-blue-200 w-20 h-20 object-cover"
+          />
+          <div>
+            <div className="text-lg font-bold">
+              고윤정님의 상점
+              <span className="text-gray-400 text-base font-light ml-2">4.8 (12)</span>
+            </div>
+
+            <div className="flex items-center gap-2 mt-2">
+              <div className="flex items-center gap-4 mb-4">
+                <span className="text-red-500 font-medium">신뢰지수 {trustScore}</span>
                 <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div className="h-2 bg-green-500 rounded-full" style={{ width: "30%" }}></div>
+                  <div
+                    className="h-2 bg-green-500 rounded-full transition-all duration-500"
+                    style={{ width: `${trustPercentage}%` }}
+                  />
                 </div>
                 <span className="text-gray-500 text-sm ml-2">1,000</span>
               </div>
             </div>
           </div>
+        </div>
         </section>
       </main>
 
