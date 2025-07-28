@@ -73,7 +73,9 @@ const CATEGORIES = [
   { 
     id: 10,
     name: '스포츠/레저', 
-    sub: [] 
+    sub: [
+      {id: 101, name: '스포츠'},
+    ] 
   },
   { 
     id: 11,

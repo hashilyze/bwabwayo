@@ -18,7 +18,7 @@ async function getSellingProducts() {
       wish_count:5,
       view_count:23,
       is_like:true,
-      status:true
+      status: '판매중'
     },
     {
       id: 2,
@@ -29,7 +29,7 @@ async function getSellingProducts() {
       wish_count:5,
       view_count:23,
       is_like:false,
-      status:false
+      status: '판매완료'
     },
   ];
 

@@ -13,7 +13,7 @@ type Product = {
   wish_count: number;
   view_count: number;
   is_like: boolean;
-  status: boolean;
+  status: string;
 }
 
 type Props = {
@@ -24,7 +24,7 @@ export default function ProductCard({ products }: Props) {
   const router = useRouter();
 
   const handleCardClick = (e: MouseEvent<HTMLDivElement>, productId: number) => {
-    const target = e.target as HTMLElement;
+    const target = e.target as HTMLElement; 
     if (target.closest('a')) return; // Link 내부 클릭시 무시
     router.push(`/product/${productId}`);
   };
