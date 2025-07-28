@@ -14,7 +14,7 @@ export type Product = {
   wish_count: number;
   view_count: number;
   is_like: boolean;
-  status: "거래중" | "판매중" | "판매완료";
+  status: string;
 }
 
 type Props = {
