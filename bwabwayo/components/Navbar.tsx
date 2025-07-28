@@ -4,19 +4,24 @@ import { useRouter } from 'next/navigation'
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import Category from './Category';
+import { useCategoryStore } from '../stores/categoryStore';
 
 export default function Navbar() {
     const [title, setTitle] = useState('')
     const [showCategory, setShowCategory] = useState(false);
     const categoryRef = useRef<HTMLDivElement>(null);
     const router = useRouter()
+    const { getCategories } = useCategoryStore();
+
+    // 컴포넌트 마운트 시 카테고리 데이터 로드
+    useEffect(() => {
+        getCategories();
+    }, [getCategories]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         router.push(`/search?title=${encodeURIComponent(title)}`)
     }
-
-
 
     return (
         <nav className="border-b-1 border-[#eee]">

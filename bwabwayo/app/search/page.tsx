@@ -3,139 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useProductStore } from '../../stores/productStore';
+import { useCategoryStore } from '../../stores/categoryStore';
 import ProductCard from '../../components/product/ProductCard';
-
-// Category.tsx의 CATEGORIES 참고
-const CATEGORIES = [
-  {
-    id: 1,
-    name: '여성의류',
-    sub: [
-      {id: 11, name: '상의'},
-      {id: 12, name: '하의'},
-      {id: 13, name: '아우터'},
-      {id: 14, name: '스웨터'},
-    ]
-  },
-  { 
-    id: 2,
-    name: '남성의류', 
-    sub: [
-      {id: 21, name: '상의'},
-      {id: 22, name: '하의'},
-      {id: 23, name: '아우터'},
-    ] 
-  },
-  { 
-    id: 3,
-    name: '신발', 
-    sub: [
-      {id: 31, name: '스니커즈'},
-      {id: 32, name: '남성화'},
-      {id: 33, name: '여성화'},
-      {id: 34, name: '스포츠화'},
-    ] 
-  },
-  { 
-    id: 4,
-    name: '가방/지갑', 
-    sub: [
-      {id: 41, name: '가방'},
-      {id: 42, name: '지갑'},
-    ] 
-  },
-  { 
-    id: 5,
-    name: '시계', 
-    sub: [] 
-  },
-  { 
-    id: 6,
-    name: '쥬얼리', 
-    sub: [] 
-  },
-  { 
-    id: 7,
-    name: '패션 액세서리', 
-    sub: [] 
-  },
-  { 
-    id: 8,
-    name: '디지털', 
-    sub: [
-      {id: 81, name: '모바일'},
-      {id: 82, name: 'PC/노트북'},
-      {id: 83, name: '카메라'},
-    ] 
-  },
-  { 
-    id: 9,
-    name: '가전제품', 
-    sub: [] 
-  },
-  { 
-    id: 10,
-    name: '스포츠/레저', 
-    sub: [
-      {id: 101, name: '스포츠'},
-    ] 
-  },
-  { 
-    id: 11,
-    name: '스타굿즈', 
-    sub: [] 
-  },
-  { 
-    id: 12,
-    name: '키덜트', 
-    sub: [] 
-  },
-  { 
-    id: 13,
-    name: '예술/희귀/수집품', 
-    sub: [] 
-  },
-  { 
-    id: 14,
-    name: '음반/악기', 
-    sub: [] 
-  },
-  { 
-    id: 15,
-    name: '도서/티켓/문구', 
-    sub: [] 
-  },
-  { 
-    id: 16,
-    name: '뷰티/미용', 
-    sub: [] 
-  },
-  { 
-    id: 17,
-    name: '생활/주방용품', 
-    sub: [] 
-  },
-  { 
-    id: 18,
-    name: '식품', 
-    sub: [] 
-  },
-  { 
-    id: 19,
-    name: '유아/출산', 
-    sub: [] 
-  },
-  { 
-    id: 20,
-    name: '반려동물용품', 
-    sub: [] 
-  },
-  { 
-    id: 21,
-    name: '기타', 
-    sub: [] 
-  },
-];
 
 export default function SearchPage({
     searchParams,
@@ -143,7 +12,8 @@ export default function SearchPage({
     searchParams: { title?: string, category?: string }
 }) {
   const router = useRouter();
-  const { products, loading, error, searchProducts, getProductsByCategory, clearProducts } = useProductStore();
+  const { products, loading, error, getProducts, clearProducts } = useProductStore();
+  const { categories, getCategories } = useCategoryStore();
   const [showMajorCategories, setShowMajorCategories] = useState<boolean>(false);
   const [showMinorCategories, setShowMinorCategories] = useState<boolean>(false);
   const [selectedMajorCategory, setSelectedMajorCategory] = useState<string>('');
@@ -151,35 +21,77 @@ export default function SearchPage({
   const [selectedCategoryPath, setSelectedCategoryPath] = useState<string>('전체');
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
+  const [appliedMinPrice, setAppliedMinPrice] = useState<string>('');
+  const [appliedMaxPrice, setAppliedMaxPrice] = useState<string>('');
+
+  // 숫자에 콤마 추가하는 함수
+  const formatNumber = (value: string): string => {
+    if (!value) return '';
+    const number = value.replace(/,/g, '');
+    if (isNaN(Number(number))) return value;
+    return Number(number).toLocaleString();
+  };
+
+  // 콤마 제거하는 함수 (API 호출시 사용)
+  const removeCommas = (value: string): string => {
+    return value.replace(/,/g, '');
+  };
+
+  // 페이지 진입 시 가격 필터 초기화
+  React.useEffect(() => {
+    // 가격 필터 상태 초기화
+    setMinPrice('');
+    setMaxPrice('');
+    setAppliedMinPrice('');
+    setAppliedMaxPrice('');
+  }, []);
+
+  // 카테고리 데이터 로드
+  React.useEffect(() => {
+    if (categories.length === 0) {
+      getCategories();
+    }
+  }, [categories.length, getCategories]);
 
   // 쿼리 파라미터에서 카테고리 정보 설정 및 API 호출
   React.useEffect(() => {
+    // 라우트 파라미터가 변경될 때마다 가격 필터 초기화
+    setMinPrice('');
+    setMaxPrice('');
+    setAppliedMinPrice('');
+    setAppliedMaxPrice('');
+    
     if (searchParams.category) {
       const categoryId = parseInt(searchParams.category);
       
       // 대분류인지 확인
-      const majorCategory = CATEGORIES.find(cat => cat.id === categoryId);
+      const majorCategory = categories.find(cat => cat.id === categoryId);
       if (majorCategory) {
         setSelectedMajorCategory(majorCategory.name);
+        setSelectedMinorCategory(''); // 소분류 초기화
         setSelectedCategoryPath(`전체 > ${majorCategory.name}`);
-        getProductsByCategory(categoryId);
+        setShowMajorCategories(false);
+        setShowMinorCategories(false);
+        getProducts({ category_id: categoryId });
         return;
       }
       
       // 소분류인지 확인
-      for (const majorCat of CATEGORIES) {
+      for (const majorCat of categories) {
         const minorCategory = majorCat.sub.find(sub => sub.id === categoryId);
         if (minorCategory) {
           setSelectedMajorCategory(majorCat.name);
           setSelectedMinorCategory(minorCategory.name);
           setSelectedCategoryPath(`전체 > ${majorCat.name} > ${minorCategory.name}`);
-          getProductsByCategory(categoryId);
+          setShowMajorCategories(false);
+          setShowMinorCategories(false);
+          getProducts({ category_id: categoryId });
           return;
         }
       }
     } else if (searchParams.title) {
       // 검색어가 있으면 검색 API 호출
-      searchProducts(searchParams.title);
+      getProducts({ title: searchParams.title });
     } else {
       // category 파라미터가 없으면 카테고리 초기화
       setSelectedMajorCategory('');
@@ -189,7 +101,7 @@ export default function SearchPage({
       setShowMinorCategories(false);
       clearProducts();
     }
-  }, [searchParams.category, searchParams.title, searchProducts, getProductsByCategory, clearProducts]);
+  }, [searchParams.category, searchParams.title, getProducts, clearProducts, categories]);
 
   // 전체 클릭 시
   const handleAllCategoryClick = () => {
@@ -232,7 +144,7 @@ export default function SearchPage({
 
   // 대분류 선택 시
   const handleMajorCategorySelect = (categoryName: string) => {
-    const selectedCategory = CATEGORIES.find(cat => cat.name === categoryName);
+    const selectedCategory = categories.find(cat => cat.name === categoryName);
     if (selectedCategory) {
       setSelectedMajorCategory(categoryName);
       setSelectedMinorCategory(''); // 소분류 초기화
@@ -258,7 +170,7 @@ export default function SearchPage({
 
   // 소분류 선택 시
   const handleMinorCategorySelect = (categoryName: string) => {
-    const selectedMajorCategoryObj = CATEGORIES.find(cat => cat.name === selectedMajorCategory);
+    const selectedMajorCategoryObj = categories.find(cat => cat.name === selectedMajorCategory);
     const selectedSubCategory = selectedMajorCategoryObj?.sub.find(sub => sub.name === categoryName);
     
     if (selectedSubCategory) {
@@ -284,9 +196,20 @@ export default function SearchPage({
 
   // 가격 적용
   const handlePriceApply = () => {
-    const min = minPrice ? parseInt(minPrice) : 0;
-    const max = maxPrice ? parseInt(maxPrice) : 0;
-    console.log('가격 범위:', min, '~', max);
+    const min = minPrice ? parseInt(removeCommas(minPrice)) : 0;
+    const max = maxPrice ? parseInt(removeCommas(maxPrice)) : undefined;
+    
+    // 적용된 가격 상태 업데이트
+    setAppliedMinPrice(minPrice);
+    setAppliedMaxPrice(maxPrice);
+    
+    if (!minPrice && !maxPrice) {
+      // 둘 다 입력하지 않은 경우 전체 상품 조회
+      getProducts();
+      return;
+    }
+    
+    getProducts({ minPrice: min, maxPrice: max });
   };
 
       return(
@@ -326,7 +249,20 @@ export default function SearchPage({
                         <li className="text-sm leading-5 text-[#9ca3af]">&gt;</li>
                         <li 
                           className="cursor-pointer hover:text-[#155dfc]"
-                          onClick={() => handleMajorCategorySelect(selectedMajorCategory)}
+                          onClick={() => {
+                            const majorCat = categories.find(cat => cat.name === selectedMajorCategory);
+                            if (majorCat) {
+                              const currentUrl = new URL(window.location.href);
+                              const searchParams = new URLSearchParams(currentUrl.search);
+                              const title = searchParams.get('title');
+                              
+                              const newUrl = new URL('/search', window.location.origin);
+                              if (title) newUrl.searchParams.set('title', title);
+                              newUrl.searchParams.set('category', majorCat.id.toString());
+                              
+                              router.push(newUrl.pathname + newUrl.search);
+                            }
+                          }}
                         >
                           {selectedMajorCategory}
                         </li>
@@ -352,7 +288,7 @@ export default function SearchPage({
                 <td className="w-36 bg-gray-50 p-4">대분류 선택</td>
                 <td className="p-4">
                   <ul className="grid grid-cols-8 gap-2">
-                    {CATEGORIES.map((category) => (
+                    {categories.map((category) => (
                       <li 
                         key={category.id}
                         onClick={() => handleMajorCategorySelect(category.name)}
@@ -372,7 +308,7 @@ export default function SearchPage({
                 <td className="w-36 bg-gray-50 p-4">소분류 선택</td>
                 <td className="p-4">
                   <ul className="grid grid-cols-8 gap-2">
-                    {CATEGORIES.find(cat => cat.name === selectedMajorCategory)?.sub.map((subCategory) => (
+                    {categories.find(cat => cat.name === selectedMajorCategory)?.sub.map((subCategory) => (
                       <li 
                         key={subCategory.id}
                         onClick={() => handleMinorCategorySelect(subCategory.name)}
@@ -391,15 +327,20 @@ export default function SearchPage({
               <td className="w-36 bg-gray-50 p-4">
                 <h3 className="text-base font-normal text-black">가격</h3>
               </td>
-              <td className="p-4">
+              <td className="p-4 flex gap-2 items-center">
                 <div className="flex items-center gap-2">
                   {/* 최소 가격 입력 */}
                   <div className="relative">
                     <input
-                      type="number"
+                      type="text"
                       placeholder="최소 가격"
                       value={minPrice}
-                      onChange={(e) => setMinPrice(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/,/g, '');
+                        if (value === '' || !isNaN(Number(value))) {
+                          setMinPrice(formatNumber(value));
+                        }
+                      }}
                       onWheel={(e) => (e.target as HTMLInputElement).blur()}
                       className="w-36 px-3 py-2 border border-gray-200 rounded-sm text-sm text-black focus:outline-none focus:border-[#000000] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
@@ -409,10 +350,15 @@ export default function SearchPage({
                   {/* 최대 가격 입력 */}
                   <div className="relative">
                     <input
-                      type="number"
+                      type="text"
                       placeholder="최대 가격"
                       value={maxPrice}
-                      onChange={(e) => setMaxPrice(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/,/g, '');
+                        if (value === '' || !isNaN(Number(value))) {
+                          setMaxPrice(formatNumber(value));
+                        }
+                      }}
                       onWheel={(e) => (e.target as HTMLInputElement).blur()}
                       className="w-36 px-3 py-2 border border-gray-200 rounded-sm text-sm text-black focus:outline-none focus:border-[#000000] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
@@ -426,26 +372,50 @@ export default function SearchPage({
                     적용
                   </button>
                 </div>
+                <div>
+                  {(appliedMinPrice || appliedMaxPrice) && (
+                    <div className="inline-flex items-center bg-gray-100 px-3 py-1 rounded-full text-sm">
+                      <span>
+                        {appliedMinPrice || '0'} ~ {appliedMaxPrice || ''}
+                      </span>
+                      <button
+                        onClick={() => {
+                          setMinPrice('');
+                          setMaxPrice('');
+                          setAppliedMinPrice('');
+                          setAppliedMaxPrice('');
+                          // 필터링 초기화 - 전체 상품 조회
+                          getProducts();
+                        }}
+                        className="ml-2 text-gray-500 hover:text-gray-700 cursor-pointer"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-      {loading ? (
-        <div className="flex justify-center items-center py-8">
-          <div className="text-lg">로딩 중...</div>
-        </div>
-      ) : error ? (
-        <div className="flex justify-center items-center py-8">
-          <div className="text-lg text-red-500">{error}</div>
-        </div>
-      ) : products.length > 0 ? (
-        <ProductCard products={products} />
-      ) : (
-        <div className="flex justify-center items-center py-8">
-          <div className="text-lg text-gray-500">검색 결과가 없습니다.</div>
-        </div>
-      )}
+      <div className='mt-10'>
+        {loading ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="text-lg">로딩 중...</div>
+          </div>
+        ) : error ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="text-lg text-red-500">{error}</div>
+          </div>
+        ) : products.length > 0 ? (
+          <ProductCard products={products} />
+        ) : (
+          <div className="flex justify-center items-center py-8">
+            <div className="text-lg text-gray-500">검색 결과가 없습니다.</div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

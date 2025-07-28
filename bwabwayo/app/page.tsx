@@ -7,11 +7,11 @@ import React, { useEffect } from 'react';
 import { useProductStore } from '../stores/productStore';
 
 export default function Home() {
-  const { products, loading, error, getAllProducts } = useProductStore();
+  const { products, loading, error, getProducts } = useProductStore();
 
   useEffect(() => {
-    getAllProducts();
-  }, [getAllProducts]);
+    getProducts();
+  }, [getProducts]);
 
   return (
     <div>

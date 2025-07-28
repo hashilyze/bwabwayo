@@ -27,22 +27,16 @@ export default function Sidebar({ userId }: { userId: string }) {
   };
 
   return (
-    <aside className="w-64 flex-shrink-0 bg-white rounded-xl shadow p-8 hidden lg:block">
-      {/* --- 수정된 부분 --- */}
-      {/* h2 태그를 Link 컴포넌트로 감싸서 클릭 시 상점 메인 페이지로 이동하도록 합니다. */}
-      <Link href={`/shop/${userId}`}>
-        <h2 className="text-3xl font-bold mb-10 hover:text-blue-600 transition-colors">마이페이지</h2>
-      </Link>
-      
+    <div className="w-64">
+      <h2 className="text-2xl font-bold mb-6">마이페이지</h2>
       <nav>
-        <ul className="space-y-8">
+        <ul className="space-y-5">
           {Object.entries(menuItems).map(([sectionTitle, items], index) => (
-            <li key={sectionTitle} className={index > 0 ? "border-t border-gray-200 pt-8" : ""}>
-              <h3 className="text-xl font-bold mb-4">{sectionTitle}</h3>
-              <ul className="space-y-3 pl-2">
+            <li key={sectionTitle} className={index > 0 ? "border-t border-gray-200 pt-6" : ""}>
+              <h3 className="text-xl font-bold mb-3">{sectionTitle}</h3>
+              <ul className="space-y-2">
                 {items.map(item => (
                   <li key={item.name}>
-                    {/* a 태그를 Next.js의 Link 컴포넌트로 교체합니다. */}
                     <Link 
                       href={item.href} 
                       // 현재 경로(pathname)와 링크의 경로(item.href)가 일치하면 활성화 스타일을 적용합니다.
@@ -57,6 +51,6 @@ export default function Sidebar({ userId }: { userId: string }) {
           ))}
         </ul>
       </nav>
-    </aside>
+    </div>
   );
 }
