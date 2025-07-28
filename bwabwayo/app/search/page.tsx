@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useProductStore } from '../../stores/productStore';
 import { useCategoryStore } from '../../stores/categoryStore';
 import ProductCard from '../../components/product/ProductCard';
@@ -16,8 +17,8 @@ export default function SearchPage({
   const { categories, getCategories } = useCategoryStore();
   const [showMajorCategories, setShowMajorCategories] = useState<boolean>(false);
   const [showMinorCategories, setShowMinorCategories] = useState<boolean>(false);
-  const [selectedMajorCategory, setSelectedMajorCategory] = useState<string>('');
-  const [selectedMinorCategory, setSelectedMinorCategory] = useState<string>('');
+  const [selectedMajorCategoryId, setSelectedMajorCategoryId] = useState<number | null>(null);
+  const [selectedMinorCategoryId, setSelectedMinorCategoryId] = useState<number | null>(null);
   const [selectedCategoryPath, setSelectedCategoryPath] = useState<string>('전체');
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
@@ -53,77 +54,104 @@ export default function SearchPage({
     }
   }, [categories.length, getCategories]);
 
-  // 쿼리 파라미터에서 카테고리 정보 설정 및 API 호출
+  // URL에서 카테고리 정보를 파싱하여 브레드크럼 구성
+  const parseCategoryFromUrl = React.useCallback(() => {
+    if (!searchParams.category || categories.length === 0) {
+      return {
+        majorCategory: null,
+        minorCategory: null,
+        breadcrumb: '전체',
+        categoryType: 'none'
+      };
+    }
+
+    const categoryId = parseInt(searchParams.category);
+    
+    // 대분류인지 확인
+    const majorCategory = categories.find(cat => cat.id === categoryId);
+    if (majorCategory) {
+      return {
+        majorCategory: majorCategory,
+        minorCategory: null,
+        breadcrumb: `전체 > ${majorCategory.name}`,
+        categoryType: 'major'
+      };
+    }
+    
+    // 소분류인지 확인 (해당 대분류도 함께 찾기)
+    for (const majorCat of categories) {
+      if (majorCat.sub && Array.isArray(majorCat.sub)) {
+        const minorCategory = majorCat.sub.find(sub => sub.id === categoryId);
+        if (minorCategory) {
+          return {
+            majorCategory: majorCat,
+            minorCategory: minorCategory,
+            breadcrumb: `전체 > ${majorCat.name} > ${minorCategory.name}`,
+            categoryType: 'minor'
+          };
+        }
+      }
+    }
+    
+    // 카테고리를 찾지 못한 경우
+    return {
+      majorCategory: null,
+      minorCategory: null,
+      breadcrumb: '전체',
+      categoryType: 'none'
+    };
+  }, [searchParams.category, categories]);
+
+  // URL 파라미터 변경 시 브레드크럼 및 상태 업데이트
   React.useEffect(() => {
-    // 라우트 파라미터가 변경될 때마다 가격 필터 초기화
+    // 가격 필터 초기화
     setMinPrice('');
     setMaxPrice('');
     setAppliedMinPrice('');
     setAppliedMaxPrice('');
     
-    if (searchParams.category) {
-      const categoryId = parseInt(searchParams.category);
-      
-      // 대분류인지 확인
-      const majorCategory = categories.find(cat => cat.id === categoryId);
-      if (majorCategory) {
-        setSelectedMajorCategory(majorCategory.name);
-        setSelectedMinorCategory(''); // 소분류 초기화
-        setSelectedCategoryPath(`전체 > ${majorCategory.name}`);
-        setShowMajorCategories(false);
-        setShowMinorCategories(false);
-        getProducts({ category_id: categoryId });
-        return;
-      }
-      
-      // 소분류인지 확인
-      for (const majorCat of categories) {
-        const minorCategory = majorCat.sub.find(sub => sub.id === categoryId);
-        if (minorCategory) {
-          setSelectedMajorCategory(majorCat.name);
-          setSelectedMinorCategory(minorCategory.name);
-          setSelectedCategoryPath(`전체 > ${majorCat.name} > ${minorCategory.name}`);
-          setShowMajorCategories(false);
-          setShowMinorCategories(false);
-          getProducts({ category_id: categoryId });
-          return;
-        }
-      }
-    } else if (searchParams.title) {
-      // 검색어가 있으면 검색 API 호출
-      getProducts({ title: searchParams.title });
-    } else {
-      // category 파라미터가 없으면 카테고리 초기화
-      setSelectedMajorCategory('');
-      setSelectedMinorCategory('');
-      setSelectedCategoryPath('전체');
+    const categoryInfo = parseCategoryFromUrl();
+    
+    // 브레드크럼 및 선택된 카테고리 상태 업데이트
+    setSelectedCategoryPath(categoryInfo.breadcrumb);
+    // 소분류 선택 시에도 대분류 ID를 저장 (브레드크럼에서 대분류 이름을 찾기 위해)
+    setSelectedMajorCategoryId(categoryInfo.majorCategory?.id || null);
+    setSelectedMinorCategoryId(categoryInfo.minorCategory?.id || null);
+    
+    // 탭 상태 설정
+    if (categoryInfo.categoryType === 'major') {
+      // 대분류 선택 시: 소분류 탭 열기
+      setShowMajorCategories(false);
+      setShowMinorCategories(true);
+    } else if (categoryInfo.categoryType === 'minor') {
+      // 소분류 선택 시: 모든 탭 닫기
       setShowMajorCategories(false);
       setShowMinorCategories(false);
-      clearProducts();
+    } else {
+      // 카테고리 없음: 현재 탭 상태 유지 (전체 클릭 시 대분류 탭이 열려있을 수 있음)
+      setShowMinorCategories(false);
     }
-  }, [searchParams.category, searchParams.title, getProducts, clearProducts, categories]);
+    
+    // API 호출
+    if (searchParams.category) {
+      const categoryId = parseInt(searchParams.category);
+      getProducts({ category_id: categoryId });
+    } else if (searchParams.title) {
+      getProducts({ title: searchParams.title });
+    } else {
+      // 파라미터가 없으면 상품 조회하지 않음 (전체 클릭은 handleAllCategoryClick에서 처리)
+    }
+  }, [searchParams.category, searchParams.title, parseCategoryFromUrl, getProducts]);
 
-  // 전체 클릭 시
-  const handleAllCategoryClick = () => {
-    setSelectedMajorCategory('');
-    setSelectedMinorCategory('');
-    setSelectedCategoryPath('전체');
-    setShowMajorCategories(false);
-    setShowMinorCategories(false);
-    
-    // 카테고리 쿼리 파라미터 제거
-    const currentUrl = new URL(window.location.href);
-    const searchParams = new URLSearchParams(currentUrl.search);
-    
-    // 기존 쿼리 파라미터 유지 (category 제외)
-    const title = searchParams.get('title');
-    
-    // 새로운 URL 생성
-    const newUrl = new URL('/search', window.location.origin);
-    if (title) newUrl.searchParams.set('title', title);
-    
-    router.push(newUrl.pathname + newUrl.search);
+  // URL 생성 헬퍼 함수
+  const createSearchUrl = (categoryId?: number) => {
+    const params = new URLSearchParams();
+    if (searchParams.title) params.set('title', searchParams.title);
+    if (categoryId) params.set('category', categoryId.toString());
+    return `/search${params.toString() ? `?${params.toString()}` : ''}`;
   };
+
+
 
   // + 버튼 클릭 시 카테고리 토글
   const handleShowMajorCategories = () => {
@@ -133,7 +161,7 @@ export default function SearchPage({
     } else if (showMinorCategories) {
       // 소분류가 열려있으면 닫기
       setShowMinorCategories(false);
-    } else if (selectedMajorCategory && !showMinorCategories) {
+    } else if (selectedMajorCategoryId && !showMinorCategories) {
       // 대분류가 선택되어 있고 소분류가 닫혀있으면 소분류 열기
       setShowMinorCategories(true);
     } else {
@@ -142,57 +170,9 @@ export default function SearchPage({
     }
   };
 
-  // 대분류 선택 시
-  const handleMajorCategorySelect = (categoryName: string) => {
-    const selectedCategory = categories.find(cat => cat.name === categoryName);
-    if (selectedCategory) {
-      setSelectedMajorCategory(categoryName);
-      setSelectedMinorCategory(''); // 소분류 초기화
-      setShowMajorCategories(false);
-      setShowMinorCategories(true);
-      setSelectedCategoryPath(`전체 > ${categoryName}`);
-      
-      // 대분류 선택 시 검색 페이지로 이동
-      const currentUrl = new URL(window.location.href);
-      const searchParams = new URLSearchParams(currentUrl.search);
-      
-      // 기존 쿼리 파라미터 유지
-      const title = searchParams.get('title');
-      
-      // 새로운 URL 생성
-      const newUrl = new URL('/search', window.location.origin);
-      if (title) newUrl.searchParams.set('title', title);
-      newUrl.searchParams.set('category', selectedCategory.id.toString());
-      
-      router.push(newUrl.pathname + newUrl.search);
-    }
-  };
 
-  // 소분류 선택 시
-  const handleMinorCategorySelect = (categoryName: string) => {
-    const selectedMajorCategoryObj = categories.find(cat => cat.name === selectedMajorCategory);
-    const selectedSubCategory = selectedMajorCategoryObj?.sub.find(sub => sub.name === categoryName);
-    
-    if (selectedSubCategory) {
-      setSelectedMinorCategory(categoryName);
-      setShowMinorCategories(false);
-      setSelectedCategoryPath(`전체 > ${selectedMajorCategory} > ${categoryName}`);
-      
-      // 소분류 선택 시 검색 페이지로 이동
-      const currentUrl = new URL(window.location.href);
-      const searchParams = new URLSearchParams(currentUrl.search);
-      
-      // 기존 쿼리 파라미터 유지
-      const title = searchParams.get('title');
-      
-      // 새로운 URL 생성
-      const newUrl = new URL('/search', window.location.origin);
-      if (title) newUrl.searchParams.set('title', title);
-      newUrl.searchParams.set('category', selectedSubCategory.id.toString());
-      
-      router.push(newUrl.pathname + newUrl.search);
-    }
-  };
+
+
 
   // 가격 적용
   const handlePriceApply = () => {
@@ -240,40 +220,47 @@ export default function SearchPage({
                       <span className="">{selectedCategoryPath}</span>
                     ) : (
                       <ul className="flex items-center gap-2">
-                        <li 
-                          className="cursor-pointer hover:text-[#155dfc]"
-                          onClick={handleAllCategoryClick}
-                        >
-                          전체
+                        <li>
+                          <Link 
+                            href={createSearchUrl()}
+                            className="cursor-pointer hover:text-[#155dfc]"
+                          >
+                            전체
+                          </Link>
                         </li>
                         <li className="text-sm leading-5 text-[#9ca3af]">&gt;</li>
-                        <li 
-                          className="cursor-pointer hover:text-[#155dfc]"
-                          onClick={() => {
-                            const majorCat = categories.find(cat => cat.name === selectedMajorCategory);
-                            if (majorCat) {
-                              const currentUrl = new URL(window.location.href);
-                              const searchParams = new URLSearchParams(currentUrl.search);
-                              const title = searchParams.get('title');
-                              
-                              const newUrl = new URL('/search', window.location.origin);
-                              if (title) newUrl.searchParams.set('title', title);
-                              newUrl.searchParams.set('category', majorCat.id.toString());
-                              
-                              router.push(newUrl.pathname + newUrl.search);
-                            }
-                          }}
-                        >
-                          {selectedMajorCategory}
+                        <li>
+                          {(() => {
+                            const majorCat = categories.find(cat => cat.id === selectedMajorCategoryId);
+
+                            return (
+                              <Link 
+                                href={majorCat ? createSearchUrl(majorCat.id) : createSearchUrl()}
+                                className="cursor-pointer hover:text-[#155dfc]"
+                              >
+                                {majorCat?.name || ''}
+                              </Link>
+                            );
+                          })()}
                         </li>
-                        {selectedMinorCategory && (
+                        {selectedMinorCategoryId && (
                           <>
                             <li className="text-sm leading-5 text-[#9ca3af]">&gt;</li>
-                            <li 
-                              className="cursor-pointer hover:text-[#155dfc]"
-                              onClick={() => handleMinorCategorySelect(selectedMinorCategory)}
-                            >
-                              {selectedMinorCategory}
+                            <li>
+                              {(() => {
+                                const minorCat = categories
+                                  .flatMap(cat => cat.sub)
+                                  .find(sub => sub.id === selectedMinorCategoryId);
+
+                                return (
+                                  <Link 
+                                    href={searchParams.category ? createSearchUrl(parseInt(searchParams.category)) : createSearchUrl()}
+                                    className="cursor-pointer hover:text-[#155dfc]"
+                                  >
+                                    {minorCat?.name || ''}
+                                  </Link>
+                                );
+                              })()}
                             </li>
                           </>
                         )}
@@ -289,12 +276,13 @@ export default function SearchPage({
                 <td className="p-4">
                   <ul className="grid grid-cols-8 gap-2">
                     {categories.map((category) => (
-                      <li 
-                        key={category.id}
-                        onClick={() => handleMajorCategorySelect(category.name)}
-                        className="text-sm text-[#5a5a5a] px-3 py-2 hover:text-[#155dfc] cursor-pointer"
-                      >
-                        {category.name}
+                      <li key={category.id}>
+                        <Link 
+                          href={createSearchUrl(category.id)}
+                          className="text-sm text-[#5a5a5a] px-3 py-2 hover:text-[#155dfc] cursor-pointer block"
+                        >
+                          {category.name}
+                        </Link>
                       </li>
                     ))}
                   </ul>
@@ -303,18 +291,19 @@ export default function SearchPage({
               )}
 
               {/* 소분류 선택 행 */}
-              {showMinorCategories && selectedMajorCategory && (
+              {showMinorCategories && selectedMajorCategoryId && (
               <tr className="category border-b border-[#dadee5]">
                 <td className="w-36 bg-gray-50 p-4">소분류 선택</td>
                 <td className="p-4">
                   <ul className="grid grid-cols-8 gap-2">
-                    {categories.find(cat => cat.name === selectedMajorCategory)?.sub.map((subCategory) => (
-                      <li 
-                        key={subCategory.id}
-                        onClick={() => handleMinorCategorySelect(subCategory.name)}
-                        className="text-sm text-[#5a5a5a] px-3 py-2 hover:text-[#155dfc] cursor-pointer"
-                      >
-                        {subCategory.name}
+                    {categories.find(cat => cat.id === selectedMajorCategoryId)?.sub.map((subCategory) => (
+                      <li key={subCategory.id}>
+                        <Link 
+                          href={createSearchUrl(subCategory.id)}
+                          className="text-sm text-[#5a5a5a] px-3 py-2 hover:text-[#155dfc] cursor-pointer block"
+                        >
+                          {subCategory.name}
+                        </Link>
                       </li>
                     ))}
                   </ul>
