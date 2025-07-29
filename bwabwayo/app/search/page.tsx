@@ -152,7 +152,6 @@ export default function SearchPage({
   // URL 생성 헬퍼 함수
   const createSearchUrl = (categoryId?: number) => {
     const params = new URLSearchParams();
-    console.log(categoryId)
     if (searchParams.title) params.set('title', searchParams.title);
     if (categoryId) params.set('category', categoryId.toString());
     return `/search${params.toString() ? `?${params.toString()}` : ''}`;
