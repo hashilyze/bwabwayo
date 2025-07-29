@@ -9,15 +9,22 @@ interface ChatBotMessage {
     advantage: string
 }
 
+// 서버에서 오는 실제 응답 전체의 타입 ({ "products": [...] })
+interface ChatBotResponse {
+    products: ChatBotMessage[];
+}
+
 interface ChatBotStore {
-    chatBot: ChatBotMessage[]
+    chatBot: ChatBotResponse | null
     loading: boolean
     error: string | null
     getChatBot: (message: string) => Promise<void>
+    // clearChatBot 함수를 설계도에 추가합니다.
+    clearChatBot: () => void
 }
 
 export const useChatBotStore = create<ChatBotStore>((set) => ({
-    chatBot: [],
+    chatBot: null,
     loading: false,
     error: null,
 
@@ -34,7 +41,7 @@ export const useChatBotStore = create<ChatBotStore>((set) => ({
             if (!response.ok) {
                 throw new Error('챗봇 조회에 실패했습니다')
             }
-            const data = await response.json()
+            const data: ChatBotResponse = await response.json()
             console.log(data)
             set({ chatBot: data, loading: false })
         } catch (error) {
@@ -43,5 +50,10 @@ export const useChatBotStore = create<ChatBotStore>((set) => ({
                 loading: false 
             })
         }
+    },
+        // --- 추가된 부분: clearChatBot 함수 구현 ---
+    // 이 함수는 chatBot 상태를 다시 초기값(null)으로 되돌립니다.
+    clearChatBot: () => {
+        set({ chatBot: null, loading: false, error: null  });
     }
 }))

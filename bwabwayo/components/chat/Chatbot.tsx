@@ -1,139 +1,138 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+// chatBotStore.ts 파일의 경로가 올바른지 확인해주세요.
 import { useChatBotStore } from '../../stores/chatBotStore';
 
-
 // --- 타입 정의 ---
-// 화면에 표시될 메시지의 타입을 정의합니다.
 type DisplayMessage = {
-  type: 'greeting' | 'user' | 'bot' | 'loading';
-  text: string;
+  type: 'greeting' | 'user' | 'bot' | 'loading';
+  text: string;
 };
 
-
-// 닫기 아이콘
+// --- 아이콘 컴포넌트들 ---
 const CloseIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-500 hover:text-black">
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
 );
-
-// 전송 종이비행기 아이콘
 const SendIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-white">
         <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
     </svg>
 );
-// 챗봇 얼굴 아이콘
-
 const ChatbotIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-white">
       <path fillRule="evenodd" d="M4.848 2.771A49.144 49.144 0 0112 2.25c2.43 0 4.817.178 7.152.52 1.978.292 3.348 2.024 3.348 3.97v6.02c0 1.946-1.37 3.678-3.348 3.97a48.901 48.901 0 01-3.476.383.39.39 0 00-.297.17l-2.755 4.133a.75.75 0 01-1.248 0l-2.755-4.133a.39.39 0 00-.297-.17 48.9 48.9 0 01-3.476-.384c-1.978-.29-3.348-2.024-3.348-3.97V6.741c0-1.946 1.37-3.68 3.348-3.97zM6.75 8.25a.75.75 0 01.75-.75h9a.75.75 0 010 1.5h-9a.75.75 0 01-.75-.75zm.75 2.25a.75.75 0 000 1.5H12a.75.75 0 000-1.5H7.5z" clipRule="evenodd" />
     </svg>
 );
 
-
-// 챗봇 창 컴포넌트
-// 이 컴포넌트는 챗봇의 UI와 내부 동작을 담당합니다.
+// --- 챗봇 창 컴포넌트 ---
 function ChatbotWindow({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
-    const [messages, setMessages] = useState([
-      //챗봇 초기 인사말
-        { type: 'greeting', text: '안녕하세요, 무엇이 궁금하신가요?' }
+    const [messages, setMessages] = useState<DisplayMessage[]>([
+        { type: 'bot', text: '안녕하세요, 궁금하신 상품 있으신가요?' }
     ]);
     const [inputValue, setInputValue] = useState('');
+    //채팅 영역
     const chatAreaRef = useRef<HTMLDivElement>(null);
+    //챗봇 전체 영역
+     const chatbotWindowRef = useRef<HTMLDivElement>(null);
 
-    // Zustand store에서 챗봇 데이터, 로딩 상태, 에러 정보, API 호출 함수를 가져옵니다.
-    const { chatBot, getChatBot, loading, error } = useChatBotStore();
+    // Zustand 스토어에서 필요한 상태와 함수를 가져옵니다.
+    // clearChatBot은 스토어에 추가해야 합니다.
+    const { chatBot, getChatBot, loading, error, clearChatBot } = useChatBotStore();
 
+    // 새 메시지가 추가될 때마다 스크롤을 맨 아래로 이동합니다.
     useEffect(() => {
-        // chatAreaRef가 존재할 때 (컴포넌트가 마운트되었을 때) 스크롤을 가장 아래로 이동시킵니다.
         if (chatAreaRef.current) {
             chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
         }
     }, [messages]);
 
-    // zustande 스토어의 상태 변화 감지 useEffect
-    // chatBot 데이터가 들어올 때마다 요약 + 상세 메시지 추가
-useEffect(() => {
-  if (loading || !Array.isArray(chatBot) || chatBot.length === 0) return;
+    // --- 수정된 부분: Zustand 스토어의 상태 변화 감지 ---
+    useEffect(() => {
+        // 로딩이 끝났고, 에러가 없으며, 새로운 챗봇 데이터가 있을 때만 실행합니다.
+        // 서버 응답이 { products: [...] } 형태이므로, chatBot.products로 접근해야 합니다.
+        if (!loading && !error && chatBot && Array.isArray(chatBot.products) && chatBot.products.length > 0) {
+            
+            const items = chatBot.products;
 
-  // 1) 요약 메시지
-  const summary: DisplayMessage = {
-    type: 'bot',
-    text: `총 ${chatBot.length}개의 추천 상품이 있습니다.`,
-  };
+            // 1. 첫 번째 안내 메시지 객체를 만듭니다.
+            const summaryMessage: DisplayMessage = {
+                type: 'bot',
+                text: `총 ${items.length}개의 추천 상품이 있습니다.`
+            };
 
-  // 2) 상품별 상세 메시지
-  const details: DisplayMessage[] = chatBot.map((prod, idx) => ({
-    type: 'bot',
-    text:
-      `(응답 ${idx + 1})\n` +
-      `상품명 : ${prod.name}\n` +
-      `특징   : ${prod.feature}\n` +
-      `가격   : ${prod.priceRange}\n` +
-      `장점   : ${prod.advantage}`,
-  }));
+            // 2. 각 상품 정보를 별개의 메시지 객체로 만듭니다.
+            const detailMessages: DisplayMessage[] = items.map((product, index) => ({
+                type: 'bot',
+                text: `(응답 ${index + 1})\n상품명 : ${product.name}\n특징 : ${product.feature}\n가격 : ${product.priceRange}\n장점 : ${product.advantage}`
+            }));
 
-  // 3) 기존 메시지 뒤에 요약 + 상세 메시지 붙이기
-  setMessages(prev => [...prev, summary, ...details]);
+            // 3. 안내 메시지와 상품 메시지들을 하나의 배열로 합칩니다.
+            const newBotMessages = [summaryMessage, ...detailMessages];
 
-  // 필요하다면 스토어 초기화 액션 호출
-}, [chatBot, loading]);
-
-    
+            // 4. 합쳐진 메시지들을 화면 상태에 추가합니다.
+            setMessages(prev => [...prev, ...newBotMessages]);
+            
+            // 5. 처리가 끝난 스토어의 데이터를 비워줘서 중복 실행을 방지합니다.
+            //    (chatBotStore.ts에 clearChatBot 액션이 추가되어 있어야 합니다.)
+            if(clearChatBot) clearChatBot();
+        }
+    }, [chatBot, loading, error, clearChatBot]);
 
 
     const handleSendMessage = (e: React.FormEvent) => {
         e.preventDefault();
         if (!inputValue.trim()) return;
-        // 1. 서버로 전송할 메시지 데이터를 JSON 객체로 구성합니다.
-        const messagePayload = {
-          sender: 'user', // 실제로는 로그인된 유저 ID 또는 세션 ID를 사용합니다.
-          type: 'text',
-          content: {
-              text: inputValue,
-          },
-          timestamp: new Date().toISOString(), // 메시지 전송 시각
-        };
 
-        // 2. 구성된 JSON 객체를 콘솔에 출력합니다. (F12 개발자 도구에서 확인 가능)
-        console.log('--- 전송할 메시지 (JSON) ---');
-        console.log(JSON.stringify(messagePayload, null, 2));
-
-        // 3. 기존 UI 업데이트 로직은 그대로 유지합니다.
-        const userMessage = { type: 'user', text: inputValue };
-        setMessages(prev => [...prev, userMessage]);
-        setInputValue('');
-
-        // 챗봇 API 호출
-        getChatBot(inputValue);
-
-
-    };
-
-    // 퀵버튼 클릭 시 처리
-    const handleQuickAction = (actionText: string) => {
-        const userMessage = { type: 'user', text: actionText };
+        const userMessage: DisplayMessage = { type: 'user', text: inputValue };
         setMessages(prev => [...prev, userMessage]);
         
-        // 챗봇 API 호출 with quick action text
+        // Zustand 스토어의 getChatBot 함수를 호출하여 서버에 요청합니다.
+        getChatBot(inputValue);
+
+        setInputValue('');
+    };
+    
+    const handleQuickAction = (actionText: string) => {
+        const userMessage: DisplayMessage = { type: 'user', text: actionText };
+        setMessages(prev => [...prev, userMessage]);
         getChatBot(actionText);
     }
-    // isOpen 상태에 따라 챗봇의 표시 여부를 결정합니다.
-    // Tailwind CSS의 transition 클래스를 사용하여 부드러운 애니메이션 효과를 추가합니다.
+    // ChatbotWindow 컴포넌트 내부
+
+    useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+    // 마우스 클릭 이벤트가 발생했을 때 실행되는 함수입니다.
+    if (
+        chatbotWindowRef.current && // chatbotWindowRef가 실제 DOM 요소를 참조하고 있는지 확인
+        !chatbotWindowRef.current.contains(event.target as Node) // 클릭한 대상이 챗봇 창 내부에 있는지 확인
+    ) {
+        // 클릭한 대상이 챗봇 창 외부일 경우
+        onClose(); // 챗봇 창을 닫는 동작을 수행하는 onClose 함수를 호출합니다.
+    }
+}
+
+    // 2. 챗봇이 열려있을 때(isOpen === true)만 클릭 감지 장치를 설치합니다.
+    if (isOpen) {
+        document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    // 3. 챗봇이 닫히거나, 컴포넌트가 사라질 때 설치했던 감지 장치를 제거합니다. (매우 중요!)
+    return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+    };
+    }, [isOpen, onClose]); // isOpen이나 onClose가 바뀔 때마다 이 로직을 재실행합니다.
+
     return (
-        <div className={`fixed bottom-24 right-4 sm:right-8 w-[391px] h-[564px] bg-white rounded-[40px] shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5 pointer-events-none'}`}>
-            {/* 헤더*/}
+        <div ref={chatbotWindowRef} className={`fixed bottom-24 right-4 sm:right-8 w-[391px] h-[564px] bg-white rounded-[40px] shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5 pointer-events-none'}`}>
             <header className="flex items-center px-6 pt-4 pb-2 flex-shrink-0">
                 <span className="text-xl font-bold text-[#3369ff]">AI 챗봇</span>
                 <button onClick={onClose} className="ml-auto p-1 rounded-full hover:bg-gray-100">
                     <CloseIcon />
-                    <span className="sr-only">Close</span>
                 </button>
             </header>
-            {/* 구분선 */}
             <div className="h-px bg-gray-200 w-full" />
 
             <main ref={chatAreaRef} className="flex-1 px-6 py-4 overflow-y-auto space-y-4">
@@ -142,22 +141,30 @@ useEffect(() => {
                         return <div key={index} className="flex justify-center"><div className="text-gray-800 text-xs font-bold">{msg.text}</div></div>;
                     }
                     if (msg.type === 'user') {
-                        return <div key={index} className="flex justify-end"><div className="bg-[#3369ff] text-white rounded-2xl rounded-br-lg px-4 py-3 max-w-[80%] text-sm font-medium">{msg.text}</div></div>;
+                        return <div key={index} className="flex justify-end"><div className="bg-[#3369ff] text-white rounded-2xl rounded-br-lg px-4 py-3 max-w-[80%] text-sm font-medium whitespace-pre-wrap">{msg.text}</div></div>;
                     }
                     if (msg.type === 'bot') {
-                        return <div key={index} className="flex justify-start"><div className="bg-gray-100 text-gray-800 rounded-2xl rounded-bl-lg px-4 py-3 max-w-[80%] text-sm">{msg.text}</div></div>;
+                        return <div key={index} className="flex justify-start"><div className="bg-gray-100 text-gray-800 rounded-2xl rounded-bl-lg px-4 py-3 max-w-[80%] text-sm whitespace-pre-wrap">{msg.text}</div></div>;
                     }
                     return null;
                 })}
+                {/* 로딩 중일 때 "생각 중" 메시지를 표시합니다. */}
+                {loading && (
+                    <div className="flex justify-start">
+                        <div className="bg-gray-100 text-gray-800 rounded-2xl rounded-bl-lg px-4 py-3 max-w-[80%] text-sm">
+                            AI가 생각 중입니다...
+                        </div>
+                    </div>
+                )}
             </main>
-            {/* 퀵버튼 영역 */}
+            
             <section className="px-6 py-4 border-t border-gray-200">
                 <div className="space-y-2">
-                    <button onClick={() => handleQuickAction('AI 상품 추천')} className="w-full bg-gray-100 rounded-full py-2.5 text-center text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors">AI 상품 추천</button>
-                    <button onClick={() => handleQuickAction('자주 묻는 질문')} className="w-full bg-gray-100 rounded-full py-2.5 text-center text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors">자주 묻는 질문</button>
+                    {/* <button onClick={() => handleQuickAction('AI 상품 추천')} className="w-full bg-gray-100 rounded-full py-2.5 text-center text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors">AI 상품 추천</button>
+                    <button onClick={() => handleQuickAction('자주 묻는 질문')} className="w-full bg-gray-100 rounded-full py-2.5 text-center text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors">자주 묻는 질문</button> */}
                 </div>
             </section>
-            {/* 메시지 입력 및 전송 */}
+            
             <footer className="px-6 py-4 bg-white flex items-center border-t border-gray-200">
                 <form onSubmit={handleSendMessage} className="w-full flex items-center">
                     <input
@@ -166,12 +173,10 @@ useEffect(() => {
                         onChange={(e) => setInputValue(e.target.value)}
                         className="flex-1 bg-gray-100 rounded-full px-5 py-3 outline-none text-sm text-gray-800 placeholder-gray-500"
                         placeholder="메시지를 입력하세요"
+                        disabled={loading} // 로딩 중에는 입력 비활성화
                     />
-                    <button 
-                    onClick={() =>getChatBot(inputValue)}
-                    className="w-10 h-10 ml-3 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 hover:bg-blue-700 transition-colors">
+                    <button type="submit" className="w-10 h-10 ml-3 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 hover:bg-blue-700 transition-colors disabled:bg-gray-400" disabled={loading}>
                         <SendIcon />
-                        <span className="sr-only">Send</span>
                     </button>
                 </form>
             </footer>
@@ -180,19 +185,16 @@ useEffect(() => {
 }
 
 // --- 최종 챗봇 컴포넌트 ---
-// 이 컴포넌트 하나만 layout.tsx에 넣으면 됩니다.
 export default function Chatbot() {
     const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
     return (
         <>
-            {/* 챗봇 열기/닫기 버튼 */}
-            <button
+            <button 
                 onClick={() => setIsChatbotOpen(prev => !prev)}
                 className="fixed bottom-4 right-4 sm:right-8 w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full shadow-xl flex items-center justify-center text-white transform hover:scale-110 transition-transform z-50"
                 aria-label="챗봇 열기/닫기"
             >
-                {/* 챗봇이 열려있으면 닫기 아이콘, 닫혀있으면 챗봇 아이콘을 보여줍니다. */}
                 {isChatbotOpen ? <CloseIcon /> : <ChatbotIcon />}
             </button>
             
