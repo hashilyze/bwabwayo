@@ -132,20 +132,27 @@ export default function SearchPage({
       setShowMinorCategories(false);
     }
     
-    // API 호출
+    // API 호출 - 모든 쿼리 파라미터를 조합하여 전달
+    const searchQuery: any = {};
+    
+    if (searchParams.title) {
+      searchQuery.title = searchParams.title;
+    }
+    
     if (searchParams.category) {
-      const categoryId = parseInt(searchParams.category);
-      getProducts({ category_id: categoryId });
-    } else if (searchParams.title) {
-      getProducts({ title: searchParams.title });
-    } else {
-      // 파라미터가 없으면 상품 조회하지 않음 (전체 클릭은 handleAllCategoryClick에서 처리)
+      searchQuery.category_id = parseInt(searchParams.category);
+    }
+    
+    // 쿼리 파라미터가 있으면 API 호출
+    if (Object.keys(searchQuery).length > 0) {
+      getProducts(searchQuery);
     }
   }, [searchParams.category, searchParams.title, parseCategoryFromUrl, getProducts]);
 
   // URL 생성 헬퍼 함수
   const createSearchUrl = (categoryId?: number) => {
     const params = new URLSearchParams();
+    console.log(categoryId)
     if (searchParams.title) params.set('title', searchParams.title);
     if (categoryId) params.set('category', categoryId.toString());
     return `/search${params.toString() ? `?${params.toString()}` : ''}`;
@@ -183,13 +190,23 @@ export default function SearchPage({
     setAppliedMinPrice(minPrice);
     setAppliedMaxPrice(maxPrice);
     
-    if (!minPrice && !maxPrice) {
-      // 둘 다 입력하지 않은 경우 전체 상품 조회
-      getProducts();
-      return;
+    // 기존 검색 조건과 가격 조건을 조합
+    const searchQuery: any = {};
+    
+    if (searchParams.title) {
+      searchQuery.title = searchParams.title;
     }
     
-    getProducts({ minPrice: min, maxPrice: max });
+    if (searchParams.category) {
+      searchQuery.category_id = parseInt(searchParams.category);
+    }
+    
+    if (minPrice || maxPrice) {
+      if (minPrice) searchQuery.minPrice = min;
+      if (maxPrice) searchQuery.maxPrice = max;
+    }
+    
+    getProducts(searchQuery);
   };
 
       return(
@@ -198,7 +215,7 @@ export default function SearchPage({
           <h1 className='text-2xl font-bold text-black'>
             {searchParams.title ? `'${searchParams.title}'` : ''}검색결과
           </h1>
-          <span className='text-sm text-[#5a5a5a]'>총 0개</span>
+          <span className='text-sm text-[#5a5a5a]'>총 {products.length}개</span>
         </div>
         <div className="search-category w-full bg-white">
           <table className="w-full">
@@ -276,11 +293,11 @@ export default function SearchPage({
                 <td className="p-4">
                   <ul className="grid grid-cols-8 gap-2">
                     {categories.map((category) => (
-                      <li key={category.id}>
-                        <Link 
-                          href={createSearchUrl(category.id)}
-                          className="text-sm text-[#5a5a5a] px-3 py-2 hover:text-[#155dfc] cursor-pointer block"
-                        >
+                                              <li key={category.id}>
+                          <Link 
+                            href={createSearchUrl(category.id)}
+                            className="text-sm text-[#5a5a5a] px-3 py-2 hover:text-[#155dfc] cursor-pointer block"
+                          >
                           {category.name}
                         </Link>
                       </li>
@@ -373,8 +390,20 @@ export default function SearchPage({
                           setMaxPrice('');
                           setAppliedMinPrice('');
                           setAppliedMaxPrice('');
-                          // 필터링 초기화 - 전체 상품 조회
-                          getProducts();
+                          
+                          // 기존 검색 조건은 유지하고 가격 필터만 초기화
+                          const searchQuery: any = {};
+                          
+                          if (searchParams.title) {
+                            searchQuery.title = searchParams.title;
+                          }
+                          
+                          if (searchParams.category) {
+                            searchQuery.category_id = parseInt(searchParams.category);
+                          }
+                          
+                          // 쿼리 파라미터가 있으면 API 호출, 없으면 전체 상품 조회
+                          getProducts(Object.keys(searchQuery).length > 0 ? searchQuery : undefined);
                         }}
                         className="ml-2 text-gray-500 hover:text-gray-700 cursor-pointer"
                       >

@@ -63,7 +63,7 @@ export default function SellerShopInfo({ params }: { params: { id: string } }) {
                    <div className="text-gray-500 text-sm mb-2">포인트</div>
                    <div className="text-black text-xl font-normal">1,600 P</div>
                  </li>
-               </ul>
+              </ul>
             </div>
           </div>
 
