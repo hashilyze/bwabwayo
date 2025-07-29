@@ -46,9 +46,9 @@ export default function Navbar() {
         <div className="w-[1280px] m-auto py-4 flex items-center justify-between">
             <div className="logo-wrap flex items-center gap-2 flex-1 mr-16">
                 <div className="logo text-xl font-bold">
-                    <Link href="/">봐봐요</Link>
+                    <Link href="/"><img src="/logo.png" alt="logo" className="h-[48px]" /></Link>
                 </div>
-                <form className="flex items-center ml-[120px] flex-1 px-2 border-1 border-[#f9f9f9] rounded-lg bg-[#F1F4F6]" onSubmit={handleSubmit}>
+                <form className="flex items-center ml-[80px] flex-1 px-2 border-1 border-[#f9f9f9] rounded-lg bg-[#F1F4F6]" onSubmit={handleSubmit}>
                     <div className="flex items-center px-3">
                         <svg 
                             width="16" 
