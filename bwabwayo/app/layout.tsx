@@ -4,9 +4,12 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Chatbot from "@/components/chat/Chatbot";
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "봐봐요",
   description: "화상중고거래 플랫폼, 봐봐요",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
