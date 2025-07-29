@@ -291,7 +291,7 @@ export const useCategoryStore = create<CategoryStore>((set) => ({
         throw new Error('카테고리 조회에 실패했습니다')
       }
       const data = await response.json()
-      console.log(data)
+      //console.log(data)
       
       // 더미데이터 반환
       set({ categories: CATEGORIES, loading: false })
