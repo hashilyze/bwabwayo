@@ -15,6 +15,7 @@ export default function Category(){
     useEffect(() => {
         getCategories();
     }, [getCategories]);
+    console.log(categories)
     
     // 대분류 클릭 시
     const magorCate = (catName: string) => {
