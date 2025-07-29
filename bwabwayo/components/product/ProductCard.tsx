@@ -4,21 +4,31 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { MouseEvent } from 'react'
 
+interface Seller {
+  id: number
+  nickname: string
+}
 
-export type Product = {
-  id: number;
-  seller_id: number;
-  title: string;
-  thumbnail: string;
-  price: number;
-  wish_count: number;
-  view_count: number;
-  is_like: boolean;
-  status: string;
+interface Product {
+  id: number
+  category_id: number
+  thumbnail: string
+  title: string
+  price: string
+  view_count: string
+  wish_count: string
+  is_like: boolean
+  sale_status: number
+  created_at: string
+}
+
+export interface ProductWithSeller {
+  product: Product
+  seller: Seller
 }
 
 type Props = {
-  products: Product[]; // 배열로 변경
+  products: ProductWithSeller[]
 }
 
 export default function ProductCard({ products }: Props) {
@@ -30,14 +40,41 @@ export default function ProductCard({ products }: Props) {
     router.push(`/product/${productId}`);
   };
 
+  // 가격 포맷팅 함수
+  const formatPrice = (price: string): string => {
+    const numPrice = parseInt(price);
+    return numPrice.toLocaleString();
+  };
+
+  // 판매 상태 텍스트 반환
+  const getSaleStatusText = (status: number): string => {
+    switch (status) {
+      case 1: return '판매중';
+      case 2: return '예약중';
+      case 3: return '판매완료';
+      default: return '판매중';
+    }
+  };
+
+  // 판매 상태 색상 반환
+  const getSaleStatusColor = (status: number): string => {
+    switch (status) {
+      case 1: return 'text-green-600';
+      case 2: return 'text-yellow-600';
+      case 3: return 'text-gray-500';
+      default: return 'text-green-600';
+    }
+  };
+
   return (
     <ul className="grid grid-cols-4 gap-[40px]">
-      {products.map((product) => {
+      {products.map((item) => {
+        const { product, seller } = item;
         const query = {
-          seller_id: product.seller_id.toString(),
+          seller_id: seller.id.toString(),
           title: product.title,
           thumbnail: product.thumbnail,
-          price: product.price.toString(),
+          price: product.price,
         };
         const queryString = new URLSearchParams(query).toString();
 
@@ -48,28 +85,63 @@ export default function ProductCard({ products }: Props) {
               onClick={(e) => handleCardClick(e, product.id)}
             >
               <div className='relative'>
-                <div className="h-[290px] overflow-hidden">
+                <div className="h-[290px] overflow-hidden bg-gray-200 flex items-center justify-center">
                   <img
-                    className="w-full transform transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-full object-cover transform transition-transform duration-300 group-hover:scale-105"
                     src={product.thumbnail}
                     alt={product.title}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const parent = target.parentElement;
+                      if (parent && !parent.querySelector('.fallback-text')) {
+                        const fallbackDiv = document.createElement('div');
+                        fallbackDiv.className = 'fallback-text text-gray-500 text-sm text-center px-4';
+                        fallbackDiv.textContent = '이미지를 불러올 수 없습니다';
+                        parent.appendChild(fallbackDiv);
+                      }
+                    }}
                   />
                 </div>
                 <div className="heartIcon absolute top-4 right-4">
-                  <img src="/icon/heart-on.svg" alt="" />
+                  <img 
+                    src={product.is_like ? "/icon/heart-on.svg" : "/icon/heart-off.svg"} 
+                    alt="찜하기" 
+                  />
                 </div>
+                {/* 판매 상태 표시 */}
+                {product.sale_status !== 1 && (
+                  <div className="absolute top-4 left-4">
+                    <span className={`px-2 py-1 text-xs font-bold rounded ${getSaleStatusColor(product.sale_status)} bg-white`}>
+                      {getSaleStatusText(product.sale_status)}
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="p-4">
-                <p className="text-md block h-[48px]">{product.title}</p>
-                <p className="text-[20px] font-bold mt-2 mb-4">{product.price}원</p>
+                <p className="text-md block h-[48px] overflow-hidden">{product.title}</p>
+                <p className="text-[20px] font-bold mt-2 mb-2">{formatPrice(product.price)}원</p>
+                <p className="text-sm text-[#7c7c7c] mb-2">판매자: {seller.nickname}</p>
                 <div className="flex justify-between items-center">
                   <p className="text-sm text-[#7c7c7c]">
-                    찜 {product.view_count} · 조회 {product.wish_count}
+                    찜 {product.wish_count} · 조회 {product.view_count}
                   </p>
                   <div>
-                    <Link className='btn-gradient text-white px-3 py-2 rounded-md text-sm block' href={`/chat/${product.id}/${product.seller_id}?${queryString}`}>
-                      화상거래예약
-                    </Link>
+                    {product.sale_status === 1 ? (
+                      <Link 
+                        className='btn-gradient text-white px-3 py-2 rounded-md text-sm block' 
+                        href={`/chat/${product.id}/${seller.id}?${queryString}`}
+                      >
+                        화상거래예약
+                      </Link>
+                    ) : (
+                      <button 
+                        className='bg-gray-400 text-white px-3 py-2 rounded-md text-sm cursor-not-allowed'
+                        disabled
+                      >
+                        {getSaleStatusText(product.sale_status)}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

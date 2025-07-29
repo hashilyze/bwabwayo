@@ -1,89 +1,181 @@
 import { create } from 'zustand'
 
+interface Seller {
+  id: number
+  nickname: string
+}
+
 interface Product {
   id: number
-  seller_id: number
-  title: string
+  category_id: number
   thumbnail: string
-  price: number
-  wish_count: number
-  view_count: number
+  title: string
+  price: string
+  view_count: string
+  wish_count: string
   is_like: boolean
-  status: string
+  sale_status: number
+  created_at: string
+}
+
+interface ProductWithSeller {
+  product: Product
+  seller: Seller
 }
 
 // 더미데이터
-const dummyProducts: Product[] = [
-  {
-    id: 1,
-    seller_id: 5524,
-    title: "팝마트 라부부 코카콜라 시리즈 인형 키링",
-    thumbnail: "https://picsum.photos/200/300?random=1",
-    price: 70000,
-    wish_count: 5,
-    view_count: 23,
-    is_like: true,
-    status: '판매중'
-  },
-  {
-    id: 2,
-    seller_id: 2,
-    title: "상품2",
-    thumbnail: "https://picsum.photos/200/300?random=2",
-    price: 30000,
-    wish_count: 5,
-    view_count: 23,
-    is_like: false,
-    status: '판매완료'
-  },
-  {
-    id: 3,
-    seller_id: 3,
-    title: "여성의류 - 상의",
-    thumbnail: "https://picsum.photos/200/300?random=3",
-    price: 45000,
-    wish_count: 12,
-    view_count: 45,
-    is_like: true, 
-    status: '판매중'
-  },
-  {
-    id: 4,
-    seller_id: 4,
-    title: "남성의류 - 하의",
-    thumbnail: "https://picsum.photos/200/300?random=4",
-    price: 55000,
-    wish_count: 8,
-    view_count: 32,
-    is_like: false,
-    status: '판매중'
-  },
-  {
-    id: 5,
-    seller_id: 5,
-    title: "신발 - 스니커즈",
-    thumbnail: "https://picsum.photos/200/300?random=5",
-    price: 120000,
-    wish_count: 25,
-    view_count: 78,
-    is_like: true,
-    status: '판매중'
-  },
-  {
-    id: 6,
-    seller_id: 6,
-    title: "가방 - 백팩",
-    thumbnail: "https://picsum.photos/200/300?random=6",
-    price: 89000,
-    wish_count: 15,
-    view_count: 56,
-    is_like: false,
-    status: '판매완료'
-  }
-]
+const dummyProducts = {
+  "message": "판매글 조회 성공",
+  "result": [
+    {
+      "product": {
+        "id": 1,
+        "category_id": 8001,
+        "thumbnail": "/image/sample.png",
+        "title": "아이폰 15 Pro 팝니다",
+        "price": "1200000",
+        "view_count": "25",
+        "wish_count": "3",
+        "is_like": true,
+        "sale_status": 1,
+        "created_at": "2025-01-15T10:30:00"
+      },
+      "seller": {
+        "id": 42,
+        "nickname": "애플매니아"
+      }
+    },
+    {
+      "product": {
+        "id": 2,
+        "category_id": 8005,
+        "thumbnail": "/image/sample.png",
+        "title": "맥북 프로 16인치 M3 맥스",
+        "price": "3500000",
+        "view_count": "18",
+        "wish_count": "7",
+        "is_like": false,
+        "sale_status": 1,
+        "created_at": "2025-01-14T15:20:00"
+      },
+      "seller": {
+        "id": 15,
+        "nickname": "맥북러버"
+      }
+    },
+    {
+      "product": {
+        "id": 3,
+        "category_id": 3001,
+        "thumbnail": "/image/sample.png",
+        "title": "나이키 에어포스1 화이트 280",
+        "price": "120000",
+        "view_count": "42",
+        "wish_count": "12",
+        "is_like": true,
+        "sale_status": 1,
+        "created_at": "2025-01-14T09:15:00"
+      },
+      "seller": {
+        "id": 23,
+        "nickname": "신발콜렉터"
+      }
+    },
+    {
+      "product": {
+        "id": 4,
+        "category_id": 4001,
+        "thumbnail": "/image/sample.png",
+        "title": "루이비통 네버풀 MM 정품",
+        "price": "850000",
+        "view_count": "31",
+        "wish_count": "8",
+        "is_like": false,
+        "sale_status": 1,
+        "created_at": "2025-01-13T14:45:00"
+      },
+      "seller": {
+        "id": 67,
+        "nickname": "럭셔리샵"
+      }
+    },
+    {
+      "product": {
+        "id": 5,
+        "category_id": 5001,
+        "thumbnail": "/image/sample.png",
+        "title": "롤렉스 서브마리너 블랙",
+        "price": "12000000",
+        "view_count": "89",
+        "wish_count": "25",
+        "is_like": true,
+        "sale_status": 2,
+        "created_at": "2025-01-12T11:30:00"
+      },
+      "seller": {
+        "id": 89,
+        "nickname": "시계전문가"
+      }
+    },
+    {
+      "product": {
+        "id": 6,
+        "category_id": 8006,
+        "thumbnail": "/image/sample.png",
+        "title": "플레이스테이션 5 콘솔",
+        "price": "600000",
+        "view_count": "78",
+        "wish_count": "20",
+        "is_like": false,
+        "sale_status": 1,
+        "created_at": "2025-01-11T08:45:00"
+      },
+      "seller": {
+        "id": 12,
+        "nickname": "게이머"
+      }
+    },
+    {
+      "product": {
+        "id": 7,
+        "category_id": 8007,
+        "thumbnail": "/image/sample.png",
+        "title": "소니 A7R5 미러리스 카메라",
+        "price": "3200000",
+        "view_count": "67",
+        "wish_count": "15",
+        "is_like": true,
+        "sale_status": 1,
+        "created_at": "2025-01-11T13:10:00"
+      },
+      "seller": {
+        "id": 56,
+        "nickname": "사진작가"
+      }
+    },
+    {
+      "product": {
+        "id": 8,
+        "category_id": 8002,
+        "thumbnail": "/image/sample.png",
+        "title": "아이패드 프로 12.9 5세대",
+        "price": "980000",
+        "view_count": "34",
+        "wish_count": "9",
+        "is_like": false,
+        "sale_status": 1,
+        "created_at": "2025-01-10T12:15:00"
+      },
+      "seller": {
+        "id": 45,
+        "nickname": "디지털노마드"
+      }
+    }
+  ]
+}
 
 interface ProductStore {
-  products: Product[]
+  products: ProductWithSeller[]
   loading: boolean
   error: string | null
   getProducts: (options?: { title?: string; category_id?: number; minPrice?: number; maxPrice?: number }) => Promise<void>
@@ -100,12 +192,11 @@ export const useProductStore = create<ProductStore>((set) => ({
     try {
       // URL 파라미터 구성
       const params = new URLSearchParams()
-      if (options.title) params.append('title', options.title)
-      if (options.category_id) params.append('category_id', options.category_id.toString())
       if (options.minPrice) params.append('minPrice', options.minPrice.toString())
+      if (options.maxPrice) params.append('maxPrice', options.maxPrice.toString())
 
       const queryString = params.toString()
-      const url = `/api/products${queryString ? `?${queryString}` : ''}`
+      const url = `http://i13e202.p.ssafy.io:8081/api/products${queryString ? `?${queryString}` : ''}`
       
       // API 호출 주석처리 (실제 사용 시 주석 해제)
       // const response = await fetch(url)
@@ -113,35 +204,27 @@ export const useProductStore = create<ProductStore>((set) => ({
       //   throw new Error('상품 조회에 실패했습니다')
       // }
       // const data = await response.json()
-      // set({ products: data, loading: false })
+      // set({ products: data.result, loading: false })
       
       // 더미데이터 필터링 (개발용)
-      let filteredProducts = [...dummyProducts]
+      let filteredProducts = [...dummyProducts.result]
       
       // title로 필터링
       if (options.title) {
-        filteredProducts = filteredProducts.filter(product => 
-          product.title.toLowerCase().includes(options.title!.toLowerCase())
-        )
-      }
-      
-      // category_id로 필터링
-      if (options.category_id) {
-        filteredProducts = filteredProducts.filter(product => 
-          product.id % options.category_id! === 0 || product.id === options.category_id
+        filteredProducts = filteredProducts.filter(item => 
+          item.product.title.toLowerCase().includes(options.title!.toLowerCase())
         )
       }
       
       // 가격 범위로 필터링
       if (options.minPrice !== undefined) {
-        filteredProducts = filteredProducts.filter(product => 
-          product.price >= options.minPrice!
+        filteredProducts = filteredProducts.filter(item => 
+          parseInt(item.product.price) >= options.minPrice!
         )
       }
-      
       if (options.maxPrice !== undefined) {
-        filteredProducts = filteredProducts.filter(product => 
-          product.price <= options.maxPrice!
+        filteredProducts = filteredProducts.filter(item => 
+          parseInt(item.product.price) <= options.maxPrice!
         )
       }
       
@@ -152,6 +235,14 @@ export const useProductStore = create<ProductStore>((set) => ({
         loading: false 
       })
     }
+  },
+
+  getProductDetail: async (productId: number) => {
+    // const response = await fetch(`http://i13e202.p.ssafy.io:8081/api/products/${productId}`)
+    // const data = await response.json()
+    
+
+    // set({ products: data, loading: false })
   },
 
   clearProducts: () => {
