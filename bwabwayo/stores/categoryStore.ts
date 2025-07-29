@@ -286,12 +286,12 @@ export const useCategoryStore = create<CategoryStore>((set) => ({
   getCategories: async () => {
     set({ loading: true, error: null })
     try {
-      // API 호출 주석처리
-      // const response = await fetch('/api/categories')
-      // if (!response.ok) {
-      //   throw new Error('카테고리 조회에 실패했습니다')
-      // }
-      // const data = await response.json()
+      const response = await fetch('/api/products/categories/')
+      if (!response.ok) {
+        throw new Error('카테고리 조회에 실패했습니다')
+      }
+      const data = await response.json()
+      console.log(data)
       
       // 더미데이터 반환
       set({ categories: CATEGORIES, loading: false })
