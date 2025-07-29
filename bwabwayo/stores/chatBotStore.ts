@@ -1,7 +1,16 @@
 import { create } from 'zustand'
 
+
+interface ChatBotMessage {
+    message: string
+    name: string
+    feature: string
+    priceRange: string
+    advantage: string
+}
+
 interface ChatBotStore {
-    chatBot: any[]
+    chatBot: ChatBotMessage[]
     loading: boolean
     error: string | null
     getChatBot: (message: string) => Promise<void>
