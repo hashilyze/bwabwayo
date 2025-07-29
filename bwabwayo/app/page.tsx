@@ -1,7 +1,6 @@
 'use client'
 
 import ProductCard from "@/components/product/ProductCard";
-import Chatbot from '@/components/chat/Chatbot';
 import WebTest from "@/components/home/WebTest";
 import React, { useEffect } from 'react';
 import { useProductStore } from '../stores/productStore';
@@ -21,7 +20,6 @@ export default function Home() {
       {/* 광고 */}
       <div className="w-full h-[250px] bg-gray-200 rounded-xl my-10"></div>
 
-      <Chatbot className="display-none" />
 
       <div>
         <h1 className="text-2xl font-bold mb-5">판매상품</h1>

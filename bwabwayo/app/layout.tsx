@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import './globals.css'
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import Chatbot from "@/components/chat/Chatbot";
 
 export const metadata: Metadata = {
   title: "봐봐요",
@@ -15,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      {/* <meta name="viewport" content="width=device-width, initial-scale=1.0" /> */}
       <body>
         <Navbar />
         <div className="bg-[#FAFDFF]">
@@ -23,6 +24,7 @@ export default function RootLayout({
             {children}
           </div>
         </div>
+        <Chatbot />
         <Footer />
       </body>
     </html>
