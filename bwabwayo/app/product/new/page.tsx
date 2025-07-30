@@ -1,30 +1,8 @@
 'use client'
 import { useState, useRef, ChangeEvent, useEffect, FormEvent } from 'react';
 
-// --- 데이터 (Data) ---
-const CATEGORIES = [
-  { name: '여성의류', sub: ['상의', '하의', '아우터', '원피스'] },
-  { name: '남성의류', sub: ['상의', '하의', '아우터'] },
-  { name: '신발', sub: ['스니커즈', '남성화', '여성화', '스포츠화'] },
-  { name: '가방/지갑', sub: ['가방', '지갑'] },
-  { name: '시계', sub: [] },
-  { name: '쥬얼리', sub: [] },
-  { name: '패션 액세서리', sub: [] },
-  { name: '디지털', sub: ['모바일', 'PC/노트북', '카메라'] },
-  { name: '가전제품', sub: [] },
-  { name: '스포츠/레저', sub: [] },
-  { name: '스타굿즈', sub: [] },
-  { name: '키덜트', sub: [] },
-  { name: '예술/희귀/수집품', sub: [] },
-  { name: '음반/악기', sub: [] },
-  { name: '도서/티켓/문구', sub: [] },
-  { name: '뷰티/미용', sub: [] },
-  { name: '생활/주방용품', sub: [] },
-  { name: '식품', sub: [] },
-  { name: '유아/출산', sub: [] },
-  { name: '반려동물용품', sub: [] },
-  { name: '기타', sub: [] },
-];
+import { useCategoryStore } from '@/stores/categoryStore';
+import { useProductStore } from '@/stores/productStore';
 
 // --- 아이콘 컴포넌트 (Icons) ---
 const CheckIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -40,6 +18,13 @@ const XCircleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 // --- 메인 페이지 컴포넌트 (Main Page Component) ---
 export default function CreateProductPage() {
+  const { categories, getCategories } = useCategoryStore();
+  const { addProduct } = useProductStore();
+
+  useEffect(() => {
+    getCategories();
+  }, [getCategories]);
+
   // --- 상태 관리 (State Management) ---
   const [images, setImages] = useState<string[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -105,7 +90,7 @@ export default function CreateProductPage() {
     setMinorCategory(null);
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!termsAgreed) { alert('판매 정보 동의 약관에 체크해주세요.'); return; }
@@ -113,19 +98,43 @@ export default function CreateProductPage() {
     if (!productName.trim()) { alert('상품명을 입력해주세요.'); return; }
     if (!majorCategory) { alert('카테고리를 선택해주세요.'); return; }
 
+    // *** 카테고리 이름을 ID로 변환 ***
+    const getCategoryId = (): number | null => {
+      if (minorCategory) {
+        // 서브카테고리가 선택된 경우
+        for (const category of categories) {
+          const subCategory = category.subCategories.find(sub => sub.categoryName === minorCategory);
+          if (subCategory) {
+            return subCategory.categoryId;
+          }
+        }
+      } else if (majorCategory) {
+        // 메인카테고리만 선택된 경우
+        const category = categories.find(cat => cat.categoryName === majorCategory);
+        return category ? category.categoryId : null;
+      }
+      return null;
+    };
+
+    const categoryId = getCategoryId();
+    if (!categoryId) {
+      alert('카테고리 ID를 찾을 수 없습니다.');
+      return;
+    }
+
     // *** API 명세서에 맞게 요청 데이터 이름 수정 ***
     // 컴포넌트 내부에서 사용하는 상태(state) 이름(예: productName)과
     // 서버로 보낼 때 사용하는 키(key) 이름(예: title)을 분리하여 관리합니다.
     const requestData = {
-      title: productName, // productName -> title
+      title: productName,
       description: description,
-      price: Number(price) || 0,
-      category_name: minorCategory || majorCategory,
+      price: Number(price),
+      category_id: categoryId,
       can_negotiate: isNegotiable,
       can_direct: tradeMethods.direct,
       can_delivery: tradeMethods.delivery,
       can_video_call: tradeMethods.video,
-      shipping_fee: Number(shippingCost) || 0,
+      shipping_fee: Number(shippingCost),
       // 실제로는 이미지 파일을 서버에 업로드하고 반환된 URL을 사용해야 합니다.
       // API 명세서의 images.image_url 형식에 맞추기 위한 예시입니다.
       images: imageFiles.map((file, index) => ({
@@ -134,12 +143,18 @@ export default function CreateProductPage() {
       })),
     };
 
-    console.log('--- 폼 제출 데이터 (API 요청 형식) ---');
-    console.log(JSON.stringify(requestData, null, 2));
-    alert('폼 데이터가 콘솔에 성공적으로 출력되었습니다. (F12 키를 눌러 확인)');
+    try {
+      console.log('--- 상품 등록 중... ---');
+      await addProduct(requestData as any); // 타입 임시 처리
+      alert('상품이 성공적으로 등록되었습니다!');
+      
+    } catch (error) {
+      console.error('상품 등록 실패:', error);
+      alert('상품 등록에 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
-  const selectedMajorObject = CATEGORIES.find(c => c.name === majorCategory);
+  const selectedMajorObject = categories.find(c => c.categoryName === majorCategory);
 
   return (
     <div className="bg-white min-h-screen">
@@ -181,16 +196,16 @@ export default function CreateProductPage() {
           <section className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
             <div className="border border-gray-200 rounded-lg h-60 overflow-y-auto">
               <ul>
-                {CATEGORIES.map(cat => (
-                  <li key={cat.name} onClick={() => handleMajorCategorySelect(cat.name)} className={`px-4 py-2 text-sm cursor-pointer ${majorCategory === cat.name ? 'font-bold bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}>{cat.name}</li>
+                {categories.map(cat => (
+                  <li key={cat.categoryName} onClick={() => handleMajorCategorySelect(cat.categoryName)} className={`px-4 py-2 text-sm cursor-pointer ${majorCategory === cat.categoryName ? 'font-bold bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}>{cat.categoryName}</li>
                 ))}
               </ul>
             </div>
             <div className="border border-gray-200 rounded-lg h-60 overflow-y-auto">
               <ul>
-                {selectedMajorObject && selectedMajorObject.sub.length > 0 ? (
-                  selectedMajorObject.sub.map(subCat => (
-                    <li key={subCat} onClick={() => setMinorCategory(subCat)} className={`px-4 py-2 text-sm cursor-pointer ${minorCategory === subCat ? 'font-bold bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}>{subCat}</li>
+                {selectedMajorObject && selectedMajorObject.subCategories.length > 0 ? (
+                  selectedMajorObject.subCategories.map(subCat => (
+                    <li key={subCat.categoryName} onClick={() => setMinorCategory(subCat.categoryName)} className={`px-4 py-2 text-sm cursor-pointer ${minorCategory === subCat.categoryName ? 'font-bold bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}>{subCat.categoryName}</li>
                   ))
                 ) : (
                   <li className="px-4 py-2 text-sm text-gray-400">소분류가 없습니다.</li>

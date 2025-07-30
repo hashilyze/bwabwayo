@@ -38,7 +38,7 @@ const dummyProducts = {
         "wish_count": "3",
         "is_like": true,
         "sale_status": 1,
-        "created_at": "2025-01-15T10:30:00"
+        "created_at": "2025-07-30T10:30:00"
       },
       "seller": {
         "id": 42,
@@ -179,6 +179,7 @@ interface ProductStore {
   loading: boolean
   error: string | null
   getProducts: (options?: { title?: string; category_id?: number; minPrice?: number; maxPrice?: number }) => Promise<void>
+  addProduct: (product: Product) => Promise<void>
   clearProducts: () => void
 }
 
@@ -195,11 +196,9 @@ export const useProductStore = create<ProductStore>((set) => ({
       if (options.minPrice) params.append('minPrice', options.minPrice.toString())
       if (options.maxPrice) params.append('maxPrice', options.maxPrice.toString())
 
-      const queryString = params.toString()
-      const url = `http://i13e202.p.ssafy.io:8081/api/products${queryString ? `?${queryString}` : ''}`
-      
       // API 호출 주석처리 (실제 사용 시 주석 해제)
-      // const response = await fetch(url)
+      const queryString = params.toString()
+      // const response = await fetch(`http://i13e202.p.ssafy.io:8081/api/products${queryString ? `?${queryString}` : ''}`)
       // if (!response.ok) {
       //   throw new Error('상품 조회에 실패했습니다')
       // }
@@ -243,6 +242,35 @@ export const useProductStore = create<ProductStore>((set) => ({
     
 
     // set({ products: data, loading: false })
+  },
+
+  addProduct: async (product: Product) => {
+    console.log(product)
+    // set({ loading: true, error: null })
+    // try {
+    //   const response = await fetch(`http://i13e202.p.ssafy.io:8081/api/products`, {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //     },
+    //     body: JSON.stringify(product)
+    //   })
+      
+    //   if (!response.ok) {
+    //     throw new Error('상품 등록에 실패했습니다')
+    //   }
+      
+    //   const data = await response.json()
+    //   console.log('상품 등록 성공:', data)
+    //   set({ loading: false })
+      
+    // } catch (error) {
+    //   set({ 
+    //     error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
+    //     loading: false 
+    //   })
+    //   throw error // 호출하는 쪽에서 에러 핸들링할 수 있도록
+    // }
   },
 
   clearProducts: () => {
