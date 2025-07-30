@@ -23,26 +23,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   // isOpen prop이 false이면 모달을 렌더링하지 않습니다.
   if (!isOpen) return null;
 
-  const handleKakaoLogin = async () => {
-    try {
-      // [1] 백엔드에 카카오 로그인 URL을 요청합니다.
-      // 이 엔드포인트는 백엔드에서 구현해야 합니다. (예: /api/auth/kakao/url)
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/kakao/url`);
-      if (!response.ok) {
-        throw new Error('카카오 로그인 URL을 가져오는데 실패했습니다.');
-      }
-      const data = await response.json();
-      const kakaoAuthUrl = data.kakaoAuthUrl; // 백엔드가 'kakaoAuthUrl' 키로 URL을 반환한다고 가정
+  const handleKakaoLogin = () => {
 
-      if (kakaoAuthUrl) {
-        // [2] 받은 URL로 리디렉션합니다.
-        window.location.href = kakaoAuthUrl;
-      }
-    } catch (error) {
-      console.error('카카오 로그인 처리 중 오류 발생:', error);
-      alert('로그인에 실패했습니다. 잠시 후 다시 시도해주세요.');
-    }
-  };
+    const kakaoAuthUrl = `http://i13e202.p.ssafy.io:8081/oauth2/authorization/kakao`;
+    window.location.href = kakaoAuthUrl;
+  };
 
   return (
     // --- 수정된 부분: 모달 오버레이 ---
