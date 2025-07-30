@@ -37,19 +37,19 @@ public class User {
     private String profileImage;
 
     @Column(nullable = false, columnDefinition = "TEXT")
-    private String bio = "";
+    private String bio;
 
     @Column(nullable = false)
-    private int score = 50;
+    private int score;
 
     @Column(nullable = false)
-    private int point = 0;
+    private int point;
 
     @Column(name = "deal_count", nullable = false)
-    private int dealCount = 0;
+    private int dealCount;
 
     @Column(name = "penalty_count", nullable = false)
-    private int penaltyCount = 0;
+    private int penaltyCount;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -60,7 +60,7 @@ public class User {
     private LocalDateTime lastLoginAt;
 
     @Column(name = "is_active", nullable = false)
-    private boolean isActive = true;
+    private boolean isActive;
 
     @Column(name = "refresh_token", length = 512)
     private String refreshToken; // 암호화된 상태로 저장
