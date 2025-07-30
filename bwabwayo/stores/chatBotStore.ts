@@ -31,7 +31,7 @@ export const useChatBotStore = create<ChatBotStore>((set) => ({
     getChatBot: async (message: string) => {
         set({ loading: true, error: null })
         try {
-            const response = await fetch('http://i13e202.p.ssafy.io:8081/api/ai', {
+            const response = await fetch('https://i13e202.p.ssafy.io/api/ai', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

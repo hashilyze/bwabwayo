@@ -49,13 +49,13 @@ export const useRoomListStore = create<RoomListStore>((set) => ({
   roomList: [],
 
   setRoomList: async () => {
-    // const response = await fetch(`http://i13e202.p.ssafy.io:8081/api/chatrooms`)
+    // const response = await fetch(`https://i13e202.p.ssafy.io/api/chatrooms`)
     // const data = await response.json()
     set({ roomList: DUMMY_DATA })
   },
 
   setRoomDetail: async (roomId: number) => {
-    // const response = await fetch(`http://i13e202.p.ssafy.io:8081/api/chatrooms/${roomId}`)
+    // const response = await fetch(`https://i13e202.p.ssafy.io/api/chatrooms/${roomId}`)
     // const data = await response.json()
     set({ roomList: DUMMY_DATA })
   }

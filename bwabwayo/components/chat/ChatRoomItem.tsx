@@ -22,9 +22,10 @@ interface ChatRoomItemProps {
   chatRoom: ChatRoom;
   roomData?: RoomData;
   onSelect?: (chatRoom: ChatRoom) => void;
+  isSelected?: boolean;
 }
 
-export default function ChatRoomItem({ chatRoom, roomData, onSelect }: ChatRoomItemProps) {
+export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected }: ChatRoomItemProps) {
   const handleClick = () => {
     console.log(`${chatRoom.id} 채팅방 선택됨`);
     onSelect?.(chatRoom);
@@ -32,7 +33,11 @@ export default function ChatRoomItem({ chatRoom, roomData, onSelect }: ChatRoomI
 
   return (
     <div 
-      className="h-[92px] bg-white border-b border-gray-100 flex items-center px-5 hover:bg-gray-50 cursor-pointer"
+      className={`h-[92px] border-b border-gray-100 flex items-center px-5 cursor-pointer ${
+        isSelected 
+          ? 'bg-blue-50 border-r-4 border-r-blue-500' 
+          : 'bg-white hover:bg-gray-50'
+      }`}
       onClick={handleClick}
     >
       <div className="w-[60px] h-[60px] bg-gray-200 rounded-full mr-[18px]">

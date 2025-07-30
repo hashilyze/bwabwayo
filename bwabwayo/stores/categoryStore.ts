@@ -30,7 +30,7 @@ export const useCategoryStore = create<CategoryStore>((set) => ({
   getCategories: async () => {
     set({ loading: true, error: null })
     try {
-      const response = await fetch('http://i13e202.p.ssafy.io:8081/api/products/categories')
+      const response = await fetch('https://i13e202.p.ssafy.io/be/api/products/categories')
       if (!response.ok) {
         throw new Error('카테고리 조회에 실패했습니다')
       }

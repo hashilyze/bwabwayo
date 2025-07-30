@@ -1,6 +1,16 @@
-export default function SellerTitle() {
+interface Seller {
+  id: number;
+  nickname: string;
+}
+
+interface SellerTitleProps {
+  seller?: Seller;
+}
+
+export default function SellerTitle({ seller }: SellerTitleProps) {
     const trustScore = 234;
     const trustPercentage = (trustScore / 1000) * 100;
+    const sellerName = seller?.nickname || "판매자";
 
     return (
         <div className="w-full">
@@ -11,7 +21,7 @@ export default function SellerTitle() {
                 </div>
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-col items-start">
-                        <h3 className="text-lg font-bold">고윤정님의 상점</h3>
+                        <h3 className="text-lg font-bold">{sellerName}님의 상점</h3>
                         <div className="flex items-center gap-1">
                             <span className="text-gray-400 text-base font-light">4.8</span>
                             <img src="/icon/star-on.svg" alt="별점" className="w-4 h-4" />

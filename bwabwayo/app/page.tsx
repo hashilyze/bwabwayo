@@ -3,15 +3,27 @@
 import ProductCard from "@/components/product/ProductCard";
 import WebTest from "@/components/home/WebTest";
 import React, { useEffect } from 'react';
-import { useProductStore } from '../stores/productStore';
+import { useProductStore } from '@/stores/productStore';
 
 export default function Home() {
-  const { products, loading, error, getProducts } = useProductStore();
+  const { products, hotKewordsProduct, loading, error, getProducts, getHotKewordProducts } = useProductStore();
   const hotKeyword = '라부부';
 
   useEffect(() => {
-    getProducts();
-  }, [getProducts]);
+    const fetchData = async () => {
+      try {
+        // 두 API를 병렬로 실행 (더 빠름)
+        await Promise.all([
+          getProducts(),
+          getHotKewordProducts(hotKeyword)
+        ]);
+      } catch (error) {
+        console.error('데이터 로딩 실패:', error);
+      }
+    };
+    
+    fetchData();
+  }, [getProducts, getHotKewordProducts]);
 
   return (
     <div>
@@ -20,7 +32,6 @@ export default function Home() {
 
       {/* 광고 */}
       <div className="w-full h-[250px] bg-gray-200 rounded-xl my-10"></div>
-
 
       <div className="mb-12">
         <h1 className="text-2xl font-bold mb-5">최근 판매상품</h1>

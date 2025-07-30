@@ -173,18 +173,42 @@ const dummyProducts = {
     }
   ]
 }
+const productDetail = {
+  "product": {
+    "id": 1,
+    "category_id": 8001,
+    "thumbnail": "/image/sample.png",
+    "title": "아이폰 15 Pro 팝니다",
+    "price": "1200000",
+    "view_count": "25",
+    "wish_count": "3",
+    "is_like": true,
+    "sale_status": 1,
+    "created_at": "2025-07-30T10:30:00"
+  },
+  "seller": {
+    "id": 42,
+    "nickname": "애플매니아"
+  }
+}
 
 interface ProductStore {
+  product: ProductWithSeller | null
   products: ProductWithSeller[]
+  hotKewordProducts: ProductWithSeller[]
   loading: boolean
   error: string | null
   getProducts: (options?: { title?: string; category_id?: number; minPrice?: number; maxPrice?: number }) => Promise<void>
   addProduct: (product: Product) => Promise<void>
+  getHotKewordProducts: (title: string) => Promise<void>
+  getProductDetail: (id: number) => Promise<void>
   clearProducts: () => void
 }
 
 export const useProductStore = create<ProductStore>((set) => ({
+  product: null,
   products: [],
+  hotKewordProducts: [],
   loading: false,
   error: null,
 
@@ -197,13 +221,12 @@ export const useProductStore = create<ProductStore>((set) => ({
       if (options.maxPrice) params.append('maxPrice', options.maxPrice.toString())
 
       // API 호출 주석처리 (실제 사용 시 주석 해제)
-      const queryString = params.toString()
+      // const queryString = params.toString()
       // const response = await fetch(`http://i13e202.p.ssafy.io:8081/api/products${queryString ? `?${queryString}` : ''}`)
       // if (!response.ok) {
       //   throw new Error('상품 조회에 실패했습니다')
       // }
       // const data = await response.json()
-      // set({ products: data.result, loading: false })
       
       // 더미데이터 필터링 (개발용)
       let filteredProducts = [...dummyProducts.result]
@@ -236,12 +259,40 @@ export const useProductStore = create<ProductStore>((set) => ({
     }
   },
 
-  getProductDetail: async (productId: number) => {
-    // const response = await fetch(`http://i13e202.p.ssafy.io:8081/api/products/${productId}`)
-    // const data = await response.json()
-    
+  // 핫 키워드 상품 조회
+  getHotKewordProducts: async (title: string) => {
+    set({ loading: true, error: null })
+    // try {
+    //   const response = await fetch(`https://i13e202.p.ssafy.io/api/products/?title=${title}`)
+    //   const data = await response.json()
+    //   console.log(data)
+    //   set({ hotKewordsProduct: data, loading: false })
+    // } catch (error) {
+    //   set({ 
+    //     error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
+    //     loading: false 
+    //   })
+    // }
+  },
 
-    // set({ products: data, loading: false })
+  getProductDetail: async (id: number) => {
+    set({ loading: true, error: null })
+    
+    // 이미 만들어둔 productDetail 더미데이터 사용
+    const data = productDetail;
+    set({ product: data, loading: false })
+    
+    // 실제 API 호출 (주석 처리)
+    // try {
+    //   const response = await fetch(`http://i13e202.p.ssafy.io:8081/api/products/${id}`)
+    //   const data = await response.json()
+    //   set({ product: data, loading: false })
+    // } catch(error) {
+    //   set({ 
+    //     error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
+    //     loading: false 
+    //   })
+    // }
   },
 
   addProduct: async (product: Product) => {
