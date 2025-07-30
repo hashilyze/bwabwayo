@@ -29,10 +29,10 @@ export default function Navbar() {
   return (
     <nav className="border-b-1 border-[#eee]">
       {/* top-nav */}
-      <div className="flex flex-col">
+      <div className="flex flex-col bg-[#fafafa]">
         <div className="w-[1280px] m-auto py-2 flex justify-end text-sm text-gray-500 gap-4">
           <div className="flex gap-4">
-            <button onClick={() => setShowLoginModal(true)} className="text-sm text-gray-500 hover:underline">
+            <button onClick={() => setShowLoginModal(true)} className="text-sm text-[#666] cursor-pointer">
               로그인/회원가입
             </button>
             <Link href="/shop">내상점</Link>
@@ -46,9 +46,9 @@ export default function Navbar() {
         <div className="w-[1280px] m-auto py-4 flex items-center justify-between">
             <div className="logo-wrap flex items-center gap-2 flex-1 mr-16">
                 <div className="logo text-xl font-bold">
-                    <Link href="/"><img src="/logo.png" alt="logo" className="h-[48px]" /></Link>
+                    <Link href="/"><img src="/logo.png" alt="logo" className="h-[43px]" /></Link>
                 </div>
-                <form className="flex items-center ml-[80px] flex-1 px-2 border-1 border-[#f9f9f9] rounded-lg bg-[#F1F4F6]" onSubmit={handleSubmit}>
+                <form className="flex items-center ml-[80px] flex-1 px-2 border-1 border-[#eee] rounded-lg bg-[#fff]" onSubmit={handleSubmit}>
                     <div className="flex items-center px-3">
                         <svg 
                             width="16" 
@@ -78,7 +78,7 @@ export default function Navbar() {
                         placeholder="상품명을 검색해보세요."
                         value={title}
                         onChange={(e)=> setTitle(e.target.value)}
-                        className="flex-1 pl-0 pr-3 py-3 text-sm focus:outline-none bg-transparent"
+                        className="flex-1 pl-0 pr-3 py-3 text-sm focus:outline-none"
                     />
                     {title && (
                         <button 

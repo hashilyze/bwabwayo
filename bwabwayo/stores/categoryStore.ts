@@ -37,7 +37,7 @@ export const useCategoryStore = create<CategoryStore>((set) => ({
       const data = await response.json()
       // console.log(data)
       const CATEGORIES = data.categories
-      console.log(CATEGORIES)
+      // console.log(CATEGORIES)
       // 더미데이터 반환
       set({ categories: CATEGORIES, loading: false })
     } catch (error) {

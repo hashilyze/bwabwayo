@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { MouseEvent } from 'react'
+import LikeHeart from './LikeHeart'
 
 interface Seller {
   id: number
@@ -50,7 +51,7 @@ export default function ProductCard({ products }: Props) {
   const getSaleStatusText = (status: number): string => {
     switch (status) {
       case 1: return '판매중';
-      case 2: return '예약중';
+      case 2: return '거래중';
       case 3: return '판매완료';
       default: return '판매중';
     }
@@ -67,7 +68,7 @@ export default function ProductCard({ products }: Props) {
   };
 
   return (
-    <ul className="grid grid-cols-4 gap-[40px]">
+    <ul className="grid grid-cols-4 gap-[32px]">
       {products.map((item) => {
         const { product, seller } = item;
         const query = {
@@ -79,35 +80,21 @@ export default function ProductCard({ products }: Props) {
         const queryString = new URLSearchParams(query).toString();
 
         return (
-          <li key={product.id}>
+          <li key={product.id} className='bg-white'>
             <div
               className="group rounded-[12px] overflow-hidden border border-[#eee] cursor-pointer"
               onClick={(e) => handleCardClick(e, product.id)}
             >
               <div className='relative'>
-                <div className="h-[290px] overflow-hidden bg-gray-200 flex items-center justify-center">
+                <div className="h-[290px] overflow-hidden bg-gray-200 flex items-center justify-center border-b border-[#eee]">
                   <img
                     className="w-full h-full object-cover transform transition-transform duration-300 group-hover:scale-105"
-                    src={product.thumbnail}
+                    src={product.thumbnail || '/image/no-image.jpg'}
                     alt={product.title}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      const parent = target.parentElement;
-                      if (parent && !parent.querySelector('.fallback-text')) {
-                        const fallbackDiv = document.createElement('div');
-                        fallbackDiv.className = 'fallback-text text-gray-500 text-sm text-center px-4';
-                        fallbackDiv.textContent = '이미지를 불러올 수 없습니다';
-                        parent.appendChild(fallbackDiv);
-                      }
-                    }}
                   />
                 </div>
                 <div className="heartIcon absolute top-4 right-4">
-                  <img 
-                    src={product.is_like ? "/icon/heart-on.svg" : "/icon/heart-off.svg"} 
-                    alt="찜하기" 
-                  />
+                  <LikeHeart isLiked={product.is_like} />
                 </div>
                 {/* 판매 상태 표시 */}
                 {product.sale_status !== 1 && (

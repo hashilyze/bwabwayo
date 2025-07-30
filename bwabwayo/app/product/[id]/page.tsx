@@ -1,8 +1,6 @@
-export default function ProductDetailPage() {
-  const trustScore = 334;
-  const maxTrustScore = 1000;
-  const trustPercentage = (trustScore / maxTrustScore) * 100;
+import SellerTitle from "@/components/shop/SellerTitle";
 
+export default function ProductDetailPage() {
   return (
     <div className="relative min-h-screen">
       <div className="flex flex-row gap-12 relative">
@@ -73,39 +71,10 @@ export default function ProductDetailPage() {
             </div>
           </div>
           
-        {/* Seller Info */}
+        {/* 판매자 정보 */}
         <div className="bg-white rounded-2xl shadow-sm p-8 flex flex-col items-start gap-4">
-          <div className="flex items-center gap-4">
-            <div>
-              <img src="/image/sample.png" alt="판매자 프로필 이미지" className="rounded-full border-1 border-[#eee] w-20 h-20 object-cover" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-col items-start gap-2">
-                <h3 className="text-lg font-bold">고윤정님의 상점</h3>
-                <div className="flex items-center gap-1">
-                  <span className="text-gray-400 text-base font-light">4.8</span>
-                  <img src="/icon/star-on.svg" alt="별점" className="w-4 h-4" />
-                  <span className="text-gray-400 text-base font-light">(12)</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 신뢰지수 */}
-          <div className="w-full flex flex-col gap-1">
-            <div className="flex items-center justify-between">
-              <p className="font-medium text-[#1BA54E]">신뢰지수 <span className="text-lg font-bold">{trustScore}</span></p>
-              <p className="text-gray-400 text-sm font-light">{maxTrustScore}</p>
-            </div>
-            <div className="w-full">
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className="h-2 bg-[#1BA54E] rounded-full transition-all duration-500"
-                  style={{ width: `${trustPercentage}%` }}
-                />
-              </div>
-            </div>
-          </div>
+          {/* 판매자 평판 */}
+          <SellerTitle />
 
           {/* 판매물품 */}
           <div className="mt-8">
