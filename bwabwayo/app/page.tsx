@@ -6,7 +6,7 @@ import React, { useEffect } from 'react';
 import { useProductStore } from '@/stores/productStore';
 
 export default function Home() {
-  const { products, hotKewordsProduct, loading, error, getProducts, getHotKewordProducts } = useProductStore();
+  const { products, hotKewordProducts, loading, error, getProducts, getHotKewordProducts } = useProductStore();
   const hotKeyword = '라부부';
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export default function Home() {
 
       <div className="mb-12">
         <h1 className="text-2xl font-bold mb-5">요즘 핫한 키워드 <span className="text-blue-500">{hotKeyword}</span></h1>
-        <ProductCard products={products} />
+        <ProductCard products={hotKewordProducts} />
       </div>
     </div>
   );

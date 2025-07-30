@@ -192,6 +192,7 @@ const productDetail = {
   }
 }
 
+
 interface ProductStore {
   product: ProductWithSeller | null
   products: ProductWithSeller[]
@@ -273,6 +274,7 @@ export const useProductStore = create<ProductStore>((set) => ({
     //     loading: false 
     //   })
     // }
+    set({ hotKewordProducts: dummyProducts.result, loading: false })
   },
 
   getProductDetail: async (id: number) => {
