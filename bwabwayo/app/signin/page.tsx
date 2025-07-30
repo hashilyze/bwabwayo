@@ -6,8 +6,8 @@ import React, { useState, useRef, ChangeEvent, FormEvent } from 'react';
 import Script from 'next/script';
 
 // --- 타입 정의 ---
-// 1. Daum 우편번호 API에서 반환하는 데이터 타입을 명확하게 정의하여 'any' 타입 사용을 방지합니다.
-interface DaumPostcodeData {
+// 1. Daum 우편번호 API에서 반환하는 데이터 타입을 명확하게 정의합니다.
+interface DaumPostcodeData { 
     address: string;
     addressType: 'R' | 'J';
     bname: string;
@@ -15,11 +15,21 @@ interface DaumPostcodeData {
     zonecode: string;
 }
 
-// Daum 우편번호 서비스는 window.daum 객체를 사용하므로,
-// 타입스크립트에서 이를 인식할 수 있도록 window 객체를 확장합니다.
+// 2. Daum 우편번호 API 생성자 및 인스턴스 타입을 정의합니다.
+interface DaumPostcodeOptions {
+    oncomplete: (data: DaumPostcodeData) => void;
+}
+
+interface DaumPostcode {
+    open(): void;
+}
+
+// 3. window.daum 객체의 타입을 명확하게 정의하여 'any' 타입 사용을 방지합니다.
 declare global {
   interface Window {
-    daum: any;
+    daum: {
+        Postcode: new (options: DaumPostcodeOptions) => DaumPostcode;
+    };
   }
 }
 
@@ -73,7 +83,7 @@ export default function SignUpPage() {
     const handleAddressSearch = () => {
         if (window.daum && window.daum.Postcode) {
             new window.daum.Postcode({
-                oncomplete: function(data: DaumPostcodeData) { // 'any' 대신 정의된 타입을 사용합니다.
+                oncomplete: function(data: DaumPostcodeData) {
                     let fullAddress = data.address;
                     let extraAddress = '';
 

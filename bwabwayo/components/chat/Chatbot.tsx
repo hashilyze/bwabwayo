@@ -30,7 +30,7 @@ const ChatbotIcon = () => (
 // --- 챗봇 창 컴포넌트 ---
 function ChatbotWindow({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
     const [messages, setMessages] = useState<DisplayMessage[]>([
-        { type: 'bot', text: '안녕하세요, 궁금하신 상품 있으신가요?' }
+        { type: 'bot', text: '안녕하세요, 무엇이 궁금하신가요?' }
     ]);
     const [inputValue, setInputValue] = useState('');
     //채팅 영역
@@ -95,11 +95,29 @@ function ChatbotWindow({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
         setInputValue('');
     };
     
-    const handleQuickAction = (actionText: string) => {
-        const userMessage: DisplayMessage = { type: 'user', text: actionText };
-        setMessages(prev => [...prev, userMessage]);
-        getChatBot(actionText);
+const handleQuickAction = (actionText: string) => {
+    const userMessage: DisplayMessage = { type: 'user', text: actionText };
+    const botMessages: DisplayMessage[] = [];
+
+    if (actionText === '자주 묻는 질문') {
+        botMessages.push({
+            type: 'bot',
+            text: `자주 묻는 질문 목록입니다:\n1. 배송은 얼마나 걸리나요?\n2. 반품은 어떻게 하나요?\n3. 회원가입 없이 구매 가능한가요?`
+        });
     }
+
+    if (actionText === 'AI 상품 추천') {
+        botMessages.push({
+            type: 'bot',
+            text: `어떤 상품이 궁금하신가요? 예: 스마트폰, 경제책, 운동화`
+        });
+    }
+
+    // 사용자 메시지 먼저 추가 → 챗봇 응답 추가
+    setMessages(prev => [...prev, userMessage, ...botMessages]);
+
+    
+};
     // ChatbotWindow 컴포넌트 내부
 
     useEffect(() => {
@@ -160,8 +178,8 @@ function ChatbotWindow({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
             
             <section className="px-6 py-4 border-t border-gray-200">
                 <div className="space-y-2">
-                    {/* <button onClick={() => handleQuickAction('AI 상품 추천')} className="w-full bg-gray-100 rounded-full py-2.5 text-center text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors">AI 상품 추천</button>
-                    <button onClick={() => handleQuickAction('자주 묻는 질문')} className="w-full bg-gray-100 rounded-full py-2.5 text-center text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors">자주 묻는 질문</button> */}
+                    <button onClick={() => handleQuickAction('AI 상품 추천')} className="w-full bg-gray-100 rounded-full py-2.5 text-center text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors">AI 상품 추천</button>
+                    <button onClick={() => handleQuickAction('자주 묻는 질문')} className="w-full bg-gray-100 rounded-full py-2.5 text-center text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors">자주 묻는 질문</button>
                 </div>
             </section>
             
