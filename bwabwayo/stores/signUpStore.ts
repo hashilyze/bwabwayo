@@ -155,6 +155,9 @@ export const useSignupStore = create<SignupState>((set, get) => ({
         set({ loading: false, isSuccess: true });
         console.log('회원가입 성공!');
         
+        // 회원가입 성공 시 메인 페이지로 이동
+        window.location.href = 'http://i13e202.p.ssafy.io:3000/';
+
     } catch (error) {
         set({ 
             error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',

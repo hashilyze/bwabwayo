@@ -65,10 +65,10 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
 
         {/* 소셜 로그인 버튼 */}
         <div className="mb-8">
-          <Link className="w-full bg-[#FEE500] hover:bg-[#F7E600] text-[#181600] font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2" href={kakaoAuthUrl}>
+          <button onClick={() => window.location.href = kakaoAuthUrl} className="w-full bg-[#FEE500] hover:bg-[#F7E600] text-[#181600] font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2">
             <KakaoIcon />
             <span>카카오로 시작하기</span>
-          </Link>
+          </button>
         </div>
 
         {/* 구분선 */}
