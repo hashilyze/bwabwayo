@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useRef, ChangeEvent, FormEvent, useEffect } from 'react';
+import { useRouter } from 'next/navigation'; // useRouter import
 import { useSignupStore } from '../../stores/signUpStore'; // Zustand 스토어를 import 합니다.
 import Script from 'next/script';
 
@@ -60,6 +61,7 @@ export default function SignUpPage({ searchParams }: { searchParams?: { email?: 
     } = useSignupStore();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const router = useRouter(); // useRouter 훅 사용
 
     // 백에서 받은 email, profileImage가 있으면 초기값으로 세팅
      useEffect(() => {
@@ -113,53 +115,39 @@ export default function SignUpPage({ searchParams }: { searchParams?: { email?: 
             return;
         }
 
-        // 배송지 정보 유효성 검사
-        const hasAnyDelivery =
-            recipientName.trim() !== '' ||
-            recipientPhoneNumber.trim() !== '' ||
-            zipcode.trim() !== '' ||
-            address.trim() !== '' ||
-            addressDetail.trim() !== '';
+        // 선택 정보 그룹 유효성 검사 헬퍼 함수
+        const validateOptionalGroup = (fields: string[], groupName: string): boolean => {
+            const filledFields = fields.filter(field => field.trim() !== '');
+            // 일부만 입력된 경우
+            if (filledFields.length > 0 && filledFields.length < fields.length) {
+                alert(`${groupName} 정보를 모두 입력해야 합니다.`);
+                return false;
+            }
+            return true;
+        };
 
-        const allDeliveryFilled =
-            recipientName.trim() !== '' &&
-            recipientPhoneNumber.trim() !== '' &&
-            zipcode.trim() !== '' &&
-            address.trim() !== '' &&
-            addressDetail.trim() !== '';
+        // 배송지 정보 유효성 검사
+        const deliveryFields = [recipientName, recipientPhoneNumber, zipcode, address, addressDetail];
+        if (!validateOptionalGroup(deliveryFields, '배송지')) {
+            return;
+        }
 
-        if (hasAnyDelivery && !allDeliveryFilled) {
-            alert('배송지 정보를 모두 입력해야 합니다.');
-            return;
-        }
-
-        // 계좌 정보 유효성 검사
-        const hasAnyAccount =
-            accountNumber.trim() !== '' ||
-            accountHolder.trim() !== '' ||
-            bankName.trim() !== '';
-
-        const allAccountFilled =
-            accountNumber.trim() !== '' &&
-            accountHolder.trim() !== '' &&
-            bankName.trim() !== '';
-
-        if (hasAnyAccount && !allAccountFilled) {
-            alert('계좌 정보를 모두 입력해야 합니다.');
-            return;
-        }
+        // 계좌 정보 유효성 검사
+        const accountFields = [accountNumber, accountHolder, bankName];
+        if (!validateOptionalGroup(accountFields, '계좌')) {
+            return;
+        }
 
         // 스토어에 있는 submitSignup 액션을 호출합니다.
-        await submitSignup();
-    };
+        const isSuccess = await submitSignup();
 
-    // 회원가입 성공 시 처리
-    useEffect(() => {
-        if (isSuccess) {
-            alert('회원가입에 성공했습니다!');
-            reset();
-        }
-    }, [isSuccess, reset]);
+        // 성공적으로 완료되면 알림을 띄우고 메인 페이지로 이동합니다.
+        if (isSuccess) {
+            alert('회원가입에 성공했습니다!');
+            reset(); // 스토어 상태 초기화
+            router.replace('/'); // 메인 페이지로 이동
+        }
+    };
 
     const allRequiredAgreed = agreements.terms && agreements.privacy;
 
