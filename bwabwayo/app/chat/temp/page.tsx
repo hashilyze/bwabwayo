@@ -6,7 +6,6 @@ import ChatModal from '@/components/chat/ChatModal'
 
 export default function TempPage() {
     const router = useRouter()
-    const searchParams = useSearchParams()
 
     useEffect(() => {
         router.replace('/chat')

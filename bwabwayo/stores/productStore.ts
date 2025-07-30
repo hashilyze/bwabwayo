@@ -15,6 +15,7 @@ interface Product {
   wish_count: string
   is_like: boolean
   sale_status: number
+  can_video_call: boolean
   created_at: string
 }
 
@@ -38,6 +39,7 @@ const dummyProducts = {
         "wish_count": "3",
         "is_like": true,
         "sale_status": 1,
+        "can_video_call": true,
         "created_at": "2025-07-30T10:30:00"
       },
       "seller": {
@@ -56,6 +58,7 @@ const dummyProducts = {
         "wish_count": "7",
         "is_like": false,
         "sale_status": 1,
+        "can_video_call": false,
         "created_at": "2025-01-14T15:20:00"
       },
       "seller": {
@@ -74,8 +77,9 @@ const dummyProducts = {
         "wish_count": "12",
         "is_like": true,
         "sale_status": 1,
+        "can_video_call": false,
         "created_at": "2025-01-14T09:15:00"
-      },
+      },  
       "seller": {
         "id": 23,
         "nickname": "신발콜렉터"
@@ -92,6 +96,7 @@ const dummyProducts = {
         "wish_count": "8",
         "is_like": false,
         "sale_status": 1,
+        "can_video_call": true,
         "created_at": "2025-01-13T14:45:00"
       },
       "seller": {
@@ -110,6 +115,7 @@ const dummyProducts = {
         "wish_count": "25",
         "is_like": true,
         "sale_status": 2,
+        "can_video_call": false,
         "created_at": "2025-01-12T11:30:00"
       },
       "seller": {
@@ -128,6 +134,7 @@ const dummyProducts = {
         "wish_count": "20",
         "is_like": false,
         "sale_status": 1,
+        "can_video_call": true,
         "created_at": "2025-01-11T08:45:00"
       },
       "seller": {
@@ -146,6 +153,7 @@ const dummyProducts = {
         "wish_count": "15",
         "is_like": true,
         "sale_status": 1,
+        "can_video_call": true,
         "created_at": "2025-01-11T13:10:00"
       },
       "seller": {
@@ -164,6 +172,7 @@ const dummyProducts = {
         "wish_count": "9",
         "is_like": false,
         "sale_status": 1,
+        "can_video_call": true,
         "created_at": "2025-01-10T12:15:00"
       },
       "seller": {
@@ -184,6 +193,7 @@ const productDetail = {
     "wish_count": "3",
     "is_like": true,
     "sale_status": 1,
+    "can_video_call": true,
     "created_at": "2025-07-30T10:30:00"
   },
   "seller": {

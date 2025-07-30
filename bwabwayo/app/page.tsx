@@ -35,13 +35,9 @@ export default function Home() {
 
       <div className="mb-12">
         <h1 className="text-2xl font-bold mb-5">최근 판매상품</h1>
-        {loading ? (
+        {error ? (
           <div className="flex justify-center items-center py-8">
-            <div className="text-lg">로딩 중...</div>
-          </div>
-        ) : error ? (
-          <div className="flex justify-center items-center py-8">
-            <div className="text-lg text-red-500">{error}</div>
+            <div className="text-lg text-red-500">상품이 없습니다.</div>
           </div>
         ) : (
           <ProductCard products={products} />

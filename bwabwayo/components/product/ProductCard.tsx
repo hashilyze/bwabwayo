@@ -1,11 +1,11 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { MouseEvent } from 'react'
+import { MouseEvent, useState } from 'react'
 
 // swiper
 import { Navigation, Pagination } from 'swiper/modules';
-import { Swiper, SwiperSlide } from 'swiper/react';
+import { Swiper, SwiperClass, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
@@ -26,6 +26,7 @@ interface Product {
   wish_count: string
   is_like: boolean
   sale_status: number
+  can_video_call: boolean
   created_at: string
 }
 
@@ -73,48 +74,72 @@ export default function ProductCard({ products }: Props) {
       return `${days}일 전`;
     }
   };
+  
+  // swiper 상태 관리
+  const [swiper, setSwiper] = useState<SwiperClass>();
+  
+  // 슬라이드 이벤트핸들러
+  const handlePrev = () => {
+    swiper?.slidePrev()
+  }
+  const handleNext = () => {
+  swiper?.slideNext()
+  }
 
   return (
-    <Swiper
-      modules={[Navigation, Pagination]}
-      spaceBetween={20}
-      slidesPerView={6}
-      pagination={{ clickable: true }}
-      navigation
+    <div className="relative">
+      <Swiper
+        modules={[Pagination]}
+        spaceBetween={20}
+        slidesPerView={6}
+        pagination={{ clickable: true }}
+        className="swiper grid grid-cols-6 gap-6"
+      >
+        {products.map((item) => {
+          const { product } = item;
 
-      className="swiper grid grid-cols-6 gap-6"
-    >
-      {products.map((item) => {
-        const { product } = item;
-
-        return (
-          <SwiperSlide key={product.id}>
-            <div
-              className="cursor-pointer"
-              onClick={(e) => handleCardClick(e, product.id)}
-            >
-              {/* 상품 이미지 */}
-              <div className="aspect-square overflow-hidden rounded-lg">
-                <div className="absolute top-4 right-4 z-10">
-                  <LikeHeart isLiked={product.is_like} />
+          return (
+            <SwiperSlide key={product.id}>
+              <div
+                className="cursor-pointer"
+                onClick={(e) => handleCardClick(e, product.id)}
+              >
+                {/* 상품 이미지 */}
+                <div className="aspect-square overflow-hidden rounded-lg">
+                  <div className="absolute top-4 right-4 z-10">
+                    <LikeHeart isLiked={product.is_like} />
+                  </div>
+                  <img
+                    className="w-full h-full object-cover"
+                    src={product.thumbnail || '/image/no-image.jpg'}
+                    alt={product.title}
+                  />
                 </div>
-                <img
-                  className="w-full h-full object-cover"
-                  src={product.thumbnail || '/image/no-image.jpg'}
-                  alt={product.title}
-                />
+                
+                {/* 상품 정보 */}
+                <div className="mt-5">
+                  <h3 className="text-lg text-[#5a5a5a] leading-sung h-15 overflow-hidden">{product.title}</h3>
+                  <p className="text-xl font-bold text-black mb-1">{formatPrice(product.price)}원</p>
+                  <p className="text-sm font-light text-[#999999]">{getRelativeTime(product.created_at)}</p>
+                  {product.can_video_call && (
+                    <div className="text-[10px] font-bold text-[#1b8ee4] bg-[#f4f6f7] w-fit rounded-sm mt-1 px-1 border border-[#ecf1f4]">화상통화</div>
+                  )}
+                </div>
               </div>
-              
-              {/* 상품 정보 */}
-              <div className="mt-5">
-                <h3 className="text-lg text-[#5a5a5a] leading-sung h-15 overflow-hidden">{product.title}</h3>
-                <p className="text-xl font-bold text-black mb-1">{formatPrice(product.price)}원</p>
-                <p className="text-md text-[#999999]">{getRelativeTime(product.created_at)}</p>
-              </div>
-            </div>
-          </SwiperSlide>
-        );
-      })}
-    </Swiper>
+            </SwiperSlide>
+          );
+        })}
+      </Swiper>
+      <div className="swiper-button-prev after:hidden w-10 h-10 flex items-center justify-center bg-white/40 rounded-full shadow-lg" onClick={handlePrev}>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </div>
+      <div className="swiper-button-next after:hidden w-10 h-10 flex items-center justify-center bg-white/40 rounded-full shadow-lg" onClick={handleNext}>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </div>
+    </div>
   );
 }
