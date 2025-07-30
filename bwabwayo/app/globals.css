@@ -70,3 +70,29 @@ body {
 .delay-300 { animation-delay: 0.3s; }
 .delay-600 { animation-delay: 0.6s; }
 .delay-900 { animation-delay: 0.9s; }
+
+/* Swiper 페이지네이션 커스텀 */
+.swiper-pagination {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  bottom: 0 !important;
+  margin-top: 40px;
+}
+
+.swiper-pagination-bullet {
+  width: 4px !important;
+  height: 4px !important;
+  background: #d1d5db !important;
+  opacity: 1 !important;
+  margin: 0 2px !important;
+  transition: all 0.3s ease;
+}
+
+.swiper-pagination-bullet-active {
+  background: #000 !important;
+  width: 28px !important;
+  height: 4px !important;
+  border-radius: 2px !important;
+}

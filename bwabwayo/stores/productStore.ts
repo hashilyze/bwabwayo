@@ -179,6 +179,101 @@ const dummyProducts = {
         "id": 45,
         "nickname": "디지털노마드"
       }
+    },
+    {
+      "product": {
+        "id": 9,
+        "category_id": 8003,
+        "thumbnail": "/image/sample.png",
+        "title": "갤럭시 S24 울트라 256GB",
+        "price": "1500000",
+        "view_count": "55",
+        "wish_count": "18",
+        "is_like": true,
+        "sale_status": 1,
+        "can_video_call": true,
+        "created_at": "2025-01-09T16:30:00"
+      },
+      "seller": {
+        "id": 78,
+        "nickname": "삼성러버"
+      }
+    },
+    {
+      "product": {
+        "id": 10,
+        "category_id": 3002,
+        "thumbnail": "/image/sample.png",
+        "title": "아디다스 울트라부스트 22",
+        "price": "180000",
+        "view_count": "92",
+        "wish_count": "31",
+        "is_like": false,
+        "sale_status": 1,
+        "can_video_call": false,
+        "created_at": "2025-01-08T11:20:00"
+      },
+      "seller": {
+        "id": 34,
+        "nickname": "운동러버"
+      }
+    },
+    {
+      "product": {
+        "id": 11,
+        "category_id": 4002,
+        "thumbnail": "/image/sample.png",
+        "title": "샤넬 클래식 플랩 백",
+        "price": "8500000",
+        "view_count": "45",
+        "wish_count": "12",
+        "is_like": true,
+        "sale_status": 1,
+        "can_video_call": true,
+        "created_at": "2025-01-07T14:15:00"
+      },
+      "seller": {
+        "id": 91,
+        "nickname": "럭셔리러버"
+      }
+    },
+    {
+      "product": {
+        "id": 12,
+        "category_id": 8008,
+        "thumbnail": "/image/sample.png",
+        "title": "닌텐도 스위치 OLED",
+        "price": "350000",
+        "view_count": "67",
+        "wish_count": "22",
+        "is_like": false,
+        "sale_status": 1,
+        "can_video_call": true,
+        "created_at": "2025-01-06T09:45:00"
+      },
+      "seller": {
+        "id": 28,
+        "nickname": "게임러버"
+      }
+    },
+    {
+      "product": {
+        "id": 13,
+        "category_id": 5002,
+        "thumbnail": "/image/sample.png",
+        "title": "오메가 스피드마스터",
+        "price": "8500000",
+        "view_count": "38",
+        "wish_count": "15",
+        "is_like": true,
+        "sale_status": 1,
+        "can_video_call": false,
+        "created_at": "2025-01-05T13:20:00"
+      },
+      "seller": {
+        "id": 73,
+        "nickname": "시계수집가"
+      }
     }
   ]
 }
@@ -206,12 +301,14 @@ const productDetail = {
 interface ProductStore {
   product: ProductWithSeller | null
   products: ProductWithSeller[]
-  hotKewordProducts: ProductWithSeller[]
+  hotKeywordProducts: ProductWithSeller[]
+  videoCallProducts: ProductWithSeller[]
   loading: boolean
   error: string | null
   getProducts: (options?: { title?: string; category_id?: number; minPrice?: number; maxPrice?: number }) => Promise<void>
   addProduct: (product: Product) => Promise<void>
   getHotKewordProducts: (title: string) => Promise<void>
+  getVideoCallProducts: () => Promise<void>
   getProductDetail: (id: number) => Promise<void>
   clearProducts: () => void
 }
@@ -219,7 +316,8 @@ interface ProductStore {
 export const useProductStore = create<ProductStore>((set) => ({
   product: null,
   products: [],
-  hotKewordProducts: [],
+  hotKeywordProducts: [],
+  videoCallProducts: [],
   loading: false,
   error: null,
 
@@ -274,7 +372,7 @@ export const useProductStore = create<ProductStore>((set) => ({
   getHotKewordProducts: async (title: string) => {
     set({ loading: true, error: null })
     // try {
-    //   const response = await fetch(`https://i13e202.p.ssafy.io/api/products/?title=${title}`)
+    //   const response = await fetch(`https://i13e202.p.ssafy.io/be/api/products/?title=${title}`)
     //   const data = await response.json()
     //   console.log(data)
     //   set({ hotKewordsProduct: data, loading: false })
@@ -284,7 +382,31 @@ export const useProductStore = create<ProductStore>((set) => ({
     //     loading: false 
     //   })
     // }
-    set({ hotKewordProducts: dummyProducts.result, loading: false })
+    set({ hotKeywordProducts: dummyProducts.result, loading: false })
+  },
+
+  // 화상통화 가능한 상품 조회
+  getVideoCallProducts: async () => {
+    set({ loading: true, error: null })
+    const filteredProducts = dummyProducts.result.filter(item => 
+      item.product.can_video_call === true
+    )
+    // try {
+    //   const queryString = params.toString()
+    //   const response = await fetch(`https://i13e202.p.ssafy.io/be/api/products${queryString ? `?${queryString}` : ''}`)
+    //   const data = await response.json()
+    //   const filteredProducts = data.result.filter(item => 
+    //      item.product.can_video_call === true
+    //   )
+    //   console.log(filteredProducts)
+    //   set({ videoCallProducts: filteredProducts, loading: false })
+    // } catch (error) {
+    //   set({ 
+    //     error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
+    //     loading: false 
+    //   })
+    // }
+    set({ videoCallProducts: filteredProducts, loading: false })
   },
 
   getProductDetail: async (id: number) => {

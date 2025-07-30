@@ -37,9 +37,10 @@ export interface ProductWithSeller {
 
 type Props = {
   products: ProductWithSeller[]
+  navigationId?: string
 }
 
-export default function ProductCard({ products }: Props) {
+export default function ProductCard({ products, navigationId = 'default' }: Props) {
   const router = useRouter();
 
   const handleCardClick = (e: MouseEvent<HTMLDivElement>, productId: number) => {
@@ -77,22 +78,39 @@ export default function ProductCard({ products }: Props) {
   
   // swiper 상태 관리
   const [swiper, setSwiper] = useState<SwiperClass>();
+  const [swiperIndex, setSwiperIndex] = useState(0);
+  const [isBeginning, setIsBeginning] = useState(true);
+  const [isEnd, setIsEnd] = useState(false);
   
   // 슬라이드 이벤트핸들러
   const handlePrev = () => {
     swiper?.slidePrev()
   }
   const handleNext = () => {
-  swiper?.slideNext()
+    swiper?.slideNext()
   }
 
   return (
     <div className="relative">
       <Swiper
-        modules={[Pagination]}
+        modules={[Pagination, Navigation]}
         spaceBetween={20}
         slidesPerView={6}
+        slidesPerGroup={3}
         pagination={{ clickable: true }}
+        navigation={{
+          nextEl: `.custom-next-${navigationId}`,
+          prevEl: `.custom-prev-${navigationId}`,
+        }}
+        onSwiper={(e) => {
+          setSwiper(e);
+          setIsBeginning(e.isBeginning);
+          setIsEnd(e.isEnd);
+        }}
+        onSlideChange={(e) => {
+          setIsBeginning(e.isBeginning);
+          setIsEnd(e.isEnd);
+        }}
         className="swiper grid grid-cols-6 gap-6"
       >
         {products.map((item) => {
@@ -130,16 +148,32 @@ export default function ProductCard({ products }: Props) {
           );
         })}
       </Swiper>
-      <div className="swiper-button-prev after:hidden w-10 h-10 flex items-center justify-center bg-white/40 rounded-full shadow-lg" onClick={handlePrev}>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <button 
+        className={`custom-prev-${navigationId} hover:bg-[#343D48] pl-1 z-1 absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded transition-all duration-200 ${
+          isBeginning 
+            ? 'bg-gray-200 cursor-not-allowed opacity-50' 
+            : 'bg-white/40 hover:bg-[#343D48] cursor-pointer'
+        }`} 
+        onClick={handlePrev}
+        disabled={isBeginning}
+      >
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M15.8122 5.34218C16.4517 6.0669 16.3825 7.17278 15.6578 7.81224L8.645 14L15.6578 20.1878C16.3825 20.8273 16.4517 21.9331 15.8122 22.6579C15.1727 23.3826 14.0669 23.4517 13.3421 22.8122L5.26706 15.6872C4.25192 14.7914 4.25192 13.2086 5.26706 12.3129L13.3421 5.1878C14.0669 4.54835 15.1727 4.61747 15.8122 5.34218Z" fill="white" filter="drop-shadow(0px 1px 2px rgba(0,0,0,0.3))"/>
         </svg>
-      </div>
-      <div className="swiper-button-next after:hidden w-10 h-10 flex items-center justify-center bg-white/40 rounded-full shadow-lg" onClick={handleNext}>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </button>
+      <button 
+        className={`custom-next-${navigationId} hover:bg-[#343D48] pr-1 z-1 absolute right-0 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded transition-all duration-200 ${
+          isEnd 
+            ? 'bg-gray-200 cursor-not-allowed opacity-50' 
+            : 'bg-white/40 hover:bg-[#343D48] cursor-pointer'
+        }`} 
+        onClick={handleNext}
+        disabled={isEnd}
+      >
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M12.1878 5.34218C11.5483 6.0669 11.6175 7.17278 12.3422 7.81224L19.355 14L12.3422 20.1878C11.6175 20.8273 11.5483 21.9331 12.1878 22.6579C12.8273 23.3826 13.9331 23.4517 14.6579 22.8122L22.7329 15.6872C23.7481 14.7914 23.7481 13.2086 22.7329 12.3129L14.6579 5.1878C13.9331 4.54835 12.8273 4.61747 12.1878 5.34218Z" fill="white" filter="drop-shadow(0px 1px 2px rgba(0,0,0,0.3))"/>
         </svg>
-      </div>
+      </button>
     </div>
   );
 }
