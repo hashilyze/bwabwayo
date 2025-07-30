@@ -108,6 +108,8 @@ export const useSignupStore = create<SignupState>((set, get) => ({
         const urlParams = new URLSearchParams(window.location.search);
         const accessToken = urlParams.get('accessToken');
 
+        console.log('보내는 accessToken:', accessToken);
+
         const {
             nickname,
             phoneNumber,
@@ -133,7 +135,7 @@ export const useSignupStore = create<SignupState>((set, get) => ({
             zipcode,
             address,
             addressDetail,
-            profileImage,
+            // profileImage,
         };
 
         console.log('회원가입 요청 payload:', JSON.stringify(payload, null, 2));
