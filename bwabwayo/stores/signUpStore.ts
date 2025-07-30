@@ -106,10 +106,13 @@ export const useSignupStore = create<SignupState>((set, get) => ({
     try {
         // 1. URL에서 accessToken, id, email, profileImage 추출
         const urlParams = new URLSearchParams(window.location.search);
-        const accessToken = urlParams.get('accessToken');
-        const id = urlParams.get('id');
-        const emailFromUrl = urlParams.get('email');
-        const profileImageFromUrl = urlParams.get('profileImage');
+        const accessToken = urlParams.get('accessToken') ?? '';
+        const id = urlParams.get('id') ?? '';
+        const emailFromUrl = urlParams.get('email') ?? '';
+        const profileImageFromUrl = urlParams.get('profileImage') ?? '';
+         if (emailFromUrl && !get().email) {
+            set({ email: emailFromUrl });
+        }
 
         console.log('보내는 accessToken:', accessToken);
 
@@ -163,7 +166,7 @@ export const useSignupStore = create<SignupState>((set, get) => ({
         console.log('회원가입 성공!');
         
         // 회원가입 성공 시 메인 페이지로 이동
-        window.location.href = 'http://i13e202.p.ssafy.io:3000/';
+        window.location.href = 'https://i13e202.p.ssafy.io/fe/';
 
     } catch (error) {
         set({ 

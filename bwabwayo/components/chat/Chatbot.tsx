@@ -6,7 +6,7 @@ import { useChatBotStore } from '../../stores/chatBotStore';
 
 // --- 타입 정의 ---
 type DisplayMessage = {
-  type: 'greeting' | 'user' | 'bot' | 'loading';
+  type: 'greeting' | 'user' | 'bot' | 'button';
   text: string;
 };
 
@@ -29,11 +29,14 @@ const ChatbotIcon = () => (
 
 // --- 챗봇 창 컴포넌트 ---
 function ChatbotWindow({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
-    const [messages, setMessages] = useState<DisplayMessage[]>([
-        { type: 'bot', text: '안녕하세요, 봐봐요 챗봇입니다.' }
-    ]);
+    const [messages, setMessages] = useState<DisplayMessage[]>(
+        [
+            { type: 'bot', text: '안녕하세요, 봐봐요 챗봇입니다! 😊\n필요한 물건이 있으신가요?\nAI에게 추천을 받아보세요.' },
+            { type: 'button', text: 'AI 상품 추천' }
+        ]
+    );
     const [inputValue, setInputValue] = useState('');
-    const [inputActive, setInputActive] = useState(false); // 입력창 활성화 상태 추가
+    const [inputActive, setInputActive] = useState(false); // 입력창 활성화 상태
     //채팅 영역
     const chatAreaRef = useRef<HTMLDivElement>(null);
     //챗봇 전체 영역
@@ -98,17 +101,20 @@ function ChatbotWindow({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
     
 const handleQuickAction = (actionText: string) => {
         const userMessage: DisplayMessage = { type: 'user', text: actionText };
-        const botMessages: DisplayMessage[] = [];
 
         if (actionText === 'AI 상품 추천') {
-            botMessages.push({
-                type: 'bot',
-                text: `어떤 상품이 궁금하신가요? 예: 스마트폰, 경제책, 운동화`
-            });
-            setInputActive(true); // AI 상품 추천 버튼 클릭 시 입력창 활성화
+            setMessages(prev => [
+                ...prev.filter(msg => msg.type !== 'button'), // 버튼 메시지 제거
+                userMessage,
+                {
+                    type: 'bot',
+                    text: `어떤 상품이 궁금하신가요? 예: 스마트폰, 경제책, 운동화`
+                }
+            ]);
+            setInputActive(true); // 입력창 활성화
+        } else {
+            setMessages(prev => [...prev, userMessage]);
         }
-
-        setMessages(prev => [...prev, userMessage, ...botMessages]);
     };
     // ChatbotWindow 컴포넌트 내부
 
@@ -154,7 +160,25 @@ const handleQuickAction = (actionText: string) => {
                         return <div key={index} className="flex justify-end"><div className="bg-[#3369ff] text-white rounded-2xl rounded-br-lg px-4 py-3 max-w-[80%] text-sm font-medium whitespace-pre-wrap">{msg.text}</div></div>;
                     }
                     if (msg.type === 'bot') {
-                        return <div key={index} className="flex justify-start"><div className="bg-gray-100 text-gray-800 rounded-2xl rounded-bl-lg px-4 py-3 max-w-[80%] text-sm whitespace-pre-wrap">{msg.text}</div></div>;
+                        return (
+                            <div key={index} className="flex flex-col items-start space-y-2">
+                                <div className="bg-gray-100 text-gray-800 rounded-2xl rounded-bl-lg px-4 py-3 max-w-[80%] text-sm whitespace-pre-wrap">
+                                    {msg.text}
+                                </div>
+                                {/* bot 메시지 바로 아래 버튼 추가 */}
+                                {!inputActive && (
+                                    <button
+                                        onClick={() => handleQuickAction('AI 상품 추천')}
+                                        className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold rounded-full px-6 py-2 shadow-md hover:scale-105 hover:from-blue-600 hover:to-blue-800 transition-all text-sm"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        AI 상품 추천
+                                    </button>
+                                )}
+                            </div>
+                        );
                     }
                     return null;
                 })}
@@ -168,34 +192,41 @@ const handleQuickAction = (actionText: string) => {
                 )}
             </main>
             
-            <section className="px-6 py-4 border-t border-gray-200">
+            {/* <section className="px-6 py-4 border-t border-gray-200">
                 <div className="space-y-2">
                     <button
                         onClick={() => handleQuickAction('AI 상품 추천')}
                         className="w-full bg-gray-100 rounded-full py-2.5 text-center text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+                        disabled={inputActive} // 이미 활성화되면 버튼 비활성화
                     >
                         AI 상품 추천
                     </button>
                 </div>
-            </section>
-            {/* 입력창은 inputActive가 true일 때만 보여줌 */}
-            {inputActive && (
-                <footer className="px-6 py-4 bg-white flex items-center border-t border-gray-200">
-                    <form onSubmit={handleSendMessage} className="w-full flex items-center">
-                        <input
-                            type="text"
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
-                            className="flex-1 bg-gray-100 rounded-full px-5 py-3 outline-none text-sm text-gray-800 placeholder-gray-500"
-                            placeholder="메시지를 입력하세요"
-                            disabled={loading}
-                        />
-                        <button type="submit" className="w-10 h-10 ml-3 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 hover:bg-blue-700 transition-colors disabled:bg-gray-400" disabled={loading}>
-                            <SendIcon />
-                        </button>
-                    </form>
-                </footer>
-            )}
+            </section> */}
+            {/* 입력창은 항상 보이되, inputActive가 false면 비활성화 + 색상 변경 */}
+            <footer className="px-6 py-4 bg-white flex items-center border-t border-gray-200">
+                <form onSubmit={handleSendMessage} className="w-full flex items-center">
+                    <input
+                        type="text"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        className={`flex-1 rounded-full px-5 py-3 outline-none text-sm placeholder-gray-500
+                            ${inputActive ? 'bg-gray-100 text-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}
+                        `}
+                        placeholder={inputActive ? "메시지를 입력하세요" : "AI 상품 추천을 먼저 눌러주세요"}
+                        disabled={!inputActive || loading}
+                    />
+                    <button
+                        type="submit"
+                        className={`w-10 h-10 ml-3 rounded-full flex items-center justify-center flex-shrink-0
+                            ${inputActive && !loading ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400'}
+                            transition-colors`}
+                        disabled={!inputActive || loading}
+                    >
+                        <SendIcon />
+                    </button>
+                </form>
+            </footer>
         </div>
     );
 }
