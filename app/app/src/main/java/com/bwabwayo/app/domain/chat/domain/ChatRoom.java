@@ -22,8 +22,8 @@ public class ChatRoom implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long roomId;
-    private Long buyerId;
-    private Long sellerId;
+    private String buyerId;
+    private String sellerId;
     private Long productId;
 
     public static ChatRoom createRoom(CreateChatRoomRequest request){
@@ -34,7 +34,7 @@ public class ChatRoom implements Serializable {
         return chatRoom;
     }
 
-    public Long getOtherUserId(Long userId) {
+    public String getOtherUserId(String userId) {
         if(Objects.equals(userId, this.sellerId)) return buyerId;
         else return sellerId;
     }

@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
-    List<ChatRoom> findBySellerIdOrBuyerId(Long sellerId, Long buyerId);
+    List<ChatRoom> findBySellerIdOrBuyerId(String sellerId, String buyerId);
 }

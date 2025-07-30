@@ -14,10 +14,9 @@ public class WebConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                    .allowedOrigins("http://localhost:3000", "http://i13e202.p.ssafy.io:3000",
-                            "http://localhost:3001", "http://i13e202.p.ssafy.io:3001") // 프론트 주소
-                    .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                    .allowCredentials(true);
+                        .allowedOriginPatterns("*") // 프론트 주소
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowCredentials(true);
             }
         };
     }

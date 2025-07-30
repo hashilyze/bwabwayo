@@ -5,14 +5,16 @@ import com.bwabwayo.app.domain.chat.dto.request.CreateChatRoomRequest;
 import com.bwabwayo.app.domain.chat.dto.response.ChatRoomListResponse;
 import com.bwabwayo.app.domain.chat.repository.ChatRoomRedisRepository;
 import com.bwabwayo.app.domain.chat.repository.ChatRoomRepository;
+import com.bwabwayo.app.domain.product.domain.Product;
+import com.bwabwayo.app.domain.product.repository.ProductRepository;
+import com.bwabwayo.app.domain.user.domain.User;
+import com.bwabwayo.app.domain.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -20,11 +22,10 @@ import java.util.List;
 @Slf4j
 public class ChatRoomService {
 
-    private final RedisTemplate<String, Object> redisTemplate;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomRedisRepository chatRoomRedisRepository;
-
-    private static final String CHAT_ROOMS_KEY = "CHAT_ROOMS";
+    private final UserRepository userRepository;
+    private final ProductRepository productRepository;
 
     /**
      * 채팅방 생성: MySQL 저장 + Redis 캐싱
@@ -36,12 +37,17 @@ public class ChatRoomService {
         ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
 
         Long roomId = savedChatRoom.getRoomId();
-        Long buyerId = savedChatRoom.getBuyerId();
-        Long sellerId = savedChatRoom.getSellerId();
+        String buyerId = savedChatRoom.getBuyerId();
+        String sellerId = savedChatRoom.getSellerId();
+        Long productId = savedChatRoom.getProductId();
+
+        User buyer = userRepository.findById(buyerId).orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+        User seller = userRepository.findById(sellerId).orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+        Product product = productRepository.findById(productId).orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
 
         // 2. Redis 캐싱용 기본 미리보기 응답 생성
-        ChatRoomListResponse buyerPreview = ChatRoomListResponse.fromInitial(savedChatRoom, sellerId);
-        ChatRoomListResponse sellerPreview = ChatRoomListResponse.fromInitial(savedChatRoom, buyerId);
+        ChatRoomListResponse buyerPreview = ChatRoomListResponse.fromInitial(savedChatRoom, sellerId, seller, buyer, product);
+        ChatRoomListResponse sellerPreview = ChatRoomListResponse.fromInitial(savedChatRoom, buyerId, seller, buyer, product);
 
         // 3. Redis에 캐싱
         chatRoomRedisRepository.setChatRoom(buyerId, roomId, buyerPreview);
@@ -53,7 +59,7 @@ public class ChatRoomService {
     /**
      * 채팅방 목록 조회
      */
-    public List<ChatRoomListResponse> getChatRoomList(Long userId) {
+    public List<ChatRoomListResponse> getChatRoomList(String userId) {
         List<ChatRoomListResponse> roomList;
 
         // Redis에 존재하면 가져오기
@@ -65,8 +71,17 @@ public class ChatRoomService {
             roomList = new ArrayList<>();
 
             for (ChatRoom chatRoom : chatRooms) {
-                Long partnerId = chatRoom.getOtherUserId(userId); // 상대 유저 ID 구하는 메서드 필요
-                roomList.add(ChatRoomListResponse.fromInitial(chatRoom, partnerId));
+
+                String buyerId = chatRoom.getBuyerId();
+                String sellerId = chatRoom.getSellerId();
+                Long productId = chatRoom.getProductId();
+
+                User buyer = userRepository.findById(buyerId).orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+                User seller = userRepository.findById(sellerId).orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+                Product product = productRepository.findById(productId).orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+
+                String partnerId = chatRoom.getOtherUserId(userId); // 상대 유저 ID 구하는 메서드 필요
+                roomList.add(ChatRoomListResponse.fromInitial(chatRoom, partnerId, seller, buyer, product));
             }
 
             chatRoomRedisRepository.initChatRoomList(userId, roomList); // 캐싱
@@ -99,7 +114,7 @@ public class ChatRoomService {
         // redisTemplate.opsForList().leftPush("chat:" + roomId, "");
     }
 
-    public ChatRoomListResponse getChatRoomInfo(Long roomId, Long userId) {
+    public ChatRoomListResponse getChatRoomInfo(Long roomId, String userId) {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채팅방입니다: roomId=" + roomId));
 

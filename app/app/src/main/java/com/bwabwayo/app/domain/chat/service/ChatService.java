@@ -1,13 +1,11 @@
 package com.bwabwayo.app.domain.chat.service;
 
-import com.bwabwayo.app.domain.chat.domain.ChatRoom;
 import com.bwabwayo.app.domain.chat.dto.MessageDTO;
 import com.bwabwayo.app.domain.chat.dto.MessageSubDTO;
 import com.bwabwayo.app.domain.chat.dto.response.ChatRoomListResponse;
 import com.bwabwayo.app.domain.chat.repository.ChatRoomRedisRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.User;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,8 +21,8 @@ public class ChatService {
 
     public void sendChatMessage(MessageDTO chatMessage) {
         log.info("📢 메시지 브로드캐스트: {}", chatMessage);
-        Long userId = chatMessage.getSenderId();
-        Long partnerId;
+        String userId = chatMessage.getSenderId();
+        String partnerId;
 
         ChatRoomListResponse newChatRoomList = null;
 
@@ -115,7 +113,7 @@ public class ChatService {
     }
 
     // redis에서 채팅방 리스트 불러오는 로직
-    private List<ChatRoomListResponse> getChatRoomListByUserId(Long userId) {
+    private List<ChatRoomListResponse> getChatRoomListByUserId(String userId) {
         List<ChatRoomListResponse> chatRoomListGetResponseList = new ArrayList<>();
 
         if (chatRoomRedisRepository.existChatRoomList(userId)) {
@@ -129,9 +127,9 @@ public class ChatService {
         return chatRoomListGetResponseList;
     }
 
-    private Long getPartnerId(MessageDTO chatMessageDto, ChatRoomListResponse my) {
-        Long userId = chatMessageDto.getSenderId();
-        Long partnerId;
+    private String getPartnerId(MessageDTO chatMessageDto, ChatRoomListResponse my) {
+        String userId = chatMessageDto.getSenderId();
+        String partnerId;
         if (my.getBuyerId() == userId) {
             partnerId = my.getSellerId();
         } else {

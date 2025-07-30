@@ -2,10 +2,12 @@ package com.bwabwayo.app.domain.chat.dto.response;
 
 import com.bwabwayo.app.domain.chat.domain.ChatRoom;
 import com.bwabwayo.app.domain.chat.dto.MessageDTO;
+import com.bwabwayo.app.domain.product.domain.Product;
+import com.bwabwayo.app.domain.product.enums.SaleStatus;
+import com.bwabwayo.app.domain.user.domain.User;
 import lombok.*;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 @Getter @Setter
 @Builder
@@ -16,9 +18,9 @@ public class ChatRoomListResponse implements Serializable {
 
     private Long roomId;
 
-    private Long buyerId;
+    private String buyerId;
 
-    private Long sellerId;
+    private String sellerId;
 
     private Long productId;
 
@@ -26,7 +28,7 @@ public class ChatRoomListResponse implements Serializable {
 
     private Integer productPrice;
 
-    private Long userId;
+    private String userId;
 
     private String sellerProfileImageUrl;
 
@@ -38,32 +40,35 @@ public class ChatRoomListResponse implements Serializable {
 
     private String partnerNickName;
 
-    private DealState dealState;
+    private SaleStatus saleStatus;
 
     private MessageDTO lastChatmessageDto;
 
-    public static ChatRoomListResponse fromInitial(ChatRoom room, Long userId) {
+    public static ChatRoomListResponse fromInitial(ChatRoom room, String userId, User seller, User buyer, Product product) {
         boolean isBuyer = room.getBuyerId().equals(userId);
+        String userNickname = isBuyer ? buyer.getNickname() : seller.getNickname();
+        String partnerNickname = isBuyer ? seller.getNickname() : buyer.getNickname();
+
 
         return ChatRoomListResponse.builder()
                 .roomId(room.getRoomId())
                 .buyerId(room.getBuyerId())
                 .sellerId(room.getSellerId())
                 .productId(room.getProductId())
-                .productName("") // 이후 상품 정보 조회해서 세팅
-                .productPrice(0) // 이후 세팅
+                .productName(product.getTitle()) // 이후 상품 정보 조회해서 세팅
+                .productPrice(product.getPrice()) // 이후 세팅
                 .userId(userId)
-                .sellerProfileImageUrl("") // 이후 유저 프로필 조회
-                .buyerProfileImageUrl("")
-                .productImageUrl("") // 이후 상품 이미지 조회
-                .myNickName("") // 이후 유저 닉네임 조회
-                .partnerNickName("")
-                .dealState(DealState.ONSALE) // 기본값이 거래중이라고 가정
+                .sellerProfileImageUrl(seller.getProfileImage()) // 이후 유저 프로필 조회
+                .buyerProfileImageUrl(buyer.getProfileImage())
+                .productImageUrl(product.getThumbnail()) // 이후 상품 이미지 조회
+                .myNickName(userNickname) // 이후 유저 닉네임 조회
+                .partnerNickName(partnerNickname)
+                .saleStatus(product.getSaleStatus()) // 기본값이 거래중이라고 가정
                 .lastChatmessageDto(null) // 아직 메시지 없음
                 .build();
     }
 
-    public static ChatRoomListResponse fromInitial(ChatRoom room, Long userId,
+    public static ChatRoomListResponse fromInitial(ChatRoom room, String userId,
                                                    String productName, Integer productPrice,
                                                    String sellerProfileImageUrl, String buyerProfileImageUrl,
                                                    String productImageUrl, String myNickName,
@@ -83,7 +88,7 @@ public class ChatRoomListResponse implements Serializable {
                 .productImageUrl(productImageUrl) // 이후 상품 이미지 조회
                 .myNickName(myNickName) // 이후 유저 닉네임 조회
                 .partnerNickName(partnerNickName)
-                .dealState(DealState.ONSALE) // 기본값이 거래중이라고 가정
+                .saleStatus(SaleStatus.AVAILABLE) // 기본값이 거래중이라고 가정
                 .lastChatmessageDto(null) // 아직 메시지 없음
                 .build();
     }

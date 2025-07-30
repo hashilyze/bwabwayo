@@ -41,8 +41,8 @@ public class RedisSubscriber {
             List<ChatRoomListResponse> chatRoomListGetResponseList = dto.getList();
             List<ChatRoomListResponse> chatRoomListGetResponseListPartner = dto.getPartnerList();
 
-            Long userId = dto.getUserId();
-            Long partnerId = dto.getPartnerId();
+            String userId = dto.getUserId();
+            String partnerId = dto.getPartnerId();
 
             // 로그인 유저 채팅방 리스트 최신화 -> 내 계정에 보냄
             messagingTemplate.convertAndSend(

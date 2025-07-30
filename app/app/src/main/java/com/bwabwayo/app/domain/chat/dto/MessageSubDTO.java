@@ -10,8 +10,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MessageSubDTO {
-    private Long userId;
-    private Long partnerId;
+    private String userId;
+    private String partnerId;
     private MessageDTO messageDTO;
     private List<ChatRoomListResponse> list;
     private List<ChatRoomListResponse> partnerList;
