@@ -1,8 +1,8 @@
 package com.bwabwayo.app.domain.ai.controller;
 
-import com.bwabwayo.app.domain.ai.dto.request.ChatRequest;
+import com.bwabwayo.app.domain.ai.dto.request.ChatBotRequest;
 import com.bwabwayo.app.domain.ai.dto.response.OpenAiRecommendationResponse;
-import com.bwabwayo.app.domain.ai.service.ChatService;
+import com.bwabwayo.app.domain.ai.service.ChatBotService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,14 +10,14 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/ai")
-public class ChatController {
+public class ChatBotController {
 
-    private final ChatService chatService;
+    private final ChatBotService chatBotService;
 
     // 챗봇 응답 전체
     @PostMapping
-    public ResponseEntity<OpenAiRecommendationResponse> chat(@RequestBody ChatRequest chatRequest) {
-        OpenAiRecommendationResponse response = chatService.getRecommendation(chatRequest.getMessage());
+    public ResponseEntity<OpenAiRecommendationResponse> chat(@RequestBody ChatBotRequest chatBotRequest) {
+        OpenAiRecommendationResponse response = chatBotService.getRecommendation(chatBotRequest.getMessage());
         return ResponseEntity.ok(response);
     }
 

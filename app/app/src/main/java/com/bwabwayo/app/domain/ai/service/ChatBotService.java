@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class ChatService {
+public class ChatBotService {
 
     private final OpenAiClient openAiClient;
     private final ObjectMapper objectMapper;

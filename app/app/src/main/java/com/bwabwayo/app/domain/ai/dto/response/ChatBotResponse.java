@@ -6,15 +6,15 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ChatResponse {
+public class ChatBotResponse {
 
     private String answer;
 
-    public ChatResponse(String answer) {
+    public ChatBotResponse(String answer) {
         this.answer = answer;
     }
 
-    public static ChatResponse of(String answer) {
-        return new ChatResponse(answer);
+    public static ChatBotResponse of(String answer) {
+        return new ChatBotResponse(answer);
     }
 }

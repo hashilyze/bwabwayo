@@ -6,11 +6,11 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ChatRequest {
+public class ChatBotRequest {
 
     private String message;
 
-    public ChatRequest(String message) {
+    public ChatBotRequest(String message) {
         this.message = message;
     }
 }
