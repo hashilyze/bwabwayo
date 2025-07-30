@@ -30,9 +30,10 @@ const ChatbotIcon = () => (
 // --- 챗봇 창 컴포넌트 ---
 function ChatbotWindow({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
     const [messages, setMessages] = useState<DisplayMessage[]>([
-        { type: 'bot', text: '안녕하세요, 무엇이 궁금하신가요?' }
+        { type: 'bot', text: '안녕하세요, 봐봐요 챗봇입니다.' }
     ]);
     const [inputValue, setInputValue] = useState('');
+    const [inputActive, setInputActive] = useState(false); // 입력창 활성화 상태 추가
     //채팅 영역
     const chatAreaRef = useRef<HTMLDivElement>(null);
     //챗봇 전체 영역
@@ -96,28 +97,19 @@ function ChatbotWindow({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
     };
     
 const handleQuickAction = (actionText: string) => {
-    const userMessage: DisplayMessage = { type: 'user', text: actionText };
-    const botMessages: DisplayMessage[] = [];
+        const userMessage: DisplayMessage = { type: 'user', text: actionText };
+        const botMessages: DisplayMessage[] = [];
 
-    if (actionText === '자주 묻는 질문') {
-        botMessages.push({
-            type: 'bot',
-            text: `자주 묻는 질문 목록입니다:\n1. 배송은 얼마나 걸리나요?\n2. 반품은 어떻게 하나요?\n3. 회원가입 없이 구매 가능한가요?`
-        });
-    }
+        if (actionText === 'AI 상품 추천') {
+            botMessages.push({
+                type: 'bot',
+                text: `어떤 상품이 궁금하신가요? 예: 스마트폰, 경제책, 운동화`
+            });
+            setInputActive(true); // AI 상품 추천 버튼 클릭 시 입력창 활성화
+        }
 
-    if (actionText === 'AI 상품 추천') {
-        botMessages.push({
-            type: 'bot',
-            text: `어떤 상품이 궁금하신가요? 예: 스마트폰, 경제책, 운동화`
-        });
-    }
-
-    // 사용자 메시지 먼저 추가 → 챗봇 응답 추가
-    setMessages(prev => [...prev, userMessage, ...botMessages]);
-
-    
-};
+        setMessages(prev => [...prev, userMessage, ...botMessages]);
+    };
     // ChatbotWindow 컴포넌트 내부
 
     useEffect(() => {
@@ -178,26 +170,32 @@ const handleQuickAction = (actionText: string) => {
             
             <section className="px-6 py-4 border-t border-gray-200">
                 <div className="space-y-2">
-                    <button onClick={() => handleQuickAction('AI 상품 추천')} className="w-full bg-gray-100 rounded-full py-2.5 text-center text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors">AI 상품 추천</button>
-                    <button onClick={() => handleQuickAction('자주 묻는 질문')} className="w-full bg-gray-100 rounded-full py-2.5 text-center text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors">자주 묻는 질문</button>
+                    <button
+                        onClick={() => handleQuickAction('AI 상품 추천')}
+                        className="w-full bg-gray-100 rounded-full py-2.5 text-center text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+                    >
+                        AI 상품 추천
+                    </button>
                 </div>
             </section>
-            
-            <footer className="px-6 py-4 bg-white flex items-center border-t border-gray-200">
-                <form onSubmit={handleSendMessage} className="w-full flex items-center">
-                    <input
-                        type="text"
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        className="flex-1 bg-gray-100 rounded-full px-5 py-3 outline-none text-sm text-gray-800 placeholder-gray-500"
-                        placeholder="메시지를 입력하세요"
-                        disabled={loading} // 로딩 중에는 입력 비활성화
-                    />
-                    <button type="submit" className="w-10 h-10 ml-3 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 hover:bg-blue-700 transition-colors disabled:bg-gray-400" disabled={loading}>
-                        <SendIcon />
-                    </button>
-                </form>
-            </footer>
+            {/* 입력창은 inputActive가 true일 때만 보여줌 */}
+            {inputActive && (
+                <footer className="px-6 py-4 bg-white flex items-center border-t border-gray-200">
+                    <form onSubmit={handleSendMessage} className="w-full flex items-center">
+                        <input
+                            type="text"
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            className="flex-1 bg-gray-100 rounded-full px-5 py-3 outline-none text-sm text-gray-800 placeholder-gray-500"
+                            placeholder="메시지를 입력하세요"
+                            disabled={loading}
+                        />
+                        <button type="submit" className="w-10 h-10 ml-3 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 hover:bg-blue-700 transition-colors disabled:bg-gray-400" disabled={loading}>
+                            <SendIcon />
+                        </button>
+                    </form>
+                </footer>
+            )}
         </div>
     );
 }

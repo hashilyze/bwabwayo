@@ -112,6 +112,43 @@ export default function SignUpPage({ searchParams }: { searchParams?: { email?: 
             alert('필수 약관에 동의해주세요.');
             return;
         }
+
+        // 배송지 정보 유효성 검사
+        const hasAnyDelivery =
+            recipientName.trim() !== '' ||
+            recipientPhoneNumber.trim() !== '' ||
+            zipcode.trim() !== '' ||
+            address.trim() !== '' ||
+            addressDetail.trim() !== '';
+
+        const allDeliveryFilled =
+            recipientName.trim() !== '' &&
+            recipientPhoneNumber.trim() !== '' &&
+            zipcode.trim() !== '' &&
+            address.trim() !== '' &&
+            addressDetail.trim() !== '';
+
+        if (hasAnyDelivery && !allDeliveryFilled) {
+            alert('배송지 정보를 모두 입력해야 합니다.');
+            return;
+        }
+
+        // 계좌 정보 유효성 검사
+        const hasAnyAccount =
+            accountNumber.trim() !== '' ||
+            accountHolder.trim() !== '' ||
+            bankName.trim() !== '';
+
+        const allAccountFilled =
+            accountNumber.trim() !== '' &&
+            accountHolder.trim() !== '' &&
+            bankName.trim() !== '';
+
+        if (hasAnyAccount && !allAccountFilled) {
+            alert('계좌 정보를 모두 입력해야 합니다.');
+            return;
+        }
+
         // 스토어에 있는 submitSignup 액션을 호출합니다.
         await submitSignup();
     };
@@ -196,13 +233,31 @@ export default function SignUpPage({ searchParams }: { searchParams?: { email?: 
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">주소 (선택)</label>
-                                    <div className="flex gap-2">
-                                        <input type="text" value={zipcode} readOnly placeholder="우편번호" className="w-32 px-4 py-2 border border-gray-300 rounded-md bg-gray-100" />
-                                        <button type="button" onClick={handleAddressSearch} className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900">주소 검색</button>
+                                    <label className="block text-sm font-medium text-gray-700">배송지 정보 (선택)</label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label htmlFor="recipientName" className="block text-sm font-medium text-gray-700 mb-1">배송지 이름</label>
+                                            <input
+                                                id="recipientName"
+                                                type="text"
+                                                value={recipientName}
+                                                onChange={(e) => setRecipientName(e.target.value)}
+                                                placeholder="받는 분 이름"
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="recipientPhoneNumber" className="block text-sm font-medium text-gray-700 mb-1">배송지 전화번호</label>
+                                            <input
+                                                id="recipientPhoneNumber"
+                                                type="tel"
+                                                value={recipientPhoneNumber}
+                                                onChange={(e) => setRecipientPhoneNumber(e.target.value)}
+                                                placeholder="받는 분 전화번호"
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                        </div>
                                     </div>
-                                    <input type="text" value={address} readOnly placeholder="주소" className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100" />
-                                    <input type="text" value={addressDetail} onChange={(e) => setAddressDetail(e.target.value)} placeholder="상세주소" className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" />
                                 </div>
                                 <button type="button" onClick={() => setShowOptionalFields(false)} className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50 hover:border-gray-400 transition-colors">
                                     <MinusCircleIcon />
@@ -238,4 +293,3 @@ export default function SignUpPage({ searchParams }: { searchParams?: { email?: 
     </>
 );
 }
-// ...existing code.

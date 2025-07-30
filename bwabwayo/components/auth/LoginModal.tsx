@@ -2,6 +2,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 
 // --- 아이콘 컴포넌트 ---
 const KakaoIcon = () => (
@@ -22,12 +23,8 @@ interface LoginModalProps {
 const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   // isOpen prop이 false이면 모달을 렌더링하지 않습니다.
   if (!isOpen) return null;
-
-  const handleKakaoLogin = () => {
-
-    const kakaoAuthUrl = `http://i13e202.p.ssafy.io:8081/oauth2/authorization/kakao`;
-    window.location.href = kakaoAuthUrl;
-  };
+  
+  const kakaoAuthUrl = `http://i13e202.p.ssafy.io:8081/oauth2/authorization/kakao`;
 
   return (
     // --- 수정된 부분: 모달 오버레이 ---
@@ -68,13 +65,10 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
 
         {/* 소셜 로그인 버튼 */}
         <div className="mb-8">
-          <button
-            onClick={handleKakaoLogin}
-            className="w-full bg-[#FEE500] hover:bg-[#F7E600] text-[#181600] font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
-          >
+          <Link className="w-full bg-[#FEE500] hover:bg-[#F7E600] text-[#181600] font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2" href={kakaoAuthUrl}>
             <KakaoIcon />
             <span>카카오로 시작하기</span>
-          </button>
+          </Link>
         </div>
 
         {/* 구분선 */}

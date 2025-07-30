@@ -101,9 +101,13 @@ export const useSignupStore = create<SignupState>((set, get) => ({
         })),
     reset: () => set(initialState),
 
-   submitSignup: async () => {
+  submitSignup: async () => {
     set({ loading: true, error: null, isSuccess: false });
     try {
+        // 1. URL에서 accessToken 추출
+        const urlParams = new URLSearchParams(window.location.search);
+        const accessToken = urlParams.get('accessToken');
+
         const {
             nickname,
             phoneNumber,
@@ -132,12 +136,15 @@ export const useSignupStore = create<SignupState>((set, get) => ({
             profileImage,
         };
 
-        // 여기서 payload를 콘솔에 출력
         console.log('회원가입 요청 payload:', JSON.stringify(payload, null, 2));
 
-        const response = await fetch(`http://i13e202.p.ssafy.io:8081/oauth2/authorization/kakao`, {
+        // 2. fetch 요청 시 accessToken을 헤더에 추가
+        const response = await fetch(`http://i13e202.p.ssafy.io:8081/api/signup`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+            },
             body: JSON.stringify(payload),
         });
 
