@@ -18,9 +18,13 @@ public class ChatService {
     private final RedisPublisher redisPublisher;
     private final ChatRoomRedisRepository chatRoomRedisRepository;
     private final ChatRoomService chatRoomService;
+    private final RedisService redisService;
 
     public void sendChatMessage(MessageDTO chatMessage) {
         log.info("📢 메시지 브로드캐스트: {}", chatMessage);
+
+        redisService.saveMessageToRedis(chatMessage);
+
         String userId = chatMessage.getSenderId();
         String partnerId;
 
@@ -56,36 +60,6 @@ public class ChatService {
 
         redisPublisher.publish(messageSubDto);
     }
-
-/*    private void setNewChatRoomInfo(MessageDTO chatMessage, ChatRoomListResponse newChatRoomList) {
-        Long roomId = chatMessage.getRoomId();
-        Long senderId = chatMessage.getSenderId();
-        Long receiverId = newChatRoomList.getPartnerId(); // 상대방 ID
-
-        // ✅ 내 채팅방 정보 갱신
-        ChatRoomListResponse myChatRoomPreview = chatRoomRedisRepository.getChatRoom(senderId, roomId);
-        if (myChatRoomPreview != null) {
-            myChatRoomPreview.setLastMessageTime(chatMessage.getCreatedAt());
-            myChatRoomPreview.setUnreadMessagesNum(0); // 내가 보낸 메시지니까 안읽은 메시지 없음
-            chatRoomRedisRepository.setChatRoom(senderId, roomId, myChatRoomPreview);
-        }
-
-        // ✅ 상대방 채팅방 정보 갱신
-        ChatRoomListResponse partnerChatRoomPreview = chatRoomRedisRepository.getChatRoom(receiverId, roomId);
-        if (partnerChatRoomPreview != null) {
-            // Redis에 있으면 안읽은 메시지 +1
-            int currentUnread = partnerChatRoomPreview.getUnreadMessagesNum();
-            partnerChatRoomPreview.setUnreadMessagesNum(currentUnread + 1);
-            partnerChatRoomPreview.setLastMessageTime(chatMessage.getCreatedAt());
-            chatRoomRedisRepository.setChatRoom(receiverId, roomId, partnerChatRoomPreview);
-        } else {
-            // Redis에 없으면 DB에서 채팅방 정보 가져와서 만들고 set
-            ChatRoom chatRoom = chatRoomService.getChatRoomFromDB(roomId);
-            ChatRoomListResponse createdPreview = ChatRoomListResponse.from(chatRoom, chatMessage);
-            createdPreview.setUnreadMessagesNum(1); // 처음 메시지니까 1
-            chatRoomRedisRepository.setChatRoom(receiverId, roomId, createdPreview);
-        }
-    }*/
 
     private void setNewChatRoomInfo(MessageDTO chatMessage, ChatRoomListResponse newChatRoomListResponse) {
 
@@ -123,7 +97,6 @@ public class ChatService {
             }*/
         }
 
-
         return chatRoomListGetResponseList;
     }
 
@@ -137,4 +110,5 @@ public class ChatService {
         }
         return partnerId;
     }
+
 }

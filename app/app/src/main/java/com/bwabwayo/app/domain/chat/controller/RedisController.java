@@ -23,15 +23,4 @@ public class RedisController {
         redisService.save(messageDTO);
         chatService.sendChatMessage(messageDTO);
     }
-
-/*    @PostMapping("/send")
-    public void sendMessage(@RequestParam String channel, @RequestBody MessageDTO messageDTO){
-        log.info("Redis Pub MSG Channel = {}", channel);
-        redisService.pubMsgChannel(channel, messageDTO);
-    }
-
-    @PostMapping("/cancel")
-    public void cancelSubChannel(@RequestParam String channel){
-        redisService.cancelSubChannel(channel);
-    }*/
 }

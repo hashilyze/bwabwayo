@@ -110,8 +110,8 @@
     function sendMessage() {
         const message = {
             roomId: parseInt(document.getElementById("roomId").value),
-            senderId: parseInt(document.getElementById("senderId").value),
-            receiverId: parseInt(document.getElementById("receiverId").value),
+            senderId: document.getElementById("senderId").value,
+            receiverId: document.getElementById("receiverId").value,
             content: document.getElementById("messageInput").value,
             isRead: false,
             createdAt : new Date(),

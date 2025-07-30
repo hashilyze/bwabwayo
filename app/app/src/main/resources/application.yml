@@ -10,7 +10,7 @@ spring:
       timeout: 6000
 
     mongodb:
-      uri: mongodb+srv://yoonsu0325:uhcxBQgEMN0uvCiW@bwabwayo.2fgys4l.mongodb.net/
+      uri: mongodb+srv://yoonsu0325:uhcxBQgEMN0uvCiW@bwabwayo.2fgys4l.mongodb.net/chatmessages?retryWrites=true&w=majority
       database: chatmessages
 
   datasource:

@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collation = "chat")
+@Document(collation = "chat_messages")
 public class ChatMessageMongoEntity {
     private String content;
     private String senderId;

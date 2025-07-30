@@ -119,17 +119,16 @@ public class ChatRoomService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채팅방입니다: roomId=" + roomId));
 
         // sellerId와 buyerId를 바탕으로 상대방 정보 세팅 (예: 닉네임, 프로필 이미지 등)
-        // 일단 더미데이터
-        String productName = "아이폰 14 S급 팔아요";
-        Integer productPrice = 500000;
-        String sellerProfileImageUrl = "sellerProfileImageUrl";
-        String buyerProfileImageUrl = "buyerProfileImageUrl";
-        String productImageUrl = "productImageUrl";
-        String myNickName = "Tommy";
-        String parterNickName = "Grace";
 
-        return ChatRoomListResponse.fromInitial(chatRoom, userId, productName, productPrice, sellerProfileImageUrl, buyerProfileImageUrl
-        , productImageUrl, myNickName, parterNickName);
+        String buyerId = chatRoom.getBuyerId();
+        String sellerId = chatRoom.getSellerId();
+        Long productId = chatRoom.getProductId();
+
+        User buyer = userRepository.findById(buyerId).orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+        User seller = userRepository.findById(sellerId).orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+        Product product = productRepository.findById(productId).orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+
+        return ChatRoomListResponse.fromInitial(chatRoom, userId, seller, buyer, product);
     }
 
 }

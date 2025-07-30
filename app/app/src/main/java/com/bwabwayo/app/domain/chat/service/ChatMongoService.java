@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Collation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -52,12 +53,13 @@ public class ChatMongoService {
 
         Query query = new Query()
                 .with(pageable)
+                .collation(Collation.of("ko"))
                 .skip((long) pageable.getPageSize() * pageable.getPageNumber())
                 .limit(pageable.getPageSize());
 
         query.addCriteria(Criteria.where("roomId").is(roomId));
 
-        List<ChatMessageMongoEntity> filteredChatMessage = mongoTemplate.find(query, ChatMessageMongoEntity.class, "chat");
+        List<ChatMessageMongoEntity> filteredChatMessage = mongoTemplate.find(query, ChatMessageMongoEntity.class, "chat_messages");
         Collections.sort(filteredChatMessage, Comparator.comparing(ChatMessageMongoEntity::getTime));
         return PageableExecutionUtils.getPage(
                 filteredChatMessage,

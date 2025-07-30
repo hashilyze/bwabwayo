@@ -1,5 +1,5 @@
 package com.bwabwayo.app.domain.chat.service;
-import com.bwabwayo.app.domain.chat.repository.ChatRoomRedisRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
@@ -13,9 +13,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class StompHandler implements ChannelInterceptor {
-
-    private final ChatRoomRedisRepository chatRoomRedisRepository;
-    private final ChatService chatService;
 
     /** websocket을 통해 들어온 요청이 처리 되기전 실행된다.*/
     @Override
