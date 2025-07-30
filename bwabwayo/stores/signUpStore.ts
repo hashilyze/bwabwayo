@@ -139,7 +139,7 @@ export const useSignupStore = create<SignupState>((set, get) => ({
         console.log('회원가입 요청 payload:', JSON.stringify(payload, null, 2));
 
         // 2. fetch 요청 시 accessToken을 헤더에 추가
-        const response = await fetch(`http://i13e202.p.ssafy.io:8081/api/signup`, {
+        const response = await fetch(`http://i13e202.p.ssafy.io:8081/api/auth/signup`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
