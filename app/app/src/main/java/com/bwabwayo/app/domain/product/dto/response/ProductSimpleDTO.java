@@ -22,6 +22,7 @@ public class ProductSimpleDTO {
     private Integer wishCount; // 관심수
     private Integer chatCount; // 채팅수
     private Boolean isLike; // 관심 등록 여부
+    private Boolean canVideoCall; // 화상 통화 가능 여부
     private Integer saleStatusCode; // 판매 상태 코드
     private String saleStatus; // 판매 상태
     private LocalDateTime createdAt; // 등록 일시
@@ -38,6 +39,7 @@ public class ProductSimpleDTO {
                 .wishCount(product.getWishCount())
                 .chatCount(product.getChatCount())
                 .isLike(false) // 위시 리스트 미구현
+                .canVideoCall(product.isCanVideoCall())
                 .saleStatusCode(product.getSaleStatus().getLevel())
                 .saleStatus(product.getSaleStatus().getDescription())
                 .createdAt(product.getCreatedAt())
