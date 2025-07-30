@@ -104,9 +104,12 @@ export const useSignupStore = create<SignupState>((set, get) => ({
   submitSignup: async () => {
     set({ loading: true, error: null, isSuccess: false });
     try {
-        // 1. URL에서 accessToken 추출
+        // 1. URL에서 accessToken, id, email, profileImage 추출
         const urlParams = new URLSearchParams(window.location.search);
         const accessToken = urlParams.get('accessToken');
+        const id = urlParams.get('id');
+        const emailFromUrl = urlParams.get('email');
+        const profileImageFromUrl = urlParams.get('profileImage');
 
         console.log('보내는 accessToken:', accessToken);
 
@@ -121,10 +124,13 @@ export const useSignupStore = create<SignupState>((set, get) => ({
             zipcode,
             address,
             addressDetail,
-            profileImage,
+            // profileImage, // 상태값 profileImage는 사용하지 않고 URL에서 추출한 값 사용
         } = get();
 
         const payload = {
+            id,
+            email: emailFromUrl,
+            profileImage: profileImageFromUrl,
             nickname,
             phoneNumber,
             accountNumber,
@@ -135,7 +141,6 @@ export const useSignupStore = create<SignupState>((set, get) => ({
             zipcode,
             address,
             addressDetail,
-            // profileImage,
         };
 
         console.log('회원가입 요청 payload:', JSON.stringify(payload, null, 2));
