@@ -179,25 +179,43 @@ export const useSignupStore = create<SignupState>((set, get) => ({
         }
 
         // 요청이 성공한 경우에만 응답을 JSON으로 파싱합니다.
-        const responseData = await response.json();
+        let responseData;
+        try {
+            responseData = await response.json();
+            console.log('회원가입 성공 응답 (서버 원문):', responseData);
+        } catch (jsonError) {
+            // 서버가 200 OK는 보냈지만, 응답 본문이 비어있거나 유효한 JSON이 아닌 경우
+            console.error('JSON 파싱 에러:', jsonError);
+            throw new Error('서버로부터 유효한 응답을 받지 못했습니다. (JSON 파싱 실패)');
+        }
+
+
 
         // --- 개선된 부분: 성공 응답 처리 ---
-        // 3. 응답 데이터에서 토큰과 유저 정보를 추출합니다. (백엔드 응답 구조에 따라 key는 달라질 수 있습니다.)
-        const { newAccessToken, newRefreshToken, user } = responseData.result;
+        // 3. 응답 데이터에서 토큰과 유저 정보를 추출합니다.
+        // 백엔드 응답 구조에 따라 'result' 객체 안에 데이터가 있을 수도 있고, 루트에 바로 있을 수도 있습니다.
+        // 'responseData.result'가 있으면 그것을 사용하고, 없으면 'responseData' 자체를 사용합니다.
+        const data = responseData.result || responseData;
+        const { newAccessToken, newRefreshToken, user } = data;
 
         if (!newAccessToken || !user) {
-            throw new Error('회원가입 응답이 올바르지 않습니다.');
+            throw new Error('회원가입 응답이 올바르지 않습니다. (토큰 또는 유저 정보 누락)');
         }
 
         // 4. 토큰을 localStorage에 저장하고, 로그인 상태를 업데이트합니다.
         // (별도의 인증 스토어(useAuthStore)가 있다고 가정합니다.)
         localStorage.setItem('accessToken', newAccessToken);
-//         localStorage.setItem('refreshToken', newRefreshToken);
+        // localStorage.setItem('refreshToken', newRefreshToken); // 필요 시 주석 해제
         // useAuthStore.getState().setLogin(user);
 
         set({ loading: false, isSuccess: true });
         console.log('회원가입 및 로그인 성공!');
-        
+
+        // 5. 회원가입 및 로그인이 완료되었으므로 메인 페이지로 이동시킵니다.
+        // window.location.href를 사용하면 페이지를 완전히 새로고침하여
+        // 모든 상태(예: Navbar의 로그인 버튼)를 최신 상태로 업데이트할 수 있습니다.
+        window.location.href = '/';
+
         // 성공 시 true를 반환하여 컴포넌트에서 후속 처리를 하도록 합니다.
         return true;
 
