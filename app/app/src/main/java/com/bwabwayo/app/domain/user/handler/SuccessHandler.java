@@ -73,7 +73,7 @@ public class SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 //            response.addHeader(jwtProperties.getHeader(), jwtProperties.getType() + accessToken); //헤더로 주는 방식
 
             String redirectUrl = UriComponentsBuilder
-                    .fromUriString("https://i13e202.p.ssafy.io/fe/")
+                    .fromUriString("https://i13e202.p.ssafy.io/fe/logincallback")
                     .queryParam("accessToken", accessToken)
                     .queryParam("isNewUser", false)
                     .build()
