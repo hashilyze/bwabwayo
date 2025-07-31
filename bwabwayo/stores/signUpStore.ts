@@ -106,10 +106,16 @@ export const useSignupStore = create<SignupState>((set, get) => ({
     try {
         // 1. URL에서 accessToken, id, email, profileImage 추출
         const urlParams = new URLSearchParams(window.location.search);
-        const accessToken = urlParams.get('accessToken') ?? '';
-        const id = urlParams.get('id') ?? '';
+        const accessToken = urlParams.get('accessToken');
+        const id = urlParams.get('id');
         const emailFromUrl = urlParams.get('email') ?? '';
         const profileImageFromUrl = urlParams.get('profileImage') ?? '';
+
+        // --- 개선된 부분: 필수 파라미터 검증 ---
+        if (!accessToken || !id) {
+            throw new Error('소셜 로그인 정보(토큰 또는 ID)가 유효하지 않습니다. 다시 로그인해주세요.');
+        }
+
          if (emailFromUrl && !get().email) {
             set({ email: emailFromUrl });
         }
@@ -129,6 +135,11 @@ export const useSignupStore = create<SignupState>((set, get) => ({
             addressDetail,
             // profileImage, // 상태값 profileImage는 사용하지 않고 URL에서 추출한 값 사용
         } = get();
+
+        // --- 개선된 부분: 필수 입력값 검증 ---
+        if (!nickname.trim()) {
+            throw new Error('닉네임을 입력해주세요.');
+        }
 
         const payload = {
             id,
@@ -161,6 +172,8 @@ export const useSignupStore = create<SignupState>((set, get) => ({
         const responseData = await response.json();
 
         if (!response.ok) {
+            // --- 개선된 부분: 디버깅을 위한 에러 로그 추가 ---
+            console.error('회원가입 실패 응답:', responseData);
             // 서버에서 내려주는 에러 메시지가 있다면 활용하는 것이 더 좋습니다.
             throw new Error(responseData.message || '회원가입에 실패했습니다.');
         }
@@ -176,7 +189,7 @@ export const useSignupStore = create<SignupState>((set, get) => ({
         // 4. 토큰을 localStorage에 저장하고, 로그인 상태를 업데이트합니다.
         // (별도의 인증 스토어(useAuthStore)가 있다고 가정합니다.)
         localStorage.setItem('accessToken', newAccessToken);
-        localStorage.setItem('refreshToken', newRefreshToken);
+//         localStorage.setItem('refreshToken', newRefreshToken);
         // useAuthStore.getState().setLogin(user);
 
         set({ loading: false, isSuccess: true });
