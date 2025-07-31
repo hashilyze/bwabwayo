@@ -19,7 +19,7 @@ interface Product {
   created_at: string
 }
 
-interface ProductWithSeller {
+export interface ProductWithSeller {
   product: Product
   seller: Seller
 }
@@ -31,16 +31,18 @@ const dummyProducts = {
     {
       "product": {
         "id": 1,
-        "category_id": 8001,
+        "categoryId": 8001,
         "thumbnail": "/fe/image/sample.png",
         "title": "아이폰 15 Pro 팝니다",
-        "price": "1200000",
-        "view_count": "25",
-        "wish_count": "3",
-        "is_like": true,
-        "sale_status": 1,
-        "can_video_call": true,
-        "created_at": "2025-07-30T10:30:00"
+        "price": 1200000,
+        "viewCount": 25,
+        "wishCount": 3,
+        "isLike": true,
+        "saleStatus": "판매중",
+        "saleStatusCode": 1,
+        "canVideoCall": true,
+        "createdAt": "2025-07-30T10:30:00",
+        "chatCount": 0
       },
       "seller": {
         "id": 42,

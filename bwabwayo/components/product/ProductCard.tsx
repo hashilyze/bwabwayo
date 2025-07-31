@@ -3,32 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { MouseEvent } from 'react'
 import LikeHeart from './LikeHeart';
-
-interface Seller {
-  id: number
-  nickname: string
-}
-
-interface Product {
-  id: number
-  categoryId: number
-  thumbnail: string
-  title: string
-  price: number
-  viewCount: number
-  wishCount: number
-  isLike: boolean
-  saleStatus: string
-  saleStatusCode: number
-  canVideoCall: boolean
-  createdAt: string
-  chatCount: number
-}
-
-export interface ProductWithSeller {
-  product: Product
-  seller: Seller
-}
+import { ProductWithSeller } from '@/stores/productStore';
 
 type Props = {
   item: ProductWithSeller
@@ -46,8 +21,8 @@ export default function ProductCard({ item }: Props) {
   };
 
   // 가격 포맷팅 함수
-  const formatPrice = (price: number): string => {
-    return price.toLocaleString();
+  const formatPrice = (price: string): string => {
+    return parseInt(price).toLocaleString();
   };
 
   // 상대적 시간 계산 함수
@@ -79,7 +54,7 @@ export default function ProductCard({ item }: Props) {
       {/* 상품 이미지 */}
       <div className="aspect-square overflow-hidden rounded-lg relative">
         <div className="absolute top-4 right-4 z-10">
-          <LikeHeart isLiked={product.isLike} />
+          <LikeHeart isLiked={product.is_like} />
         </div>
         <img
           className="w-full h-full object-cover"
@@ -92,8 +67,8 @@ export default function ProductCard({ item }: Props) {
       <div className="mt-5">
         <h3 className="text-lg text-[#5a5a5a] leading-sung h-15 overflow-hidden">{product.title}</h3>
         <p className="text-xl font-bold text-black mb-1">{formatPrice(product.price)}원</p>
-        <p className="text-sm font-light text-[#999999]">{getRelativeTime(product.createdAt)}</p>
-        {product.canVideoCall && (
+        <p className="text-sm font-light text-[#999999]">{getRelativeTime(product.created_at)}</p>
+        {product.can_video_call && (
           <div className="text-[10px] font-bold text-[#1b8ee4] bg-[#f4f6f7] w-fit rounded-sm mt-1 px-1 border border-[#ecf1f4]">화상통화</div>
         )}
       </div>

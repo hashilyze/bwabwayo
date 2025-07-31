@@ -28,22 +28,22 @@ export default function TempPage() {
       e.preventDefault()
       console.log(message)
 
-      try {
-        const response = await fetch('https://i13e202.p.ssafy.io/be/api/chatrooms', {
-          method: 'POST', 
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            message,
-            buyer_id: buyerId,
-            productId,
-            sellerId
-          }),
-        })
-      } catch (error) {
-        console.error('Error submitting message:', error)
-      }
+      // try {
+      //   const response = await fetch('https://i13e202.p.ssafy.io/be/api/chatrooms', {
+      //     method: 'POST', 
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //     },
+      //     body: JSON.stringify({ 
+      //       message,
+      //       buyer_id: buyerId,
+      //       productId,
+      //       sellerId
+      //     }),
+      //   })
+      // } catch (error) {
+      //   console.error('Error submitting message:', error)
+      // }
     }
 
     return (

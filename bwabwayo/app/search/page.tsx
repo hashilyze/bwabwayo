@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useProductStore } from '@/stores/productStore';
+import { useProductStore, ProductWithSeller } from '@/stores/productStore';
 import { useCategoryStore, Category, SubCategory } from '@/stores/categoryStore';
 import ProductCard from '@/components/product/ProductCard';
 
