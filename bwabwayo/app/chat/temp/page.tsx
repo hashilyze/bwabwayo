@@ -1,17 +1,33 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+
+// URL 파라미터를 읽는 컴포넌트
+function SearchParamsReader({ onParamsRead }: { onParamsRead: (productId: string | null, sellerId: string | null) => void }) {
+    const searchParams = useSearchParams()
+    
+    useEffect(() => {
+        const productId = searchParams.get('productId')
+        const sellerId = searchParams.get('sellerId')
+        onParamsRead(productId, sellerId)
+    }, [searchParams, onParamsRead])
+    
+    return null
+}
 
 export default function TempPage() {
     const router = useRouter()
-    const searchParams = useSearchParams()
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [message, setMessage] = useState('')
     const [buyerId, setBuyerId] = useState<string | null>(null)
-    
-    const productId = searchParams.get('productId')
-    const sellerId = searchParams.get('sellerId')
+    const [productId, setProductId] = useState<string | null>(null)
+    const [sellerId, setSellerId] = useState<string | null>(null)
+
+    const handleParamsRead = useCallback((productId: string | null, sellerId: string | null) => {
+        setProductId(productId)
+        setSellerId(sellerId)
+    }, [])
 
     // 클라이언트사이드에서만 localStorage 접근
     useEffect(() => {
@@ -48,6 +64,11 @@ export default function TempPage() {
 
     return (
         <div className="h-full flex flex-col justify-between">
+          {/* URL 파라미터 읽기 */}
+          <Suspense fallback={null}>
+            <SearchParamsReader onParamsRead={handleParamsRead} />
+          </Suspense>
+          
           {/* 메인 콘텐츠 영역 */}
           <div className="flex-1 flex flex-col items-center justify-center">
             <div className="text-center">
