@@ -40,6 +40,7 @@ export default function CreateProductPage() {
   const [majorCategory, setMajorCategory] = useState<string | null>(null);
   const [minorCategory, setMinorCategory] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set()); // 업로드 중인 파일 추적
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -52,6 +53,10 @@ export default function CreateProductPage() {
   const handleUploadClick = () => {
     if (imgFiles.length >= 10) {
       setShowAlert(true);
+      return;
+    }
+    if (isUploading) {
+      alert('이미지 업로드 중입니다. 잠시만 기다려주세요.');
       return;
     }
     fileInputRef.current?.click();
@@ -70,11 +75,29 @@ export default function CreateProductPage() {
       return;
     }
 
-    // 파일 정보만 저장 (미리보기는 S3 업로드 후 생성)
+    // 업로드 중인 파일들 추적
+    const fileNames = fileArray.map(f => f.name);
+    setUploadingFiles(prev => new Set([...prev, ...fileNames]));
+
+    // 파일 정보를 먼저 저장
+    const newFileCount = imgFiles.length + fileArray.length;
     setImgFiles(prev => [...prev, ...fileArray]);
 
-    // S3에 업로드 (성공 시 미리보기 URL 업데이트됨)
-    await uploadToS3(fileArray);
+    try {
+      // S3에 업로드 (성공 시 미리보기 URL 업데이트됨)
+      await uploadToS3(fileArray, newFileCount);
+    } catch (error) {
+      console.error('파일 업로드 중 오류:', error);
+      // 오류 발생 시 추가된 파일 정보 제거
+      setImgFiles(prev => prev.slice(0, prev.length - fileArray.length));
+    } finally {
+      // 업로드 완료 후 추적에서 제거
+      setUploadingFiles(prev => {
+        const newSet = new Set(prev);
+        fileNames.forEach(name => newSet.delete(name));
+        return newSet;
+      });
+    }
 
     // input 초기화
     if (fileInputRef.current) {
@@ -83,7 +106,7 @@ export default function CreateProductPage() {
   };
 
   // S3 업로드 함수
-  const uploadToS3 = async (files: File[]) => {
+  const uploadToS3 = async (files: File[], expectedFileCount: number) => {
     setIsUploading(true);
     
     try {
@@ -138,10 +161,12 @@ export default function CreateProductPage() {
           // 업로드된 이미지 URL들을 미리보기와 최종 업로드 URL 모두에 저장
           setImgPreviews(prev => [...prev, ...uploadedUrls]);
           setUploadedImageUrls(prev => [...prev, ...uploadedUrls]);
-          alert(`이미지 업로드가 완료되었습니다! (${uploadedUrls.length}개)`);
+          console.log(`✅ 이미지 업로드 완료: ${uploadedUrls.length}개`);
         } else {
           console.error('업로드 성공했지만 URL을 찾을 수 없습니다.');
-          alert('업로드는 성공했지만 이미지 URL을 받지 못했습니다. 콘솔을 확인해주세요.');
+          // 업로드 실패 시 추가된 파일 정보 제거
+          setImgFiles(prev => prev.slice(0, prev.length - files.length));
+          alert('업로드는 성공했지만 이미지 URL을 받지 못했습니다.');
         }
       } else {
         // 업로드 실패 시 추가된 파일 정보 제거
@@ -253,9 +278,41 @@ export default function CreateProductPage() {
       canDirect: tradeMethods.direct,
       canDelivery: tradeMethods.delivery,
       canVideoCall: tradeMethods.video,
-      shippingFee: Number(shippingCost),
+      shippingFee: Number(shippingCost) || 0, // null 방지를 위해 0으로 기본값 설정
       images: uploadedImageUrls, // S3에서 업로드된 이미지 URL들
     };
+
+    // 백엔드 DTO 요구사항 검증
+    if (!requestData.title || requestData.title.trim() === '') {
+      alert('상품명을 입력해주세요.');
+      return;
+    }
+
+    if (!requestData.description || requestData.description.trim() === '') {
+      alert('상품 설명을 입력해주세요.');
+      return;
+    }
+
+    if (requestData.price <= 0) {
+      alert('가격을 올바르게 입력해주세요.');
+      return;
+    }
+
+    // AtLeastOneTrue 검증: canDirect 또는 canDelivery 중 하나는 true여야 함
+    if (!requestData.canDirect && !requestData.canDelivery) {
+      alert('직거래 또는 택배거래 중 하나는 선택해야 합니다.');
+      return;
+    }
+
+    if (requestData.images.length === 0) {
+      alert('이미지를 1개 이상 등록해주세요.');
+      return;
+    }
+
+    if (requestData.images.length > 10) {
+      alert('이미지는 최대 10개까지 등록할 수 있습니다.');
+      return;
+    }
 
     // 상세한 데이터 확인 로그
     console.log('🚀 상품 등록 요청 데이터:', {
@@ -283,17 +340,6 @@ export default function CreateProductPage() {
     try {
       console.log('--- 🛒 상품 등록 API 호출 시작 ---');
       
-      // 최종 검증
-      if (requestData.images.length === 0) {
-        alert('S3에 업로드된 이미지가 없습니다. 이미지를 다시 업로드해주세요.');
-        return;
-      }
-      
-      if (requestData.price <= 0) {
-        alert('가격을 올바르게 입력해주세요.');
-        return;
-      }
-
       const result = await addProduct(requestData as any);
       console.log('✅ 상품 등록 성공:', result);
       
@@ -341,7 +387,10 @@ export default function CreateProductPage() {
               className={`flex-shrink-0 w-24 h-24 bg-gray-100 rounded-lg flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 hover:bg-gray-200 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {isUploading ? (
-                <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                <div className="flex flex-col items-center">
+                  <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full mb-2"></div>
+                  <span className="text-xs text-gray-500">업로드 중...</span>
+                </div>
               ) : (
                 <>
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -364,7 +413,8 @@ export default function CreateProductPage() {
                 <button 
                   type="button" 
                   onClick={() => handleDeleteImage(index)}
-                  className="absolute top-1 right-1 bg-black bg-opacity-50 text-white rounded-full p-0.5 hover:bg-opacity-75" 
+                  disabled={isUploading}
+                  className="absolute top-1 right-1 bg-black bg-opacity-50 text-white rounded-full p-0.5 hover:bg-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed" 
                   aria-label="이미지 삭제"
                 >
                   <XCircleIcon className="w-5 h-5" />
@@ -379,7 +429,7 @@ export default function CreateProductPage() {
         {/* 상품 정보 입력 Form */}
         <form onSubmit={handleSubmit} className="space-y-10">
           <section> {/* 상품명 */}
-            <label htmlFor="productName" className="block text-base font-semibold text-gray-800 mb-2">상품명</label>
+            <label htmlFor="productName" className="block text-base font-semibold text-gray-800 mb-2">상품명 <span className="text-red-500">*</span></label>
             <input type="text" id="productName" value={productName} onChange={(e) => setProductName(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3" placeholder="상품명을 입력해주세요." />
           </section>
 
@@ -409,7 +459,7 @@ export default function CreateProductPage() {
 
           <section> {/* 판매 가격 */}
             <div className="flex justify-between items-center mb-2">
-              <label htmlFor="price" className="block text-base font-semibold text-gray-800">판매가격</label>
+              <label htmlFor="price" className="block text-base font-semibold text-gray-800">판매가격 <span className="text-red-500">*</span></label>
               <div className="flex items-center">
                 <input id="negotiable" type="checkbox" checked={isNegotiable} onChange={(e) => setIsNegotiable(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
                 <label htmlFor="negotiable" className="ml-2 block text-sm text-gray-700">네고가능</label>
@@ -419,16 +469,20 @@ export default function CreateProductPage() {
           </section>
 
           <section> {/* 게시물 내용 */}
+            <label htmlFor="description" className="block text-base font-semibold text-gray-800 mb-2">상품 설명 <span className="text-red-500">*</span></label>
              <textarea id="description" rows={10} value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3" placeholder="- 상품명(브랜드)&#10;- 구매 시기 (년, 월, 일)&#10;- 착용 기간&#10;- 오염 여부&#10;- 하자 여부&#10;* 실제 촬영한 사진과 함께 상세 정보를 입력해주세요.&#10;* 카카오톡 아이디 첨부 시 게시물 삭제 및 이용제재 처리될 수 있어요."/>
           </section>
 
           <section> {/* 거래 방법 */}
-            <h3 className="text-base font-semibold text-gray-800 mb-3">거래방법</h3>
+            <h3 className="text-base font-semibold text-gray-800 mb-3">거래방법 <span className="text-red-500">*</span></h3>
             <div className="flex items-center space-x-6">
                 <div className="flex items-center"><input id="delivery" name="delivery" type="checkbox" checked={tradeMethods.delivery} onChange={handleTradeMethodChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" /><label htmlFor="delivery" className="ml-2 block text-sm text-gray-700">택배거래</label></div>
                 <div className="flex items-center"><input id="direct" name="direct" type="checkbox" checked={tradeMethods.direct} onChange={handleTradeMethodChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" /><label htmlFor="direct" className="ml-2 block text-sm text-gray-700">직거래</label></div>
                 <div className="flex items-center"><input id="video" name="video" type="checkbox" checked={tradeMethods.video} onChange={handleTradeMethodChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" /><label htmlFor="video" className="ml-2 block text-sm text-gray-700">화상거래</label></div>
             </div>
+            {!tradeMethods.delivery && !tradeMethods.direct && (
+              <p className="text-sm text-red-500 mt-2">직거래 또는 택배거래 중 하나는 선택해야 합니다.</p>
+            )}
           </section>
           
           <section> {/* 배송비 설정 */}

@@ -331,7 +331,7 @@ export const useProductStore = create<ProductStore>((set) => ({
         throw new Error('상품 조회에 실패했습니다')
       }
       const data = await response.json()
-      
+      console.log(data.result)
       set({ products:data.result, loading: false })
     } catch (error) {
       error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다'
