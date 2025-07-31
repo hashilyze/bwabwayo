@@ -51,7 +51,7 @@ const dummyProducts = {
       "product": {
         "id": 2,
         "category_id": 8005,
-        "thumbnail": "/image/sample.png",
+        "thumbnail": "/fe/image/sample.png",
         "title": "맥북 프로 16인치 M3 맥스",
         "price": "3500000",
         "view_count": "18",
@@ -70,7 +70,7 @@ const dummyProducts = {
       "product": {
         "id": 3,
         "category_id": 3001,
-        "thumbnail": "/image/sample.png",
+        "thumbnail": "/fe/image/sample.png",
         "title": "나이키 에어포스1 화이트 280",
         "price": "120000",
         "view_count": "42",
@@ -89,7 +89,7 @@ const dummyProducts = {
       "product": {
         "id": 4,
         "category_id": 4001,
-        "thumbnail": "/image/sample.png",
+        "thumbnail": "/fe/image/sample.png",
         "title": "루이비통 네버풀 MM 정품",
         "price": "850000",
         "view_count": "31",
@@ -108,7 +108,7 @@ const dummyProducts = {
       "product": {
         "id": 5,
         "category_id": 5001,
-        "thumbnail": "/image/sample.png",
+        "thumbnail": "/fe/image/sample.png",
         "title": "롤렉스 서브마리너 블랙",
         "price": "12000000",
         "view_count": "89",
@@ -127,7 +127,7 @@ const dummyProducts = {
       "product": {
         "id": 6,
         "category_id": 8006,
-        "thumbnail": "/image/sample.png",
+        "thumbnail": "/fe/image/sample.png",
         "title": "플레이스테이션 5 콘솔",
         "price": "600000",
         "view_count": "78",
@@ -146,7 +146,7 @@ const dummyProducts = {
       "product": {
         "id": 7,
         "category_id": 8007,
-        "thumbnail": "/image/sample.png",
+        "thumbnail": "/fe/image/sample.png",
         "title": "소니 A7R5 미러리스 카메라",
         "price": "3200000",
         "view_count": "67",
@@ -165,7 +165,7 @@ const dummyProducts = {
       "product": {
         "id": 8,
         "category_id": 8002,
-        "thumbnail": "/image/sample.png",
+        "thumbnail": "/fe/image/sample.png",
         "title": "아이패드 프로 12.9 5세대",
         "price": "980000",
         "view_count": "34",
@@ -184,7 +184,7 @@ const dummyProducts = {
       "product": {
         "id": 9,
         "category_id": 8003,
-        "thumbnail": "/image/sample.png",
+        "thumbnail": "/fe/image/sample.png",
         "title": "갤럭시 S24 울트라 256GB",
         "price": "1500000",
         "view_count": "55",
@@ -203,7 +203,7 @@ const dummyProducts = {
       "product": {
         "id": 10,
         "category_id": 3002,
-        "thumbnail": "/image/sample.png",
+        "thumbnail": "/fe/image/sample.png",
         "title": "아디다스 울트라부스트 22",
         "price": "180000",
         "view_count": "92",
@@ -222,7 +222,7 @@ const dummyProducts = {
       "product": {
         "id": 11,
         "category_id": 4002,
-        "thumbnail": "/image/sample.png",
+        "thumbnail": "/fe/image/sample.png",
         "title": "샤넬 클래식 플랩 백",
         "price": "8500000",
         "view_count": "45",
@@ -241,7 +241,7 @@ const dummyProducts = {
       "product": {
         "id": 12,
         "category_id": 8008,
-        "thumbnail": "/image/sample.png",
+        "thumbnail": "/fe/image/sample.png",
         "title": "닌텐도 스위치 OLED",
         "price": "350000",
         "view_count": "67",
@@ -260,7 +260,7 @@ const dummyProducts = {
       "product": {
         "id": 13,
         "category_id": 5002,
-        "thumbnail": "/image/sample.png",
+        "thumbnail": "/fe/image/sample.png",
         "title": "오메가 스피드마스터",
         "price": "8500000",
         "view_count": "38",
@@ -281,7 +281,7 @@ const productDetail = {
   "product": {
     "id": 1,
     "category_id": 8001,
-    "thumbnail": "/image/sample.png",
+    "thumbnail": "/fe/image/sample.png",
     "title": "아이폰 15 Pro 팝니다",
     "price": "1200000",
     "view_count": "25",
