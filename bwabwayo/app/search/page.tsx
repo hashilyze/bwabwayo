@@ -390,8 +390,8 @@ export default function SearchPage({
                           searchQuery.category_id = parseInt(searchParams.category);
                         }
                         
-                        // 쿼리 파라미터가 있으면 API 호출, 없으면 전체 상품 조회
-                        getProducts(Object.keys(searchQuery).length > 0 ? searchQuery : undefined);
+                        // 가격 필터 없이 API 호출
+                        getProducts(Object.keys(searchQuery).length > 0 ? searchQuery : {});
                       }}
                       className="ml-2 text-gray-500 hover:text-gray-700 cursor-pointer"
                     >

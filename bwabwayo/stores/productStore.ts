@@ -331,11 +331,41 @@ export const useProductStore = create<ProductStore>((set) => ({
         throw new Error('상품 조회에 실패했습니다')
       }
       const data = await response.json()
-      console.log(data.result)
-      set({ products:data.result, loading: false })
+      console.log('전체 상품 데이터:', data.result)
+      
+      // 클라이언트 사이드 필터링
+      let filteredProducts = data.result;
+      
+      // 제목 필터링
+      if (options.title) {
+        filteredProducts = filteredProducts.filter((item: any) => 
+          item.product.title.toLowerCase().includes(options.title!.toLowerCase())
+        );
+      }
+      
+      // 카테고리 필터링
+      if (options.category_id) {
+        filteredProducts = filteredProducts.filter((item: any) => 
+          item.product.categoryId === options.category_id
+        );
+      }
+      
+      // 가격 필터링
+      if (options.minPrice || options.maxPrice) {
+        filteredProducts = filteredProducts.filter((item: any) => {
+          const price = parseInt(item.product.price);
+          const minPrice = options.minPrice || 0;
+          const maxPrice = options.maxPrice || Infinity;
+          
+          return price >= minPrice && price <= maxPrice;
+        });
+      }
+      
+      console.log('필터링된 상품:', filteredProducts);
+      set({ products: filteredProducts, loading: false })
     } catch (error) {
-      error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다'
-      set({ products: [], loading: false })
+      console.error('상품 조회 오류:', error);
+      set({ products: [], loading: false, error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다' })
     }
   },
 

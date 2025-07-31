@@ -44,6 +44,19 @@ export default function CreateProductPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // 숫자에 콤마 추가하는 함수
+  const formatNumber = (value: string): string => {
+    if (!value) return '';
+    const number = value.replace(/,/g, '');
+    if (isNaN(Number(number))) return value;
+    return Number(number).toLocaleString();
+  };
+
+  // 콤마 제거하는 함수 (API 호출시 사용)
+  const removeCommas = (value: string): string => {
+    return value.replace(/,/g, '');
+  };
+
   const handleTradeMethodChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = e.target;
     setTradeMethods(prev => ({ ...prev, [name]: checked }));
@@ -272,13 +285,13 @@ export default function CreateProductPage() {
     const requestData = {
       title: productName,
       description: description,
-      price: Number(price),
+      price: Number(removeCommas(price)),
       categoryId: categoryId,
       canNegotiate: isNegotiable,
       canDirect: tradeMethods.direct,
       canDelivery: tradeMethods.delivery,
       canVideoCall: tradeMethods.video,
-      shippingFee: Number(shippingCost) || 0, // null 방지를 위해 0으로 기본값 설정
+      shippingFee: Number(removeCommas(shippingCost)) || 0, // null 방지를 위해 0으로 기본값 설정
       images: uploadedImageUrls, // S3에서 업로드된 이미지 URL들
     };
 
@@ -465,7 +478,12 @@ export default function CreateProductPage() {
                 <label htmlFor="negotiable" className="ml-2 block text-sm text-gray-700">네고가능</label>
               </div>
             </div>
-            <div className="relative"><input type="number" id="price" value={price} onChange={(e) => setPrice(e.target.value)} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 pr-8" placeholder="판매가격을 입력해주세요." /><span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-500">원</span></div>
+            <div className="relative"><input type="text" id="price" value={price} onChange={(e) => {
+              const value = e.target.value.replace(/,/g, '');
+              if (value === '' || !isNaN(Number(value))) {
+                setPrice(formatNumber(value));
+              }
+            }} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 pr-8" placeholder="판매가격을 입력해주세요." /><span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-500">원</span></div>
           </section>
 
           <section> {/* 게시물 내용 */}
@@ -487,7 +505,12 @@ export default function CreateProductPage() {
           
           <section> {/* 배송비 설정 */}
             <label htmlFor="shippingCost" className="block text-base font-semibold text-gray-800 mb-2">배송비 설정</label>
-            <div className="relative"><input type="number" id="shippingCost" value={shippingCost} onChange={(e) => setShippingCost(e.target.value)} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 pr-8" placeholder="배송비를 입력해주세요." /><span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-500">원</span></div>
+            <div className="relative"><input type="text" id="shippingCost" value={shippingCost} onChange={(e) => {
+              const value = e.target.value.replace(/,/g, '');
+              if (value === '' || !isNaN(Number(value))) {
+                setShippingCost(formatNumber(value));
+              }
+            }} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 pr-8" placeholder="배송비를 입력해주세요." /><span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-500">원</span></div>
           </section>
           
           <section className="border-t border-gray-200 pt-8 space-y-6"> {/* 약관 동의 및 등록 버튼 */}
