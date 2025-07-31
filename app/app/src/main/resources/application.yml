@@ -75,10 +75,3 @@ qdrant:
 logging:
   level:
     com.bwabwayo.app: DEBUG
-
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-    url: /v3/api-docs
