@@ -141,7 +141,7 @@ const handleQuickAction = (actionText: string) => {
     }, [isOpen, onClose]); // isOpen이나 onClose가 바뀔 때마다 이 로직을 재실행합니다.
 
     return (
-        <div ref={chatbotWindowRef} className={`fixed bottom-24 right-4 sm:right-8 w-[391px] h-[564px] bg-white rounded-[40px] shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5 pointer-events-none'}`}>
+        <div ref={chatbotWindowRef} className={`fixed z-99 bottom-24 right-4 sm:right-8 w-[391px] h-[564px] bg-white rounded-[40px] shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5 pointer-events-none'}`}>
             <header className="flex items-center px-6 pt-4 pb-2 flex-shrink-0">
                 <span className="text-xl font-bold text-[#3369ff]">AI 챗봇</span>
                 <button onClick={onClose} className="ml-auto p-1 rounded-full hover:bg-gray-100">
