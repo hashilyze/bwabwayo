@@ -26,6 +26,15 @@ export default function Navbar() {
     router.push(`/search?title=${encodeURIComponent(title)}`)
   }
 
+  const handleMyPageClick = () => {
+    const token = localStorage.getItem('accessToken')
+    if (token) {
+      router.push('/shop')
+    } else {
+      setShowLoginModal(true)
+    }
+  }
+
   return (
     <nav className="border-b-1 border-[#eee]">
       {/* top-nav */}
@@ -35,7 +44,7 @@ export default function Navbar() {
             <button onClick={() => setShowLoginModal(true)} className="text-sm text-[#666] cursor-pointer">
               로그인/회원가입
             </button>
-            <Link href="/shop">내상점</Link>
+            <button className='cursor-pointer' onClick={handleMyPageClick}>내상점</button>
           </div>
         </div>
       </div>
