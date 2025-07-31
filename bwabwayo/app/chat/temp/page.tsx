@@ -1,15 +1,50 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import ChatModal from '@/components/chat/ChatModal'
 
 export default function TempPage() {
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const [isMenuOpen, setIsMenuOpen] = useState(false)
+    const [message, setMessage] = useState('')
+    const [buyerId, setBuyerId] = useState<string | null>(null)
+    
+    const productId = searchParams.get('productId')
+    const sellerId = searchParams.get('sellerId')
 
+    // 클라이언트사이드에서만 localStorage 접근
     useEffect(() => {
-        router.replace('/chat')
+        if (typeof window !== 'undefined') {
+            setBuyerId(localStorage.getItem('id'))
+        }
     }, [])
+
+    const toggleMenu = () => {
+      setIsMenuOpen(!isMenuOpen);
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault()
+      console.log(message)
+
+      try {
+        const response = await fetch('https://i13e202.p.ssafy.io/be/api/chatrooms', {
+          method: 'POST', 
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            message,
+            buyer_id: buyerId,
+            productId,
+            sellerId
+          }),
+        })
+      } catch (error) {
+        console.error('Error submitting message:', error)
+      }
+    }
 
     return (
         <div className="h-full flex flex-col justify-between">
@@ -22,7 +57,60 @@ export default function TempPage() {
             </div>
           </div>
     
-          <ChatModal />
+          <div className="">
+            {/* 하단 입력창 */}
+            <div className="h-[77px] bg-white border-t border-gray-200 flex items-center px-8">
+              {/* 첨부 버튼 */}
+              <div 
+                className="w-[26px] h-[26px] border border-gray-500 rounded-full flex items-center justify-center mr-4 cursor-pointer transition-transform duration-200 hover:rotate-90" 
+                onClick={toggleMenu}
+              >
+                <div className="flex items-center justify-center">
+                  <div className="w-[2px] h-[12px] bg-gray-500 rounded"></div>
+                  <div className="w-[12px] h-[2px] bg-gray-500 rounded absolute"></div>
+                </div>
+              </div>
+              {/* 입력창 */}
+              <form onSubmit={handleSubmit} className="flex-1 h-[45px] bg-gray-50 rounded-[38px] flex items-center px-5">
+                <input
+                  type="text"
+                  placeholder="메세지를 입력하세요."
+                  className="flex-1 bg-transparent text-xs text-gray-500 outline-none placeholder-gray-500"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                />
+              </form>
+            </div>
+
+            {/* 하단 +버튼 확장 메뉴 */}
+            {isMenuOpen && (
+              <div className="grid grid-cols-3 gap-4 border-t border-[#eee] py-6 px-8 animate-in slide-in-from-bottom-2 duration-300">
+                {/* 거래시작 */}
+                <div className="flex flex-col items-center cursor-pointer">
+                  <div className="w-[51px] h-[51px] bg-[#fafafa] border border-[#9b9b9b] rounded-full flex items-center justify-center mb-[7px]">
+                    <img src="/icon/start-trade.svg" alt="거래시작" className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs text-black">거래시작</span>
+                </div>
+                
+                {/* 화상채팅예약 */}
+                <div className="flex flex-col items-center cursor-pointer">
+                  <div className="w-[51px] h-[51px] bg-[#fafafa] border border-[#9b9b9b] rounded-full flex items-center justify-center mb-[7px]">
+                    <img src="/icon/video.svg" alt="화상채팅예약" className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs text-black">화상채팅예약</span>
+                </div>
+                
+                {/* 이미지 첨부 */}
+                <div className="flex flex-col items-center cursor-pointer">
+                  <div className="w-[51px] h-[51px] bg-[#fafafa] border border-[#9b9b9b] rounded-full flex items-center justify-center mb-[7px]">
+                    <img src="/icon/image.svg" alt="이미지 첨부" className="w-4 h-4" />
+                  </div>
+                  <span className="text-xs text-black">이미지 첨부</span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )
 }

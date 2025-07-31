@@ -25,8 +25,8 @@ export default function RootLayout({
       {/* <meta name="viewport" content="width=device-width, initial-scale=1.0" /> */}
       <body>
         <Navbar />
-        <div className="bg-[#FAFDFF]">
-          <div className="w-[1280px] m-auto py-12">
+        <div className="bg-[#FAFDFF] pt-[156px]">
+          <div className="w-[1280px] m-auto">
             {children}
           </div>
         </div>

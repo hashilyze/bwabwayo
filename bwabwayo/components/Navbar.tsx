@@ -13,6 +13,7 @@ export default function Navbar() {
     const [title, setTitle] = useState('')
     const [showCategory, setShowCategory] = useState(false);
     const [showLoginModal, setShowLoginModal] = useState(false) // 모달 상태 추가
+    const [isScrolled, setIsScrolled] = useState(false) // 스크롤 상태 추가
     const categoryRef = useRef<HTMLDivElement>(null);
     const router = useRouter()
     const { getCategories } = useCategoryStore();
@@ -21,6 +22,16 @@ export default function Navbar() {
     useEffect(() => {
         getCategories();
     }, [getCategories]);
+
+    // 스크롤 이벤트 리스너 추가
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 0);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,9 +48,9 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="border-b-1 border-[#eee]">
+    <nav className={`bg-white border-b-1 border-[#eee] fixed top-0 left-0 right-0 z-99 transition-shadow duration-200 ${isScrolled ? 'shadow' : ''}`}>
       {/* top-nav */}
-      <div className="flex flex-col bg-[#fafafa]">
+      {/* <div className="flex flex-col bg-[#fafafa]">
         <div className="w-[1280px] m-auto py-2 flex justify-end text-sm text-gray-500 gap-4">
           <div className="flex gap-4">
             <button onClick={() => setShowLoginModal(true)} className="text-sm text-[#666] cursor-pointer">
@@ -48,7 +59,7 @@ export default function Navbar() {
             <button className='cursor-pointer' onClick={handleMyPageClick}>내상점</button>
           </div>
         </div>
-      </div>
+      </div> */}
 
 
     {/* center-nav */}
@@ -56,7 +67,7 @@ export default function Navbar() {
         <div className="w-[1280px] m-auto py-4 flex items-center justify-between">
             <div className="logo-wrap flex items-center gap-2 flex-1 mr-16">
                 <div className="logo text-xl font-bold">
-                    <Link href="/"><Image src="/logo.png" alt="logo" height={40} width={98} /></Link>
+                    <Link href="/"><img src="/logo.png" alt="logo" className="h-[40px]" /></Link>
                 </div>
                 <form className="flex items-center ml-[80px] flex-1 px-2 border-1 border-[#eee] rounded-lg bg-[#fff]" onSubmit={handleSubmit}>
                     <div className="flex items-center px-3">
@@ -119,6 +130,7 @@ export default function Navbar() {
                 <Link href="/product/new" className="bg-orange-500 text-white text-sm px-4 py-2 rounded hover:bg-orange-600">판매하기</Link>
                 <Link href="/chat" className="text-[#2B6CEE] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BFDBFE]">채팅목록</Link>
                 <Link href="#" className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]">알림</Link>
+                <button onClick={handleMyPageClick} className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]">내상점</button>
             </div>
         </div>
     </div>

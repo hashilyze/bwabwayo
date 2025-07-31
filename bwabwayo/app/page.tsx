@@ -27,7 +27,7 @@ export default function Home() {
   }, [getProducts, getHotKewordProducts, getVideoCallProducts]);
 
   return (
-    <div>
+    <div className="py-12">
       {/* 화상서비스 테스트 */}
       <WebTest />
 
