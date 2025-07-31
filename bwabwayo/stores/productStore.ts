@@ -329,9 +329,9 @@ export const useProductStore = create<ProductStore>((set) => ({
         throw new Error('상품 조회에 실패했습니다')
       }
       const data = await response.json()
-      console.log(data.result)
+      // console.log(data.result)
       
-      set({ products:dummyProducts.result, loading: false })
+      set({ products:data.result, loading: false })
     } catch (error) {
       set({ 
         error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
@@ -343,42 +343,41 @@ export const useProductStore = create<ProductStore>((set) => ({
   // 핫 키워드 상품 조회
   getHotKewordProducts: async (title: string) => {
     set({ loading: true, error: null })
-    // try {
-    //   const response = await fetch(`https://i13e202.p.ssafy.io/be/api/products/?title=${title}`)
-    //   const data = await response.json()
-    //   console.log(data)
-    //   set({ hotKewordsProduct: data, loading: false })
-    // } catch (error) {
-    //   set({ 
-    //     error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
-    //     loading: false 
-    //   })
-    // }
-    set({ hotKeywordProducts: dummyProducts.result, loading: false })
+    try {
+      const response = await fetch(`https://i13e202.p.ssafy.io/be/api/products?title=${title}`)
+      const data = await response.json()
+      const filteredProducts = data.result.filter((item: any) => 
+        item.product.title === title
+     )
+      // console.log(data)
+
+      set({ hotKeywordProducts: filteredProducts, loading: false })
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
+        loading: false 
+      })
+    }
   },
 
   // 화상통화 가능한 상품 조회
   getVideoCallProducts: async () => {
     set({ loading: true, error: null })
-    const filteredProducts = dummyProducts.result.filter(item => 
-      item.product.can_video_call === true
-    )
-    // try {
-    //   const queryString = params.toString()
-    //   const response = await fetch(`https://i13e202.p.ssafy.io/be/api/products${queryString ? `?${queryString}` : ''}`)
-    //   const data = await response.json()
-    //   const filteredProducts = data.result.filter(item => 
-    //      item.product.can_video_call === true
-    //   )
-    //   console.log(filteredProducts)
-    //   set({ videoCallProducts: filteredProducts, loading: false })
-    // } catch (error) {
-    //   set({ 
-    //     error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
-    //     loading: false 
-    //   })
-    // }
-    set({ videoCallProducts: filteredProducts, loading: false })
+    try {
+      const response = await fetch(`https://i13e202.p.ssafy.io/be/api/products`)
+      const data = await response.json()
+      const filteredProducts = data.result.filter((item: any) => 
+         item.product.canVideoCall === true
+      )
+      // console.log(filteredProducts)
+
+      set({ videoCallProducts: filteredProducts, loading: false })
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
+        loading: false 
+      })
+    }
   },
 
   getProductDetail: async (id: number) => {
@@ -390,7 +389,7 @@ export const useProductStore = create<ProductStore>((set) => ({
     
     // 실제 API 호출 (주석 처리)
     // try {
-    //   const response = await fetch(`http://i13e202.p.ssafy.io:8081/api/products/${id}`)
+    //   const response = await fetch(`http://i13e202.p.ssafy.io/be/api/products/${id}`)
     //   const data = await response.json()
     //   set({ product: data, loading: false })
     // } catch(error) {
@@ -402,32 +401,26 @@ export const useProductStore = create<ProductStore>((set) => ({
   },
 
   addProduct: async (product: Product) => {
-    console.log(product)
-    // set({ loading: true, error: null })
-    // try {
-    //   const response = await fetch(`https://i13e202.p.ssafy.io/be/api/products`, {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify(product)
-    //   })
+    set({ loading: true, error: null })
+    try {
+      const response = await fetch(`https://i13e202.p.ssafy.io/be/api/products`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(product)
+      })
       
-    //   if (!response.ok) {
-    //     throw new Error('상품 등록에 실패했습니다')
-    //   }
-      
-    //   const data = await response.json()
-    //   console.log('상품 등록 성공:', data)
-    //   set({ loading: false })
-      
-    // } catch (error) {
-    //   set({ 
-    //     error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
-    //     loading: false 
-    //   })
-    //   throw error // 호출하는 쪽에서 에러 핸들링할 수 있도록
-    // }
+      const data = await response.json()
+      console.log('상품 등록 성공:', data)
+      set({ loading: false })
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
+        loading: false 
+      })
+      throw error // 호출하는 쪽에서 에러 핸들링할 수 있도록
+    }
   },
 
   clearProducts: () => {

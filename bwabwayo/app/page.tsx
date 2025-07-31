@@ -111,12 +111,12 @@ export default function Home() {
 
       <div className="mb-20">
         <h1 className="text-2xl font-bold mb-5">최근 판매상품</h1>
-        {error ? (
-          <div className="flex justify-center items-center py-8">
-            <div className="text-lg text-red-500">상품이 없습니다.</div>
-          </div>
-        ) : (
+        {products.length > 0 ? (
           <ProductSlider products={products} navigationId="recent" />
+        ) : (
+          <div className="flex justify-center items-center py-8">
+            <div className="text-lg text-[#777]">상품이 없습니다.</div>
+          </div>
         )}
       </div>
 
@@ -125,12 +125,24 @@ export default function Home() {
 
       <div className="mb-20">
         <h1 className="text-2xl font-bold mb-5">요즘 핫한 키워드 <span className="text-blue-500">{hotKeyword}</span></h1>
-        <ProductSlider products={hotKeywordProducts} navigationId="hot" />
+        {hotKeywordProducts.length > 0 ? (
+          <ProductSlider products={hotKeywordProducts} navigationId="hot" />
+        ) : (
+          <div className="flex justify-center items-center py-8">
+            <div className="text-lg text-[#777]">해당 키워드의 제품이 없습니다.</div>
+          </div>
+        )}
       </div>
 
       <div className="mb-20">
         <h1 className="text-2xl font-bold mb-5">화상통화 가능한 상품👀</h1>
-        <ProductSlider products={videoCallProducts} navigationId="video" />
+        {videoCallProducts.length > 0 ? (
+          <ProductSlider products={videoCallProducts} navigationId="video" />
+        ) : (
+          <div className="flex justify-center items-center py-8">
+            <div className="text-lg text-[#777]">화상통화 가능한 제품이 없습니다.</div>
+          </div>
+        )}
       </div>
     </div>
   );
