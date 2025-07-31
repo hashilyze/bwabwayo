@@ -61,7 +61,7 @@ export default function ProductDetailPage() {
               <p className="text-[32px] font-black text-gray-800">{product?.product.price}원</p>
             </div>
             <div className="text-gray-400 text-sm mb-[30px]">
-              {product?.product.created_at} · 찜 {product?.product.wish_count} · 조회 {product?.product.view_count}
+              {product?.product.createdAt} · 찜 {product?.product.wishCount} · 조회 {product?.product.viewCount}
             </div>
             
             <ul className="flex items-center mb-4 border border-gray-200 rounded-lg p-6 relative">
@@ -95,7 +95,7 @@ export default function ProductDetailPage() {
             <div className="flex gap-4">
               <div className="flex-1 py-4 flex items-center justify-center gap-2 border-1 border-[#eee] text-[#777] rounded-lg cursor-pointer">
                 <img 
-                  src={product?.product.is_like ? "/icon/heart-on.svg" : "/icon/heart-off.svg"} 
+                  src={product?.product.isLike ? "/icon/heart-on.svg" : "/icon/heart-off.svg"} 
                   alt="찜하기" 
                   className="w-4 h-4" 
                 />
@@ -135,7 +135,7 @@ export default function ProductDetailPage() {
                   <div className="flex flex-col">
                     <p className="text-sm">{product?.product.title}</p>
                     <p className="text-lg font-semibold mb-1">{product?.product.price}원</p>
-                    <p className="text-xs font-light text-gray-400">찜 {product?.product.wish_count} · 조회 {product?.product.view_count}</p>
+                    <p className="text-xs font-light text-gray-400">찜 {product?.product.wishCount} · 조회 {product?.product.viewCount}</p>
                   </div>
                 </li>
               ))}
