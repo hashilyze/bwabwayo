@@ -106,17 +106,17 @@ export const useSignupStore = create<SignupState>((set, get) => ({
     try {
         // 1. URL에서 accessToken, id, email, profileImage 추출
         const urlParams = new URLSearchParams(window.location.search);
-        const accessToken = urlParams.get('accessToken');
+        const socialAccessToken = urlParams.get('accessToken'); // URL에서 받은 소셜 로그인 토큰
         const id = urlParams.get('id');
         const emailFromUrl = urlParams.get('email') ?? '';
         const profileImageFromUrl = urlParams.get('profileImage') ?? '';
 
         // --- 개선된 부분: 필수 파라미터 검증 ---
-        if (!accessToken || !id) {
+        if (!socialAccessToken || !id) {
             throw new Error('소셜 로그인 정보(토큰 또는 ID)가 유효하지 않습니다. 다시 로그인해주세요.');
         }
 
-        console.log('보내는 accessToken:', accessToken);
+        console.log('보내는 accessToken:', socialAccessToken);
 
         const {
             nickname,
@@ -162,7 +162,7 @@ export const useSignupStore = create<SignupState>((set, get) => ({
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+                ...(socialAccessToken && { Authorization: `Bearer ${socialAccessToken}` }),
             },
             body: JSON.stringify(payload),
         });
@@ -196,17 +196,14 @@ export const useSignupStore = create<SignupState>((set, get) => ({
         // 백엔드 응답 구조에 따라 'result' 객체 안에 데이터가 있을 수도 있고, 루트에 바로 있을 수도 있습니다.
         // 'responseData.result'가 있으면 그것을 사용하고, 없으면 'responseData' 자체를 사용합니다.
         const data = responseData.result || responseData;
-        const { newAccessToken, newRefreshToken, user } = data;
+        const { accessToken } = data; // 서버에서 발급받은 새로운 서비스 accessToken
 
-        if (!newAccessToken || !user) {
-            throw new Error('회원가입 응답이 올바르지 않습니다. (토큰 또는 유저 정보 누락)');
+        if (!accessToken) {
+            throw new Error('회원가입 응답이 올바르지 않습니다. (accessToken 누락)');
         }
 
         // 4. 토큰을 localStorage에 저장하고, 로그인 상태를 업데이트합니다.
-        // (별도의 인증 스토어(useAuthStore)가 있다고 가정합니다.)
-        localStorage.setItem('accessToken', newAccessToken);
-        // localStorage.setItem('refreshToken', newRefreshToken); // 필요 시 주석 해제
-        // useAuthStore.getState().setLogin(user);
+        localStorage.setItem('accessToken', accessToken);
 
         set({ loading: false, isSuccess: true });
         console.log('회원가입 및 로그인 성공!');
