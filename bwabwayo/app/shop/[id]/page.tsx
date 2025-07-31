@@ -70,7 +70,13 @@ export default function SellerShopInfo({ params }: { params: { id: string } }) {
           {/* 판매 물품 섹션 */}
           <section className="mt-12">
             <h3 className="text-xl font-bold mb-6">판매 물품</h3>
-            <ProductCard products={products} />
+            <ul className="grid grid-cols-6 gap-6">
+              {products.map((item) => (
+                <li key={item.product.id}>
+                  <ProductCard item={item} />
+                </li>
+              ))}
+            </ul>
           </section>
 
           {/* 상점 후기 섹션 */}

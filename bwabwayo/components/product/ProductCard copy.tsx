@@ -1,9 +1,15 @@
 'use client'
 
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { MouseEvent } from 'react'
-import LikeHeart from './LikeHeart'
+import { MouseEvent, useState } from 'react'
+
+// swiper
+import { Navigation, Pagination } from 'swiper/modules';
+import { Swiper, SwiperClass, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import LikeHeart from './LikeHeart';
 
 interface Seller {
   id: number
@@ -20,6 +26,7 @@ interface Product {
   wish_count: string
   is_like: boolean
   sale_status: number
+  can_video_call: boolean
   created_at: string
 }
 
@@ -30,9 +37,10 @@ export interface ProductWithSeller {
 
 type Props = {
   products: ProductWithSeller[]
+  navigationId?: string
 }
 
-export default function ProductCard({ products }: Props) {
+export default function ProductCard({ products, navigationId = 'default' }: Props) {
   const router = useRouter();
 
   const handleCardClick = (e: MouseEvent<HTMLDivElement>, productId: number) => {
@@ -47,95 +55,125 @@ export default function ProductCard({ products }: Props) {
     return numPrice.toLocaleString();
   };
 
-  // 판매 상태 텍스트 반환
-  const getSaleStatusText = (status: number): string => {
-    switch (status) {
-      case 1: return '판매중';
-      case 2: return '거래중';
-      case 3: return '판매완료';
-      default: return '판매중';
+  // 상대적 시간 계산 함수
+  const getRelativeTime = (dateString: string): string => {
+    const now = new Date();
+    const createdAt = new Date(dateString);
+    const diffInMs = now.getTime() - createdAt.getTime();
+    
+    const minutes = Math.floor(diffInMs / (1000 * 60));
+    const hours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const days = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+    
+    if (minutes < 1) {
+      return '방금 전';
+    } else if (minutes < 60) {
+      return `${minutes}분 전`;
+    } else if (hours < 24) {
+      return `${hours}시간 전`;
+    } else {
+      return `${days}일 전`;
     }
   };
-
-  // 판매 상태 색상 반환
-  const getSaleStatusColor = (status: number): string => {
-    switch (status) {
-      case 1: return 'text-green-600';
-      case 2: return 'text-yellow-600';
-      case 3: return 'text-gray-500';
-      default: return 'text-green-600';
-    }
-  };
+  
+  // swiper 상태 관리
+  const [swiper, setSwiper] = useState<SwiperClass>();
+  const [swiperIndex, setSwiperIndex] = useState(0);
+  const [isBeginning, setIsBeginning] = useState(true);
+  const [isEnd, setIsEnd] = useState(false);
+  
+  // 슬라이드 이벤트핸들러
+  const handlePrev = () => {
+    swiper?.slidePrev()
+  }
+  const handleNext = () => {
+    swiper?.slideNext()
+  }
 
   return (
-    <ul className="grid grid-cols-4 gap-[32px]">
-      {products.map((item) => {
-        const { product, seller } = item;
-        const query = {
-          seller_id: seller.id.toString(),
-          title: product.title,
-          thumbnail: product.thumbnail,
-          price: product.price,
-        };
-        const queryString = new URLSearchParams(query).toString();
+    <div className="relative">
+      <Swiper
+        modules={[Pagination, Navigation]}
+        spaceBetween={20}
+        slidesPerView={6}
+        slidesPerGroup={3}
+        pagination={{ clickable: true }}
+        navigation={{
+          nextEl: `.custom-next-${navigationId}`,
+          prevEl: `.custom-prev-${navigationId}`,
+        }}
+        onSwiper={(e) => {
+          setSwiper(e);
+          setIsBeginning(e.isBeginning);
+          setIsEnd(e.isEnd);
+        }}
+        onSlideChange={(e) => {
+          setIsBeginning(e.isBeginning);
+          setIsEnd(e.isEnd);
+        }}
+        className="swiper grid grid-cols-6 gap-6"
+      >
+        {products.map((item) => {
+          const { product } = item;
 
-        return (
-          <li key={product.id} className='bg-white'>
-            <div
-              className="group rounded-[12px] overflow-hidden border border-[#eee] cursor-pointer"
-              onClick={(e) => handleCardClick(e, product.id)}
-            >
-              <div className='relative'>
-                <div className="h-[290px] overflow-hidden bg-gray-200 flex items-center justify-center border-b border-[#eee]">
+          return (
+            <SwiperSlide key={product.id}>
+              <div
+                className="cursor-pointer"
+                onClick={(e) => handleCardClick(e, product.id)}
+              >
+                {/* 상품 이미지 */}
+                <div className="aspect-square overflow-hidden rounded-lg">
+                  <div className="absolute top-4 right-4 z-10">
+                    <LikeHeart isLiked={product.is_like} />
+                  </div>
                   <img
-                    className="w-full h-full object-cover transform transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-full object-cover"
                     src={product.thumbnail || '/image/no-image.jpg'}
                     alt={product.title}
                   />
                 </div>
-                <div className="heartIcon absolute top-4 right-4">
-                  <LikeHeart isLiked={product.is_like} />
-                </div>
-                {/* 판매 상태 표시 */}
-                {product.sale_status !== 1 && (
-                  <div className="absolute top-4 left-4">
-                    <span className={`px-2 py-1 text-xs font-bold rounded ${getSaleStatusColor(product.sale_status)} bg-white`}>
-                      {getSaleStatusText(product.sale_status)}
-                    </span>
-                  </div>
-                )}
-              </div>
-              <div className="p-4">
-                <p className="text-md block h-[48px] overflow-hidden">{product.title}</p>
-                <p className="text-[20px] font-bold mt-2 mb-2">{formatPrice(product.price)}원</p>
-                <p className="text-sm text-[#7c7c7c] mb-2">판매자: {seller.nickname}</p>
-                <div className="flex justify-between items-center">
-                  <p className="text-sm text-[#7c7c7c]">
-                    찜 {product.wish_count} · 조회 {product.view_count}
-                  </p>
-                  <div>
-                    {product.sale_status === 1 ? (
-                      <Link 
-                        className='btn-gradient text-white px-3 py-2 rounded-md text-sm block' 
-                        href={`/chat/${product.id}/${seller.id}?${queryString}`}
-                      >
-                        화상거래예약
-                      </Link>
-                    ) : (
-                      <button 
-                        className='bg-gray-400 text-white px-3 py-2 rounded-md text-sm cursor-not-allowed'
-                        disabled
-                      >
-                        {getSaleStatusText(product.sale_status)}
-                      </button>
-                    )}
-                  </div>
+                
+                {/* 상품 정보 */}
+                <div className="mt-5">
+                  <h3 className="text-lg text-[#5a5a5a] leading-sung h-15 overflow-hidden">{product.title}</h3>
+                  <p className="text-xl font-bold text-black mb-1">{formatPrice(product.price)}원</p>
+                  <p className="text-sm font-light text-[#999999]">{getRelativeTime(product.created_at)}</p>
+                  {product.can_video_call && (
+                    <div className="text-[10px] font-bold text-[#1b8ee4] bg-[#f4f6f7] w-fit rounded-sm mt-1 px-1 border border-[#ecf1f4]">화상통화</div>
+                  )}
                 </div>
               </div>
-            </div>
-          </li>
-        );
-      })}
-    </ul>
+            </SwiperSlide>
+          );
+        })}
+      </Swiper>
+      <button 
+        className={`custom-prev-${navigationId} hover:bg-[#343D48] pl-1 z-1 absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded transition-all duration-200 ${
+          isBeginning 
+            ? 'bg-gray-200 cursor-not-allowed opacity-50' 
+            : 'bg-white/40 hover:bg-[#343D48] cursor-pointer'
+        }`} 
+        onClick={handlePrev}
+        disabled={isBeginning}
+      >
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fillRule="evenodd" clipRule="evenodd" d="M15.8122 5.34218C16.4517 6.0669 16.3825 7.17278 15.6578 7.81224L8.645 14L15.6578 20.1878C16.3825 20.8273 16.4517 21.9331 15.8122 22.6579C15.1727 23.3826 14.0669 23.4517 13.3421 22.8122L5.26706 15.6872C4.25192 14.7914 4.25192 13.2086 5.26706 12.3129L13.3421 5.1878C14.0669 4.54835 15.1727 4.61747 15.8122 5.34218Z" fill="white" filter="drop-shadow(0px 1px 2px rgba(0,0,0,0.3))"/>
+        </svg>
+      </button>
+      <button 
+        className={`custom-next-${navigationId} hover:bg-[#343D48] pr-1 z-1 absolute right-0 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded transition-all duration-200 ${
+          isEnd 
+            ? 'bg-gray-200 cursor-not-allowed opacity-50' 
+            : 'bg-white/40 hover:bg-[#343D48] cursor-pointer'
+        }`} 
+        onClick={handleNext}
+        disabled={isEnd}
+      >
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fillRule="evenodd" clipRule="evenodd" d="M12.1878 5.34218C11.5483 6.0669 11.6175 7.17278 12.3422 7.81224L19.355 14L12.3422 20.1878C11.6175 20.8273 11.5483 21.9331 12.1878 22.6579C12.8273 23.3826 13.9331 23.4517 14.6579 22.8122L22.7329 15.6872C23.7481 14.7914 23.7481 13.2086 22.7329 12.3129L14.6579 5.1878C13.9331 4.54835 12.8273 4.61747 12.1878 5.34218Z" fill="white" filter="drop-shadow(0px 1px 2px rgba(0,0,0,0.3))"/>
+        </svg>
+      </button>
+    </div>
   );
 }

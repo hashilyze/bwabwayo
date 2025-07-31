@@ -2,8 +2,86 @@
 
 import ProductCard from "@/components/product/ProductCard";
 import WebTest from "@/components/home/WebTest";
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useProductStore } from '@/stores/productStore';
+// swiper
+import { Navigation, Pagination } from 'swiper/modules';
+import { Swiper, SwiperClass, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+
+// ProductSlider 컴포넌트
+function ProductSlider({ products, navigationId }: { products: any[], navigationId: string }) {
+  const [swiper, setSwiper] = useState<SwiperClass>();
+  const [isBeginning, setIsBeginning] = useState(true);
+  const [isEnd, setIsEnd] = useState(false);
+  
+  const handlePrev = () => {
+    swiper?.slidePrev()
+  }
+  const handleNext = () => {
+    swiper?.slideNext()
+  }
+
+  return (
+    <div className="relative">
+      <Swiper
+        modules={[Pagination, Navigation]}
+        spaceBetween={20}
+        slidesPerView={6}
+        slidesPerGroup={3}
+        pagination={{ clickable: true }}
+        navigation={{
+          nextEl: `.custom-next-${navigationId}`,
+          prevEl: `.custom-prev-${navigationId}`,
+        }}
+        onSwiper={(e) => {
+          setSwiper(e);
+          setIsBeginning(e.isBeginning);
+          setIsEnd(e.isEnd);
+        }}
+        onSlideChange={(e) => {
+          setIsBeginning(e.isBeginning);
+          setIsEnd(e.isEnd);
+        }}
+        className="swiper"
+      >
+        {products.map((item) => (
+          <SwiperSlide key={item.product.id}>
+            <ProductCard item={item} />
+          </SwiperSlide>
+        ))}
+      </Swiper>
+      <button 
+        className={`custom-prev-${navigationId} hover:bg-[#343D48] pl-1 z-1 absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded transition-all duration-200 ${
+          isBeginning 
+            ? 'bg-gray-200 cursor-not-allowed opacity-50' 
+            : 'bg-white/40 hover:bg-[#343D48] cursor-pointer'
+        }`} 
+        onClick={handlePrev}
+        disabled={isBeginning}
+      >
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fillRule="evenodd" clipRule="evenodd" d="M15.8122 5.34218C16.4517 6.0669 16.3825 7.17278 15.6578 7.81224L8.645 14L15.6578 20.1878C16.3825 20.8273 16.4517 21.9331 15.8122 22.6579C15.1727 23.3826 14.0669 23.4517 13.3421 22.8122L5.26706 15.6872C4.25192 14.7914 4.25192 13.2086 5.26706 12.3129L13.3421 5.1878C14.0669 4.54835 15.1727 4.61747 15.8122 5.34218Z" fill="white" filter="drop-shadow(0px 1px 2px rgba(0,0,0,0.3))"/>
+        </svg>
+      </button>
+      <button 
+        className={`custom-next-${navigationId} hover:bg-[#343D48] pr-1 z-1 absolute right-0 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded transition-all duration-200 ${
+          isEnd 
+            ? 'bg-gray-200 cursor-not-allowed opacity-50' 
+            : 'bg-white/40 hover:bg-[#343D48] cursor-pointer'
+        }`} 
+        onClick={handleNext}
+        disabled={isEnd}
+      >
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fillRule="evenodd" clipRule="evenodd" d="M12.1878 5.34218C11.5483 6.0669 11.6175 7.17278 12.3422 7.81224L19.355 14L12.3422 20.1878C11.6175 20.8273 11.5483 21.9331 12.1878 22.6579C12.8273 23.3826 13.9331 23.4517 14.6579 22.8122L22.7329 15.6872C23.7481 14.7914 23.7481 13.2086 22.7329 12.3129L14.6579 5.1878C13.9331 4.54835 12.8273 4.61747 12.1878 5.34218Z" fill="white" filter="drop-shadow(0px 1px 2px rgba(0,0,0,0.3))"/>
+        </svg>
+      </button>
+    </div>
+  );
+}
 
 export default function Home() {
   const { products, hotKeywordProducts, videoCallProducts, loading, error, getProducts, getHotKewordProducts, getVideoCallProducts } = useProductStore();
@@ -38,7 +116,7 @@ export default function Home() {
             <div className="text-lg text-red-500">상품이 없습니다.</div>
           </div>
         ) : (
-          <ProductCard products={products} navigationId="recent" />
+          <ProductSlider products={products} navigationId="recent" />
         )}
       </div>
 
@@ -47,12 +125,12 @@ export default function Home() {
 
       <div className="mb-20">
         <h1 className="text-2xl font-bold mb-5">요즘 핫한 키워드 <span className="text-blue-500">{hotKeyword}</span></h1>
-        <ProductCard products={hotKeywordProducts} navigationId="hot" />
+        <ProductSlider products={hotKeywordProducts} navigationId="hot" />
       </div>
 
       <div className="mb-20">
         <h1 className="text-2xl font-bold mb-5">화상통화 가능한 상품👀</h1>
-        <ProductCard products={videoCallProducts} navigationId="video" />
+        <ProductSlider products={videoCallProducts} navigationId="video" />
       </div>
     </div>
   );

@@ -324,42 +324,14 @@ export const useProductStore = create<ProductStore>((set) => ({
   getProducts: async (options = {}) => {
     set({ loading: true, error: null })
     try {
-      // URL 파라미터 구성
-      const params = new URLSearchParams()
-      if (options.minPrice) params.append('minPrice', options.minPrice.toString())
-      if (options.maxPrice) params.append('maxPrice', options.maxPrice.toString())
-
-      // API 호출 주석처리 (실제 사용 시 주석 해제)
-      // const queryString = params.toString()
-      // const response = await fetch(`http://i13e202.p.ssafy.io:8081/api/products${queryString ? `?${queryString}` : ''}`)
-      // if (!response.ok) {
-      //   throw new Error('상품 조회에 실패했습니다')
-      // }
-      // const data = await response.json()
-      
-      // 더미데이터 필터링 (개발용)
-      let filteredProducts = [...dummyProducts.result]
-      
-      // title로 필터링
-      if (options.title) {
-        filteredProducts = filteredProducts.filter(item => 
-          item.product.title.toLowerCase().includes(options.title!.toLowerCase())
-        )
+      const response = await fetch('https://i13e202.p.ssafy.io/be/api/products')
+      if (!response.ok) {
+        throw new Error('상품 조회에 실패했습니다')
       }
+      const data = await response.json()
+      console.log(data.result)
       
-      // 가격 범위로 필터링
-      if (options.minPrice !== undefined) {
-        filteredProducts = filteredProducts.filter(item => 
-          parseInt(item.product.price) >= options.minPrice!
-        )
-      }
-      if (options.maxPrice !== undefined) {
-        filteredProducts = filteredProducts.filter(item => 
-          parseInt(item.product.price) <= options.maxPrice!
-        )
-      }
-      
-      set({ products: filteredProducts, loading: false })
+      set({ products:dummyProducts.result, loading: false })
     } catch (error) {
       set({ 
         error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
@@ -433,7 +405,7 @@ export const useProductStore = create<ProductStore>((set) => ({
     console.log(product)
     // set({ loading: true, error: null })
     // try {
-    //   const response = await fetch(`https://i13e202.p.ssafy.io/be//api/products`, {
+    //   const response = await fetch(`https://i13e202.p.ssafy.io/be/api/products`, {
     //     method: 'POST',
     //     headers: {
     //       'Content-Type': 'application/json',

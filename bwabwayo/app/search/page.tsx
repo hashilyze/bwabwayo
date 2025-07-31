@@ -412,7 +412,13 @@ export default function SearchPage({
           <div className="text-lg text-red-500">{error}</div>
         </div>
       ) : products.length > 0 ? (
-        <ProductCard products={products} />
+        <ul className="grid grid-cols-6 gap-6 gap-y-12">
+          {products.map((item) => (
+            <li key={item.product.id}>
+              <ProductCard item={item} />
+            </li>
+          ))}
+        </ul>
       ) : (
         <div className="flex justify-center items-center py-8">
           <div className="text-lg text-gray-500">검색 결과가 없습니다.</div>
