@@ -38,12 +38,9 @@ export default function CreateProductPage() {
   const [showAlert, setShowAlert] = useState(false);
   const [majorCategory, setMajorCategory] = useState<string | null>(null);
   const [minorCategory, setMinorCategory] = useState<string | null>(null);
+  const [uploadedData, setUploadedData] = useState<any[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    return () => { images.forEach(file => URL.revokeObjectURL(file)); };
-  }, [images]);
 
   const handleTradeMethodChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = e.target;
@@ -55,26 +52,63 @@ export default function CreateProductPage() {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (files) {
-      if (images.length + files.length > 10) { setShowAlert(true); }
-      const newImageUrls: string[] = [];
-      const newImageFiles: File[] = [];
-      const limit = 10 - images.length;
-      for (let i = 0; i < Math.min(files.length, limit); i++) {
-        const file = files[i];
-        newImageUrls.push(URL.createObjectURL(file));
-        newImageFiles.push(file);
-      }
-      setImages(prev => [...prev, ...newImageUrls]);
-      setImageFiles(prev => [...prev, ...newImageFiles]);
+    if (!files) return;
+    
+    // FileList를 배열로 변환
+    const fileArray = Array.from(files);
+    
+    // 10개 제한 확인
+    if (images.length + fileArray.length > 10) {
+      setShowAlert(true);
+      return;
+    }
+    // 새로운 이미지 URL들 생성
+    const newImageUrls = fileArray.map(file => URL.createObjectURL(file));
+    
+    // 기존 이미지들과 새 이미지들 합치기 (누적)
+    setImages(prev => [...prev, ...newImageUrls]);
+    setImageFiles(prev => [...prev, ...fileArray]);
+    
+    try {
+      // 누적된 모든 blob URL들 수집
+      const allBlobUrls = [...images, ...newImageUrls];
+      
+      // blob: 접두사 제거하고 뒤의 URL 부분만 추출
+      const extractedUrls = allBlobUrls.map(blobUrl => blobUrl.replace('blob:', ''));
+      
+      // FormData 생성하고 추출된 URL들 추가
+      const formData = new FormData();
+      extractedUrls.forEach((url, index) => {
+        formData.append('urls', url);
+      });
+      
+      console.log('원본 blob URL들:', allBlobUrls);
+      console.log('추출된 URL들:', extractedUrls);
+      console.log('총 blob URL 개수:', allBlobUrls.length);
+      
+      const response = await fetch('https://i13e202.p.ssafy.io/be/api/s3/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const data = await response.json();
+      console.log('API 응답:', data);
+      
+      // 응답 데이터 누적 저장
+      setUploadedData(prev => [...prev, {
+        timestamp: new Date().toISOString(),
+        response: data,
+        fileNames: fileArray.map(f => f.name),
+        fileCount: fileArray.length
+      }]);
+      
+    } catch (error) {
+      console.error('API 호출 실패:', error);
     }
     
-    // *** BUG FIX: 이미지 재등록 문제 해결 ***
-    // 파일 처리가 끝난 후, input의 값을 초기화합니다.
-    // 이렇게 해야 사용자가 이전에 선택했던 파일을 다시 선택해도 onChange 이벤트가 정상적으로 발생합니다.
-    // 브라우저는 input의 값이 변경될 때만 onChange를 트리거하기 때문입니다.
+    // input 초기화 (같은 파일 다시 선택 가능하게)
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -129,18 +163,13 @@ export default function CreateProductPage() {
       title: productName,
       description: description,
       price: Number(price),
-      category_id: categoryId,
-      can_negotiate: isNegotiable,
-      can_direct: tradeMethods.direct,
-      can_delivery: tradeMethods.delivery,
-      can_video_call: tradeMethods.video,
-      shipping_fee: Number(shippingCost),
-      // 실제로는 이미지 파일을 서버에 업로드하고 반환된 URL을 사용해야 합니다.
-      // API 명세서의 images.image_url 형식에 맞추기 위한 예시입니다.
-      images: imageFiles.map((file, index) => ({
-        order: index + 1,
-        image_url: `서버에 업로드 후 받은 URL (${file.name})` // 콘솔 확인용
-      })),
+      categoryId: categoryId,
+      canNegotiate: isNegotiable,
+      canDirect: tradeMethods.direct,
+      canDelivery: tradeMethods.delivery,
+      canVideoCall: tradeMethods.video,
+      shippingFee: Number(shippingCost),
+      images: images,
     };
 
     try {
@@ -163,13 +192,15 @@ export default function CreateProductPage() {
           <div className="bg-white p-6 rounded-lg shadow-xl text-center">
             <h3 className="text-lg font-bold mb-4">알림</h3>
             <p>이미지는 최대 10개까지 등록할 수 있습니다.</p>
-            <button onClick={() => setShowAlert(false)} className="mt-6 bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition">확인</button>
+            <button onClick={async () => {
+              setShowAlert(false);
+            }} className="mt-6 bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition">확인</button>
           </div>
         </div>
       )}
 
       <main className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
-        <form onSubmit={handleSubmit} className="space-y-10">
+        <form onSubmit={handleSubmit} className="space-y-10" encType="multipart/form-data">
           
           <section> {/* 이미지 업로드 */}
             <div className="flex items-center space-x-4 overflow-x-auto pb-4">
