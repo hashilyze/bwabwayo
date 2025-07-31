@@ -42,8 +42,6 @@ public class AuthController {
     private final JWTUtils jwtUtils;
     private final JwtProperties  jwtProperties;
     private final UserRepository userRepository;
-    private final AccountRepository accountRepository;
-    private final DeliveryAddressRepository deliveryAddressRepository;
 
 
     @PostMapping("/signup")
@@ -101,10 +99,11 @@ public class AuthController {
             System.out.println("userId : " + userId);
             //refreshToken 안에 userId 있는 지 체크
             if (userId != null) {
-                userRepository.findById(userId).ifPresent(user -> {
+                User user = userRepository.findById(userId);
+                if(user != null){
                     user.setRefreshToken(null);
                     userRepository.save(user);
-                });
+                }
             }
         }
 
@@ -146,7 +145,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("허용하지 않는 리프레시 토큰입니다.");
         }
         System.out.println("refresh의 refreshToken" + refreshToken);
-        User user = userRepository.findById(userId).get();
+        User user = userRepository.findById(userId);
 
         //아래에 주석 처리 된건, RT의 남은 시간이 규정한 시간보다 적게 되면 RT를 재발급해주는 로직을 위해 남겨둠
         Role role = user.getRole();

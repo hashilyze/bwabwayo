@@ -1,5 +1,6 @@
 package com.bwabwayo.app.domain.user.handler;
 
+import com.bwabwayo.app.domain.user.domain.User;
 import com.bwabwayo.app.domain.user.dto.request.CustomOAuth2User;
 import com.bwabwayo.app.domain.user.dto.request.OAuth2UserRequest;
 import com.bwabwayo.app.domain.user.repository.UserRepository;
@@ -58,10 +59,9 @@ public class SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
             String refreshToken = jwtUtils.createToken(user, jwtProperties.getRefreshExpMinutes(), user.getRole()); // 7일
 
             // ✅ RT를 DB에 저장
-            userRepository.findById(user.getId()).ifPresent(savedUser -> {
-                savedUser.setRefreshToken(refreshToken);
-                userRepository.save(savedUser);
-            });
+            User userEntity = userRepository.findById(user.getId());
+            userEntity.setRefreshToken(refreshToken);
+            userRepository.save(userEntity);
 
             // RefreshToken은 HttpOnly 쿠키로 전달
             ResponseCookie cookie = JWTUtils.createHttpOnlyCookie(refreshToken);
