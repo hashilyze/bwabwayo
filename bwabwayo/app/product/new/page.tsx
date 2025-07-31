@@ -26,8 +26,9 @@ export default function CreateProductPage() {
   }, [getCategories]);
 
   // --- 상태 관리 (State Management) ---
-  const [images, setImages] = useState<string[]>([]);
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imgFiles, setImgFiles] = useState<File[]>([]);
+  const [imgPreviews, setImgPreviews] = useState<string[]>([]);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
   const [productName, setProductName] = useState('');
   const [price, setPrice] = useState('');
   const [isNegotiable, setIsNegotiable] = useState(false);
@@ -38,7 +39,7 @@ export default function CreateProductPage() {
   const [showAlert, setShowAlert] = useState(false);
   const [majorCategory, setMajorCategory] = useState<string | null>(null);
   const [minorCategory, setMinorCategory] = useState<string | null>(null);
-  const [uploadedData, setUploadedData] = useState<any[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -47,76 +48,90 @@ export default function CreateProductPage() {
     setTradeMethods(prev => ({ ...prev, [name]: checked }));
   };
 
+  // 이미지 업로드 박스 클릭
   const handleUploadClick = () => {
-    if (images.length >= 10) { setShowAlert(true); return; }
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files) return;
-    
-    // FileList를 배열로 변환
-    const fileArray = Array.from(files);
-    
-    // 10개 제한 확인
-    if (images.length + fileArray.length > 10) {
+    if (imgFiles.length >= 10) {
       setShowAlert(true);
       return;
     }
-    // 새로운 이미지 URL들 생성
-    const newImageUrls = fileArray.map(file => URL.createObjectURL(file));
+    fileInputRef.current?.click();
+  };
+
+  // 파일 선택 시 처리
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    const fileArray = Array.from(files);
     
-    // 기존 이미지들과 새 이미지들 합치기 (누적)
-    setImages(prev => [...prev, ...newImageUrls]);
-    setImageFiles(prev => [...prev, ...fileArray]);
-    
-    try {
-      // 누적된 모든 blob URL들 수집
-      const allBlobUrls = [...images, ...newImageUrls];
-      
-      // blob: 접두사 제거하고 뒤의 URL 부분만 추출
-      const extractedUrls = allBlobUrls.map(blobUrl => blobUrl.replace('blob:', ''));
-      
-      // FormData 생성하고 추출된 URL들 추가
-      const formData = new FormData();
-      extractedUrls.forEach((url, index) => {
-        formData.append('urls', url);
-      });
-      
-      console.log('원본 blob URL들:', allBlobUrls);
-      console.log('추출된 URL들:', extractedUrls);
-      console.log('총 blob URL 개수:', allBlobUrls.length);
-      
-      const response = await fetch('https://i13e202.p.ssafy.io/be/api/s3/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      const data = await response.json();
-      console.log('API 응답:', data);
-      
-      // 응답 데이터 누적 저장
-      setUploadedData(prev => [...prev, {
-        timestamp: new Date().toISOString(),
-        response: data,
-        fileNames: fileArray.map(f => f.name),
-        fileCount: fileArray.length
-      }]);
-      
-    } catch (error) {
-      console.error('API 호출 실패:', error);
+    // 10개 제한 확인
+    if (imgFiles.length + fileArray.length > 10) {
+      setShowAlert(true);
+      return;
     }
-    
-    // input 초기화 (같은 파일 다시 선택 가능하게)
+
+    // 파일 정보만 저장 (미리보기는 S3 업로드 후 생성)
+    setImgFiles(prev => [...prev, ...fileArray]);
+
+    // S3에 업로드 (성공 시 미리보기 URL 업데이트됨)
+    await uploadToS3(fileArray);
+
+    // input 초기화
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
-  const handleDeleteImage = (indexToDelete: number) => {
-    setImages(prev => prev.filter((_, i) => i !== indexToDelete));
-    setImageFiles(prev => prev.filter((_, i) => i !== indexToDelete));
+  // S3 업로드 함수
+  const uploadToS3 = async (files: File[]) => {
+    setIsUploading(true);
+    
+    try {
+      const formData = new FormData();
+      files.forEach((file) => {
+        formData.append('files', file);
+      });
+
+      console.log('S3 업로드 시작:', files.map(f => ({f})));
+      
+      const response = await fetch('https://i13e202.p.ssafy.io/be/api/s3/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('S3 업로드 성공:', data);
+        
+        // 업로드된 이미지 URL들을 미리보기와 최종 업로드 URL 모두에 저장
+        if (data.urls && Array.isArray(data.urls)) {
+          setImgPreviews(prev => [...prev, ...data.urls]);
+          setUploadedImageUrls(prev => [...prev, ...data.urls]);
+        }
+        
+        alert('이미지 업로드가 완료되었습니다!');
+      } else {
+        // 업로드 실패 시 추가된 파일 정보 제거
+        setImgFiles(prev => prev.slice(0, prev.length - files.length));
+        console.error('S3 업로드 실패:', response.statusText);
+        alert('이미지 업로드에 실패했습니다.');
+      }
+    } catch (error) {
+      // 네트워크 오류 시 추가된 파일 정보 제거
+      setImgFiles(prev => prev.slice(0, prev.length - files.length));
+      console.error('S3 업로드 오류:', error);
+      alert('이미지 업로드 중 오류가 발생했습니다.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // 이미지 삭제
+  const handleDeleteImage = (index: number) => {
+    // 상태에서 제거 (S3 URL이므로 메모리 해제 불필요)
+    setImgFiles(prev => prev.filter((_, i) => i !== index));
+    setImgPreviews(prev => prev.filter((_, i) => i !== index));
+    setUploadedImageUrls(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleMajorCategorySelect = (categoryName: string) => {
@@ -128,7 +143,7 @@ export default function CreateProductPage() {
     event.preventDefault();
 
     if (!termsAgreed) { alert('판매 정보 동의 약관에 체크해주세요.'); return; }
-    if (imageFiles.length === 0) { alert('이미지를 1개 이상 등록해주세요.'); return; }
+    if (uploadedImageUrls.length === 0) { alert('이미지를 1개 이상 등록해주세요.'); return; }
     if (!productName.trim()) { alert('상품명을 입력해주세요.'); return; }
     if (!majorCategory) { alert('카테고리를 선택해주세요.'); return; }
 
@@ -169,7 +184,7 @@ export default function CreateProductPage() {
       canDelivery: tradeMethods.delivery,
       canVideoCall: tradeMethods.video,
       shippingFee: Number(shippingCost),
-      images: images,
+      images: uploadedImageUrls,
     };
 
     try {
@@ -200,25 +215,52 @@ export default function CreateProductPage() {
       )}
 
       <main className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
-        <form onSubmit={handleSubmit} className="space-y-10" encType="multipart/form-data">
-          
-          <section> {/* 이미지 업로드 */}
-            <div className="flex items-center space-x-4 overflow-x-auto pb-4">
-              <div onClick={handleUploadClick} className="flex-shrink-0 w-24 h-24 bg-gray-100 rounded-lg flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 hover:bg-gray-200">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                <span className="text-sm text-gray-500 mt-1">{images.length}/10</span>
-              </div>
-              <input type="file" multiple accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
-              {images.map((image, index) => (
-                <div key={image} className="relative flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden">
-                  <img src={image} alt={`uploaded-preview-${index}`} className="w-full h-full object-cover" />
-                  <button type="button" onClick={() => handleDeleteImage(index)} className="absolute top-1 right-1 bg-black bg-opacity-50 text-white rounded-full p-0.5 hover:bg-opacity-75" aria-label="이미지 삭제"><XCircleIcon className="w-5 h-5" /></button>
-                </div>
-              ))}
-            </div>
-            <p className="text-sm text-gray-500 mt-4">상품 이미지를 등록해주세요.<br/>첫 번째 사진이 대표 이미지로 사용됩니다.</p>
-          </section>
 
+        {/* 이미지 업로드 전용 Form */}
+        <form className="mb-10" encType="multipart/form-data">
+          <div className="flex items-center space-x-4 overflow-x-auto pb-4">
+            <div 
+              onClick={handleUploadClick} 
+              className={`flex-shrink-0 w-24 h-24 bg-gray-100 rounded-lg flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 hover:bg-gray-200 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {isUploading ? (
+                <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  <span className="text-sm text-gray-500 mt-1">{imgPreviews.length}/10</span>
+                </>
+              )}
+            </div>
+            <input 
+              type="file" 
+              multiple 
+              accept="image/*" 
+              ref={fileInputRef} 
+              onChange={handleFileChange}
+              disabled={isUploading}
+              className="hidden" 
+            />
+            {imgPreviews.map((preview, index) => (
+              <div key={preview} className="relative flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden">
+                <img src={preview} alt={`이미지 미리보기 ${index + 1}`} className="w-full h-full object-cover" />
+                <button 
+                  type="button" 
+                  onClick={() => handleDeleteImage(index)}
+                  className="absolute top-1 right-1 bg-black bg-opacity-50 text-white rounded-full p-0.5 hover:bg-opacity-75" 
+                  aria-label="이미지 삭제"
+                >
+                  <XCircleIcon className="w-5 h-5" />
+                </button>
+              </div>
+            ))}
+          </div>
+          <p className="text-sm text-gray-500 mt-4">상품 이미지를 등록해주세요.<br/>첫 번째 사진이 대표 이미지로 사용됩니다.</p>
+        </form>
+
+
+        {/* 상품 정보 입력 Form */}
+        <form onSubmit={handleSubmit} className="space-y-10">
           <section> {/* 상품명 */}
             <label htmlFor="productName" className="block text-base font-semibold text-gray-800 mb-2">상품명</label>
             <input type="text" id="productName" value={productName} onChange={(e) => setProductName(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3" placeholder="상품명을 입력해주세요." />
