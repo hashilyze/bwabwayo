@@ -32,7 +32,7 @@ const dummyProducts = {
       "product": {
         "id": 1,
         "category_id": 8001,
-        "thumbnail": "/image/sample.png",
+        "thumbnail": "/fe/image/sample.png",
         "title": "아이폰 15 Pro 팝니다",
         "price": "1200000",
         "view_count": "25",
