@@ -108,8 +108,6 @@ export const useSignupStore = create<SignupState>((set, get) => ({
         const urlParams = new URLSearchParams(window.location.search);
         const socialAccessToken = urlParams.get('accessToken'); // URL에서 받은 소셜 로그인 토큰
         const id = urlParams.get('id');
-        const emailFromUrl = urlParams.get('email') ?? '';
-        const profileImageFromUrl = urlParams.get('profileImage') ?? '';
 
         // --- 개선된 부분: 필수 파라미터 검증 ---
         if (!socialAccessToken || !id) {
@@ -120,6 +118,7 @@ export const useSignupStore = create<SignupState>((set, get) => ({
 
         const {
             nickname,
+            email, // 스토어에서 이메일 상태 가져오기
             phoneNumber,
             accountNumber,
             accountHolder,
@@ -129,7 +128,7 @@ export const useSignupStore = create<SignupState>((set, get) => ({
             zipcode,
             address,
             addressDetail,
-            profileImage, // 상태값 profileImage는 사용하지 않고 URL에서 추출한 값 사용
+            profileImage, // 스토어에서 프로필 이미지 상태 가져오기
         } = get();
 
         // --- 개선된 부분: 필수 입력값 검증 ---
@@ -141,8 +140,8 @@ export const useSignupStore = create<SignupState>((set, get) => ({
         // 서버 API 명세에 따라 빈 값은 null로 처리하는 것이 더 안전할 수 있습니다.
         const payload = {
             id,
-            email: emailFromUrl || null,
-            profileImage: profileImageFromUrl || null,
+            email: email || null, // 스토어의 이메일 값 사용
+            profileImage: profileImage || null, // 스토어의 프로필 이미지 값 사용
             nickname,
             phoneNumber: phoneNumber || null,
             accountNumber: accountNumber || null,

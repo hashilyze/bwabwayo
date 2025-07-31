@@ -63,11 +63,14 @@ export default function SignUpPage({ searchParams }: { searchParams?: { email?: 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter(); // useRouter 훅 사용
 
-    // 백에서 받은 email, profileImage가 있으면 초기값으로 세팅
+    // --- 개선된 부분: URL 파라미터로 스토어 상태 초기화 ---
+    // 페이지에 처음 진입하거나 URL 파라미터가 변경될 때,
+    // 소셜 로그인으로부터 받은 이메일과 프로필 이미지로 폼을 채웁니다.
+    // 파라미터가 없으면 필드를 깨끗하게 비웁니다.
      useEffect(() => {
-        if (searchParams?.email) setEmail(searchParams.email);
-        if (searchParams?.profileImage) setProfileImage(searchParams.profileImage);
-    }, [searchParams, setEmail, setProfileImage]);
+        setEmail(searchParams?.email ?? '');
+        setProfileImage(searchParams?.profileImage ?? null);
+    }, [searchParams, setEmail, setProfileImage]); // searchParams가 바뀔 때마다 이 효과를 다시 실행합니다.
 
     // --- 이벤트 핸들러 ---
     const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -176,6 +179,10 @@ export default function SignUpPage({ searchParams }: { searchParams?: { email?: 
                         <label className="block text-sm font-medium text-gray-700 mb-1">닉네임</label>
                         <input type="text" value={nickname} onChange={(e) => setNickname(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" required />
                     </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">이메일 (선택)</label>
+                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" />
+                    </div>
 
                     <div className="border-t pt-8 min-h-[580px]">
                         {showOptionalFields ? (
@@ -184,10 +191,6 @@ export default function SignUpPage({ searchParams }: { searchParams?: { email?: 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">휴대폰 번호 (선택)</label>
                                         <input type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">이메일 (선택)</label>
-                                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" />
                                     </div>
                                 </div>
 
