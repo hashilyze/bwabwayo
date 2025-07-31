@@ -160,23 +160,26 @@ const handleQuickAction = (actionText: string) => {
                         return <div key={index} className="flex justify-end"><div className="bg-[#3369ff] text-white rounded-2xl rounded-br-lg px-4 py-3 max-w-[80%] text-sm font-medium whitespace-pre-wrap">{msg.text}</div></div>;
                     }
                     if (msg.type === 'bot') {
+                        // 첫 번째 bot 메시지에만 버튼을 붙임
+                        const isFirstBot = index === messages.findIndex(m => m.type === 'bot');
                         return (
                             <div key={index} className="flex flex-col items-start space-y-2">
                                 <div className="bg-gray-100 text-gray-800 rounded-2xl rounded-bl-lg px-4 py-3 max-w-[80%] text-sm whitespace-pre-wrap">
                                     {msg.text}
+                                    {isFirstBot && !inputActive && (
+                                        <div className="mt-3 flex">
+                                            <button
+                                                onClick={() => handleQuickAction('AI 상품 추천')}
+                                                className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold rounded-full px-6 py-2 shadow-md hover:scale-105 hover:from-blue-600 hover:to-blue-800 transition-all text-sm"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                                </svg>
+                                                AI 상품 추천
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
-                                {/* bot 메시지 바로 아래 버튼 추가 */}
-                                {!inputActive && (
-                                    <button
-                                        onClick={() => handleQuickAction('AI 상품 추천')}
-                                        className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold rounded-full px-6 py-2 shadow-md hover:scale-105 hover:from-blue-600 hover:to-blue-800 transition-all text-sm"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                        </svg>
-                                        AI 상품 추천
-                                    </button>
-                                )}
                             </div>
                         );
                     }
