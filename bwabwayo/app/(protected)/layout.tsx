@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useModalStore } from '@/stores/modalStore' // modal 스토어 import
 
 /**
@@ -14,6 +14,7 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isAuthChecked, setIsAuthChecked] = useState(false);
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export default function ProtectedLayout({
       // 토큰이 존재하면 인증 확인이 완료된 것으로 간주합니다.
       setIsAuthChecked(true);
     }
-  }, [router]);
+  }, [router, pathname]);
 
   // 인증 확인이 완료될 때까지는 로딩 상태나 null을 반환하여 페이지 깜빡임을 방지합니다.
   if (!isAuthChecked) {
