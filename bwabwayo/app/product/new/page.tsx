@@ -91,8 +91,18 @@ export default function CreateProductPage() {
       files.forEach((file) => {
         formData.append('files', file);
       });
+      // 백엔드에서 필요한 dir 파라미터 추가
+      formData.append('dir', 'products'); // 상품 이미지 디렉토리
 
-      console.log('S3 업로드 시작:', files.map(f => ({f})));
+      console.log('S3 업로드 시작:', {
+        파일수: files.length,
+        디렉토리: 'products',
+        파일정보: files.map(f => ({
+          name: f.name,
+          size: `${(f.size / 1024 / 1024).toFixed(2)}MB`,
+          type: f.type
+        }))
+      });
       
       const response = await fetch('https://i13e202.p.ssafy.io/be/api/s3/upload', {
         method: 'POST',
@@ -103,17 +113,49 @@ export default function CreateProductPage() {
         const data = await response.json();
         console.log('S3 업로드 성공:', data);
         
-        // 업로드된 이미지 URL들을 미리보기와 최종 업로드 URL 모두에 저장
-        if (data.urls && Array.isArray(data.urls)) {
-          setImgPreviews(prev => [...prev, ...data.urls]);
-          setUploadedImageUrls(prev => [...prev, ...data.urls]);
+        // 백엔드 응답 형식에 따른 URL 추출
+        let uploadedUrls: string[] = [];
+        
+        if (data.result && Array.isArray(data.result)) {
+          // UploadResponseDTO 형식: { result: [UploadResultDTO] }
+          uploadedUrls = data.result.map((item: any) => item.url || item.fileUrl || item.s3Url).filter(Boolean);
+          console.log('UploadResponseDTO에서 URL 추출:', uploadedUrls);
+        } else if (data.urls && Array.isArray(data.urls)) {
+          // 기존 형식: { urls: ["url1", "url2"] }
+          uploadedUrls = data.urls;
+          console.log('기존 형식에서 URL 추출:', uploadedUrls);
+        } else if (data.url) {
+          // 단일 URL: { url: "url" }
+          uploadedUrls = [data.url];
+          console.log('단일 URL 추출:', uploadedUrls);
+        } else {
+          console.warn('알 수 없는 응답 형식:', data);
+          // 응답 전체를 로그로 확인
+          console.log('전체 응답 구조:', JSON.stringify(data, null, 2));
         }
         
-        alert('이미지 업로드가 완료되었습니다!');
+        if (uploadedUrls.length > 0) {
+          // 업로드된 이미지 URL들을 미리보기와 최종 업로드 URL 모두에 저장
+          setImgPreviews(prev => [...prev, ...uploadedUrls]);
+          setUploadedImageUrls(prev => [...prev, ...uploadedUrls]);
+          alert(`이미지 업로드가 완료되었습니다! (${uploadedUrls.length}개)`);
+        } else {
+          console.error('업로드 성공했지만 URL을 찾을 수 없습니다.');
+          alert('업로드는 성공했지만 이미지 URL을 받지 못했습니다. 콘솔을 확인해주세요.');
+        }
       } else {
         // 업로드 실패 시 추가된 파일 정보 제거
         setImgFiles(prev => prev.slice(0, prev.length - files.length));
-        console.error('S3 업로드 실패:', response.statusText);
+        console.error('S3 업로드 실패:', response.status, response.statusText);
+        
+        // 에러 응답 상세 확인
+        try {
+          const errorData = await response.text();
+          console.error('에러 응답 내용:', errorData);
+        } catch (e) {
+          console.error('에러 응답 읽기 실패');
+        }
+        
         alert('이미지 업로드에 실패했습니다.');
       }
     } catch (error) {
@@ -137,6 +179,36 @@ export default function CreateProductPage() {
   const handleMajorCategorySelect = (categoryName: string) => {
     setMajorCategory(categoryName);
     setMinorCategory(null);
+  };
+
+  // 폼 초기화 함수
+  const resetForm = () => {
+    console.log('🔄 폼 초기화 중...');
+    
+    // 이미지 관련 상태 초기화
+    setImgFiles([]);
+    setImgPreviews([]);
+    setUploadedImageUrls([]);
+    
+    // 상품 정보 초기화
+    setProductName('');
+    setPrice('');
+    setIsNegotiable(false);
+    setDescription('');
+    setTradeMethods({ delivery: false, direct: false, video: false });
+    setShippingCost('');
+    
+    // 카테고리 초기화
+    setMajorCategory(null);
+    setMinorCategory(null);
+    
+    // 약관 동의 초기화
+    setTermsAgreed(false);
+    
+    // 파일 입력 초기화
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -171,9 +243,7 @@ export default function CreateProductPage() {
       return;
     }
 
-    // *** API 명세서에 맞게 요청 데이터 이름 수정 ***
-    // 컴포넌트 내부에서 사용하는 상태(state) 이름(예: productName)과
-    // 서버로 보낼 때 사용하는 키(key) 이름(예: title)을 분리하여 관리합니다.
+    // *** 상품 등록 요청 데이터 준비 ***
     const requestData = {
       title: productName,
       description: description,
@@ -184,17 +254,64 @@ export default function CreateProductPage() {
       canDelivery: tradeMethods.delivery,
       canVideoCall: tradeMethods.video,
       shippingFee: Number(shippingCost),
-      images: uploadedImageUrls,
+      images: uploadedImageUrls, // S3에서 업로드된 이미지 URL들
     };
 
+    // 상세한 데이터 확인 로그
+    console.log('🚀 상품 등록 요청 데이터:', {
+      '📝 기본 정보': {
+        제목: requestData.title,
+        설명: requestData.description,
+        가격: `${requestData.price}원`,
+        카테고리ID: requestData.categoryId,
+        카테고리명: `${majorCategory}${minorCategory ? ` > ${minorCategory}` : ''}`,
+      },
+      '🔧 거래 옵션': {
+        가격협상: requestData.canNegotiate ? '가능' : '불가능',
+        직거래: requestData.canDirect ? '가능' : '불가능',
+        택배거래: requestData.canDelivery ? '가능' : '불가능',
+        화상통화: requestData.canVideoCall ? '가능' : '불가능',
+        배송비: `${requestData.shippingFee}원`,
+      },
+      '📸 이미지 정보': {
+        업로드된_이미지_수: requestData.images.length,
+        S3_URL들: requestData.images,
+        미리보기_URL들: imgPreviews,
+      }
+    });
+
     try {
-      console.log('--- 상품 등록 중... ---');
-      await addProduct(requestData as any); // 타입 임시 처리
-      alert('상품이 성공적으로 등록되었습니다!');
+      console.log('--- 🛒 상품 등록 API 호출 시작 ---');
+      
+      // 최종 검증
+      if (requestData.images.length === 0) {
+        alert('S3에 업로드된 이미지가 없습니다. 이미지를 다시 업로드해주세요.');
+        return;
+      }
+      
+      if (requestData.price <= 0) {
+        alert('가격을 올바르게 입력해주세요.');
+        return;
+      }
+
+      const result = await addProduct(requestData as any);
+      console.log('✅ 상품 등록 성공:', result);
+      
+      alert(`상품이 성공적으로 등록되었습니다!\n\n📝 제목: ${requestData.title}\n💰 가격: ${requestData.price}원\n📸 이미지: ${requestData.images.length}개`);
+      
+      // 성공 후 폼 초기화
+      resetForm();
       
     } catch (error) {
-      console.error('상품 등록 실패:', error);
-      alert('상품 등록에 실패했습니다. 다시 시도해주세요.');
+      console.error('❌ 상품 등록 실패:', error);
+      
+      // 에러 타입별 상세 메시지
+      if (error instanceof Error) {
+        console.error('에러 메시지:', error.message);
+        console.error('에러 스택:', error.stack);
+      }
+      
+      alert(`상품 등록에 실패했습니다.\n\n다음을 확인해주세요:\n• 모든 필수 항목이 입력되었는지\n• 이미지가 정상적으로 업로드되었는지\n• 네트워크 연결 상태\n\n콘솔에서 자세한 오류를 확인할 수 있습니다.`);
     }
   };
 
