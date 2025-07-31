@@ -1,6 +1,7 @@
 // next.config.js
 const nextConfig = {
-    basePath: '/fe',
+    // 프로덕션 환경에서만 basePath 적용
+    basePath: process.env.NODE_ENV === 'production' ? '/fe' : '',
     async rewrites() {
       return [
         {

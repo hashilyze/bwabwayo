@@ -10,6 +10,9 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.png",
   },
+  other: {
+    "Content-Security-Policy": "upgrade-insecure-requests",
+  },
 };
 
 export default function RootLayout({
@@ -19,7 +22,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
       {/* <meta name="viewport" content="width=device-width, initial-scale=1.0" /> */}
       <body>
         <Navbar />

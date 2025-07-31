@@ -56,7 +56,7 @@ export default function Navbar() {
         <div className="w-[1280px] m-auto py-4 flex items-center justify-between">
             <div className="logo-wrap flex items-center gap-2 flex-1 mr-16">
                 <div className="logo text-xl font-bold">
-                    <Link href="/"><Image src="/logo.png" alt="logo" className="h-[43px]" /></Link>
+                    <Link href="/"><Image src="/logo.png" alt="logo" height={40} width={98} /></Link>
                 </div>
                 <form className="flex items-center ml-[80px] flex-1 px-2 border-1 border-[#eee] rounded-lg bg-[#fff]" onSubmit={handleSubmit}>
                     <div className="flex items-center px-3">
