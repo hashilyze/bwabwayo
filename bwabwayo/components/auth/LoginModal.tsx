@@ -24,7 +24,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   // isOpen prop이 false이면 모달을 렌더링하지 않습니다.
   if (!isOpen) return null;
   
-  const kakaoAuthUrl = `http://i13e202.p.ssafy.io:8081/oauth2/authorization/kakao`;
+  const kakaoAuthUrl = `http://i13e202.p.ssafy.io/be/oauth2/authorization/kakao`;
 
   return (
     // --- 수정된 부분: 모달 오버레이 ---
