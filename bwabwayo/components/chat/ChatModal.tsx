@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import React, { useState } from 'react';
 
 const ChatInputActive: React.FC = () => {
@@ -38,7 +39,7 @@ const ChatInputActive: React.FC = () => {
           {/* 거래시작 */}
           <div className="flex flex-col items-center cursor-pointer">
             <div className="w-[51px] h-[51px] bg-[#fafafa] border border-[#9b9b9b] rounded-full flex items-center justify-center mb-[7px]">
-              <img src="/icon/start-trade.svg" alt="거래시작" className="w-5 h-5" />
+              <Image src="/icon/start-trade.svg" alt="거래시작" className="w-5 h-5" width={20} height={20} />
             </div>
             <span className="text-xs text-black">거래시작</span>
           </div>
@@ -46,7 +47,7 @@ const ChatInputActive: React.FC = () => {
           {/* 화상채팅예약 */}
           <div className="flex flex-col items-center cursor-pointer">
             <div className="w-[51px] h-[51px] bg-[#fafafa] border border-[#9b9b9b] rounded-full flex items-center justify-center mb-[7px]">
-              <img src="/icon/video.svg" alt="화상채팅예약" className="w-5 h-5" />
+              <Image src="/icon/video.svg" alt="화상채팅예약" className="w-5 h-5" width={20} height={20} />
             </div>
             <span className="text-xs text-black">화상채팅예약</span>
           </div>
@@ -54,7 +55,7 @@ const ChatInputActive: React.FC = () => {
           {/* 이미지 첨부 */}
           <div className="flex flex-col items-center cursor-pointer">
             <div className="w-[51px] h-[51px] bg-[#fafafa] border border-[#9b9b9b] rounded-full flex items-center justify-center mb-[7px]">
-              <img src="/icon/image.svg" alt="이미지 첨부" className="w-4 h-4" />
+              <Image src="/icon/image.svg" alt="이미지 첨부" className="w-4 h-4" width={16} height={16} />
             </div>
             <span className="text-xs text-black">이미지 첨부</span>
           </div>

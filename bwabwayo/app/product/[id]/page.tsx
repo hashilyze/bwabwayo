@@ -16,11 +16,11 @@ export default function ProductDetailPage() {
   }, [getProductDetail, productId]);
   
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen py-12">
       <div className="flex flex-row gap-12 relative">
         {/* Product Images */}
         <div className="flex-2 w-full max-w-md">
-          <div className="sticky top-18 z-10">
+          <div className="sticky top-45 z-10">
             <div className="flex flex-col gap-4">
               <div className="rounded-2xl overflow-hidden border border-gray-200">
                 <img 
