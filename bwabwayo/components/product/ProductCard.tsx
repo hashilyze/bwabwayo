@@ -55,7 +55,7 @@ export default function ProductCard({ item }: Props) {
       {/* 상품 이미지 */}
       <div className="aspect-square overflow-hidden rounded-lg relative">
         <div className="absolute top-4 right-4 z-10">
-          <LikeHeart isLiked={product.is_like} />
+          <LikeHeart isLiked={product.isLike} />
         </div>
         <img
           className="w-full h-full object-cover"
@@ -69,7 +69,7 @@ export default function ProductCard({ item }: Props) {
         <h3 className="text-lg text-[#5a5a5a] leading-sung h-15 overflow-hidden">{product.title}</h3>
         <p className="text-xl font-bold text-black mb-1">{formatPrice(product.price)}원</p>
         <p className="text-sm font-light text-[#999999]">{getRelativeTime(product.createdAt)}</p>
-        {product.can_video_call && (
+        {product.canVideoCall && (
           <div className="text-[10px] font-bold text-[#1b8ee4] bg-[#f4f6f7] w-fit rounded-sm mt-1 px-1 border border-[#ecf1f4]">화상통화</div>
         )}
       </div>
