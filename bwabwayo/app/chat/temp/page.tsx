@@ -5,9 +5,13 @@ import { useRouter, useSearchParams } from 'next/navigation'
 
 export default function TempPage() {
     const router = useRouter()
+    const searchParams = useSearchParams()
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [message, setMessage] = useState('')
     const [buyerId, setBuyerId] = useState<string | null>(null)
+    
+    const productId = searchParams.get('productId')
+    const sellerId = searchParams.get('sellerId')
 
     // 클라이언트사이드에서만 localStorage 접근
     useEffect(() => {
