@@ -116,10 +116,6 @@ export const useSignupStore = create<SignupState>((set, get) => ({
             throw new Error('소셜 로그인 정보(토큰 또는 ID)가 유효하지 않습니다. 다시 로그인해주세요.');
         }
 
-         if (emailFromUrl && !get().email) {
-            set({ email: emailFromUrl });
-        }
-
         console.log('보내는 accessToken:', accessToken);
 
         const {
@@ -133,7 +129,7 @@ export const useSignupStore = create<SignupState>((set, get) => ({
             zipcode,
             address,
             addressDetail,
-            // profileImage, // 상태값 profileImage는 사용하지 않고 URL에서 추출한 값 사용
+            profileImage, // 상태값 profileImage는 사용하지 않고 URL에서 추출한 값 사용
         } = get();
 
         // --- 개선된 부분: 필수 입력값 검증 ---
@@ -141,20 +137,22 @@ export const useSignupStore = create<SignupState>((set, get) => ({
             throw new Error('닉네임을 입력해주세요.');
         }
 
+        // --- 개선된 부분: 빈 문자열("") 대신 null을 보내도록 수정 ---
+        // 서버 API 명세에 따라 빈 값은 null로 처리하는 것이 더 안전할 수 있습니다.
         const payload = {
             id,
-            email: emailFromUrl,
-            profileImage: profileImageFromUrl,
+            email: emailFromUrl || null,
+            profileImage: profileImageFromUrl || null,
             nickname,
-            phoneNumber,
-            accountNumber,
-            accountHolder,
-            bankName,
-            recipientName,
-            recipientPhoneNumber,
-            zipcode,
-            address,
-            addressDetail,
+            phoneNumber: phoneNumber || null,
+            accountNumber: accountNumber || null,
+            accountHolder: accountHolder || null,
+            bankName: bankName || null,
+            recipientName: recipientName || null,
+            recipientPhoneNumber: recipientPhoneNumber || null,
+            zipcode: zipcode || null,
+            address: address || null,
+            addressDetail: addressDetail || null,
         };
 
         console.log('회원가입 요청 payload:', JSON.stringify(payload, null, 2));
@@ -169,14 +167,19 @@ export const useSignupStore = create<SignupState>((set, get) => ({
             body: JSON.stringify(payload),
         });
 
-        const responseData = await response.json();
-
+        // --- 개선된 부분: 서버 에러 응답을 안전하게 처리 ---
+        // response.ok가 false일 때 (e.g., 4xx, 5xx 에러) 서버가 JSON이 아닌 텍스트/HTML을 보낼 수 있습니다.
+        // 따라서 .json()을 호출하기 전에 먼저 상태를 확인합니다.
         if (!response.ok) {
-            // --- 개선된 부분: 디버깅을 위한 에러 로그 추가 ---
-            console.error('회원가입 실패 응답:', responseData);
-            // 서버에서 내려주는 에러 메시지가 있다면 활용하는 것이 더 좋습니다.
-            throw new Error(responseData.message || '회원가입에 실패했습니다.');
+            // 응답 본문을 JSON이 아닌 텍스트로 먼저 읽어 에러 원인을 확인합니다.
+            const errorText = await response.text();
+            console.error('회원가입 실패 응답 (서버 원문):', errorText);
+            // 서버가 보낸 텍스트("SQL 오류")를 에러 메시지로 사용합니다.
+            throw new Error(errorText || '회원가입에 실패했습니다.');
         }
+
+        // 요청이 성공한 경우에만 응답을 JSON으로 파싱합니다.
+        const responseData = await response.json();
 
         // --- 개선된 부분: 성공 응답 처리 ---
         // 3. 응답 데이터에서 토큰과 유저 정보를 추출합니다. (백엔드 응답 구조에 따라 key는 달라질 수 있습니다.)
