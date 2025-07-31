@@ -1,5 +1,6 @@
 // next.config.js
 const nextConfig = {
+    basePath: '/fe',
     async rewrites() {
       return [
         {
