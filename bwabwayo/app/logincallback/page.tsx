@@ -13,7 +13,7 @@ function CallbackHandler() {
     if (isNewUser === 'true') {
       // 신규 유저인 경우, 회원가입 페이지로 모든 파라미터를 가지고 이동합니다.
       // 회원가입 페이지에서 accessToken을 포함한 다른 정보들을 활용할 수 있습니다.
-      const signupUrl = `/fe/signup?${searchParams.toString()}`
+      const signupUrl = `/signup?${searchParams.toString()}`
       router.replace(signupUrl)
       return // 리디렉션 후에는 더 이상 로직을 진행하지 않습니다.
     }
