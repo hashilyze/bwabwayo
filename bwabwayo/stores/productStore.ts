@@ -333,10 +333,8 @@ export const useProductStore = create<ProductStore>((set) => ({
       
       set({ products:data.result, loading: false })
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
-        loading: false 
-      })
+      error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다'
+      set({ products: [], loading: false })
     }
   },
 
@@ -353,10 +351,8 @@ export const useProductStore = create<ProductStore>((set) => ({
 
       set({ hotKeywordProducts: filteredProducts, loading: false })
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
-        loading: false 
-      })
+      error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다'
+      set({ hotKeywordProducts: [], loading: false })
     }
   },
 
@@ -373,10 +369,8 @@ export const useProductStore = create<ProductStore>((set) => ({
 
       set({ videoCallProducts: filteredProducts, loading: false })
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
-        loading: false 
-      })
+      error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다'
+      set({ videoCallProducts: [], loading: false })
     }
   },
 
