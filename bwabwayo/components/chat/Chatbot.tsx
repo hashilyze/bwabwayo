@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-// chatBotStore.ts 파일의 경로가 올바른지 확인해주세요.
-import { useChatBotStore } from '../../stores/chatBotStore';
+import { useChatBotStore } from '@/stores/chatBotStore';
 
 // --- 타입 정의 ---
 type DisplayMessage = {

@@ -3,7 +3,7 @@
 
 import React, { useRef, ChangeEvent, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation'; // useRouter import
-import { useSignupStore } from '../../stores/signUpStore'; // Zustand 스토어를 import 합니다.
+import { useSignupStore } from '@/stores/signUpStore'; // Zustand 스토어를 import 합니다.
 import Script from 'next/script';
 
 // --- 타입 정의 ---

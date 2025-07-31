@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useCategoryStore } from "../stores/categoryStore";
+import { useCategoryStore } from "@/stores/categoryStore";
 
 export default function Category(){
     const router = useRouter();

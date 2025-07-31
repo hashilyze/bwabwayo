@@ -4,9 +4,9 @@ import { useRouter } from 'next/navigation'
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 
-import Category from './Category';
-import { useCategoryStore } from '../stores/categoryStore';
-import LoginModal from './auth/LoginModal'
+import Category from '@/components/Category';
+import { useCategoryStore } from '@/stores/categoryStore';
+import LoginModal from '@/components/auth/LoginModal'
 
 export default function Navbar() {
     const [title, setTitle] = useState('')
