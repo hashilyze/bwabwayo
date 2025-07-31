@@ -207,11 +207,6 @@ export const useSignupStore = create<SignupState>((set, get) => ({
         set({ loading: false, isSuccess: true });
         console.log('회원가입 및 로그인 성공!');
 
-        // 5. 회원가입 및 로그인이 완료되었으므로 메인 페이지로 이동시킵니다.
-        // window.location.href를 사용하면 페이지를 완전히 새로고침하여
-        // 모든 상태(예: Navbar의 로그인 버튼)를 최신 상태로 업데이트할 수 있습니다.
-        window.location.href = '/';
-
         // 성공 시 true를 반환하여 컴포넌트에서 후속 처리를 하도록 합니다.
         return true;
 

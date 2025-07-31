@@ -12,7 +12,9 @@ import LoginModal from '@/components/auth/LoginModal'
 export default function Navbar() {
     const [title, setTitle] = useState('')
     const [showCategory, setShowCategory] = useState(false);
-    const [showLoginModal, setShowLoginModal] = useState(false) // 모달 상태 추가
+    const [showLoginModal, setShowLoginModal] = useState(false); // 모달 상태 추가
+    const [showMyPageMenu, setShowMyPageMenu] = useState(false); // 내상점 메뉴 상태
+    const [isLoggedIn, setIsLoggedIn] = useState(false); // 로그인 상태
     const [isScrolled, setIsScrolled] = useState(false) // 스크롤 상태 추가
     const categoryRef = useRef<HTMLDivElement>(null);
     const router = useRouter()
@@ -22,6 +24,12 @@ export default function Navbar() {
     useEffect(() => {
         getCategories();
     }, [getCategories]);
+
+    // 컴포넌트 마운트 시 로그인 상태 확인
+    useEffect(() => {
+        const token = localStorage.getItem('accessToken');
+        setIsLoggedIn(!!token);
+    }, []);
 
     // 스크롤 이벤트 리스너 추가
     useEffect(() => {
@@ -38,14 +46,12 @@ export default function Navbar() {
     router.push(`/search?title=${encodeURIComponent(title)}`)
   }
 
-  const handleMyPageClick = () => {
-    const token = localStorage.getItem('accessToken')
-    if (token) {
-      router.push('/shop')
-    } else {
-      setShowLoginModal(true)
-    }
-  }
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    setIsLoggedIn(false);
+    // 페이지를 새로고침하는 대신, 클라이언트 사이드 내비게이션으로 홈으로 이동합니다.
+    router.replace('/'); 
+  };
 
   return (
     <nav className={`bg-white border-b-1 border-[#eee] fixed top-0 left-0 right-0 z-99 transition-shadow duration-200 ${isScrolled ? 'shadow' : ''}`}>
@@ -130,7 +136,33 @@ export default function Navbar() {
                 <Link href="/product/new" className="bg-orange-500 text-white text-sm px-4 py-2 rounded hover:bg-orange-600">판매하기</Link>
                 <Link href="/chat" className="text-[#2B6CEE] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BFDBFE]">채팅목록</Link>
                 <Link href="#" className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]">알림</Link>
-                <button onClick={handleMyPageClick} className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]">내상점</button>
+                {isLoggedIn ? (
+                    <div 
+                        className="relative"
+                        onMouseEnter={() => setShowMyPageMenu(true)}
+                        onMouseLeave={() => setShowMyPageMenu(false)}
+                    >
+                        <button className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]">내상점</button>
+                        {showMyPageMenu && (
+                            <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-20">
+                                <ul className="py-1">
+                                    <li>
+                                        <Link href="/shop" className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            마이페이지
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            로그아웃
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <button onClick={() => setShowLoginModal(true)} className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]">내상점</button>
+                )}
             </div>
         </div>
     </div>
