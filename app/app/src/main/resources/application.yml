@@ -78,6 +78,7 @@ logging:
 
 springdoc:
   api-docs:
-    path: /v3/api-docs
+    path: /be/v3/api-docs
   swagger-ui:
-    path: /swagger-ui.html
+    path: /be/swagger-ui.html
+    url: /be/v3/api-docs
