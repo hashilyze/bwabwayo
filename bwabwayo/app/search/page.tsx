@@ -13,7 +13,7 @@ export default function SearchPage({
     searchParams: { title?: string, category?: string }
 }) {
   const router = useRouter();
-  const { products, loading, error, getProducts, clearProducts } = useProductStore();
+  const { products, loading, error, getProducts } = useProductStore();
   const { categories, getCategories } = useCategoryStore();
   const [showMajorCategories, setShowMajorCategories] = useState<boolean>(false);
   const [showMinorCategories, setShowMinorCategories] = useState<boolean>(false);
@@ -48,8 +48,11 @@ export default function SearchPage({
   }, []);
 
   useEffect(() => {
+    getProducts();
     getCategories();
-  }, [getCategories]);
+  }, [getCategories, getProducts]);
+
+  console.log(products)
 
   // URL에서 카테고리 정보를 파싱하여 브레드크럼 구성
   const parseCategoryFromUrl = React.useCallback(() => {
@@ -413,7 +416,7 @@ export default function SearchPage({
         </div>
       ) : products.length > 0 ? (
         <ul className="grid grid-cols-6 gap-6 gap-y-12">
-          {products.map((item) => (
+          {products.map((item: ProductWithSeller) => (
             <li key={item.product.id}>
               <ProductCard item={item} />
             </li>
