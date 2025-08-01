@@ -6,8 +6,12 @@ spring:
     redis:
       host: i13e202.p.ssafy.io
       port: 6379
-      password:
+      password: whddnjsWkd123!
       timeout: 6000
+
+    mongodb:
+      uri: mongodb+srv://yoonsu0325:uhcxBQgEMN0uvCiW@bwabwayo.2fgys4l.mongodb.net/chatmessages?retryWrites=true&w=majority
+      database: chatmessages
 
   datasource:
     url: jdbc:mysql://i13e202.p.ssafy.io/bwabwayo_db
@@ -45,7 +49,7 @@ spring:
 
 jwt:
   secret: "vmfhaltmskdlstkfkdgodyroqkfwkasdadowdqfgrgsgsrgsgrgsrgsrgsefjhgku="
-  access-exp-minutes: 3
+  access-exp-minutes: 30
   refresh-exp-minutes: 10080 #60*24*7
   header: Authorization
   type: Bearer

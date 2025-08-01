@@ -2,6 +2,7 @@ package com.bwabwayo.app.domain.chat.domain;
 
 import com.bwabwayo.app.domain.chat.dto.MessageDTO;
 import lombok.*;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 
@@ -9,22 +10,23 @@ import java.time.LocalDateTime;
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChatMessageRedisEntity{
+@Document(collation = "chat_messages")
+public class ChatMessageMongoEntity {
     private String content;
     private String senderId;
     private String receiverId;
     private Long roomId;
     private Boolean isRead;
-    private String createdAt;
+    private LocalDateTime time;
     private MessageType type;
 
-    public static ChatMessageRedisEntity of(MessageDTO dto) {
-        return ChatMessageRedisEntity.builder()
+    public static ChatMessageMongoEntity of(MessageDTO dto) {
+        return ChatMessageMongoEntity.builder()
                 .senderId(dto.getSenderId())
                 .receiverId(dto.getReceiverId())
                 .roomId(dto.getRoomId())
                 .content(dto.getContent())
-                .createdAt(LocalDateTime.now().toString())
+                .time(LocalDateTime.now())
                 .type(dto.getType())
                 .isRead(false)
                 .build();
