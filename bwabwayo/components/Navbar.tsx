@@ -51,7 +51,7 @@ export default function Navbar() {
     try {
       // 서버에 로그아웃 요청을 보냅니다.
       // api 인스턴스가 자동으로 헤더에 토큰을 추가해줍니다.
-      await api.post('/api/auth/refresh/logout');
+      await api.post('/be/api/auth/refresh/logout');
     } catch (error) {
       // 서버 요청 실패 시에도 클라이언트 측 로그아웃은 진행되도록 합니다.
       console.error('Logout failed on server:', error);
