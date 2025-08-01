@@ -143,6 +143,7 @@ public class AuthController {
         return ResponseEntity.ok("로그아웃 완료");
     }
 
+    //기본유저 로그인 시 RefreshToken 받기
     @PostMapping("/refresh/init")
     public ResponseEntity<?> refreshTokenInit(@LoginUser User user, HttpServletRequest request, HttpServletResponse response) {
         //user의 id를 가져와서 토큰 생성
