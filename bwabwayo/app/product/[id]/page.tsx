@@ -16,11 +16,11 @@ export default function ProductDetailPage() {
   }, [getProductDetail, productId]);
   
   return (
-    <div className="relative min-h-screen py-12">
+    <div className="relative min-h-screen py-10">
       <div className="flex flex-row gap-12 relative">
         {/* Product Images */}
         <div className="flex-2 w-full max-w-md">
-          <div className="sticky top-45 z-10">
+          <div className="sticky top-40 z-8">
             <div className="flex flex-col gap-4">
               <div className="rounded-2xl overflow-hidden border border-gray-200">
                 <img 
@@ -102,7 +102,7 @@ export default function ProductDetailPage() {
                 찜하기
               </div>
               <Link 
-                href={`/chat/temp?productId=${product?.product.id}&sellerId=${product?.seller.id}`} 
+                href={`/chat/temp?sellerId=${product?.seller.id}&productId=${product?.product.id}&thumbnail=${product?.product.thumbnail}&price=${product?.product.price}&can_direct=${product?.product.can_direct}&can_delivery=${product?.product.can_delivery}&shippingFee=${product?.product.shippingFee}&canVideoCall=${product?.product.canVideoCall}`} 
                 className="flex-1 py-4 flex items-center justify-center gap-2 bg-blue-600 text-white rounded-lg py-3 font-bold cursor-pointer"
               >
                 채팅하기

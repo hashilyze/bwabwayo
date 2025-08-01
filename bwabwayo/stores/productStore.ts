@@ -14,6 +14,9 @@ interface Product {
   viewCount: string
   wishCount: string
   isLike: boolean
+  can_direct: boolean
+  can_delivery: boolean
+  shippingFee: number
   saleStatus: number
   canVideoCall: boolean
   createdAt: string
@@ -290,6 +293,9 @@ const productDetail = {
     "wishCount": "3",
     "isLike": true,
     "saleStatus": 1,
+    "can_direct": true,
+    "can_delivery": true,
+    "shippingFee": 2500,
     "canVideoCall": true,
     "createdAt": "2025-07-30T10:30:00"
   },
@@ -315,7 +321,10 @@ interface ProductStore {
   clearProducts: () => void
 }
 
+const baseUrl = 'https://i13e202.p.ssafy.io/be/api'
+
 export const useProductStore = create<ProductStore>((set) => ({
+  
   product: null,
   products: [],
   hotKeywordProducts: [],
@@ -326,12 +335,11 @@ export const useProductStore = create<ProductStore>((set) => ({
   getProducts: async (options = {}) => {
     set({ loading: true, error: null })
     try {
-      const response = await fetch('https://i13e202.p.ssafy.io/be/api/products')
+      const response = await fetch(`${baseUrl}/products`)
       if (!response.ok) {
         throw new Error('상품 조회에 실패했습니다')
       }
       const data = await response.json()
-      console.log('전체 상품 데이터:', data.result)
       
       // 클라이언트 사이드 필터링
       let filteredProducts = data.result;
@@ -361,10 +369,8 @@ export const useProductStore = create<ProductStore>((set) => ({
         });
       }
       
-      console.log('필터링된 상품:', filteredProducts);
       set({ products: filteredProducts, loading: false })
     } catch (error) {
-      console.error('상품 조회 오류:', error);
       set({ products: [], loading: false, error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다' })
     }
   },
@@ -373,7 +379,7 @@ export const useProductStore = create<ProductStore>((set) => ({
   getHotKewordProducts: async (title: string) => {
     set({ loading: true, error: null })
     try {
-      const response = await fetch(`https://i13e202.p.ssafy.io/be/api/products?title=${title}`)
+      const response = await fetch(`${baseUrl}/products?title=${title}`)
       const data = await response.json()
       const filteredProducts = data.result.filter((item: any) => 
         item.product.title === title
@@ -391,7 +397,7 @@ export const useProductStore = create<ProductStore>((set) => ({
   getVideoCallProducts: async () => {
     set({ loading: true, error: null })
     try {
-      const response = await fetch(`https://i13e202.p.ssafy.io/be/api/products`)
+      const response = await fetch(`${baseUrl}/products`)
       const data = await response.json()
       const filteredProducts = data.result.filter((item: any) => 
          item.product.canVideoCall === true
@@ -414,7 +420,7 @@ export const useProductStore = create<ProductStore>((set) => ({
     
     // 실제 API 호출 (주석 처리)
     // try {
-    //   const response = await fetch(`http://i13e202.p.ssafy.io/be/api/products/${id}`)
+    //   const response = await fetch(`${baseUrl}/products/${id}`)
     //   const data = await response.json()
     //   set({ product: data, loading: false })
     // } catch(error) {
@@ -428,7 +434,7 @@ export const useProductStore = create<ProductStore>((set) => ({
   addProduct: async (product: Product) => {
     set({ loading: true, error: null })
     try {
-      const response = await fetch(`https://i13e202.p.ssafy.io/be/api/products`, {
+      const response = await fetch(`${baseUrl}/products`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

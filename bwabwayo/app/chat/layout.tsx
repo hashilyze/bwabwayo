@@ -33,7 +33,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
       <div className="w-[640px] border-r border-gray-200">
         {/* 헤더 */}
         <div className="h-[84px] bg-white border-b border-gray-200 flex items-center px-5">
-          <h1 className="text-2xl font-bold text-black">전체 대화</h1>
+          <h1 className="text-xl font-bold text-black">전체 대화</h1>
         </div>
         
         {/* 채팅 목록 */}

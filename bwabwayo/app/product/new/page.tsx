@@ -377,7 +377,7 @@ export default function CreateProductPage() {
   const selectedMajorObject = categories.find(c => c.categoryName === majorCategory);
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="min-h-screen">
       {showAlert && (
         <div className="fixed inset-0  bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl text-center">
@@ -435,7 +435,7 @@ export default function CreateProductPage() {
               </div>
             ))}
           </div>
-          <p className="text-sm text-gray-500 mt-4">상품 이미지를 등록해주세요.<br/>첫 번째 사진이 대표 이미지로 사용됩니다.</p>
+          <p className="text-sm text-gray-500">상품 이미지를 등록해주세요.<br/>첫 번째 사진이 대표 이미지로 사용됩니다.</p>
         </form>
 
 
@@ -443,22 +443,22 @@ export default function CreateProductPage() {
         <form onSubmit={handleSubmit} className="space-y-10">
           <section> {/* 상품명 */}
             <label htmlFor="productName" className="block text-base font-semibold text-gray-800 mb-2">상품명 <span className="text-red-500">*</span></label>
-            <input type="text" id="productName" value={productName} onChange={(e) => setProductName(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3" placeholder="상품명을 입력해주세요." />
+            <input type="text" id="productName" value={productName} onChange={(e) => setProductName(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 bg-white" placeholder="상품명을 입력해주세요." />
           </section>
 
           <section className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-            <div className="border border-gray-200 rounded-lg h-60 overflow-y-auto">
+            <div className="bg-white border border-gray-200 rounded-lg h-60 overflow-y-auto">
               <ul>
                 {categories.map(cat => (
-                  <li key={cat.categoryName} onClick={() => handleMajorCategorySelect(cat.categoryName)} className={`px-4 py-2 text-sm cursor-pointer ${majorCategory === cat.categoryName ? 'font-bold bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}>{cat.categoryName}</li>
+                  <li key={cat.categoryName} onClick={() => handleMajorCategorySelect(cat.categoryName)} className={`px-4 py-3 text-sm cursor-pointer ${majorCategory === cat.categoryName ? 'font-bold bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}>{cat.categoryName}</li>
                 ))}
               </ul>
             </div>
-            <div className="border border-gray-200 rounded-lg h-60 overflow-y-auto">
+            <div className="bg-white border border-gray-200 rounded-lg h-60 overflow-y-auto">
               <ul>
                 {selectedMajorObject && selectedMajorObject.subCategories.length > 0 ? (
                   selectedMajorObject.subCategories.map(subCat => (
-                    <li key={subCat.categoryName} onClick={() => setMinorCategory(subCat.categoryName)} className={`px-4 py-2 text-sm cursor-pointer ${minorCategory === subCat.categoryName ? 'font-bold bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}>{subCat.categoryName}</li>
+                    <li key={subCat.categoryName} onClick={() => setMinorCategory(subCat.categoryName)} className={`px-4 py-3 text-sm cursor-pointer ${minorCategory === subCat.categoryName ? 'font-bold bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}>{subCat.categoryName}</li>
                   ))
                 ) : (
                   <li className="px-4 py-2 text-sm text-gray-400">소분류가 없습니다.</li>
@@ -474,7 +474,7 @@ export default function CreateProductPage() {
             <div className="flex justify-between items-center mb-2">
               <label htmlFor="price" className="block text-base font-semibold text-gray-800">판매가격 <span className="text-red-500">*</span></label>
               <div className="flex items-center">
-                <input id="negotiable" type="checkbox" checked={isNegotiable} onChange={(e) => setIsNegotiable(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                <input id="negotiable" type="checkbox" checked={isNegotiable} onChange={(e) => setIsNegotiable(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-white" />
                 <label htmlFor="negotiable" className="ml-2 block text-sm text-gray-700">네고가능</label>
               </div>
             </div>
@@ -483,20 +483,20 @@ export default function CreateProductPage() {
               if (value === '' || !isNaN(Number(value))) {
                 setPrice(formatNumber(value));
               }
-            }} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 pr-8" placeholder="판매가격을 입력해주세요." /><span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-500">원</span></div>
+            }} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 pr-8 bg-white" placeholder="판매가격을 입력해주세요." /><span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-500">원</span></div>
           </section>
 
           <section> {/* 게시물 내용 */}
             <label htmlFor="description" className="block text-base font-semibold text-gray-800 mb-2">상품 설명 <span className="text-red-500">*</span></label>
-             <textarea id="description" rows={10} value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3" placeholder="- 상품명(브랜드)&#10;- 구매 시기 (년, 월, 일)&#10;- 착용 기간&#10;- 오염 여부&#10;- 하자 여부&#10;* 실제 촬영한 사진과 함께 상세 정보를 입력해주세요.&#10;* 카카오톡 아이디 첨부 시 게시물 삭제 및 이용제재 처리될 수 있어요."/>
+             <textarea id="description" rows={10} value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 bg-white" placeholder="- 상품명(브랜드)&#10;- 구매 시기 (년, 월, 일)&#10;- 착용 기간&#10;- 오염 여부&#10;- 하자 여부&#10;* 실제 촬영한 사진과 함께 상세 정보를 입력해주세요.&#10;* 카카오톡 아이디 첨부 시 게시물 삭제 및 이용제재 처리될 수 있어요."/>
           </section>
 
           <section> {/* 거래 방법 */}
             <h3 className="text-base font-semibold text-gray-800 mb-3">거래방법 <span className="text-red-500">*</span></h3>
             <div className="flex items-center space-x-6">
-                <div className="flex items-center"><input id="delivery" name="delivery" type="checkbox" checked={tradeMethods.delivery} onChange={handleTradeMethodChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" /><label htmlFor="delivery" className="ml-2 block text-sm text-gray-700">택배거래</label></div>
-                <div className="flex items-center"><input id="direct" name="direct" type="checkbox" checked={tradeMethods.direct} onChange={handleTradeMethodChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" /><label htmlFor="direct" className="ml-2 block text-sm text-gray-700">직거래</label></div>
-                <div className="flex items-center"><input id="video" name="video" type="checkbox" checked={tradeMethods.video} onChange={handleTradeMethodChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" /><label htmlFor="video" className="ml-2 block text-sm text-gray-700">화상거래</label></div>
+                <div className="flex items-center"><input id="delivery" name="delivery" type="checkbox" checked={tradeMethods.delivery} onChange={handleTradeMethodChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-white" /><label htmlFor="delivery" className="ml-2 block text-sm text-gray-700">택배거래</label></div>
+                <div className="flex items-center"><input id="direct" name="direct" type="checkbox" checked={tradeMethods.direct} onChange={handleTradeMethodChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-white" /><label htmlFor="direct" className="ml-2 block text-sm text-gray-700">직거래</label></div>
+                <div className="flex items-center"><input id="video" name="video" type="checkbox" checked={tradeMethods.video} onChange={handleTradeMethodChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-white" /><label htmlFor="video" className="ml-2 block text-sm text-gray-700">화상거래</label></div>
             </div>
             {!tradeMethods.delivery && !tradeMethods.direct && (
               <p className="text-sm text-red-500 mt-2">직거래 또는 택배거래 중 하나는 선택해야 합니다.</p>
@@ -510,12 +510,12 @@ export default function CreateProductPage() {
               if (value === '' || !isNaN(Number(value))) {
                 setShippingCost(formatNumber(value));
               }
-            }} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 pr-8" placeholder="배송비를 입력해주세요." /><span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-500">원</span></div>
+            }} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 pr-8 bg-white" placeholder="배송비를 입력해주세요." /><span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-500">원</span></div>
           </section>
           
           <section className="border-t border-gray-200 pt-8 space-y-6"> {/* 약관 동의 및 등록 버튼 */}
             <div className="flex items-start">
-              <div className="flex items-center h-5"><input id="terms" type="checkbox" checked={termsAgreed} onChange={(e) => setTermsAgreed(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" /></div>
+              <div className="flex items-center h-5"><input id="terms" type="checkbox" checked={termsAgreed} onChange={(e) => setTermsAgreed(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-white" /></div>
               <div className="ml-3 text-sm"><label htmlFor="terms" className="font-medium text-gray-700 flex items-center"><CheckIcon className="w-5 h-5 text-green-500 mr-1" />판매 정보가 실제 상품과 다를 경우, 책임은 판매자에게 있음을 동의합니다.</label></div>
             </div>
             <button type="submit" className="w-full bg-blue-600 text-white font-bold py-4 px-6 rounded-lg hover:bg-blue-700 transition text-lg disabled:bg-gray-400" disabled={!termsAgreed}>판매글 등록</button>

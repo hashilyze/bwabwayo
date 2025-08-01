@@ -28,7 +28,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
         </Suspense>
         <Navbar />
-        <div className="bg-[#FAFDFF] pt-[156px]">
+        <div className="bg-[#FAFDFF] pt-[124px]">
           <div className="w-[1280px] m-auto">
             {children}
           </div>

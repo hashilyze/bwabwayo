@@ -70,9 +70,10 @@ export default function Navbar() {
 
     {/* center-nav */}
     <div className="center-nav border-t border-[#eee]">
-        <div className="w-[1280px] m-auto py-4 flex items-center justify-between">
+        <div className="w-[1280px] m-auto py-4 pb-2 flex items-center justify-between">
             <div className="logo-wrap flex items-center gap-2 flex-1 mr-16">
                 <div className="logo text-xl font-bold">
+                    
                     <Link href="/"><Image src="/logo.png" alt="logo" className="h-[40px]" width={97} height={40} /></Link>
                 </div>
                 <form className="flex items-center ml-[80px] flex-1 px-2 border-1 border-[#eee] rounded-lg bg-[#fff]" onSubmit={handleSubmit}>
@@ -168,26 +169,27 @@ export default function Navbar() {
     </div>
 
     {/* btm-nav */}
-    <div className="btm-nav py-4">
-        <div className="category-wrap relative w-[1280px] m-auto flex items-center gap-5" ref={categoryRef}>
+    <div className="btm-nav">
+        <div className="category-wrap relative w-[1280px] m-auto flex items-center gap-3" ref={categoryRef}>
             <div 
-                className="flex gap-3 items-center bg-[#212121] rounded-lg px-4 py-3 cursor-pointer group relative before:absolute before:left-0 before:top-full before:w-full before:h-4 before:bg-transparent before:z-10"
+                className="flex items-center gap-3 cursor-pointer group relative before:absolute before:left-0 before:top-full before:w-full before:h-4 before:bg-transparent before:z-10"
                 onMouseEnter={() => setShowCategory(true)}
                 onMouseLeave={() => setShowCategory(false)}
             >
-                <ul className="category-btn w-4 h-3 flex flex-col justify-between">
-                    <li className="h-0.5 bg-white rounded"></li>
-                    <li className="h-0.5 bg-white rounded"></li>
-                    <li className="h-0.5 bg-white rounded"></li>
+                <ul className="category-btn flex flex-col justify-between gap-[5px]">
+                    <li className="w-5 h-[2px] bg-black"></li>
+                    <li className="w-5 h-[2px] bg-black"></li>
+                    <li className="w-5 h-[2px] bg-black"></li>
                 </ul>
-                <div className="text-white text-sm">카테고리</div>
+                <div className="text-sm">카테고리</div>
             </div>
-            <ul className="flex items-center gap-7 ml-2 text-[15px] font-normal">
-                <li><Link href="#">고객센터</Link></li>
+            <ul className="flex items-center ml-2 text-[15px] font-normal">
+                <li><Link className="nav-link block text-sm text-[#666] p-3 py-4 relative" href="/cs-center">고객센터</Link></li>
+                <li><Link className="nav-link block text-sm text-[#666] p-3 py-4 relative" href="#">전체상품</Link></li>
             </ul>
             {showCategory && (
             <div 
-                className="absolute left-0 top-full mt-4 z-20"
+                className="absolute left-0 top-full z-20"
                 onMouseEnter={() => setShowCategory(true)}
                 onMouseLeave={() => setShowCategory(false)}
             >
