@@ -8,30 +8,57 @@ import Image from 'next/image'
 import Category from '@/components/Category';
 import { useCategoryStore } from '@/stores/categoryStore';
 import LoginModal from '@/components/auth/LoginModal'
-import { useAuthStore } from '@/stores/authStore';
-import api from '@/lib/api';
+import { useAuthStore } from '@/stores/auth/authStore';
 
 export default function Navbar() {
     const [title, setTitle] = useState('')
     const [showCategory, setShowCategory] = useState(false);
     const [showLoginModal, setShowLoginModal] = useState(false); // 모달 상태 추가
     const [showMyPageMenu, setShowMyPageMenu] = useState(false); // 내상점 메뉴 상태
-    const { isLoggedIn, checkLoginStatus, logout, login } = useAuthStore(); // Zustand 스토어 사용
+    const { isAuthenticated, clearToken, initializeAuth, authenticatedFetch, getToken } = useAuthStore(); // 새로운 authStore 사용
     const [isScrolled, setIsScrolled] = useState(false) // 스크롤 상태 추가
+    const [userInfo, setUserInfo] = useState<{ nickname?: string; id?: string } | null>(null)
     const categoryRef = useRef<HTMLDivElement>(null);
     const myPageMenuRef = useRef<HTMLDivElement>(null); // 내상점 메뉴 참조
     const router = useRouter()
     const { getCategories } = useCategoryStore();
+
+    // JWT 토큰에서 사용자 정보 추출 함수
+    const extractUserInfo = (token: string) => {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            return {
+                id: payload.sub,
+                nickname: payload.nickname || `사용자${payload.sub?.slice(-4) || ''}`
+            };
+        } catch (error) {
+            console.error('토큰 파싱 오류:', error);
+            return null;
+        }
+    };
 
     // 컴포넌트 마운트 시 카테고리 데이터 로드
     useEffect(() => {
         getCategories();
     }, [getCategories]);
 
-    // 컴포넌트 마운트 시 로그인 상태 확인
+    // 컴포넌트 마운트 시 로그인 상태 확인 (토큰 초기화)
     useEffect(() => {
-        checkLoginStatus();
-    }, [checkLoginStatus]);
+        initializeAuth();
+    }, [initializeAuth]);
+
+    // 로그인 상태가 변경될 때마다 사용자 정보 업데이트
+    useEffect(() => {
+        if (isAuthenticated) {
+            const token = getToken();
+            if (token) {
+                const info = extractUserInfo(token);
+                setUserInfo(info);
+            }
+        } else {
+            setUserInfo(null);
+        }
+    }, [isAuthenticated, getToken]);
 
     // 스크롤 이벤트 리스너 추가
     useEffect(() => {
@@ -66,14 +93,19 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       // 서버에 로그아웃 요청을 보냅니다.
-      // api 인스턴스가 자동으로 헤더에 토큰을 추가해줍니다.
-      await api.post('/be/api/auth/refresh/logout');
+      // authenticatedFetch가 자동으로 헤더에 토큰을 추가해줍니다.
+      await authenticatedFetch('https://i13e202.p.ssafy.io/be/api/auth/refresh/logout', {
+        method: 'POST'
+      });
     } catch (error) {
       // 서버 요청 실패 시에도 클라이언트 측 로그아웃은 진행되도록 합니다.
       console.error('Logout failed on server:', error);
     } finally {
-      // Zustand 스토어의 logout 액션을 호출합니다.
-      logout();
+      // AuthStore의 clearToken 액션을 호출합니다.
+      clearToken();
+      // 사용자 정보도 초기화
+      setUserInfo(null);
+      setShowMyPageMenu(false);
       router.replace('/'); 
     }
   };
@@ -163,35 +195,61 @@ export default function Navbar() {
                 <Link href="/chat" className="text-[#2B6CEE] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BFDBFE]">채팅목록</Link>
                 <Link href="#" className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]">알림</Link>
             
-                {isLoggedIn ? (
-                    <div 
-                        className="relative"
-                        ref={myPageMenuRef}
+                {/* 항상 내상점 버튼만 표시 */}
+                <div 
+                    className="relative"
+                    ref={myPageMenuRef}
+                >
+                    <button 
+                        onClick={() => {
+                            if (isAuthenticated) {
+                                // 로그인된 상태: 마이페이지 메뉴 토글
+                                setShowMyPageMenu(prev => !prev)
+                            } else {
+                                // 로그인 안된 상태: 로그인 모달 띄우기
+                                setShowLoginModal(true)
+                            }
+                        }}
+                        className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0] flex items-center gap-2"
                     >
-                        <button 
-                            onClick={() => setShowMyPageMenu(prev => !prev)} 
-                            className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]"
-                        >내상점</button>
-                        {showMyPageMenu && (
-                            <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-20">
-                                <ul className="py-1">
-                                    <li>
-                                        <Link href="/shop" className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            마이페이지
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            로그아웃
-                                        </button>
-                                    </li>
-                                </ul>
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    <button onClick={() => setShowLoginModal(true)} className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]">내상점</button>
-                )}
+                        <span>{isAuthenticated ? (userInfo?.nickname || '내상점') : '내상점'}</span>
+                    </button>
+                    
+                    {/* 로그인된 상태일 때만 드롭다운 메뉴 표시 */}
+                    {isAuthenticated && showMyPageMenu && (
+                        <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-20">
+                            {/* 사용자 정보 헤더 */}
+                            {userInfo && (
+                                <div className="px-4 py-3 border-b border-gray-100">
+                                    <p className="text-sm font-medium text-gray-900">{userInfo.nickname}</p>
+                                    <p className="text-xs text-gray-500">ID: {userInfo.id?.slice(-6) || 'Unknown'}</p>
+                                </div>
+                            )}
+                            <ul className="py-1">
+                                <li>
+                                    <Link href="/shop" className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                                        <span>마이페이지</span>
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/chat" className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                                        <span>채팅목록</span>
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/product/new" className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                                        <span>상품등록</span>
+                                    </Link>
+                                </li>
+                                <li className="border-t border-gray-100 mt-1 pt-1">
+                                    <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+                                        <span>로그아웃</span>
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     </div>
@@ -230,7 +288,7 @@ export default function Navbar() {
         {showLoginModal && (
         <LoginModal
             isOpen={showLoginModal} 
-            onClose={() => setShowLoginModal(false)} 
+            onClose={() => setShowLoginModal(false)}
         />
         )}
 

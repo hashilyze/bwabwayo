@@ -2,12 +2,12 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, Suspense } from 'react'
 import api from '@/lib/api'
-import { useAuthStore } from '@/stores/authStore'
+import { useAuthStore } from '@/stores/auth/authStore'
 
 function CallbackHandler() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { login } = useAuthStore()
+  const { setToken, authenticatedFetch } = useAuthStore()
   const accessToken = searchParams.get('accessToken')
   const isNewUser = searchParams.get('isNewUser')
 
@@ -32,9 +32,9 @@ function CallbackHandler() {
             },
           })
 
-          // 요청 성공 후, authStore의 login 액션을 호출하여 상태를 업데이트하고
+          // 요청 성공 후, authStore의 setToken 액션을 호출하여 상태를 업데이트하고
           // accessToken을 localStorage에 저장합니다.
-          login(accessToken)
+          setToken(accessToken)
           router.replace('/')
         } catch (error) {
           console.error('로그인 초기화 요청 실패:', error)
@@ -50,7 +50,7 @@ function CallbackHandler() {
     }
 
     processLogin()
-  }, [router, searchParams, accessToken, isNewUser, login])
+  }, [router, searchParams, accessToken, isNewUser, setToken])
 
   // 로직 처리 중에는 아무것도 렌더링하지 않습니다.
   // 로딩 UI는 부모의 Suspense fallback으로 처리됩니다.
