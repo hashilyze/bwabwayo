@@ -2,7 +2,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 // 1. axios 인스턴스 생성
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL, // .env.local 파일에 API 기본 URL을 설정하세요.
+  baseURL: 'https://i13e202.p.ssafy.io', // .env.local 파일에 API 기본 URL을 설정하세요.
   withCredentials: true, // 쿠키 전송을 위해 필요한 설정입니다.
 });
 
