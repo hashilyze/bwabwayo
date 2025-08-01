@@ -51,7 +51,7 @@ export default function Navbar() {
     try {
       // 서버에 로그아웃 요청을 보냅니다.
       // api 인스턴스가 자동으로 헤더에 토큰을 추가해줍니다.
-      await api.post('/api/auth/refresh/logout');
+      await api.post('/be/api/auth/refresh/logout');
     } catch (error) {
       // 서버 요청 실패 시에도 클라이언트 측 로그아웃은 진행되도록 합니다.
       console.error('Logout failed on server:', error);
@@ -145,6 +145,9 @@ export default function Navbar() {
                 <Link href="/product/new" className="bg-orange-500 text-white text-sm px-4 py-2 rounded hover:bg-orange-600">판매하기</Link>
                 <Link href="/chat" className="text-[#2B6CEE] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BFDBFE]">채팅목록</Link>
                 <Link href="#" className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]">알림</Link>
+                <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            로그아웃
+                                        </button>
                 {isLoggedIn ? (
                     <div 
                         className="relative"
