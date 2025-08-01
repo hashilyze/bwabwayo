@@ -1,4 +1,4 @@
-package com.bwabwayo.app.domain.user.config;
+package com.bwabwayo.app.global.config;
 
 import com.bwabwayo.app.domain.user.filter.JWTFilter;
 import com.bwabwayo.app.domain.user.handler.SuccessHandler;

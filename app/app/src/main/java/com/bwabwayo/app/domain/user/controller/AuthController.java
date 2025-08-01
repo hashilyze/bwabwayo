@@ -2,15 +2,12 @@ package com.bwabwayo.app.domain.user.controller;
 
 
 import com.bwabwayo.app.domain.user.annotation.LoginUser;
-import com.bwabwayo.app.domain.user.config.JwtProperties;
+import com.bwabwayo.app.domain.user.utils.JwtProperties;
 import com.bwabwayo.app.domain.user.domain.Role;
 import com.bwabwayo.app.domain.user.domain.User;
 import com.bwabwayo.app.domain.user.dto.request.OAuth2UserRequest;
 import com.bwabwayo.app.domain.user.dto.request.UserSignUpRequest;
 import com.bwabwayo.app.domain.user.dto.response.UserTokenResponse;
-import com.bwabwayo.app.domain.user.repository.AccountRepository;
-import com.bwabwayo.app.domain.user.repository.DeliveryAddressRepository;
-import com.bwabwayo.app.domain.user.repository.UserRepository;
 import com.bwabwayo.app.domain.user.service.AuthService;
 import com.bwabwayo.app.domain.user.service.UserRedisService;
 import com.bwabwayo.app.domain.user.utils.JWTUtils;

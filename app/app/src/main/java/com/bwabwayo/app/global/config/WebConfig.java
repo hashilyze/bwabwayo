@@ -1,4 +1,4 @@
-package com.bwabwayo.app.domain.user.config;
+package com.bwabwayo.app.global.config;
 
 import com.bwabwayo.app.domain.user.annotation.LoginUserArgumentResolver;
 import com.bwabwayo.app.domain.user.repository.UserRepository;

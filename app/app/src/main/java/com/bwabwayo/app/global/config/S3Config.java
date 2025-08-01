@@ -1,4 +1,4 @@
-package com.bwabwayo.app.global.s3.config;
+package com.bwabwayo.app.global.config;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
