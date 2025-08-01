@@ -3,8 +3,7 @@
 import { useEffect, useState, Suspense, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
-
-const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI0Mzc1MTI2ODM0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NTM5NTEzMjgsImV4cCI6MzMyODk5MTUzMjh9.x6QKDSIth4WZtJOqeW5-8ux1z5W2VML-PV119T42p5reHCV9WzALknLjrmD2WFga'
+import { useAuthStore } from '@/stores/auth/authStore'
 
 // URL 파라미터를 읽는 컴포넌트
 function SearchParamsReader({ onParamsRead }: { onParamsRead: (productId: string | null, sellerId: string | null) => void }) {
@@ -23,25 +22,20 @@ export default function TempPage() {
     const router = useRouter()
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [message, setMessage] = useState('')
-    const [buyerId, setBuyerId] = useState<string | null>(null)
     const [productId, setProductId] = useState<string | null>(null)
     const [sellerId, setSellerId] = useState<string | null>(null)
-    const [token, setToken] = useState<string | null>(null)
     const { addChatRoom } = useChatRoomStore()
+    const { initializeAuth } = useAuthStore()
 
     const handleParamsRead = useCallback((productId: string | null, sellerId: string | null) => {
         setProductId(productId)
         setSellerId(sellerId)
     }, [])
 
-    // 토큰을 가져오기
+    // 컴포넌트 마운트 시 인증 초기화
     useEffect(() => {
-        // if (typeof window !== 'undefined') {
-        //     const accessToken = localStorage.getItem('accessToken')
-        //     setToken(accessToken)
-        //     // console.log(accessToken)
-        // }
-    }, [])
+        initializeAuth()
+    }, [initializeAuth])
 
     const toggleMenu = () => {
       setIsMenuOpen(!isMenuOpen);
@@ -49,13 +43,15 @@ export default function TempPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault()
-      //console.log(message)
-
-      addChatRoom({
+      
+      await addChatRoom({
         message: message,
         sellerId: sellerId || '',
         productId: productId || ''
       })
+      
+      // 전송 후 메시지 입력창 초기화
+      setMessage('')
     }
 
     return (

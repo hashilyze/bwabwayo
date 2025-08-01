@@ -93,7 +93,7 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       // 서버에 로그아웃 요청을 보냅니다.
-      // authenticatedFetch가 자동으로 헤더에 토큰을 추가해줍니다.
+      // 강화된 authenticatedFetch가 자동으로 토큰 관리, 갱신, 재시도를 처리합니다.
       await authenticatedFetch('https://i13e202.p.ssafy.io/be/api/auth/refresh/logout', {
         method: 'POST'
       });
