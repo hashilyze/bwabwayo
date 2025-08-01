@@ -17,25 +17,10 @@ export default function Navbar() {
     const [showMyPageMenu, setShowMyPageMenu] = useState(false); // 내상점 메뉴 상태
     const { isAuthenticated, clearToken, initializeAuth, authenticatedFetch, getToken } = useAuthStore(); // 새로운 authStore 사용
     const [isScrolled, setIsScrolled] = useState(false) // 스크롤 상태 추가
-    const [userInfo, setUserInfo] = useState<{ nickname?: string; id?: string } | null>(null)
     const categoryRef = useRef<HTMLDivElement>(null);
     const myPageMenuRef = useRef<HTMLDivElement>(null); // 내상점 메뉴 참조
     const router = useRouter()
     const { getCategories } = useCategoryStore();
-
-    // JWT 토큰에서 사용자 정보 추출 함수
-    const extractUserInfo = (token: string) => {
-        try {
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            return {
-                id: payload.sub,
-                nickname: payload.nickname || `사용자${payload.sub?.slice(-4) || ''}`
-            };
-        } catch (error) {
-            console.error('토큰 파싱 오류:', error);
-            return null;
-        }
-    };
 
     // 컴포넌트 마운트 시 카테고리 데이터 로드
     useEffect(() => {
@@ -46,19 +31,6 @@ export default function Navbar() {
     useEffect(() => {
         initializeAuth();
     }, [initializeAuth]);
-
-    // 로그인 상태가 변경될 때마다 사용자 정보 업데이트
-    useEffect(() => {
-        if (isAuthenticated) {
-            const token = getToken();
-            if (token) {
-                const info = extractUserInfo(token);
-                setUserInfo(info);
-            }
-        } else {
-            setUserInfo(null);
-        }
-    }, [isAuthenticated, getToken]);
 
     // 스크롤 이벤트 리스너 추가
     useEffect(() => {
@@ -104,7 +76,6 @@ export default function Navbar() {
       // AuthStore의 clearToken 액션을 호출합니다.
       clearToken();
       // 사용자 정보도 초기화
-      setUserInfo(null);
       setShowMyPageMenu(false);
       router.replace('/'); 
     }
@@ -195,7 +166,6 @@ export default function Navbar() {
                 <Link href="/chat" className="text-[#2B6CEE] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BFDBFE]">채팅목록</Link>
                 <Link href="#" className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]">알림</Link>
             
-                {/* 항상 내상점 버튼만 표시 */}
                 <div 
                     className="relative"
                     ref={myPageMenuRef}
@@ -212,33 +182,17 @@ export default function Navbar() {
                         }}
                         className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0] flex items-center gap-2"
                     >
-                        <span>{isAuthenticated ? (userInfo?.nickname || '내상점') : '내상점'}</span>
+                        <span>내상점</span>
                     </button>
                     
                     {/* 로그인된 상태일 때만 드롭다운 메뉴 표시 */}
                     {isAuthenticated && showMyPageMenu && (
                         <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-20">
                             {/* 사용자 정보 헤더 */}
-                            {userInfo && (
-                                <div className="px-4 py-3 border-b border-gray-100">
-                                    <p className="text-sm font-medium text-gray-900">{userInfo.nickname}</p>
-                                    <p className="text-xs text-gray-500">ID: {userInfo.id?.slice(-6) || 'Unknown'}</p>
-                                </div>
-                            )}
                             <ul className="py-1">
                                 <li>
                                     <Link href="/shop" className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
                                         <span>마이페이지</span>
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link href="/chat" className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
-                                        <span>채팅목록</span>
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link href="/product/new" className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
-                                        <span>상품등록</span>
                                     </Link>
                                 </li>
                                 <li className="border-t border-gray-100 mt-1 pt-1">
