@@ -19,6 +19,7 @@ export default function Navbar() {
     const { isLoggedIn, checkLoginStatus, logout, login } = useAuthStore(); // Zustand 스토어 사용
     const [isScrolled, setIsScrolled] = useState(false) // 스크롤 상태 추가
     const categoryRef = useRef<HTMLDivElement>(null);
+    const myPageMenuRef = useRef<HTMLDivElement>(null); // 내상점 메뉴 참조
     const router = useRouter()
     const { getCategories } = useCategoryStore();
 
@@ -41,6 +42,21 @@ export default function Navbar() {
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
+    // 내상점 메뉴 외부 클릭 감지
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (myPageMenuRef.current && !myPageMenuRef.current.contains(event.target as Node)) {
+                setShowMyPageMenu(false);
+            }
+        };
+
+        if (showMyPageMenu) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showMyPageMenu]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -145,16 +161,16 @@ export default function Navbar() {
                 <Link href="/product/new" className="bg-orange-500 text-white text-sm px-4 py-2 rounded hover:bg-orange-600">판매하기</Link>
                 <Link href="/chat" className="text-[#2B6CEE] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BFDBFE]">채팅목록</Link>
                 <Link href="#" className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]">알림</Link>
-                <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            로그아웃
-                                        </button>
+            
                 {isLoggedIn ? (
                     <div 
                         className="relative"
-                        onMouseEnter={() => setShowMyPageMenu(true)}
-                        onMouseLeave={() => setShowMyPageMenu(false)}
+                        ref={myPageMenuRef}
                     >
-                        <button className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]">내상점</button>
+                        <button 
+                            onClick={() => setShowMyPageMenu(prev => !prev)} 
+                            className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]"
+                        >내상점</button>
                         {showMyPageMenu && (
                             <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-20">
                                 <ul className="py-1">
