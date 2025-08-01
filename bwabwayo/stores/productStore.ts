@@ -6,20 +6,23 @@ interface Seller {
 }
 
 interface Product {
-  id: number
+  id?: number
   categoryId: number
-  thumbnail: string
+  thumbnail?: string
   title: string
-  price: string
-  viewCount: string
-  wishCount: string
-  isLike: boolean
-  can_direct: boolean
-  can_delivery: boolean
+  price: number
+  viewCount?: string
+  wishCount?: string
+  isLike?: boolean
+  canDirect: boolean
+  canDelivery: boolean
   shippingFee: number
-  saleStatus: number
+  saleStatus?: number
   canVideoCall: boolean
-  createdAt: string
+  createdAt?: string
+  canNegotiate: boolean
+  description: string
+  images: string[]
 }
 
 export interface ProductWithSeller {
@@ -288,16 +291,19 @@ const productDetail = {
     "categoryId": 8001,
     "thumbnail": "/fe/image/sample.png",
     "title": "아이폰 15 Pro 팝니다",
-    "price": "1200000",
+    "price": 1200000,
     "viewCount": "25",
     "wishCount": "3",
     "isLike": true,
     "saleStatus": 1,
-    "can_direct": true,
-    "can_delivery": true,
+    "canDirect": true,
+    "canDelivery": true,
     "shippingFee": 2500,
     "canVideoCall": true,
-    "createdAt": "2025-07-30T10:30:00"
+    "createdAt": "2025-07-30T10:30:00",
+    "canNegotiate": false,
+    "description": "아이폰 15 Pro 팝니다",
+    "images": ["image1.jpg", "image2.jpg"]
   },
   "seller": {
     "id": 42,
@@ -435,6 +441,12 @@ export const useProductStore = create<ProductStore>((set) => ({
   addProduct: async (product: Product) => {
     set({ loading: true, error: null })
     try {
+      console.log('=== API 전송 데이터 ===');
+      console.log('전송할 product 객체:', product);
+      console.log('product.images:', product.images);
+      console.log('JSON.stringify(product):', JSON.stringify(product, null, 2));
+      console.log('=====================');
+      
       const response = await fetch(`${baseUrl}/products`, {
         method: 'POST',
         headers: {
@@ -447,6 +459,11 @@ export const useProductStore = create<ProductStore>((set) => ({
       console.log('상품 등록 성공:', data)
       set({ loading: false })
     } catch (error) {
+      console.error('=== API 에러 상세 정보 ===');
+      console.error('에러 객체:', error);
+      console.error('에러 메시지:', error instanceof Error ? error.message : '알 수 없는 에러');
+      console.error('=======================');
+      
       set({ 
         error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
         loading: false 

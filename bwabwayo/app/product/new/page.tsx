@@ -40,7 +40,6 @@ export default function CreateProductPage() {
   const [majorCategory, setMajorCategory] = useState<string | null>(null);
   const [minorCategory, setMinorCategory] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set()); // 업로드 중인 파일 추적
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -88,28 +87,16 @@ export default function CreateProductPage() {
       return;
     }
 
-    // 업로드 중인 파일들 추적
-    const fileNames = fileArray.map(f => f.name);
-    setUploadingFiles(prev => new Set([...prev, ...fileNames]));
-
     // 파일 정보를 먼저 저장
-    const newFileCount = imgFiles.length + fileArray.length;
     setImgFiles(prev => [...prev, ...fileArray]);
 
     try {
       // S3에 업로드 (성공 시 미리보기 URL 업데이트됨)
-      await uploadToS3(fileArray, newFileCount);
+      await uploadToS3(fileArray);
     } catch (error) {
       console.error('파일 업로드 중 오류:', error);
       // 오류 발생 시 추가된 파일 정보 제거
       setImgFiles(prev => prev.slice(0, prev.length - fileArray.length));
-    } finally {
-      // 업로드 완료 후 추적에서 제거
-      setUploadingFiles(prev => {
-        const newSet = new Set(prev);
-        fileNames.forEach(name => newSet.delete(name));
-        return newSet;
-      });
     }
 
     // input 초기화
@@ -119,7 +106,7 @@ export default function CreateProductPage() {
   };
 
   // S3 업로드 함수
-  const uploadToS3 = async (files: File[], expectedFileCount: number) => {
+  const uploadToS3 = async (files: File[]) => {
     setIsUploading(true);
     
     try {
@@ -127,67 +114,24 @@ export default function CreateProductPage() {
       files.forEach((file) => {
         formData.append('files', file);
       });
-      // 백엔드에서 필요한 dir 파라미터 추가
-      formData.append('dir', 'products'); // 상품 이미지 디렉토리
+      formData.append('dir', 'products');
       
       const response = await fetch('https://i13e202.p.ssafy.io/be/api/s3/upload', {
         method: 'POST',
         body: formData,
       });
+      const data = await response.json();
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log('S3 업로드 성공:', data);
-        
-        // 백엔드 응답 형식에 따른 URL 추출
-        let uploadedUrls: string[] = [];
-        
-        if (data.result && Array.isArray(data.result)) {
-          // UploadResponseDTO 형식: { result: [UploadResultDTO] }
-          uploadedUrls = data.result.map((item: any) => item.url).filter(Boolean);
-          console.log('UploadResponseDTO에서 URL 추출:', uploadedUrls);
-        } else if (data.urls && Array.isArray(data.urls)) {
-          // 기존 형식: { urls: ["url1", "url2"] }
-          uploadedUrls = data.urls;
-          console.log('기존 형식에서 URL 추출:', uploadedUrls);
-        } else if (data.url) {
-          // 단일 URL: { url: "url" }
-          uploadedUrls = [data.url];
-          console.log('단일 URL 추출:', uploadedUrls);
-        } else {
-          console.warn('알 수 없는 응답 형식:', data);
-          // 응답 전체를 로그로 확인
-          console.log('전체 응답 구조:', JSON.stringify(data, null, 2));
-        }
-        
-        if (uploadedUrls.length > 0) {
-          // 업로드된 이미지 URL들을 미리보기와 최종 업로드 URL 모두에 저장
-          setImgPreviews(prev => [...prev, ...uploadedUrls]);
-          setUploadedImageUrls(prev => [...prev, ...uploadedUrls]);
-          console.log(`✅ 이미지 업로드 완료: ${uploadedUrls.length}개`);
-        } else {
-          console.error('업로드 성공했지만 URL을 찾을 수 없습니다.');
-          // 업로드 실패 시 추가된 파일 정보 제거
-          setImgFiles(prev => prev.slice(0, prev.length - files.length));
-          alert('업로드는 성공했지만 이미지 URL을 받지 못했습니다.');
-        }
-      } else {
-        // 업로드 실패 시 추가된 파일 정보 제거
-        setImgFiles(prev => prev.slice(0, prev.length - files.length));
-        console.error('S3 업로드 실패:', response.status, response.statusText);
-        
-        // 에러 응답 상세 확인
-        try {
-          const errorData = await response.text();
-          console.error('에러 응답 내용:', errorData);
-        } catch (e) {
-          console.error('에러 응답 읽기 실패');
-        }
-        
-        alert('이미지 업로드에 실패했습니다.');
-      }
+      console.log('S3 업로드 성공:', data);
+      
+      // S3에서 받아온 key값들을 바로 images에 저장
+      const imageKeys = data.result.map((item: any) => item.key);
+      const imageUrls = data.result.map((item: any) => item.url);
+      
+      setImgPreviews(prev => [...prev, ...imageUrls]);
+      setUploadedImageUrls(prev => [...prev, ...imageKeys]);
+
     } catch (error) {
-      // 네트워크 오류 시 추가된 파일 정보 제거
       setImgFiles(prev => prev.slice(0, prev.length - files.length));
       console.error('S3 업로드 오류:', error);
       alert('이미지 업로드 중 오류가 발생했습니다.');
@@ -211,8 +155,6 @@ export default function CreateProductPage() {
 
   // 폼 초기화 함수
   const resetForm = () => {
-    console.log('🔄 폼 초기화 중...');
-    
     // 이미지 관련 상태 초기화
     setImgFiles([]);
     setImgPreviews([]);
@@ -282,7 +224,7 @@ export default function CreateProductPage() {
       canDelivery: tradeMethods.delivery,
       canVideoCall: tradeMethods.video,
       shippingFee: Number(removeCommas(shippingCost)) || 0, // null 방지를 위해 0으로 기본값 설정
-      images: uploadedImageUrls, // S3에서 업로드된 이미지 URL들
+      images: uploadedImageUrls, // S3에서 업로드된 이미지 key값들
     };
 
     // 백엔드 DTO 요구사항 검증
