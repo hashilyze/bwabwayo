@@ -8,15 +8,18 @@ import Image from 'next/image'
 import Category from '@/components/Category';
 import { useCategoryStore } from '@/stores/categoryStore';
 import LoginModal from '@/components/auth/LoginModal'
+import { useAuthStore } from '@/stores/authStore';
+import api from '@/lib/api';
 
 export default function Navbar() {
     const [title, setTitle] = useState('')
     const [showCategory, setShowCategory] = useState(false);
     const [showLoginModal, setShowLoginModal] = useState(false); // 모달 상태 추가
     const [showMyPageMenu, setShowMyPageMenu] = useState(false); // 내상점 메뉴 상태
-    const [isLoggedIn, setIsLoggedIn] = useState(false); // 로그인 상태
+    const { isLoggedIn, checkLoginStatus, logout, login } = useAuthStore(); // Zustand 스토어 사용
     const [isScrolled, setIsScrolled] = useState(false) // 스크롤 상태 추가
     const categoryRef = useRef<HTMLDivElement>(null);
+    const myPageMenuRef = useRef<HTMLDivElement>(null); // 내상점 메뉴 참조
     const router = useRouter()
     const { getCategories } = useCategoryStore();
 
@@ -27,9 +30,8 @@ export default function Navbar() {
 
     // 컴포넌트 마운트 시 로그인 상태 확인
     useEffect(() => {
-        const token = localStorage.getItem('accessToken');
-        setIsLoggedIn(!!token);
-    }, []);
+        checkLoginStatus();
+    }, [checkLoginStatus]);
 
     // 스크롤 이벤트 리스너 추가
     useEffect(() => {
@@ -41,16 +43,39 @@ export default function Navbar() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    // 내상점 메뉴 외부 클릭 감지
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (myPageMenuRef.current && !myPageMenuRef.current.contains(event.target as Node)) {
+                setShowMyPageMenu(false);
+            }
+        };
+
+        if (showMyPageMenu) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showMyPageMenu]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     router.push(`/search?title=${encodeURIComponent(title)}`)
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    setIsLoggedIn(false);
-    // 페이지를 새로고침하는 대신, 클라이언트 사이드 내비게이션으로 홈으로 이동합니다.
-    router.replace('/'); 
+  const handleLogout = async () => {
+    try {
+      // 서버에 로그아웃 요청을 보냅니다.
+      // api 인스턴스가 자동으로 헤더에 토큰을 추가해줍니다.
+      await api.post('/be/api/auth/refresh/logout');
+    } catch (error) {
+      // 서버 요청 실패 시에도 클라이언트 측 로그아웃은 진행되도록 합니다.
+      console.error('Logout failed on server:', error);
+    } finally {
+      // Zustand 스토어의 logout 액션을 호출합니다.
+      logout();
+      router.replace('/'); 
+    }
   };
 
   return (
@@ -137,13 +162,16 @@ export default function Navbar() {
                 <Link href="/product/new" className="bg-orange-500 text-white text-sm px-4 py-2 rounded hover:bg-orange-600">판매하기</Link>
                 <Link href="/chat" className="text-[#2B6CEE] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BFDBFE]">채팅목록</Link>
                 <Link href="#" className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]">알림</Link>
+            
                 {isLoggedIn ? (
                     <div 
                         className="relative"
-                        onMouseEnter={() => setShowMyPageMenu(true)}
-                        onMouseLeave={() => setShowMyPageMenu(false)}
+                        ref={myPageMenuRef}
                     >
-                        <button className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]">내상점</button>
+                        <button 
+                            onClick={() => setShowMyPageMenu(prev => !prev)} 
+                            className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]"
+                        >내상점</button>
                         {showMyPageMenu && (
                             <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-20">
                                 <ul className="py-1">
@@ -201,8 +229,8 @@ export default function Navbar() {
         {/* ✅ 모달은 nav 바깥에서 조건부로 렌더링 */}
         {showLoginModal && (
         <LoginModal
-            isOpen={showLoginModal}
-            onClose={() => setShowLoginModal(false)}
+            isOpen={showLoginModal} 
+            onClose={() => setShowLoginModal(false)} 
         />
         )}
 
