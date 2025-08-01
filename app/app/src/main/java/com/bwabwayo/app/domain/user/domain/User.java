@@ -13,7 +13,14 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "user")
+@Table(
+        name = "user",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "unique_user_nickname", columnNames = {"nickname"}),
+                @UniqueConstraint(name = "unique_user_phone", columnNames = {"phone_number"}),
+                @UniqueConstraint(name = "unique_user_email", columnNames = {"email"})
+        }
+)
 public class User {
 
     @Id
@@ -61,7 +68,4 @@ public class User {
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
-
-    @Column(name = "refresh_token", length = 512)
-    private String refreshToken; // 암호화된 상태로 저장
 }

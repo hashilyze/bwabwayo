@@ -12,7 +12,6 @@ import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserServ
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-import java.util.Optional;
 
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
@@ -47,10 +46,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             System.out.println("카카오만 지원 ㅎㅎ"); //지워도 됨
         }
 
-        Optional<User> userEntity =
+        User userEntity =
                 userRepository.findById(oAuth2UserInfo.getProviderId());
         OAuth2UserRequest user;
-        if (userEntity.isEmpty()) {
+        if (userEntity == null) {
             System.out.println("존재X");
             user = new OAuth2UserRequest();
             user.setId(oAuth2UserInfo.getProviderId());
@@ -59,9 +58,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             user.setRole(Role.PREUSER);
         } else {
             System.out.println("존재");
-            user = new OAuth2UserRequest(
-                    userEntity.orElseThrow(() -> new RuntimeException("User not found"))
-            );
+            user = new OAuth2UserRequest(userEntity);
             user.setRole(Role.USER);
         }
         return new CustomOAuth2User(user);
