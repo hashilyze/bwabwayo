@@ -1,0 +1,87 @@
+spring:
+  application:
+    name : app
+
+  data:
+    redis:
+      host: i13e202.p.ssafy.io
+      port: 6379
+      password: whddnjsWkd123!
+      timeout: 6000
+
+    mongodb:
+      uri: mongodb+srv://yoonsu0325:uhcxBQgEMN0uvCiW@bwabwayo.2fgys4l.mongodb.net/chatmessages?retryWrites=true&w=majority
+      database: chatmessages
+
+  datasource:
+    url: jdbc:mysql://i13e202.p.ssafy.io/bwabwayo_db
+    username: root
+    password: whddnjsWkd123!
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-name: kakao
+            client-id: "cf27d231cedbfe3904be600d2d10fc48"
+            redirect-uri: "https://i13e202.p.ssafy.io/be/login/oauth2/code/kakao"
+            client-authentication-method: client_secret_post
+            authorization-grant-type: authorization_code
+            scope: profile_image, account_email
+        provider:
+          kakao:
+            authorization_uri: https://kauth.kakao.com/oauth/authorize
+            token_uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user_name_attribute: id
+
+  servlet:
+    multipart:
+      max-file-size: 2GB
+      max-request-size: 2GB
+
+
+jwt:
+  secret: "vmfhaltmskdlstkfkdgodyroqkfwkasdadowdqfgrgsgsrgsgrgsrgsrgsefjhgku="
+  access-exp-minutes: 30
+  refresh-exp-minutes: 10080 #60*24*7
+  header: Authorization
+  type: Bearer
+
+server:
+  port: 8081
+
+openai:
+  secret-key: S13P11E202-b866ef0e-647a-4e68-aabe-9953140f6092
+  chat-url: https://gms.ssafy.io/gmsapi/api.openai.com/v1/chat/completions
+  chat-model: gpt-4.1-nano
+
+  embedding-url: https://gms.ssafy.io/gmsapi/api.openai.com/v1/embeddings
+  embedding-model: text-embedding-3-large
+
+cloud:
+  aws:
+    credentials:
+      accessKey: AKIAT6OL2UNWJPX53KGW
+      secretKey: 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
+    region:
+      static: ap-northeast-2
+    s3:
+      bucket: bwabwayo-general-bucket
+    stack:
+      auto: false
+
+qdrant:
+  base-url: "https://i13e202.p.ssafy.io/qdrant"
+  collection-name: "product-embeddings"
+  vector-size: 3072
+
+logging:
+  level:
+    com.bwabwayo.app: DEBUG
