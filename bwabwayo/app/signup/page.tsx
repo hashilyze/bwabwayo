@@ -144,11 +144,12 @@ export default function SignUpPage({ searchParams }: { searchParams?: { email?: 
         // 스토어에 있는 submitSignup 액션을 호출합니다.
         const isSuccess = await submitSignup();
 
+        
         // 성공적으로 완료되면 알림을 띄우고 메인 페이지로 이동합니다.
         if (isSuccess) {
             alert('회원가입에 성공했습니다!');
             reset(); // 스토어 상태 초기화
-            router.replace('/'); // 메인 페이지로 이동
+            router.replace('/'); // basePath는 Next.js가 자동으로 처리하므로 루트 경로로 지정합니다.
         }
     };
 
