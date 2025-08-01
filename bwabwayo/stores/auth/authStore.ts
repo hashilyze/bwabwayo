@@ -120,7 +120,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   // ⭐ 핵심: 고급 인증된 fetch 요청 (토큰 갱신, 재시도, 큐 처리 포함)
   authenticatedFetch: async (url: string, options: RequestInit = {}): Promise<Response> => {
     const makeRequest = async (requestUrl: string, requestOptions: RequestInit, retry = false): Promise<Response> => {
-      const currentToken = get().getToken()
+
+      // const currentToken = get().getToken()
+      // 99년짜리 임시 토큰(실제 사용 시 주석처리)
+      const currentToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI0Mzc1MTI2ODM0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NTM5NTEzMjgsImV4cCI6MzMyODk5MTUzMjh9.x6QKDSIth4WZtJOqeW5-8ux1z5W2VML-PV119T42p5reHCV9WzALknLjrmD2WFga'
       
       // 헤더에 토큰 자동 추가
       const headers = new Headers(requestOptions.headers)

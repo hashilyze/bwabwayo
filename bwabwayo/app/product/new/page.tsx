@@ -129,16 +129,6 @@ export default function CreateProductPage() {
       });
       // 백엔드에서 필요한 dir 파라미터 추가
       formData.append('dir', 'products'); // 상품 이미지 디렉토리
-
-      console.log('S3 업로드 시작:', {
-        파일수: files.length,
-        디렉토리: 'products',
-        파일정보: files.map(f => ({
-          name: f.name,
-          size: `${(f.size / 1024 / 1024).toFixed(2)}MB`,
-          type: f.type
-        }))
-      });
       
       const response = await fetch('https://i13e202.p.ssafy.io/be/api/s3/upload', {
         method: 'POST',
@@ -154,7 +144,7 @@ export default function CreateProductPage() {
         
         if (data.result && Array.isArray(data.result)) {
           // UploadResponseDTO 형식: { result: [UploadResultDTO] }
-          uploadedUrls = data.result.map((item: any) => item.url || item.fileUrl || item.s3Url).filter(Boolean);
+          uploadedUrls = data.result.map((item: any) => item.url).filter(Boolean);
           console.log('UploadResponseDTO에서 URL 추출:', uploadedUrls);
         } else if (data.urls && Array.isArray(data.urls)) {
           // 기존 형식: { urls: ["url1", "url2"] }
@@ -326,29 +316,6 @@ export default function CreateProductPage() {
       alert('이미지는 최대 10개까지 등록할 수 있습니다.');
       return;
     }
-
-    // 상세한 데이터 확인 로그
-    console.log('🚀 상품 등록 요청 데이터:', {
-      '📝 기본 정보': {
-        제목: requestData.title,
-        설명: requestData.description,
-        가격: `${requestData.price}원`,
-        카테고리ID: requestData.categoryId,
-        카테고리명: `${majorCategory}${minorCategory ? ` > ${minorCategory}` : ''}`,
-      },
-      '🔧 거래 옵션': {
-        가격협상: requestData.canNegotiate ? '가능' : '불가능',
-        직거래: requestData.canDirect ? '가능' : '불가능',
-        택배거래: requestData.canDelivery ? '가능' : '불가능',
-        화상통화: requestData.canVideoCall ? '가능' : '불가능',
-        배송비: `${requestData.shippingFee}원`,
-      },
-      '📸 이미지 정보': {
-        업로드된_이미지_수: requestData.images.length,
-        S3_URL들: requestData.images,
-        미리보기_URL들: imgPreviews,
-      }
-    });
 
     try {
       console.log('--- 🛒 상품 등록 API 호출 시작 ---');

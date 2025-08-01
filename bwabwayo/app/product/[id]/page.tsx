@@ -5,15 +5,27 @@ import Link from "next/link";
 import { useProductStore } from "@/stores/productStore";
 import { useEffect } from "react";
 import { useParams } from "next/navigation";
+import { useChatRoomStore } from "@/stores/chatting/chatRoomStore";
 
 export default function ProductDetailPage() {
   const { product, loading, error, getProductDetail } = useProductStore();
+  const { addChatRoom } = useChatRoomStore();
+
   const params = useParams();
   const productId = Number(params.id);
 
   useEffect(() => {
     getProductDetail(productId);
   }, [getProductDetail, productId]);
+
+  const makeChatRoom = () => {
+    addChatRoom({
+      // sellerId: product?.seller.id || '',
+      // productId: product?.product.id || 0
+      sellerId: '4375461526',
+      productId: 66
+    })
+  }
   
   return (
     <div className="relative min-h-screen py-10">
@@ -101,12 +113,12 @@ export default function ProductDetailPage() {
                 />
                 찜하기
               </div>
-              <Link 
-                href={`/chat/temp?sellerId=${product?.seller.id}&productId=${product?.product.id}&thumbnail=${product?.product.thumbnail}&price=${product?.product.price}&can_direct=${product?.product.can_direct}&can_delivery=${product?.product.can_delivery}&shippingFee=${product?.product.shippingFee}&canVideoCall=${product?.product.canVideoCall}`} 
+              <div onClick={makeChatRoom}
+                //href={`/chat/temp?sellerId=${product?.seller.id}&productId=${product?.product.id}&thumbnail=${product?.product.thumbnail}&price=${product?.product.price}&can_direct=${product?.product.can_direct}&can_delivery=${product?.product.can_delivery}&shippingFee=${product?.product.shippingFee}&canVideoCall=${product?.product.canVideoCall}`} 
                 className="flex-1 py-4 flex items-center justify-center gap-2 bg-blue-600 text-white rounded-lg py-3 font-bold cursor-pointer"
               >
                 채팅하기
-              </Link>
+              </div>
             </div>
           </div>
           
