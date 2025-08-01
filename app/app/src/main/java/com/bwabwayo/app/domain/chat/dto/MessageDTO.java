@@ -1,6 +1,7 @@
 package com.bwabwayo.app.domain.chat.dto;
 
 import com.bwabwayo.app.domain.chat.domain.ChatMessageMongoEntity;
+import com.bwabwayo.app.domain.chat.domain.ChatMessageRedisEntity;
 import com.bwabwayo.app.domain.chat.domain.MessageType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
@@ -33,6 +34,18 @@ public class MessageDTO implements Serializable {
                 .roomId(chatMessage.getRoomId())
                 .read(chatMessage.getIsRead())
                 .createdAt(String.valueOf(chatMessage.getTime()))
+                .type(chatMessage.getType())
+                .build();
+    }
+
+    public static MessageDTO fromEntity(ChatMessageRedisEntity chatMessage) {
+        return MessageDTO.builder()
+                .content(chatMessage.getContent())
+                .senderId(chatMessage.getSenderId())
+                .receiverId(chatMessage.getReceiverId())
+                .roomId(chatMessage.getRoomId())
+                .read(chatMessage.getIsRead())
+                .createdAt(String.valueOf(chatMessage.getCreatedAt()))
                 .type(chatMessage.getType())
                 .build();
     }

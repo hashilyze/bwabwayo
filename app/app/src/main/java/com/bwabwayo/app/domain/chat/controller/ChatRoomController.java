@@ -6,8 +6,9 @@ import com.bwabwayo.app.domain.chat.dto.request.CreateChatRoomRequest;
 import com.bwabwayo.app.domain.chat.dto.response.ChatRoomListResponse;
 import com.bwabwayo.app.domain.chat.service.ChatMongoService;
 import com.bwabwayo.app.domain.chat.service.ChatRoomService;
-import com.bwabwayo.app.domain.chat.service.ChatService;
 import com.bwabwayo.app.domain.chat.service.RedisService;
+import com.bwabwayo.app.domain.user.annotation.LoginUser;
+import com.bwabwayo.app.domain.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -27,16 +28,16 @@ public class ChatRoomController {
 
     @GetMapping
     public ResponseEntity<List<ChatRoomListResponse>> getChatRoomList(
-            //@RequestHeader("Authorization") String accessToken,
-            @RequestParam String userId){
+            @LoginUser User user){
         log.info("get chatroom list");
-        return ResponseEntity.ok(chatRoomService.getChatRoomList(userId));
+        log.info(user.getId());
+
+        return ResponseEntity.ok(chatRoomService.getChatRoomList(user.getId()));
     }
 
 
     @GetMapping("/{roomId}")
     public ResponseEntity<?> roomFindInfo(
-            //@RequestHeader("Authorization") String accessToken,
             @PathVariable(name = "roomId") Long roomId,
             @RequestParam(name = "page") Integer pageNumber
     ) {
@@ -44,6 +45,7 @@ public class ChatRoomController {
 
         // Redis에 데이터가 없으면 MongoDB에서 조회
         if (messages.isEmpty()) {
+            log.info("no redis");
             messages = chatMongoService.findAll(roomId, pageNumber);
         }
 
@@ -51,7 +53,8 @@ public class ChatRoomController {
     }
 
     @PostMapping
-    public ResponseEntity<ChatRoom> createChatRoom(@RequestBody CreateChatRoomRequest request) {
+    public ResponseEntity<ChatRoom> createChatRoom(
+            @RequestBody CreateChatRoomRequest request) {
         ChatRoom chatRoom = chatRoomService.createRoom(request);
         return ResponseEntity.ok(chatRoom);
     }
