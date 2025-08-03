@@ -45,9 +45,9 @@ export default function TempPage() {
       e.preventDefault()
       
       await addChatRoom({
-        message: message,
+        // message: message,
         sellerId: sellerId || '',
-        productId: productId || ''
+        productId: Number(productId) || 0
       })
       
       // 전송 후 메시지 입력창 초기화
