@@ -1,4 +1,4 @@
-package com.bwabwayo.app.domain.user.config;
+package com.bwabwayo.app.domain.user.utils;
 
 import lombok.Getter;
 import lombok.Setter;

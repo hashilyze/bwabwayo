@@ -1,5 +1,6 @@
 package com.bwabwayo.app.global.config;
 
+import com.bwabwayo.app.domain.chat.domain.ChatMessageRedisEntity;
 import com.bwabwayo.app.domain.chat.dto.response.ChatRoomListResponse;
 import com.bwabwayo.app.domain.chat.service.RedisSubscriber;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,6 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
@@ -30,10 +32,19 @@ public class RedisConfig {
     @Value("${spring.data.redis.port}")
     private int redisPort;
 
+    @Value("${spring.data.redis.password}")
+    private String redisPassword;
+
     // Redis 연결 팩토리 (연결 설정)
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
-        return new LettuceConnectionFactory(redisHost, redisPort);
+//        return new LettuceConnectionFactory(redisHost, redisPort);
+
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
+        config.setHostName(redisHost);
+        config.setPort(redisPort);
+        config.setPassword(redisPassword);
+        return new LettuceConnectionFactory(config);
     }
 
     // ObjectMapper (직렬화 기본 설정)
@@ -122,6 +133,29 @@ public class RedisConfig {
         template.afterPropertiesSet();
         return template;
     }
+
+    // ChatMessageRedisEntity RedisTemplate
+    @Bean
+    public RedisTemplate<String, ChatMessageRedisEntity> messageRedisTemplate(RedisConnectionFactory cf) {
+        RedisTemplate<String, ChatMessageRedisEntity> tpl = new RedisTemplate<>();
+        tpl.setConnectionFactory(cf);
+
+        // key 직렬화
+        tpl.setKeySerializer(new StringRedisSerializer());
+        // hash key 직렬화 (필요하다면)
+        tpl.setHashKeySerializer(new StringRedisSerializer());
+
+        // value 직렬화: DTO 타입 명시
+        Jackson2JsonRedisSerializer<ChatMessageRedisEntity> ser =
+                new Jackson2JsonRedisSerializer<>(ChatMessageRedisEntity.class);
+        ser.setObjectMapper(objectMapper()); // LocalDateTime 처리용 mapper
+        tpl.setValueSerializer(ser);
+        tpl.setHashValueSerializer(ser);
+
+        tpl.afterPropertiesSet();
+        return tpl;
+    }
+
 
     // Redis 리스너 컨테이너 - 두 개의 topic 리스너 등록
     @Bean

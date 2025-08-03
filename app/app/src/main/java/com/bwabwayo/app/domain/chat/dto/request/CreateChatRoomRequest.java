@@ -8,7 +8,6 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateChatRoomRequest {
-    private Long buyerId;
-    private Long sellerId;
+    private String sellerId;
     private Long productId;
 }

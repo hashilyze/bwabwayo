@@ -1,6 +1,6 @@
 package com.bwabwayo.app.domain.user.service;
 
-import com.bwabwayo.app.domain.user.config.JwtProperties;
+import com.bwabwayo.app.domain.user.utils.JwtProperties;
 import com.bwabwayo.app.domain.user.domain.Account;
 import com.bwabwayo.app.domain.user.domain.DeliveryAddress;
 import com.bwabwayo.app.domain.user.domain.Role;

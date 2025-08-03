@@ -11,11 +11,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ChatMessageRedisEntity{
     private String content;
-    private Long senderId;
-    private Long receiverId;
+    private String senderId;
+    private String receiverId;
     private Long roomId;
     private Boolean isRead;
-    private LocalDateTime time;
+    private String createdAt;
     private MessageType type;
 
     public static ChatMessageRedisEntity of(MessageDTO dto) {
@@ -24,7 +24,7 @@ public class ChatMessageRedisEntity{
                 .receiverId(dto.getReceiverId())
                 .roomId(dto.getRoomId())
                 .content(dto.getContent())
-                .time(LocalDateTime.now())
+                .createdAt(dto.getCreatedAt())
                 .type(dto.getType())
                 .isRead(false)
                 .build();

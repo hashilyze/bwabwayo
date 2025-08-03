@@ -6,8 +6,12 @@ spring:
     redis:
       host: i13e202.p.ssafy.io
       port: 6379
-      password:
+      password: whddnjsWkd123!
       timeout: 6000
+
+    mongodb:
+      uri: mongodb+srv://yoonsu0325:uhcxBQgEMN0uvCiW@bwabwayo.2fgys4l.mongodb.net/chatmessages?retryWrites=true&w=majority
+      database: chatmessages
 
   datasource:
     url: jdbc:mysql://i13e202.p.ssafy.io/bwabwayo_db
@@ -85,3 +89,9 @@ logging:
 openvidu:
   url: https://i13e202.p.ssafy.io:8443/
   secret: whddnjsWkd123
+
+
+storage:
+  path:
+    temp: temp
+    productImage: products

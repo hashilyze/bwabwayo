@@ -1,7 +1,7 @@
 package com.bwabwayo.app.domain.chat.repository;
 
+import com.bwabwayo.app.domain.chat.dto.MessageSubDTO;
 import com.bwabwayo.app.domain.chat.dto.response.ChatRoomListResponse;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import jakarta.annotation.Resource;
@@ -11,7 +11,6 @@ import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 
 @Repository
@@ -27,15 +26,15 @@ public class ChatRoomRedisRepository {
     @Resource(name = "redisTemplate")
     private HashOperations<String, String, ChatRoomListResponse> opsHashChatRoom;
 
-    private String getChatRoomKey(Long userId) {
+    private String getChatRoomKey(String userId) {
         return userId + CHAT_ROOM_KEY;
     }
 
-    public boolean existChatRoomList(Long userId) {
+    public boolean existChatRoomList(String userId) {
         return chatRoomRedisTemplate.hasKey(getChatRoomKey(userId));
     }
 
-    public void initChatRoomList(Long userId, List<ChatRoomListResponse> list) {
+    public void initChatRoomList(String userId, List<ChatRoomListResponse> list) {
         if (chatRoomRedisTemplate.hasKey(getChatRoomKey(userId))) {
             chatRoomRedisTemplate.delete(getChatRoomKey(userId));
         }
@@ -46,20 +45,20 @@ public class ChatRoomRedisRepository {
         }
     }
 
-    public void setChatRoom(Long userId, Long roomId, ChatRoomListResponse chatRoomListResponse) {
+    public void setChatRoom(String userId, Long roomId, ChatRoomListResponse chatRoomListResponse) {
         opsHashChatRoom.put(getChatRoomKey(userId), String.valueOf(roomId), chatRoomListResponse);
     }
 
-    public List<ChatRoomListResponse> getChatRoomList(Long userId) {
+    public List<ChatRoomListResponse> getChatRoomList(String userId) {
         // 채팅방 리스트 조회
         return objectMapper.convertValue(opsHashChatRoom.values(getChatRoomKey(userId)), new TypeReference<>() {});
     }
 
-    public boolean existChatRoom(Long userId, Long roomId) {
+    public boolean existChatRoom(String userId, Long roomId) {
         return opsHashChatRoom.hasKey(getChatRoomKey(userId), String.valueOf(roomId));
     }
 
-    public ChatRoomListResponse getChatRoom(Long userId, Long roomId) {
+    public ChatRoomListResponse getChatRoom(String userId, Long roomId) {
         String redisKey = userId + "_CHAT_ROOM_RESPONSE_LIST";
         String fieldKey = String.valueOf(roomId);
 

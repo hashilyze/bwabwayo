@@ -22,19 +22,19 @@ public class ChatRoom implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long roomId;
-    private Long buyerId;
-    private Long sellerId;
+    private String buyerId;
+    private String sellerId;
     private Long productId;
 
-    public static ChatRoom createRoom(CreateChatRoomRequest request){
+    public static ChatRoom createRoom(CreateChatRoomRequest request, String userId){
         ChatRoom chatRoom = new ChatRoom();
         chatRoom.sellerId = request.getSellerId();
-        chatRoom.buyerId = request.getBuyerId();
+        chatRoom.buyerId = userId;
         chatRoom.productId = request.getProductId();
         return chatRoom;
     }
 
-    public Long getOtherUserId(Long userId) {
+    public String getOtherUserId(String userId) {
         if(Objects.equals(userId, this.sellerId)) return buyerId;
         else return sellerId;
     }
