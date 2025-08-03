@@ -45,7 +45,7 @@ const ReportForm: React.FC<ReportFormProps> = ({ onBack }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
+      {/* <div>
         <label htmlFor="category" className="block text-sm font-medium text-gray-700">
           신고 유형
         </label>
@@ -61,7 +61,7 @@ const ReportForm: React.FC<ReportFormProps> = ({ onBack }) => {
           <option>거래/사기 신고</option>
           <option>기타 신고</option>
         </select>
-      </div>
+      </div> */}
 
       <div>
         <label htmlFor="title" className="block text-sm font-medium text-gray-700">

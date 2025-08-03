@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useInquiryStore } from '@/stores/cs-store/inquiryStore';
 
 interface InquiryFormProps {
   onBack: () => void;
@@ -12,25 +13,28 @@ const InquiryForm: React.FC<InquiryFormProps> = ({ onBack }) => {
   const [category, setCategory] = useState('상품 문의');
   const [image, setImage] = useState<File | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { addInquiry } = useInquiryStore();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: 폼 데이터를 API로 전송하는 로직을 구현해야 합니다.
-    const formData = new FormData();
-    formData.append('category', category);
-    formData.append('title', title);
-    formData.append('description', description);
+
+    // TODO: 실제 이미지 업로드 로직 구현 필요
+    // 1. 선택된 이미지 파일을 서버에 업로드합니다. (예: S3 또는 자체 서버)
+    // 2. 업로드 후 반환된 이미지 URL을 받습니다.
+    let imageUrl = '';
     if (image) {
-      formData.append('image', image);
+      // const uploadedUrl = await uploadImageFunction(image);
+      imageUrl = 'https://example.com/placeholder.jpg'; // 임시 URL
     }
 
-    console.log('Submitting inquiry:', {
-      category,
+    const inquiryData = {
       title,
       description,
-      imageName: image?.name,
-    });
+      images: imageUrl ? [{ image_url: imageUrl, order: 1 }] : [],
+    };
 
-    // 데모용으로 alert를 띄우고 목록으로 돌아갑니다.
+    await addInquiry(inquiryData);
+
     alert('문의가 접수되었습니다.');
     onBack();
   };
@@ -43,7 +47,7 @@ const InquiryForm: React.FC<InquiryFormProps> = ({ onBack }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
+      {/* <div>
         <label htmlFor="category" className="block text-sm font-medium text-gray-700">
           문의 유형
         </label>
@@ -59,7 +63,7 @@ const InquiryForm: React.FC<InquiryFormProps> = ({ onBack }) => {
           <option>거래 문의</option>
           <option>기타 문의</option>
         </select>
-      </div>
+      </div> */}
 
       <div>
         <label htmlFor="title" className="block text-sm font-medium text-gray-700">
@@ -130,4 +134,3 @@ const InquiryForm: React.FC<InquiryFormProps> = ({ onBack }) => {
 };
 
 export default InquiryForm;
-

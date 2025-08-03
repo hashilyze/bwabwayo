@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { useAuthStore } from '../auth/authStore'
+import { useAuthStore } from '@/stores/auth/authStore'
 
 interface addRoom{
     sellerId: string
