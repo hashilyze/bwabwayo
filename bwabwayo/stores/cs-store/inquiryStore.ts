@@ -3,7 +3,7 @@ import { useAuthStore } from '@/stores/auth/authStore';
 
 // 문의 내역에 포함된 이미지 데이터 인터페이스
 interface FetchedImage {
-    image_url: string;
+    imageUrl: string;
 }
 
 // 서버에서 조회해온 문의 내역 데이터 인터페이스
@@ -12,14 +12,14 @@ interface Inquiry {
     title: string;
     description: string;
     reply: string | null;
-    created_at: string;
-    replied_at: string | null;
+    createdAt: string;
+    repliedAt: string | null;
     images: FetchedImage[];
 }
 
 // 문의에 포함될 이미지 데이터 인터페이스
 interface InquiryImage {
-    image_url: string;
+    imageUrl: string;
     order: number;
 }
 
