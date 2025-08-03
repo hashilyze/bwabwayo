@@ -3,6 +3,7 @@ package com.bwabwayo.app.domain.wish.service;
 import com.bwabwayo.app.domain.product.domain.Category;
 import com.bwabwayo.app.domain.product.domain.Product;
 import com.bwabwayo.app.domain.product.enums.SaleStatus;
+import com.bwabwayo.app.domain.product.repository.ProductRepository;
 import com.bwabwayo.app.domain.user.domain.User;
 import com.bwabwayo.app.domain.wish.domain.Wish;
 import com.bwabwayo.app.domain.wish.dto.response.WishDTO;
@@ -25,6 +26,7 @@ import java.util.List;
 public class WishService {
 
     private final WishRepository wishRepository;
+    private final ProductRepository productRepository;
 
     @Transactional(readOnly = true)
     public WishlistResponseDTO getAllMyWishes(User user, int pageNo, int pageSize) {
@@ -81,7 +83,9 @@ public class WishService {
                 .build();
     }
 
-
+    /**
+     * 위시리스트에 상품 추가
+     */
     @Transactional
     public void addWish(Product product, User user){
         if(product == null || product.getId() == null) throw new IllegalArgumentException("상품이 존재하지 않습니다.");
@@ -93,19 +97,30 @@ public class WishService {
             return;
         }
 
+        // 위시 리스트에 추가
         Wish wish = Wish.builder()
                 .product(product)
                 .user(user)
                 .build();
         wishRepository.save(wish);
+        
+        // 찜한 사용자의 수 갱신
+        productRepository.increaseWishCount(product.getId());
     }
 
+    /**
+     * 위시리스트에서 상품 제거
+     */
     @Transactional
     public void removeWish(Product product, User user){
         if(product == null || product.getId() == null) throw new IllegalArgumentException("상품이 존재하지 않습니다.");
         if(user == null || user.getId() == null) throw new IllegalArgumentException("유저가 존재하지 않습니다.");
-
+        
+        // 위시 리스트에서 제거
         wishRepository.deleteByProductIdAndUserId(product.getId(), user.getId());
+
+        // 찜한 사용자의 수 갱신
+        productRepository.decreaseWishCount(product.getId());
     }
 
     @Transactional(readOnly = true)
