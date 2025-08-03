@@ -9,12 +9,12 @@ interface FailedRequest {
 
 interface AuthStore {
   token: string | null
-  isAuthenticated: boolean
+  isLoggedIn: boolean
   
   // 토큰 관리
   setToken: (token: string | null) => void
   getToken: () => string | null
-  clearToken: () => void
+  logout: () => void
   
   // 자동 토큰 초기화
   initializeAuth: () => void
@@ -53,13 +53,13 @@ const processQueue = (error: Error | null, token: string | null = null) => {
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
   token: null,
-  isAuthenticated: false,
+  isLoggedIn: false,
 
   // 토큰 설정
   setToken: (token: string | null) => {
     set({ 
       token,
-      isAuthenticated: !!token 
+      isLoggedIn: !!token 
     })
     
     // localStorage에도 저장
@@ -84,7 +84,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         // Store에 저장하고 반환
         set({ 
           token: accessToken,
-          isAuthenticated: true 
+          isLoggedIn: true 
         })
         return accessToken
       }
@@ -93,10 +93,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   },
 
   // 토큰 삭제 (로그아웃)
-  clearToken: () => {
+  logout: () => {
     set({ 
       token: null,
-      isAuthenticated: false 
+      isLoggedIn: false 
     })
     
     if (typeof window !== 'undefined') {
@@ -111,7 +111,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       if (accessToken) {
         set({ 
           token: accessToken,
-          isAuthenticated: true 
+          isLoggedIn: true 
         })
       }
     }
@@ -179,7 +179,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           processQueue(refreshError as Error, null)
           
           // 로그아웃 처리
-          get().clearToken()
+          get().logout()
           
           // 필요시 로그인 페이지로 리다이렉트
           if (typeof window !== 'undefined') {

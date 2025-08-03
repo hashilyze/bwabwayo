@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import InquiryForm from '@/components/cs-center/InquiryForm';
+import ReportForm from '@/components/cs-center/ReportForm';
 
 // --- 타입 정의 ---
 type Tab = 'inquiry' | 'report' | 'faq';
@@ -77,27 +79,43 @@ const FaqAccordionItem: React.FC<{ item: FaqItem; isOpen: boolean; onClick: () =
   </div>
 );
 
-const InquirySection = () => (
-  <>
-    <div className="flex justify-end mb-4">
-      <button className="px-4 py-2 text-sm text-white bg-black rounded hover:bg-gray-800">문의하기</button>
-    </div>
-    <ul>
-      {inquiryData.map(item => <ListItem key={item.id} item={item} />)}
-    </ul>
-  </>
-);
+const InquirySection = () => {
+  const [showForm, setShowForm] = useState(false);
 
-const ReportSection = () => (
-  <>
-    <div className="flex justify-end mb-4">
-      <button className="px-4 py-2 text-sm text-white bg-black rounded hover:bg-gray-800">신고하기</button>
-    </div>
-    <ul>
-      {reportData.map(item => <ListItem key={item.id} item={item} />)}
-    </ul>
-  </>
-);
+  if (showForm) {
+    return <InquiryForm onBack={() => setShowForm(false)} />;
+  }
+
+  return (
+    <>
+      <div className="flex justify-end mb-4">
+        <button onClick={() => setShowForm(true)} className="px-4 py-2 text-sm text-white bg-black rounded hover:bg-gray-800">문의하기</button>
+      </div>
+      <ul>
+        {inquiryData.map(item => <ListItem key={item.id} item={item} />)}
+      </ul>
+    </>
+  );
+};
+
+const ReportSection = () => {
+  const [showForm, setShowForm] = useState(false);
+
+  if (showForm) {
+    return <ReportForm onBack={() => setShowForm(false)} />;
+  }
+
+  return (
+    <>
+      <div className="flex justify-end mb-4">
+        <button onClick={() => setShowForm(true)} className="px-4 py-2 text-sm text-white bg-black rounded hover:bg-gray-800">신고하기</button>
+      </div>
+      <ul>
+        {reportData.map(item => <ListItem key={item.id} item={item} />)}
+      </ul>
+    </>
+  );
+};
 
 const FaqSection = () => {
   const [openId, setOpenId] = useState<number | null>(null);
