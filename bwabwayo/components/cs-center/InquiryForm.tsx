@@ -30,7 +30,7 @@ const InquiryForm: React.FC<InquiryFormProps> = ({ onBack }) => {
     const inquiryData = {
       title,
       description,
-      images: imageUrl ? [{ image_url: imageUrl, order: 1 }] : [],
+      images: imageUrl ? [{ imageUrl: imageUrl, order: 1 }] : [],
     };
 
     await addInquiry(inquiryData);
