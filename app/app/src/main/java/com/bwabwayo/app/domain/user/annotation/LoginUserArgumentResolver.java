@@ -59,6 +59,6 @@ public class LoginUserArgumentResolver implements HandlerMethodArgumentResolver 
             }
             return null;
         }
-        return userRepository.findById(userId);
+        return userRepository.findUserById(userId);
     }
 }

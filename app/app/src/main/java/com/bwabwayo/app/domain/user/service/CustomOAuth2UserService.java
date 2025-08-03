@@ -47,7 +47,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         User userEntity =
-                userRepository.findById(oAuth2UserInfo.getProviderId());
+                userRepository.findUserById(oAuth2UserInfo.getProviderId());
         OAuth2UserRequest user;
         if (userEntity == null) {
             System.out.println("존재X");
