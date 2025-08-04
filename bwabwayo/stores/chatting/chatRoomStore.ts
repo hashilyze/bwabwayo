@@ -71,7 +71,6 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         }
     },
 
-    
     connectStomp: (roomId?: number) => {
         const serverUrl = 'https://i13e202.p.ssafy.io/be/ws-stomp'
         
