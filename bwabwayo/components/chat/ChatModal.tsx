@@ -3,11 +3,31 @@
 import Image from 'next/image';
 import React, { useState } from 'react';
 
-const ChatInputActive: React.FC = () => {
+interface ChatModalProps {
+  onSendMessage: (message: string) => void;
+  isConnected: boolean;
+}
+
+const ChatInputActive: React.FC<ChatModalProps> = ({ onSendMessage, isConnected }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [messageInput, setMessageInput] = useState('');
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleSendMessage = () => {
+    if (messageInput.trim() && isConnected) {
+      onSendMessage(messageInput);
+      setMessageInput('');
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
   };
   return (
     <div className="w-full">
@@ -27,9 +47,20 @@ const ChatInputActive: React.FC = () => {
         <div className="flex-1 h-[45px] bg-gray-50 rounded-[38px] flex items-center px-5">
           <input
             type="text"
-            placeholder="메세지를 입력하세요."
+            value={messageInput}
+            onChange={(e) => setMessageInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder={isConnected ? "메세지를 입력하세요." : "연결 중..."}
             className="flex-1 bg-transparent text-xs text-gray-500 outline-none placeholder-gray-500"
+            disabled={!isConnected}
           />
+          <button
+            onClick={handleSendMessage}
+            disabled={!messageInput.trim() || !isConnected}
+            className="ml-2 px-3 py-1 bg-blue-500 text-white text-xs rounded-full hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            전송
+          </button>
         </div>
       </div>
 

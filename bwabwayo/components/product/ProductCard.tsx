@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { MouseEvent } from 'react'
 import LikeHeart from './LikeHeart';
-import { ProductWithSeller } from '@/stores/productStore';
+import { ProductWithSeller } from '@/stores/product/productStore';
 
 type Props = {
   item: ProductWithSeller

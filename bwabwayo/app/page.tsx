@@ -3,7 +3,7 @@
 import ProductCard from "@/components/product/ProductCard";
 import WebTest from "@/components/home/WebTest";
 import React, { useEffect, useState } from 'react';
-import { useProductStore } from '@/stores/productStore';
+import { useProductStore } from '@/stores/product/productStore';
 // swiper
 import { Navigation, Pagination } from 'swiper/modules';
 import { Swiper, SwiperClass, SwiperSlide } from 'swiper/react';

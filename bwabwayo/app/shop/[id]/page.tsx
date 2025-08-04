@@ -5,9 +5,7 @@ import Link from 'next/link'
 import Sidebar from "@/components/shop/Sidebar";
 import ProductCard from "@/components/product/ProductCard";
 import SellerTitle from '@/components/shop/SellerTitle';
-import { useProductStore } from '@/stores/productStore';
-import { ProductWithSeller } from '@/stores/productStore';
-
+import { useProductStore, ProductWithSeller } from '@/stores/product/productStore';
 
 export default function SellerShopInfo({ params }: { params: { id: string } }) {
   const { products, loading, error, getProducts, clearProducts } = useProductStore();

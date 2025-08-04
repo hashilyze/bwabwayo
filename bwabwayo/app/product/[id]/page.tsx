@@ -1,16 +1,16 @@
 'use client'
 
 import SellerTitle from "@/components/shop/SellerTitle";
-import Link from "next/link";
-import { useProductStore } from "@/stores/productStore";
+import { useProductStore } from "@/stores/product/productStore";
 import { useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useChatRoomStore } from "@/stores/chatting/chatRoomStore";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 
 export default function ProductDetailPage() {
   const { product, loading, error, getProductDetail } = useProductStore();
   const { roomInfo, addChatRoom } = useChatRoomStore();
+  const router = useRouter();
 
   const params = useParams();
   const productId = Number(params.id);
@@ -19,14 +19,27 @@ export default function ProductDetailPage() {
     getProductDetail(productId);
   }, [getProductDetail, productId]);
 
-  const makeChatRoom = () => {
-    addChatRoom({
-      // sellerId: product?.seller.id || '',
-      // productId: product?.product.id || 0
-      sellerId: '4375461526',
-      productId: 66
-    })
-    // router.push(`/chat/${response.result.id}`)
+  console.log(product)
+
+  const makeChatRoom = async () => {
+    try {
+      const createdRoom = await addChatRoom({
+        // sellerId: product?.seller.id || '',
+        // productId: product?.product.id || 0
+        sellerId: '4375461526',
+        productId: 66
+      })
+      
+      console.log('생성된 채팅방:', createdRoom);
+      
+      if (createdRoom && createdRoom.roomId) {
+        router.push(`/chat/${createdRoom.roomId}?productId=${createdRoom.productId}&sellerId=${createdRoom.sellerId}`)
+      } else {
+        console.error('채팅방 생성 후 roomId를 찾을 수 없습니다.');
+      }
+    } catch (error) {
+      console.error('채팅방 생성 중 오류:', error);
+    }
   }
   
   return (
@@ -37,31 +50,41 @@ export default function ProductDetailPage() {
           <div className="sticky top-40 z-8">
             <div className="flex flex-col gap-4">
               <div className="rounded-2xl overflow-hidden border border-gray-200">
-                <img 
-                  src={product?.product.thumbnail || '/image/no-image.jpg'} 
-                  alt="상품 대표 이미지" 
-                  className="w-full h-auto aspect-square object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = '/image/no-image.jpg';
-                  }}
-                />
+                                 <img 
+                   src={product?.imageUrls?.[0] || '/image/no-image.jpg'} 
+                   alt="상품 대표 이미지" 
+                   className="w-full h-auto aspect-square object-cover"
+                   onError={(e) => {
+                     const target = e.target as HTMLImageElement;
+                     target.src = '/image/no-image.jpg';
+                   }}
+                 />
               </div>
-              <ul className="grid grid-cols-4 gap-4">
-                {[1,2,3,4].map(num => (
-                  <li key={num}>
-                    <img 
-                      src={product?.product.thumbnail || '/image/no-image.jpg'} 
-                      alt={`상품 썸네일${num}`} 
-                      className="rounded-xl border border-[#eeeeee] object-cover aspect-square"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = '/image/no-image.jpg';
-                      }}
-                    />
-                  </li>
-                ))}
-              </ul>
+                             <ul className="grid grid-cols-4 gap-4">
+                 {product?.imageUrls?.slice(0, 4).map((imageUrl, index) => (
+                   <li key={index}>
+                     <img 
+                       src={imageUrl || '/image/no-image.jpg'} 
+                       alt={`상품 썸네일${index + 1}`} 
+                       className="rounded-xl border border-[#eeeeee] object-cover aspect-square"
+                       onError={(e) => {
+                         const target = e.target as HTMLImageElement;
+                         target.src = '/image/no-image.jpg';
+                       }}
+                     />
+                   </li>
+                 ))}
+                 {/* 이미지가 4개 미만인 경우 빈 썸네일로 채움 */}
+                 {Array.from({ length: Math.max(0, 4 - (product?.imageUrls?.length || 0)) }).map((_, index) => (
+                   <li key={`empty-${index}`}>
+                     <img 
+                       src="/image/no-image.jpg" 
+                       alt="빈 썸네일" 
+                       className="rounded-xl border border-[#eeeeee] object-cover aspect-square"
+                     />
+                   </li>
+                 ))}
+               </ul>
             </div>
           </div>
         </div>
@@ -70,13 +93,13 @@ export default function ProductDetailPage() {
         <div className="flex-3 min-h-screen">
           <div className="bg-white rounded-2xl shadow-sm p-8 mb-6">
             <p className="text-gray-500 text-sm mb-2">홈 &gt; 디지털</p>
-            <div className="flex flex-col mt-6 mb-2">
-              <h1 className="text-2xl font-bold">{product?.product.title}</h1>
-              <p className="text-[32px] font-black text-gray-800">{product?.product.price}원</p>
-            </div>
-            <div className="text-gray-400 text-sm mb-[30px]">
-              {product?.product.createdAt} · 찜 {product?.product.wishCount} · 조회 {product?.product.viewCount}
-            </div>
+                         <div className="flex flex-col mt-6 mb-2">
+               <h1 className="text-2xl font-bold">{product?.title || '상품명'}</h1>
+               <p className="text-[32px] font-black text-gray-800">{product?.price || 0}원</p>
+             </div>
+             <div className="text-gray-400 text-sm mb-[30px]">
+               {product?.createdAt || ''} · 찜 {product?.wishCount || 0} · 조회 {product?.viewCount || 0}
+             </div>
             
             <ul className="flex items-center mb-4 border border-gray-200 rounded-lg p-6 relative">
               <li className="flex flex-1 flex-col gap-1 items-center">
@@ -107,14 +130,14 @@ export default function ProductDetailPage() {
             </ul>
 
             <div className="flex gap-4">
-              <div className="flex-1 py-4 flex items-center justify-center gap-2 border-1 border-[#eee] text-[#777] rounded-lg cursor-pointer">
-                <img 
-                  src={product?.product.isLike ? "/icon/heart-on.svg" : "/icon/heart-off.svg"} 
-                  alt="찜하기" 
-                  className="w-4 h-4" 
-                />
-                찜하기
-              </div>
+                             <div className="flex-1 py-4 flex items-center justify-center gap-2 border-1 border-[#eee] text-[#777] rounded-lg cursor-pointer">
+                 <img 
+                   src={product?.isWish ? "/icon/heart-on.svg" : "/icon/heart-off.svg"} 
+                   alt="찜하기" 
+                   className="w-4 h-4" 
+                 />
+                 찜하기
+               </div>
               <div onClick={makeChatRoom}
                 //href={`/chat/temp?sellerId=${product?.seller.id}&productId=${product?.product.id}&thumbnail=${product?.product.thumbnail}&price=${product?.product.price}&can_direct=${product?.product.can_direct}&can_delivery=${product?.product.can_delivery}&shippingFee=${product?.product.shippingFee}&canVideoCall=${product?.product.canVideoCall}`} 
                 className="flex-1 py-4 flex items-center justify-center gap-2 bg-blue-600 text-white rounded-lg py-3 font-bold cursor-pointer"
@@ -131,27 +154,27 @@ export default function ProductDetailPage() {
 
           {/* 판매물품 */}
           <div className="mt-8">
-            <h3 className="text-lg font-bold mb-4">{product?.seller.nickname}님의 다른 상품</h3>
+            <h3 className="text-lg font-bold mb-4">{product?.seller?.nickname || '판매자'}님의 다른 상품</h3>
             <ul className="flex flex-col gap-4">
               {[1,2,3,4].map(num => (
-                <li key={num} className="flex flex-row items-center gap-4">
-                  <div>
-                    <img 
-                      src={product?.product.thumbnail || "/image/sample.png"} 
-                      alt="" 
-                      className="border border-[#eee] rounded-lg w-24 h-24 object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = '/image/no-image.jpg';
-                      }}
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <p className="text-sm">{product?.product.title}</p>
-                    <p className="text-lg font-semibold mb-1">{product?.product.price}원</p>
-                    <p className="text-xs font-light text-gray-400">찜 {product?.product.wishCount} · 조회 {product?.product.viewCount}</p>
-                  </div>
-                </li>
+                                 <li key={num} className="flex flex-row items-center gap-4">
+                   <div>
+                     <img 
+                       src={product?.imageUrls?.[0] || "/image/sample.png"} 
+                       alt="" 
+                       className="border border-[#eee] rounded-lg w-24 h-24 object-cover"
+                       onError={(e) => {
+                         const target = e.target as HTMLImageElement;
+                         target.src = '/image/no-image.jpg';
+                       }}
+                     />
+                   </div>
+                   <div className="flex flex-col">
+                     <p className="text-sm">{product?.title || '상품명'}</p>
+                     <p className="text-lg font-semibold mb-1">{product?.price || 0}원</p>
+                     <p className="text-xs font-light text-gray-400">찜 {product?.wishCount || 0} · 조회 {product?.viewCount || 0}</p>
+                   </div>
+                 </li>
               ))}
             </ul>
           </div>
@@ -163,12 +186,12 @@ export default function ProductDetailPage() {
       <div className="bg-white rounded-2xl py-[60px] px-[40px] mt-[40px] shadow-sm">
         <h2 className="text-2xl font-bold mb-6">상품 설명</h2>
 
-        <div className="bg-[#F6F8F9] rounded-2xl py-8 px-6 flex flex-col gap-4">
-          <h3 className="text-xl font-semibold">상세 정보</h3>
-          <p className="text-gray-700">
-          {product?.product.title}
-          </p>
-        </div>
+                 <div className="bg-[#F6F8F9] rounded-2xl py-8 px-6 flex flex-col gap-4">
+           <h3 className="text-xl font-semibold">상세 정보</h3>
+                       <p className="text-gray-700">
+            {product?.description || '상품 설명이 없습니다.'}
+            </p>
+         </div>
         <ul className="bg-[#EFF6FF] flex justify-center py-12 mt-4 rounded-2xl">
           <li className="flex-1 flex flex-col items-center gap-2"><p className="text-lg font-semibold">네고가능 여부</p><p className="text-gray-600">가능해요</p></li>
           <li className="flex-1 flex flex-col items-center gap-2"><p className="text-lg font-semibold">거래방법</p><p className="text-gray-600">택배 / 직거래</p></li>

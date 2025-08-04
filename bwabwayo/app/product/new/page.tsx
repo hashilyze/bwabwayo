@@ -2,7 +2,7 @@
 import { useState, useRef, ChangeEvent, useEffect, FormEvent } from 'react';
 
 import { useCategoryStore } from '@/stores/categoryStore';
-import { useProductStore } from '@/stores/productStore';
+import { useProductStore } from '@/stores/product/productStore';
 
 // --- 아이콘 컴포넌트 (Icons) ---
 const CheckIcon = (props: React.SVGProps<SVGSVGElement>) => (

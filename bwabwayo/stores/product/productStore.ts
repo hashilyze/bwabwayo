@@ -1,11 +1,15 @@
 import { create } from 'zustand'
-import { useAuthStore } from './auth/authStore'
+import { useAuthStore } from '@/stores/auth/authStore'
 
 interface Seller {
-  id: number
+  id: string
   nickname: string
+  profileImage?: string | null
+  score: number
+  rating: number
 }
 
+// 기존 Product 인터페이스 (상품 목록용)
 interface Product {
   id?: number
   categoryId: number
@@ -24,6 +28,28 @@ interface Product {
   canNegotiate: boolean
   description: string
   images: string[]
+}
+
+// 새로운 ProductDetail 인터페이스 (상품 상세용)
+interface ProductDetail {
+  title: string
+  description: string
+  price: number
+  saleStatus: number
+  shippingFee: number | null
+  canDelivery: boolean
+  canDirect: boolean
+  canNegotiate: boolean
+  canVideoCall: boolean
+  categories: any[]
+  chatCount: number
+  createdAt: string
+  imageKeys: string[]
+  imageUrls: string[]
+  isWish: boolean
+  seller: Seller
+  viewCount: number
+  wishCount: number
 }
 
 export interface ProductWithSeller {
@@ -314,14 +340,14 @@ const productDetail = {
 
 
 interface ProductStore {
-  product: ProductWithSeller | null
+  product: ProductDetail | null
   products: ProductWithSeller[]
   hotKeywordProducts: ProductWithSeller[]
   videoCallProducts: ProductWithSeller[]
   loading: boolean
   error: string | null
   getProducts: (options?: { title?: string; category_id?: number; minPrice?: number; maxPrice?: number }) => Promise<void>
-  addProduct: (product: Product) => Promise<void>
+  addProduct: (product: ProductDetail | Product) => Promise<void>
   getHotKewordProducts: (title: string) => Promise<void>
   getVideoCallProducts: () => Promise<void>
   getProductDetail: (id: number) => Promise<void>
@@ -342,12 +368,14 @@ export const useProductStore = create<ProductStore>((set) => ({
   getProducts: async (options = {}) => {
     set({ loading: true, error: null })
     try {
-      const response = await fetch(`${baseUrl}/products`)
+      const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products`)
+      
       if (!response.ok) {
         throw new Error('상품 조회에 실패했습니다')
       }
+      
       const data = await response.json()
-      console.log(data.result)
+      console.log('상품 조회 성공:', data.result)
       
       // 클라이언트 사이드 필터링
       let filteredProducts = data.result;
@@ -379,7 +407,12 @@ export const useProductStore = create<ProductStore>((set) => ({
       
       set({ products: filteredProducts, loading: false })
     } catch (error) {
-      set({ products: [], loading: false, error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다' })
+      console.error('상품 조회 실패:', error)
+      set({ 
+        products: [], 
+        loading: false, 
+        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다' 
+      })
     }
   },
 
@@ -387,17 +420,26 @@ export const useProductStore = create<ProductStore>((set) => ({
   getHotKewordProducts: async (title: string) => {
     set({ loading: true, error: null })
     try {
-      const response = await fetch(`${baseUrl}/products?title=${title}`)
+      const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products?keyword=${title}`)
+      
+      if (!response.ok) {
+        throw new Error('핫 키워드 상품 조회에 실패했습니다')
+      }
+      
       const data = await response.json()
       const filteredProducts = data.result.filter((item: any) => 
         item.product.title === title
-     )
-      // console.log(data)
+      )
+      console.log('핫 키워드 상품 조회 성공:', filteredProducts)
 
       set({ hotKeywordProducts: filteredProducts, loading: false })
     } catch (error) {
-      error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다'
-      set({ hotKeywordProducts: [], loading: false })
+      console.error('핫 키워드 상품 조회 실패:', error)
+      set({ 
+        hotKeywordProducts: [], 
+        loading: false, 
+        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다' 
+      })
     }
   },
 
@@ -405,46 +447,49 @@ export const useProductStore = create<ProductStore>((set) => ({
   getVideoCallProducts: async () => {
     set({ loading: true, error: null })
     try {
-      const response = await fetch(`${baseUrl}/products`)
+      const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products`)
+      
+      if (!response.ok) {
+        throw new Error('화상통화 상품 조회에 실패했습니다')
+      }
+      
       const data = await response.json()
       const filteredProducts = data.result.filter((item: any) => 
          item.product.canVideoCall === true
       )
-      // console.log(filteredProducts)
+      console.log('화상통화 상품 조회 성공:', filteredProducts)
 
       set({ videoCallProducts: filteredProducts, loading: false })
     } catch (error) {
-      error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다'
-      set({ videoCallProducts: [], loading: false })
+      console.error('화상통화 상품 조회 실패:', error)
+      set({ 
+        videoCallProducts: [], 
+        loading: false, 
+        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다' 
+      })
     }
   },
 
   getProductDetail: async (id: number) => {
     set({ loading: true, error: null })
     
-    // 이미 만들어둔 productDetail 더미데이터 사용
-    const data = productDetail;
-    set({ product: data, loading: false })
-    
-    // 실제 API 호출 (주석 처리)
-    // try {
-    //   const response = await fetch(`${baseUrl}/products/${id}`)
-    //   const data = await response.json()
-    //   set({ product: data, loading: false })
-    // } catch(error) {
-    //   set({ 
-    //     error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
-    //     loading: false 
-    //   })
-    // }
+    try {
+      const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products/${id}`)
+      
+      const data = await response.json()
+      // console.log('상품 상세 조회 성공:', data)
+      set({ product: data, loading: false })
+    } catch (error) {
+      console.error('상품 상세 조회 실패:', error)
+    }
   },
 
-  addProduct: async (product: Product) => {
+  addProduct: async (product: ProductDetail | Product) => {
     set({ loading: true, error: null })
     try {
       console.log('=== API 전송 데이터 ===');
       console.log('전송할 product 객체:', product);
-      console.log('product.images:', product.images);
+      console.log('product.imageUrls:', 'imageUrls' in product ? product.imageUrls : 'N/A');
       console.log('JSON.stringify(product):', JSON.stringify(product, null, 2));
       console.log('=====================');
       
