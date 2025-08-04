@@ -94,25 +94,25 @@ export default function ProductDetailPage() {
               </div>
                              <ul className="grid grid-cols-4 gap-4">
                  {product?.imageUrls?.slice(0, 4).map((imageUrl, index) => (
-                   <li key={index}>
-                     <img 
+                   <li key={index} className="relative aspect-square">
+                     <Image 
                        src={imageUrl || '/image/no-image.jpg'} 
                        alt={`상품 썸네일${index + 1}`} 
-                       className="rounded-xl border border-[#eeeeee] object-cover aspect-square"
-                       onError={(e) => {
-                         const target = e.target as HTMLImageElement;
-                         target.src = '/image/no-image.jpg';
-                       }}
+                       className="rounded-xl border border-[#eeeeee] object-cover"
+                       width={100}
+                       height={100}
                      />
                    </li>
                  ))}
                  {/* 이미지가 4개 미만인 경우 빈 썸네일로 채움 */}
                  {Array.from({ length: Math.max(0, 4 - (product?.imageUrls?.length || 0)) }).map((_, index) => (
                    <li key={`empty-${index}`}>
-                     <img 
+                     <Image 
                        src="/image/no-image.jpg" 
                        alt="빈 썸네일" 
-                       className="rounded-xl border border-[#eeeeee] object-cover aspect-square"
+                       className="rounded-xl border border-[#eeeeee] object-cover"
+                       width={100}
+                       height={100}
                      />
                    </li>
                  ))}
