@@ -4,7 +4,7 @@ package com.bwabwayo.app.domain.support.controller;
 import com.bwabwayo.app.domain.support.dto.request.ReportRequest;
 import com.bwabwayo.app.domain.support.dto.response.ReportResponse;
 import com.bwabwayo.app.domain.support.service.ReportService;
-import com.bwabwayo.app.domain.user.annotation.LoginUser;
+import com.bwabwayo.app.domain.auth.annotation.LoginUser;
 import com.bwabwayo.app.domain.user.domain.User;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
