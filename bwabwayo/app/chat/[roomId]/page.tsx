@@ -53,8 +53,8 @@ export default function ChatRoomPage() {
 
     const message: ChatMessage = {
       roomId: roomId,
-      senderId: receiverId,
-      receiverId: senderId,
+      senderId: senderId,
+      receiverId: receiverId,
       content: content,
       isRead: false,
       createdAt: new Date(),
