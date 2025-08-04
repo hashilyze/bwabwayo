@@ -2,7 +2,6 @@ package com.bwabwayo.app.domain.product.repository;
 
 import com.bwabwayo.app.domain.product.domain.QProduct;
 import com.bwabwayo.app.domain.product.dto.response.ProductWithWishDTO;
-import com.bwabwayo.app.domain.user.domain.QUser;
 import com.bwabwayo.app.domain.wish.domain.QWish;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;

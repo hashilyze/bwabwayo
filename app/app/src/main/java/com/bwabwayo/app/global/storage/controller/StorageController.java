@@ -20,13 +20,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = { "/api/storage", "/api/s3"})
 public class StorageController {
-
     private final StorageService storageService;
     private final S3Service s3Service;
 
