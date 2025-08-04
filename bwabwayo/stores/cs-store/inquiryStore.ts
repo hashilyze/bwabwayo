@@ -57,7 +57,7 @@ export const useInquiryStore = create<InquiryStore>((set, get) => ({
         set({ loading: true, error: null });
         try {
             // get이라 수정가능
-            const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/support/inquiry`);
+            const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/support/inquery`);
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
                 throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
@@ -77,10 +77,16 @@ export const useInquiryStore = create<InquiryStore>((set, get) => ({
         try{
             // 강화된 AuthStore의 authenticatedFetch 사용
             // 자동 토큰 관리, 갱신, 재시도, 큐 처리 모든 기능 포함! 🚀
-            const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/support/inquiry/save`, {
+            const serverPayload = {
+                title: inquiryData.title,
+                description: inquiryData.description,
+                imageUrlList: inquiryData.images.map(img => img.imageUrl),
+            };
+
+            const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/support/inquery/save`, {
                 method: 'POST',
-                body: JSON.stringify(inquiryData),
-            })
+                body: JSON.stringify(serverPayload),
+            });
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
