@@ -2,17 +2,34 @@
 
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useInquiryStore } from '@/stores/cs-store/inquiryStore';
+import type { Inquiry } from '@/stores/cs-store/inquiryStore';
+import InquiryDetail from '@/components/cs-center/InquiryDetail';
 
 const InquiryList = () => {
   // 1. inquiryStore에서 상태와 액션을 가져옵니다.
   const { inquiries, loading, error, getInquiries } = useInquiryStore();
+  const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
+
+  const formatDateSimple = (dateString: string) => {
+    if (!dateString) return '';
+    const parsableDateString = dateString.replace(' ', 'T');
+    return new Date(parsableDateString).toLocaleDateString('ko-KR');
+  };
 
   // 2. 컴포넌트가 마운트될 때 getInquiries 액션을 호출하여 데이터를 가져옵니다.
   useEffect(() => {
-    getInquiries();
-  }, [getInquiries]);
+    // 상세 보기에서 목록으로 돌아왔을 때는 목록을 새로고침하지 않습니다.
+    if (!selectedInquiry) {
+      getInquiries();
+    }
+  }, [getInquiries, selectedInquiry]);
+
+  // 상세 보기 컴포넌트를 렌더링합니다.
+  if (selectedInquiry) {
+    return <InquiryDetail inquiry={selectedInquiry} onBack={() => setSelectedInquiry(null)} />;
+  }
 
   // 3. 로딩 상태에 따른 UI 처리
   if (loading) {
@@ -32,8 +49,12 @@ const InquiryList = () => {
       ) : (
         <ul className="divide-y divide-gray-200">
           {/* 5. 조회된 문의 목록을 순회하며 렌더링합니다. */}
-          {inquiries.map((inquiry) => (
-            <li key={inquiry.id} className="py-4 flex items-center justify-between">
+          {inquiries.map(inquiry => (
+            <li
+              key={inquiry.id}
+              className="py-4 flex items-center justify-between cursor-pointer hover:bg-gray-50"
+              onClick={() => setSelectedInquiry(inquiry)}
+            >
               <div className="flex items-center space-x-4">
                 {/* 6. repliedAt 값에 따라 '답변완료' 또는 '답변대기' 배지를 표시합니다. */}
                 {inquiry.repliedAt ? (
@@ -49,7 +70,7 @@ const InquiryList = () => {
               </div>
               <p className="text-sm text-gray-500">
                 {/* 7. createdAt 날짜를 보기 좋은 형식으로 표시합니다. */}
-                {new Date(inquiry.createdAt).toLocaleDateString('ko-KR')}
+                {formatDateSimple(inquiry.createdAt)}
               </p>
             </li>
           ))}

@@ -51,7 +51,7 @@ export const useReportStore = create<ReportStore>((set, get) => ({
             // 강화된 AuthStore의 authenticatedFetch 사용
             // 자동 토큰 관리, 갱신, 재시도, 큐 처리 모든 기능 포함! 🚀
             // get이라 수정가능
-            const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/support/reports/save`, {
+            const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/support/report/save`, {
                 method: 'POST',
                 body: JSON.stringify(reportData),
             })
@@ -71,7 +71,7 @@ export const useReportStore = create<ReportStore>((set, get) => ({
     getReports: async () => {
         set({ loading: true, error: null });
         try {
-            const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/support/reports`);
+            const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/support/report`);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }

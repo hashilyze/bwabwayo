@@ -214,7 +214,7 @@ export default function Navbar() {
                 <div className="text-white text-sm">카테고리</div>
             </div>
             <ul className="flex items-center gap-7 ml-2 text-[15px] font-normal">
-                <li><Link href="#">고객센터</Link></li>
+                <li><Link href="/cs-center">고객센터</Link></li>
             </ul>
             {showCategory && (
             <div 
