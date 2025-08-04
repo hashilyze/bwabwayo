@@ -29,7 +29,7 @@ public class InqueryService {
                 InqueryResponse.builder()
                         .id(Inquery.getId())
                         .title(Inquery.getTitle())
-                        .imageUrl(Inquery.getImageUrl())
+                        .imageUrlList(Inquery.getImageUrlList())
                         .name(Inquery.getUser().getNickname())
                         .description(Inquery.getDescription())
                         .reply(Inquery.getReply())

@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 
 @Entity
 @Getter
@@ -23,8 +24,14 @@ public class Report{
     @Column(nullable = false)
     public String title;
 
-    @Column(name = "image_url", columnDefinition = "TEXT")
-    private String imageUrl;
+    // ① List<String> 필드 선언
+    @ElementCollection
+    @CollectionTable(
+            name = "report_images",
+            joinColumns = @JoinColumn(name = "report_id")
+    )
+    @Column(name = "image_url")
+    private List<String> imageUrlList;
 
     @Column(nullable = false)
     public String description;

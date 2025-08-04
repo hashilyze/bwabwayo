@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 
 @Getter
 @Builder
@@ -15,8 +17,9 @@ import lombok.NoArgsConstructor;
 public class ReportResponse {
     private Long id;
     private String title;
-    private String imageUrl;
+    private List<String> imageUrlList;
     private String targetName;
+    private String name;
     private String description;
     private String reply;
     private String createdAt;

@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.security.PrivateKey;
+import java.util.List;
 
 @Getter
 @Builder
@@ -16,13 +16,13 @@ public class InqueryRequest {
 
     private String title;
     private String description;
-    private String imageUrl;
+    private List<String> imageUrlList;
 
     public static Inquery toEntity(InqueryRequest request){
         return Inquery.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .imageUrl(request.getImageUrl())
+                .imageUrlList(request.getImageUrlList())
                 .build();
     }
 }
