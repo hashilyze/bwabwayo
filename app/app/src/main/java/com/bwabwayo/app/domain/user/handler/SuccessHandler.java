@@ -4,13 +4,12 @@ import com.bwabwayo.app.domain.user.dto.request.CustomOAuth2User;
 import com.bwabwayo.app.domain.user.dto.request.OAuth2UserRequest;
 import com.bwabwayo.app.domain.user.service.UserRedisService;
 import com.bwabwayo.app.domain.user.utils.JWTUtils;
-import com.bwabwayo.app.domain.user.config.JwtProperties;
+import com.bwabwayo.app.domain.user.utils.JwtProperties;
 import com.bwabwayo.app.domain.user.domain.Role;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -54,18 +53,8 @@ public class SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
                     .toUriString();
 
             response.sendRedirect(redirectUrl);
-        }else { //AT/RT 토큰 발행 후 전달
+        }else { //AT 토큰 발행 후 전달, RT를 여기서 발급하면 kakao쪽으로 응답이 가버림
             System.out.println("USER");
-            // 가입된 유저 → AccessToken + RefreshToken 발급
-            String refreshToken = jwtUtils.createToken(user, jwtProperties.getRefreshExpMinutes(), user.getRole()); // 7일
-
-            // ✅ RT를 Redis에 저장 (TTL: 7일)
-            userRedisService.saveRefreshToken(user.getId(), refreshToken);
-
-            // RefreshToken은 HttpOnly 쿠키로 전달
-            ResponseCookie cookie = JWTUtils.createHttpOnlyCookie(refreshToken);
-            response.setHeader("Set-Cookie", cookie.toString());
-//            response.addHeader(jwtProperties.getHeader(), jwtProperties.getType() + accessToken); //헤더로 주는 방식
 
             String redirectUrl = UriComponentsBuilder
                     .fromUriString("https://i13e202.p.ssafy.io/fe/logincallback")

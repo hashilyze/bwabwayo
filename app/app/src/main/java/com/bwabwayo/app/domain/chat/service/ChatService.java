@@ -1,5 +1,6 @@
 package com.bwabwayo.app.domain.chat.service;
 
+import com.bwabwayo.app.domain.chat.domain.ChatMessageRedisEntity;
 import com.bwabwayo.app.domain.chat.dto.MessageDTO;
 import com.bwabwayo.app.domain.chat.dto.MessageSubDTO;
 import com.bwabwayo.app.domain.chat.dto.response.ChatRoomListResponse;
@@ -23,7 +24,8 @@ public class ChatService {
     public void sendChatMessage(MessageDTO chatMessage) {
         log.info("📢 메시지 브로드캐스트: {}", chatMessage);
 
-        redisService.saveMessageToRedis(chatMessage);
+        ChatMessageRedisEntity redisEntity = redisService.saveMessageToRedis(chatMessage);
+        redisPublisher.publish(redisEntity);
 
         String userId = chatMessage.getSenderId();
         String partnerId;
@@ -84,20 +86,6 @@ public class ChatService {
         //다시 원상태로 복귀
         newChatRoomListResponse.changePartnerInfo();
 
-    }
-
-    // redis에서 채팅방 리스트 불러오는 로직
-    private List<ChatRoomListResponse> getChatRoomListByUserId(String userId) {
-        List<ChatRoomListResponse> chatRoomListGetResponseList = new ArrayList<>();
-
-        if (chatRoomRedisRepository.existChatRoomList(userId)) {
-            chatRoomListGetResponseList = chatRoomRedisRepository.getChatRoomList(userId);
-/*            for (ChatRoomListResponse chatRoomListGetResponse : chatRoomListGetResponseList) {
-                chatRoomService.setListChatLastMessage(chatRoomListGetResponse);
-            }*/
-        }
-
-        return chatRoomListGetResponseList;
     }
 
     private String getPartnerId(MessageDTO chatMessageDto, ChatRoomListResponse my) {

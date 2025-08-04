@@ -2,15 +2,12 @@ package com.bwabwayo.app.domain.user.controller;
 
 
 import com.bwabwayo.app.domain.user.annotation.LoginUser;
-import com.bwabwayo.app.domain.user.config.JwtProperties;
+import com.bwabwayo.app.domain.user.utils.JwtProperties;
 import com.bwabwayo.app.domain.user.domain.Role;
 import com.bwabwayo.app.domain.user.domain.User;
 import com.bwabwayo.app.domain.user.dto.request.OAuth2UserRequest;
 import com.bwabwayo.app.domain.user.dto.request.UserSignUpRequest;
 import com.bwabwayo.app.domain.user.dto.response.UserTokenResponse;
-import com.bwabwayo.app.domain.user.repository.AccountRepository;
-import com.bwabwayo.app.domain.user.repository.DeliveryAddressRepository;
-import com.bwabwayo.app.domain.user.repository.UserRepository;
 import com.bwabwayo.app.domain.user.service.AuthService;
 import com.bwabwayo.app.domain.user.service.UserRedisService;
 import com.bwabwayo.app.domain.user.utils.JWTUtils;
@@ -21,6 +18,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -40,6 +38,7 @@ import java.util.stream.Stream;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthController {
     private final AuthService authService;
     private final JWTUtils jwtUtils;
@@ -140,6 +139,38 @@ public class AuthController {
 
         return ResponseEntity.ok("로그아웃 완료");
     }
+
+    //기본유저 로그인 시 RefreshToken 받기
+    @PostMapping("/refresh/init")
+    public ResponseEntity<?> refreshTokenInit(@LoginUser User user, HttpServletRequest request, HttpServletResponse response) {
+        //user의 id를 가져와서 토큰 생성
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("인증된 사용자가 없습니다.");
+        }
+        //그 토큰을 HttpOnlyCookie로 만들어서 response에 담아서 전송
+        String refreshToken;
+        try {
+            refreshToken = jwtUtils.createToken(new OAuth2UserRequest(user), jwtProperties.getRefreshExpMinutes(), user.getRole());
+        } catch (Exception e) {
+            log.error("RefreshToken 생성 실패", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("토큰 생성 실패");
+        }
+
+        // ✅ RT를 Redis에 저장 (TTL: 7일)
+        try {
+            userRedisService.saveRefreshToken(user.getId(), refreshToken);
+        } catch (Exception e) {
+            log.error("Redis 저장 실패", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Redis 저장 실패");
+        }
+
+        // RefreshToken은 HttpOnly 쿠키로 전달
+        ResponseCookie cookie = JWTUtils.createHttpOnlyCookie(refreshToken);
+        response.setHeader("Set-Cookie", cookie.toString());
+
+        return ResponseEntity.ok().build();
+    }
+
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) {
