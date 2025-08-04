@@ -82,7 +82,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className={`bg-white border-b-1 border-[#eee] fixed top-0 left-0 right-0 z-99 transition-shadow duration-200 ${isScrolled ? 'shadow' : ''}`}>
+    <nav className={`bg-white border-b-1 border-[#eee] fixed top-0 left-0 right-0 z-98 transition-shadow duration-200 ${isScrolled ? 'shadow' : ''}`}>
       {/* top-nav */}
       {/* <div className="flex flex-col bg-[#fafafa]">
         <div className="w-[1280px] m-auto py-2 flex justify-end text-sm text-gray-500 gap-4">
