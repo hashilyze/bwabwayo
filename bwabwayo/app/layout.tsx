@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "봐봐요",
   description: "화상중고거래 플랫폼, 봐봐요",
   icons: {
-    icon: "/favicon.png",
+    icon: process.env.NODE_ENV === 'production' ? '/fe/favicon.png' : '/favicon.png',
   },
   other: {
     "Content-Security-Policy": "upgrade-insecure-requests",

@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useChatRoomStore } from "@/stores/chatting/chatRoomStore";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface Seller {
   id: number,
@@ -79,11 +80,12 @@ export default function ProductDetailPage() {
         <div className="flex-2 w-full max-w-md">
           <div className="sticky top-40 z-8">
             <div className="flex flex-col gap-4">
-              <div className="rounded-2xl overflow-hidden border border-gray-200">
-                                 <img 
-                   src={product?.imageUrls?.[0] || '/image/no-image.jpg'} 
+              <div className="rounded-2xl overflow-hidden border border-gray-200 relative aspect-square">
+                <Image 
+                   src={product?.imageUrls?.[0] || '/image/no-image.jpg'}
+                   fill
                    alt="상품 대표 이미지" 
-                   className="w-full h-auto aspect-square object-cover"
+                   className="object-cover"
                    onError={(e) => {
                      const target = e.target as HTMLImageElement;
                      target.src = '/image/no-image.jpg';

@@ -123,6 +123,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     const makeRequest = async (requestUrl: string, requestOptions: RequestInit, retry = false): Promise<Response> => {
 
       const currentToken = get().getToken()
+      console.log('currentToken', currentToken)
       // 99년짜리 임시 토큰(실제 사용 시 주석처리)
       // const currentToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI0Mzc1MTI2ODM0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NTM5NTEzMjgsImV4cCI6MzMyODk5MTUzMjh9.x6QKDSIth4WZtJOqeW5-8ux1z5W2VML-PV119T42p5reHCV9WzALknLjrmD2WFga'
       
