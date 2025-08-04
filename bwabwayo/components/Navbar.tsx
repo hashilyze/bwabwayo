@@ -213,7 +213,7 @@ export default function Navbar() {
                             {/* 사용자 정보 헤더 */}
                             <ul className="py-1">
                                 <li>
-                                    <Link href="/shop" className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                                    <Link href="/mypage" className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
                                         <span>마이페이지</span>
                                     </Link>
                                 </li>
