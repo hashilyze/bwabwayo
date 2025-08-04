@@ -63,8 +63,8 @@ const InquiryDetail: React.FC<InquiryDetailProps> = ({ inquiry, onBack }) => {
           </div>
         )}
 
-        답변이 있을 경우에만 답변 섹션을 렌더링합니다.
-        {inquiry.reply && (
+        {/* 답변이 있을 경우에만 답변 섹션을 렌더링합니다. */}
+        {/* {inquiry.reply && (
           <div className="bg-gray-50 p-4 rounded-lg">
             <h3 className="text-lg font-semibold text-gray-800 mb-2">답변 내용</h3>
             <p className="text-gray-700 whitespace-pre-wrap">{inquiry.reply}</p>
@@ -74,7 +74,7 @@ const InquiryDetail: React.FC<InquiryDetailProps> = ({ inquiry, onBack }) => {
               </p>
             )}
           </div>
-        )}
+        )} */}
       </div>
 
       <div className="mt-8 flex justify-end">

@@ -66,8 +66,8 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // 자체 API 라우트(/api/auth/refresh)를 호출하여 토큰 갱신
-        const { data } = await axios.post<{ accessToken: string }>('/api/auth/refresh');
+        // 자체 API 라우트(/be/api/auth/refresh)를 호출하여 토큰 갱신
+        const { data } = await axios.post<{ accessToken: string }>('/be/api/auth/refresh');
         const newAccessToken = data.accessToken;
 
         localStorage.setItem('accessToken', newAccessToken);
