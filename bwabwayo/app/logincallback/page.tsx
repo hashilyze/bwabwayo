@@ -3,6 +3,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, Suspense } from 'react'
 import api from '@/lib/api'
 import { useAuthStore } from '@/stores/auth/authStore'
+import { useSignupStore } from '@/stores/signUpStore'
 
 function CallbackHandler() {
   const router = useRouter()
@@ -10,6 +11,9 @@ function CallbackHandler() {
   const { setToken, authenticatedFetch } = useAuthStore()
   const accessToken = searchParams.get('accessToken')
   const isNewUser = searchParams.get('isNewUser')
+  const { setSocialInfo, setEmail, setProfileImage } = useSignupStore();
+
+
 
   useEffect(() => {
     const processLogin = async () => {
@@ -17,8 +21,28 @@ function CallbackHandler() {
       if (isNewUser === 'true') {
         // 신규 유저인 경우, 회원가입 페이지로 모든 파라미터를 가지고 이동합니다.
         // 회원가입 페이지에서 accessToken을 포함한 다른 정보들을 활용할 수 있습니다.
-        const signupUrl = `/signup?${searchParams.toString()}`
-        router.replace(signupUrl)
+        const email = searchParams.get('email');
+        const profileImage = searchParams.get('profileImage');
+        const accessToken = searchParams.get('accessToken');
+        const id = searchParams.get('id');
+        
+        // store에 저장
+       if (accessToken && id) {
+  setSocialInfo({ token: accessToken, id });
+  console.log('콜백: setSocialInfo', { token: accessToken, id });
+}
+if (email) {
+  setEmail(email);
+  console.log('콜백: setEmail', email);
+}
+if (profileImage) {
+  setProfileImage(decodeURIComponent(profileImage));
+  console.log('콜백: setProfileImage', decodeURIComponent(profileImage));
+}
+        // 회원가입 페이지로 이동 (파라미터 없이)
+        router.replace('/signup');
+
+
         return // 리디렉션 후에는 더 이상 로직을 진행하지 않습니다.
       }
 

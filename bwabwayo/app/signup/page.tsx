@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useRef, ChangeEvent, FormEvent, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation'; // useRouter와 useSearchParams import
+import { useRouter } from 'next/navigation'; // useRouter import
 import { useSignupStore } from '@/stores/signUpStore'; // Zustand 스토어를 import 합니다.
 import Script from 'next/script';
 
@@ -62,34 +62,12 @@ export default function SignUpPage() {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
-    const searchParams = useSearchParams();
-
-    // --- 추가된 부분: URL 파라미터를 읽어 스토어에 저장하고 URL을 정리합니다. ---
-   useEffect(() => {
-    const accessToken = searchParams.get('accessToken');
-    const id = searchParams.get('id');
-    const emailFromQuery = searchParams.get('email');
-    const profileImageFromQuery = searchParams.get('profileImage');
-
-    console.log('URL 파라미터:', { accessToken, id, emailFromQuery, profileImageFromQuery });
-
-
-   if (accessToken && id) {
-        setSocialInfo({ token: accessToken, id });
-        if (emailFromQuery) {
-            setEmail(emailFromQuery);
-            console.log('setEmail 호출:', emailFromQuery);
-        }
-        if (profileImageFromQuery) {
-            const decoded = decodeURIComponent(profileImageFromQuery);
-            setProfileImage(decoded);
-            console.log('setProfileImage 호출:', decoded);
-        }
-        setTimeout(() => {
-            router.replace('/signup', { scroll: false });
-        }, 0);
-    }
-}, [searchParams, setEmail, setProfileImage, setSocialInfo, router]);
+    
+    // 소셜 로그인 정보는 콜백 페이지에서 Zustand 스토어에 미리 저장됩니다.
+    // 이 페이지는 스토어에서 값을 읽어와 UI를 채우기만 하므로,
+    // URL 파라미터를 파싱하는 별도의 useEffect 로직이 필요 없습니다.
+    // 컴포넌트가 렌더링될 때 useSignupStore() 훅이 최신 상태를 가져와
+    // email, profileImage 등의 값을 input에 자동으로 채워줍니다.
 
     // --- 이벤트 핸들러 ---
     const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
