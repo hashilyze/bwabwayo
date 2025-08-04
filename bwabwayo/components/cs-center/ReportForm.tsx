@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useReportStore } from '@/stores/cs-store/reportStore';
 
 interface ReportFormProps {
   onBack: () => void;
@@ -11,28 +12,28 @@ const ReportForm: React.FC<ReportFormProps> = ({ onBack }) => {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('부적절한 상품');
   const [image, setImage] = useState<File | null>(null);
+  const { addReport } = useReportStore();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: 폼 데이터를 API로 전송하는 로직을 구현해야 합니다.
-    const formData = new FormData();
-    formData.append('category', category);
-    formData.append('title', title);
-    formData.append('description', description);
+
+    // TODO: 실제 이미지 업로드 로직 구현 필요
+    // 1. 선택된 이미지 파일을 서버에 업로드합니다. (예: S3 또는 자체 서버)
+    // 2. 업로드 후 반환된 이미지 URL을 받습니다.
+    let imageUrl = '';
     if (image) {
-      formData.append('image', image);
-      // `order`는 이미지 업로드 순서를 의미합니다. 단일 이미지이므로 1로 설정합니다.
-      formData.append('order', '1');
+      // const uploadedUrl = await uploadImageFunction(image);
+      imageUrl = 'https://example.com/placeholder.jpg'; // 임시 URL
     }
 
-    console.log('Submitting report:', {
-      category,
+    const reportData = {
       title,
       description,
-      imageName: image?.name,
-    });
+      images: imageUrl ? [{ imageUrl: imageUrl, order: 1 }] : [],
+    };
 
-    // 데모용으로 alert를 띄우고 목록으로 돌아갑니다.
+    await addReport(reportData);
+
     alert('신고가 접수되었습니다.');
     onBack();
   };
@@ -132,4 +133,3 @@ const ReportForm: React.FC<ReportFormProps> = ({ onBack }) => {
 };
 
 export default ReportForm;
-
