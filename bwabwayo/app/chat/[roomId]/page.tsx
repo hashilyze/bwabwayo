@@ -2,6 +2,7 @@
 
 import ChatModal from '@/components/chat/ChatModal'
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
+import { useUserInfoStore } from '@/stores/user/getUserInfoStore'
 import { useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
 
@@ -23,6 +24,7 @@ export default function ChatRoomPage({
   const params = useParams()
   const roomId = Number(params.roomId)
   const { messages, stompClient, isConnected, connectStomp, disconnectStomp, appendMessage, roomInfo } = useChatRoomStore()
+  const { userInfo } = useUserInfoStore()
   const chatBodyRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -35,6 +37,15 @@ export default function ChatRoomPage({
     }
   }, [roomId, connectStomp, disconnectStomp])
 
+  // 사용자 정보 로드
+  useEffect(() => {
+    const loadUserInfo = async () => {
+      const { getUserInfo } = useUserInfoStore.getState()
+      await getUserInfo()
+    }
+    loadUserInfo()
+  }, [])
+
   useEffect(() => {
     // 메시지가 추가될 때마다 스크롤을 맨 아래로
     if (chatBodyRef.current) {
@@ -45,18 +56,32 @@ export default function ChatRoomPage({
   const handleSendMessage = async (content: string) => {
     if (!content.trim() || !isConnected) return
 
-    // URL 파라미터에서 senderId와 receiverId 가져오기
-    const senderId = searchParams.buyerId || ''
-    const receiverId = searchParams.sellerId || ''
+    // 현재 로그인한 사용자 정보 확인
+    if (!userInfo?.id) {
+      console.error('❌ 로그인한 사용자 정보가 없습니다')
+      return
+    }
 
-    if (!senderId || !receiverId) {
-      console.error('❌ senderId 또는 receiverId가 URL 파라미터에 없습니다')
+    // URL 파라미터에서 상대방 ID 가져오기
+    const buyerId = searchParams.buyerId || ''
+    const sellerId = searchParams.sellerId || ''
+
+    // 현재 사용자가 누구인지 판단하여 receiverId 결정
+    let receiverId = ''
+    if (userInfo.id === buyerId) {
+      // 현재 사용자가 구매자인 경우, 판매자에게 메시지 전송
+      receiverId = sellerId
+    } else if (userInfo.id === sellerId) {
+      // 현재 사용자가 판매자인 경우, 구매자에게 메시지 전송
+      receiverId = buyerId
+    } else {
+      console.error('❌ 현재 사용자가 채팅방의 참여자가 아닙니다')
       return
     }
 
     const message: ChatMessage = {
       roomId: roomId,
-      senderId: senderId,
+      senderId: userInfo.id,
       receiverId: receiverId,
       content: content,
       isRead: false,
@@ -100,8 +125,8 @@ export default function ChatRoomPage({
           </div>
                  ) : (
            <>
-             {messages.map((message, index) => {
-                const isMine = message.senderId === searchParams.buyerId
+                           {messages.map((message, index) => {
+                 const isMine = message.senderId === userInfo?.id
               return (
                 <div
                   key={index}
