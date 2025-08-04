@@ -12,7 +12,7 @@ interface ChatRoom {
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const params = useParams();
-  const { roomList, getRoomList, isConnected } = useChatRoomStore();
+  const { roomList, getRoomList, isConnected, loadChatHistory, clearMessages } = useChatRoomStore();
   const [isLoading, setIsLoading] = useState(true);
   
   // URL에서 현재 선택된 roomId 가져오기 
@@ -68,15 +68,31 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     }
   }, [roomList]);
   
-  const handleChatRoomSelect = (chatRoom: ChatRoom) => {
+  const handleChatRoomSelect = async (chatRoom: ChatRoom) => {
     console.log(`채팅방 ${chatRoom.id} 선택됨`);
-    router.push(`/chat/${chatRoom.id}`);
+    
+    try {
+      // 1. 기존 메시지 초기화
+      clearMessages();
+      
+      // 2. 선택한 채팅방의 메시지 히스토리 로드
+      console.log(`📚 채팅방 ${chatRoom.id} 메시지 히스토리 로드 시작`);
+      await loadChatHistory(chatRoom.id);
+      
+      // 3. 채팅방 페이지로 이동
+      router.push(`/chat/${chatRoom.id}`);
+      
+    } catch (error) {
+      console.error(`❌ 채팅방 ${chatRoom.id} 선택 중 오류:`, error);
+      // 오류가 발생해도 페이지 이동은 진행
+      router.push(`/chat/${chatRoom.id}`);
+    }
   }
 
   return (
     <div className="flex h-[600px] bg-white">
       {/* 좌측 채팅 목록 */}
-      <div className="w-[640px] border-r border-gray-200">
+      <div className="w-[640px] border-r border-gray-200 overflow-y-auto">
         {/* 헤더 */}
         <div className="h-[84px] bg-white border-b border-gray-200 flex items-center px-5">
           <h1 className="text-xl font-bold text-black">전체 대화</h1>

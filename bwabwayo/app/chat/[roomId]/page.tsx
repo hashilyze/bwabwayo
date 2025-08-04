@@ -23,19 +23,39 @@ export default function ChatRoomPage({
 }) {
   const params = useParams()
   const roomId = Number(params.roomId)
-  const { messages, stompClient, isConnected, connectStomp, disconnectStomp, appendMessage, roomInfo } = useChatRoomStore()
+  const { messages, stompClient, isConnected, connectStomp, disconnectStomp, appendMessage, roomInfo, loadChatHistory, clearMessages } = useChatRoomStore()
   const { userInfo } = useUserInfoStore()
   const chatBodyRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // STOMP 연결 및 구독
-    connectStomp(roomId)
+    console.log(`🚀 채팅방 ${roomId} 입장 - 메시지 히스토리 로드 시작`);
+    
+    const initializeChatRoom = async () => {
+      try {
+        // 1. 기존 메시지 초기화
+        clearMessages();
+        
+        // 2. 채팅방 메시지 히스토리 로드
+        console.log(`📚 1단계: 채팅방 ${roomId} 메시지 히스토리 로드`);
+        await loadChatHistory(roomId);
+        
+        // 3. STOMP 연결 및 실시간 메시지 구독
+        console.log(`📡 2단계: 채팅방 ${roomId} STOMP 연결 및 구독`);
+        connectStomp(roomId);
+        
+      } catch (error) {
+        console.error(`❌ 채팅방 ${roomId} 초기화 실패:`, error);
+      }
+    };
+    
+    initializeChatRoom();
     
     return () => {
       // 컴포넌트 언마운트 시 연결 해제
-      disconnectStomp()
+      console.log(`👋 채팅방 ${roomId} 퇴장 - 연결 해제`);
+      disconnectStomp();
     }
-  }, [roomId, connectStomp, disconnectStomp])
+  }, [roomId, connectStomp, disconnectStomp, loadChatHistory, clearMessages])
 
   // 사용자 정보 로드
   useEffect(() => {
