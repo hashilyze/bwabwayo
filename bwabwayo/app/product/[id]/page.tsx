@@ -81,38 +81,21 @@ export default function ProductDetailPage() {
           <div className="sticky top-40 z-8">
             <div className="flex flex-col gap-4">
               <div className="rounded-2xl overflow-hidden border border-gray-200 relative aspect-square">
-                <Image 
-                   src={product?.imageUrls?.[0] || '/image/no-image.jpg'}
+                <Image
+                   src={product?.imageUrls?.[0] || `${process.env.PUBLIC_URL}/image/no-image.jpg`}
                    fill
                    alt="상품 대표 이미지" 
                    className="object-cover"
-                   onError={(e) => {
-                     const target = e.target as HTMLImageElement;
-                     target.src = '/image/no-image.jpg';
-                   }}
                  />
               </div>
-                             <ul className="grid grid-cols-4 gap-4">
-                 {product?.imageUrls?.slice(0, 4).map((imageUrl, index) => (
+                <ul className="grid grid-cols-4 gap-4">
+                 {product?.imageUrls?.slice(1, 5).map((imageUrl, index) => (
                    <li key={index} className="relative aspect-square">
                      <Image 
-                       src={imageUrl || '/image/no-image.jpg'} 
+                       src={imageUrl || `${process.env.PUBLIC_URL}/image/no-image.jpg`} 
                        alt={`상품 썸네일${index + 1}`} 
                        className="rounded-xl border border-[#eeeeee] object-cover"
-                       width={100}
-                       height={100}
-                     />
-                   </li>
-                 ))}
-                 {/* 이미지가 4개 미만인 경우 빈 썸네일로 채움 */}
-                 {Array.from({ length: Math.max(0, 4 - (product?.imageUrls?.length || 0)) }).map((_, index) => (
-                   <li key={`empty-${index}`}>
-                     <Image 
-                       src="/image/no-image.jpg" 
-                       alt="빈 썸네일" 
-                       className="rounded-xl border border-[#eeeeee] object-cover"
-                       width={100}
-                       height={100}
+                       fill
                      />
                    </li>
                  ))}
