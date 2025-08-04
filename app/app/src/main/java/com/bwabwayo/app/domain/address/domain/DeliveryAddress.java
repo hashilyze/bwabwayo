@@ -1,5 +1,6 @@
-package com.bwabwayo.app.domain.user.domain;
+package com.bwabwayo.app.domain.address.domain;
 
+import com.bwabwayo.app.domain.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 

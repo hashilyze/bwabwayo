@@ -1,4 +1,4 @@
-package com.bwabwayo.app.domain.user.handler;
+package com.bwabwayo.app.domain.auth.handler;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

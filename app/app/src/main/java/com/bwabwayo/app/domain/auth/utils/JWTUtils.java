@@ -1,7 +1,7 @@
-package com.bwabwayo.app.domain.user.utils;
+package com.bwabwayo.app.domain.auth.utils;
 
 import com.bwabwayo.app.domain.user.domain.Role;
-import com.bwabwayo.app.domain.user.dto.request.OAuth2UserRequest;
+import com.bwabwayo.app.domain.auth.dto.request.OAuth2UserRequest;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

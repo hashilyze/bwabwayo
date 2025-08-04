@@ -1,11 +1,9 @@
-package com.bwabwayo.app.domain.user.filter;
+package com.bwabwayo.app.domain.auth.filter;
 
 import com.bwabwayo.app.domain.user.domain.Role;
-import com.bwabwayo.app.domain.user.domain.User;
-import com.bwabwayo.app.domain.user.dto.request.CustomOAuth2User;
-import com.bwabwayo.app.domain.user.dto.request.OAuth2UserRequest;
-import com.bwabwayo.app.domain.user.repository.UserRepository;
-import com.bwabwayo.app.domain.user.utils.JWTUtils;
+import com.bwabwayo.app.domain.auth.dto.request.CustomOAuth2User;
+import com.bwabwayo.app.domain.auth.dto.request.OAuth2UserRequest;
+import com.bwabwayo.app.domain.auth.utils.JWTUtils;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -17,7 +15,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.naming.AuthenticationException;
@@ -26,7 +23,6 @@ import java.io.IOException;
 @Slf4j
 @RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
-    private final UserRepository userRepository;
     private final JWTUtils jwtUtils;
 
     //Header 유효성 체크

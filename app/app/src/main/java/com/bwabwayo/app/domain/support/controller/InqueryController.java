@@ -3,7 +3,7 @@ package com.bwabwayo.app.domain.support.controller;
 import com.bwabwayo.app.domain.support.dto.request.InqueryRequest;
 import com.bwabwayo.app.domain.support.dto.response.InqueryResponse;
 import com.bwabwayo.app.domain.support.service.InqueryService;
-import com.bwabwayo.app.domain.user.annotation.LoginUser;
+import com.bwabwayo.app.domain.auth.annotation.LoginUser;
 import com.bwabwayo.app.domain.user.domain.User;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

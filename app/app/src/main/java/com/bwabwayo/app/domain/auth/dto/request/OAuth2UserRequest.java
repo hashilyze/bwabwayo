@@ -1,4 +1,4 @@
-package com.bwabwayo.app.domain.user.dto.request;
+package com.bwabwayo.app.domain.auth.dto.request;
 
 import com.bwabwayo.app.domain.user.domain.User;
 import com.bwabwayo.app.domain.user.domain.Role;

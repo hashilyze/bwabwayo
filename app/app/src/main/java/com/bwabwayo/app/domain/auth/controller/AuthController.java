@@ -1,16 +1,17 @@
-package com.bwabwayo.app.domain.user.controller;
+package com.bwabwayo.app.domain.auth.controller;
 
 
-import com.bwabwayo.app.domain.user.annotation.LoginUser;
-import com.bwabwayo.app.domain.user.utils.JwtProperties;
+import com.bwabwayo.app.domain.auth.annotation.LoginUser;
+import com.bwabwayo.app.domain.user.service.UserService;
+import com.bwabwayo.app.domain.auth.utils.JwtProperties;
 import com.bwabwayo.app.domain.user.domain.Role;
 import com.bwabwayo.app.domain.user.domain.User;
-import com.bwabwayo.app.domain.user.dto.request.OAuth2UserRequest;
-import com.bwabwayo.app.domain.user.dto.request.UserSignUpRequest;
-import com.bwabwayo.app.domain.user.dto.response.UserTokenResponse;
-import com.bwabwayo.app.domain.user.service.AuthService;
-import com.bwabwayo.app.domain.user.service.UserRedisService;
-import com.bwabwayo.app.domain.user.utils.JWTUtils;
+import com.bwabwayo.app.domain.auth.dto.request.OAuth2UserRequest;
+import com.bwabwayo.app.domain.auth.dto.request.UserSignUpRequest;
+import com.bwabwayo.app.domain.auth.dto.response.UserTokenResponse;
+import com.bwabwayo.app.domain.auth.service.AuthService;
+import com.bwabwayo.app.domain.auth.service.AuthRedisService;
+import com.bwabwayo.app.domain.auth.utils.JWTUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -41,9 +42,10 @@ import java.util.stream.Stream;
 @Slf4j
 public class AuthController {
     private final AuthService authService;
+    private final UserService userService;
     private final JWTUtils jwtUtils;
     private final JwtProperties  jwtProperties;
-    private final UserRedisService  userRedisService;
+    private final AuthRedisService authRedisService;
 
     @PostMapping("/signup")
     @Operation(summary = "회원가입", description = "OAuth2 로그인 후, 추가 회원 정보를 입력 받아 가입 처리 후 토큰을 발급합니다.")
@@ -58,7 +60,7 @@ public class AuthController {
             UserTokenResponse tokens = authService.signUp(request);
 
             // ✅ RT를 Redis에 저장 (TTL: 7일)
-            userRedisService.saveRefreshToken(request.getId(), tokens.getRefreshToken());
+            authRedisService.saveRefreshToken(request.getId(), tokens.getRefreshToken());
 
             // AccessToken만 바디에 포함
             Map<String, String> responseBody = Map.of(
@@ -125,7 +127,7 @@ public class AuthController {
             String userId = jwtUtils.getSubject(refreshToken); // 서명 검증 없이 claim 추출만
             //refreshToken 안에 userId 있는 지 체크
             if (userId != null) {
-                userRedisService.deleteRefreshToken(userId);
+                authRedisService.deleteRefreshToken(userId);
             }
         }
 
@@ -158,7 +160,7 @@ public class AuthController {
 
         // ✅ RT를 Redis에 저장 (TTL: 7일)
         try {
-            userRedisService.saveRefreshToken(user.getId(), refreshToken);
+            authRedisService.saveRefreshToken(user.getId(), refreshToken);
         } catch (Exception e) {
             log.error("Redis 저장 실패", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Redis 저장 실패");
@@ -196,13 +198,13 @@ public class AuthController {
         }
 
         //DB에서 조회
-        String savedRefreshToken = userRedisService.getRefreshToken(userId);
+        String savedRefreshToken = authRedisService.getRefreshToken(userId);
         if (savedRefreshToken == null || !savedRefreshToken.equals(refreshToken)) {
             // 401 Unauthorized
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("허용하지 않는 리프레시 토큰입니다.");
         }
 
-        User user = authService.findById(userId);
+        User user = userService.findById(userId);
 
         //아래에 주석 처리 된건, RT의 남은 시간이 규정한 시간보다 적게 되면 RT를 재발급해주는 로직을 위해 남겨둠
         Role role = user.getRole();

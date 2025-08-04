@@ -1,9 +1,9 @@
-package com.bwabwayo.app.domain.user.annotation;
+package com.bwabwayo.app.domain.auth.annotation;
 
 import com.bwabwayo.app.domain.user.domain.User;
-import com.bwabwayo.app.domain.user.exception.UnauthorizedException;
-import com.bwabwayo.app.domain.user.repository.UserRepository;
-import com.bwabwayo.app.domain.user.utils.JWTUtils;
+import com.bwabwayo.app.domain.auth.exception.UnauthorizedException;
+import com.bwabwayo.app.domain.auth.utils.JWTUtils;
+import com.bwabwayo.app.domain.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -14,10 +14,10 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 //어노테이션을 설정했을 때 자동으로 주입해주는 클래스
 public class LoginUserArgumentResolver implements HandlerMethodArgumentResolver {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final JWTUtils jwtUtils;
-    public LoginUserArgumentResolver(UserRepository userRepository, JWTUtils jwtUtils) {
-        this.userRepository = userRepository;
+    public LoginUserArgumentResolver(UserService userService, JWTUtils jwtUtils) {
+        this.userService = userService;
         this.jwtUtils = jwtUtils;
     }
 
@@ -59,6 +59,6 @@ public class LoginUserArgumentResolver implements HandlerMethodArgumentResolver 
             }
             return null;
         }
-        return userRepository.findUserById(userId);
+        return userService.findById(userId);
     }
 }

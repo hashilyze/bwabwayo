@@ -1,10 +1,10 @@
-package com.bwabwayo.app.domain.user.handler;
+package com.bwabwayo.app.domain.auth.handler;
 
-import com.bwabwayo.app.domain.user.dto.request.CustomOAuth2User;
-import com.bwabwayo.app.domain.user.dto.request.OAuth2UserRequest;
-import com.bwabwayo.app.domain.user.service.UserRedisService;
-import com.bwabwayo.app.domain.user.utils.JWTUtils;
-import com.bwabwayo.app.domain.user.utils.JwtProperties;
+import com.bwabwayo.app.domain.auth.dto.request.CustomOAuth2User;
+import com.bwabwayo.app.domain.auth.dto.request.OAuth2UserRequest;
+import com.bwabwayo.app.domain.auth.service.AuthRedisService;
+import com.bwabwayo.app.domain.auth.utils.JWTUtils;
+import com.bwabwayo.app.domain.auth.utils.JwtProperties;
 import com.bwabwayo.app.domain.user.domain.Role;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,7 +25,7 @@ import java.nio.charset.StandardCharsets;
 public class SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final JWTUtils jwtUtils;
     private final JwtProperties jwtProperties;
-    private final UserRedisService userRedisService;
+    private final AuthRedisService authRedisService;
     @Override
     @Transactional
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {

@@ -1,7 +1,7 @@
 package com.bwabwayo.app.domain.notification.controller;
 
 import com.bwabwayo.app.domain.notification.service.SseService;
-import com.bwabwayo.app.domain.user.annotation.LoginUser;
+import com.bwabwayo.app.domain.auth.annotation.LoginUser;
 import com.bwabwayo.app.domain.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

@@ -1,4 +1,4 @@
-package com.bwabwayo.app.domain.user.annotation;
+package com.bwabwayo.app.domain.auth.annotation;
 
 
 import java.lang.annotation.ElementType;

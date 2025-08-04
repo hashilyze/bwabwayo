@@ -1,8 +1,8 @@
 package com.bwabwayo.app.global.config;
 
-import com.bwabwayo.app.domain.user.annotation.LoginUserArgumentResolver;
-import com.bwabwayo.app.domain.user.repository.UserRepository;
-import com.bwabwayo.app.domain.user.utils.JWTUtils;
+import com.bwabwayo.app.domain.auth.annotation.LoginUserArgumentResolver;
+import com.bwabwayo.app.domain.auth.utils.JWTUtils;
+import com.bwabwayo.app.domain.user.service.UserService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -12,17 +12,17 @@ import java.util.List;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final JWTUtils jwtUtils;
 
-    public WebConfig(UserRepository userRepository, JWTUtils jwtUtils) {
-        this.userRepository = userRepository;
+    public WebConfig(UserService userService, JWTUtils jwtUtils) {
+        this.userService = userService;
         this.jwtUtils = jwtUtils;
     }
 
     @Override
     //커스텀한 어노테이션 추가
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-        resolvers.add(new LoginUserArgumentResolver(userRepository, jwtUtils));
+        resolvers.add(new LoginUserArgumentResolver(userService, jwtUtils));
     }
 }

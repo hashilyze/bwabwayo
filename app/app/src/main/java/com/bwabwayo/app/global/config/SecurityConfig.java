@@ -1,10 +1,9 @@
 package com.bwabwayo.app.global.config;
 
-import com.bwabwayo.app.domain.user.filter.JWTFilter;
-import com.bwabwayo.app.domain.user.handler.SuccessHandler;
-import com.bwabwayo.app.domain.user.repository.UserRepository;
-import com.bwabwayo.app.domain.user.service.CustomOAuth2UserService;
-import com.bwabwayo.app.domain.user.utils.JWTUtils;
+import com.bwabwayo.app.domain.auth.filter.JWTFilter;
+import com.bwabwayo.app.domain.auth.handler.SuccessHandler;
+import com.bwabwayo.app.domain.auth.service.CustomOAuth2UserService;
+import com.bwabwayo.app.domain.auth.utils.JWTUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,7 +25,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
-    private final UserRepository userRepository;
     private final JWTUtils jwtUtils;
     private final SuccessHandler successHandler;
 
@@ -80,7 +78,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 //JWTFilter 추가
-                .addFilterBefore(new JWTFilter(userRepository, jwtUtils), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JWTFilter(jwtUtils), UsernamePasswordAuthenticationFilter.class)
 
                 //session 미사용
                 .sessionManagement(session -> session

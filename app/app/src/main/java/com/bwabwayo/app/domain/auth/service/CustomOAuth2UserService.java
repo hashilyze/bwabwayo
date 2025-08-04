@@ -1,12 +1,12 @@
-package com.bwabwayo.app.domain.user.service;
+package com.bwabwayo.app.domain.auth.service;
 
 import com.bwabwayo.app.domain.user.domain.User;
-import com.bwabwayo.app.domain.user.dto.request.OAuth2UserRequest;
-import com.bwabwayo.app.domain.user.userinfo.KakaoUserInfo;
-import com.bwabwayo.app.domain.user.userinfo.OAuth2UserInfo;
-import com.bwabwayo.app.domain.user.dto.request.CustomOAuth2User;
-import com.bwabwayo.app.domain.user.repository.UserRepository;
+import com.bwabwayo.app.domain.auth.dto.request.OAuth2UserRequest;
+import com.bwabwayo.app.domain.auth.userinfo.KakaoUserInfo;
+import com.bwabwayo.app.domain.auth.userinfo.OAuth2UserInfo;
+import com.bwabwayo.app.domain.auth.dto.request.CustomOAuth2User;
 import com.bwabwayo.app.domain.user.domain.Role;
+import com.bwabwayo.app.domain.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
 
     @Override
     public OAuth2User loadUser(org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -47,7 +47,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         User userEntity =
-                userRepository.findUserById(oAuth2UserInfo.getProviderId());
+                userService.findById(oAuth2UserInfo.getProviderId());
         OAuth2UserRequest user;
         if (userEntity == null) {
             System.out.println("존재X");

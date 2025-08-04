@@ -1,4 +1,4 @@
-package com.bwabwayo.app.domain.user.dto.response;
+package com.bwabwayo.app.domain.auth.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;

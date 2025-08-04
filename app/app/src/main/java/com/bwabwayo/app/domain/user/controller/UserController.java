@@ -1,6 +1,6 @@
 package com.bwabwayo.app.domain.user.controller;
 
-import com.bwabwayo.app.domain.user.annotation.LoginUser;
+import com.bwabwayo.app.domain.auth.annotation.LoginUser;
 import com.bwabwayo.app.domain.user.domain.User;
 import com.bwabwayo.app.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;

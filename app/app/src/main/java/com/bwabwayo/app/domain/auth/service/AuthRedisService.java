@@ -1,4 +1,4 @@
-package com.bwabwayo.app.domain.user.service;
+package com.bwabwayo.app.domain.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -8,7 +8,7 @@ import java.time.Duration;
 
 @Service
 @RequiredArgsConstructor
-public class UserRedisService {
+public class AuthRedisService {
     private final RedisTemplate<String, String> redisTemplate;
     private static final long REFRESH_TOKEN_TTL = 7 * 24 * 60 * 60; // 7일
     public void saveRefreshToken(String userId, String refreshToken){

@@ -1,9 +1,7 @@
 package com.bwabwayo.app.domain.user.service;
 
-import com.bwabwayo.app.domain.user.domain.Point;
-import com.bwabwayo.app.domain.user.domain.PointEventType;
-import com.bwabwayo.app.domain.user.domain.ReviewAgg;
-import com.bwabwayo.app.domain.user.domain.User;
+import com.bwabwayo.app.domain.user.domain.*;
+import com.bwabwayo.app.domain.auth.dto.request.UserSignUpRequest;
 import com.bwabwayo.app.domain.user.dto.response.UserEvaluationStat;
 import com.bwabwayo.app.domain.user.dto.response.UserInfoResponse;
 import com.bwabwayo.app.domain.user.repository.PointRepository;
@@ -15,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -24,6 +23,30 @@ public class UserService {
     private final PointRepository pointRepository;
     private final ReviewAggRepository reviewAggRepository;
     private final ReviewEvaluationCountRepository reviewEvaluationCountRepository;
+
+    public User findById(String id){
+        return userRepository.findUserById(id);
+    }
+
+    public User createUser(UserSignUpRequest request) {
+        User user = User.builder()
+                .id(request.getId())
+                .nickname(request.getNickname())
+                .email(request.getEmail())
+                .phoneNumber(request.getPhoneNumber())
+                .profileImage(request.getProfileImage())
+                .bio("기본값")
+                .score(500)
+                .point(PointEventType.SIGNUP_FIRST.getPoint())
+                .dealCount(0)
+                .penaltyCount(0)
+                .createdAt(LocalDateTime.now())
+                .lastLoginAt(LocalDateTime.now())
+                .isActive(true)
+                .role(Role.USER)
+                .build();
+        return userRepository.save(user);
+    }
 
     public UserInfoResponse getUserInfo(User user) {
         // 기본 정보

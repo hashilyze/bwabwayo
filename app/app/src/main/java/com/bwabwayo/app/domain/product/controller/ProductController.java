@@ -6,7 +6,7 @@ import com.bwabwayo.app.domain.product.dto.response.ProductCreateResponseDTO;
 import com.bwabwayo.app.domain.product.dto.response.ProductDetailResponseDTO;
 import com.bwabwayo.app.domain.product.dto.response.ProductSearchResponseDTO;
 import com.bwabwayo.app.domain.product.service.ProductService;
-import com.bwabwayo.app.domain.user.annotation.LoginUser;
+import com.bwabwayo.app.domain.auth.annotation.LoginUser;
 import com.bwabwayo.app.domain.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

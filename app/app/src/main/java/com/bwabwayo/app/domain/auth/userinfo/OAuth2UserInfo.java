@@ -1,4 +1,4 @@
-package com.bwabwayo.app.domain.user.userinfo;
+package com.bwabwayo.app.domain.auth.userinfo;
 
 public interface OAuth2UserInfo {
     String getProviderId();

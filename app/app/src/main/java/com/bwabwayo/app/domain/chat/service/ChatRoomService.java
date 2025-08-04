@@ -9,7 +9,7 @@ import com.bwabwayo.app.domain.chat.repository.ChatRoomRepository;
 import com.bwabwayo.app.domain.product.domain.Product;
 import com.bwabwayo.app.domain.product.repository.ProductRepository;
 import com.bwabwayo.app.domain.user.domain.User;
-import com.bwabwayo.app.domain.user.repository.UserRepository;
+import com.bwabwayo.app.domain.user.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +31,7 @@ public class ChatRoomService {
 
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomRedisRepository chatRoomRedisRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final ProductRepository productRepository;
     private final RedisService redisService;
 
@@ -48,7 +48,7 @@ public class ChatRoomService {
         String sellerId = savedChatRoom.getSellerId();
         Long productId = savedChatRoom.getProductId();
 
-        User seller = userRepository.findUserById(sellerId);
+        User seller = userService.findById(sellerId);
         Product product = productRepository.findById(productId).orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
 
         // 2. Redis 캐싱용 기본 미리보기 응답 생성
@@ -95,8 +95,8 @@ public class ChatRoomService {
                 String sellerId = chatRoom.getSellerId();
                 Long productId = chatRoom.getProductId();
 
-                User buyer = userRepository.findUserById(buyerId);
-                User seller = userRepository.findUserById(sellerId);
+                User buyer = userService.findById(buyerId);
+                User seller = userService.findById(sellerId);
                 Product product = productRepository.findById(productId).orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
 
                 String partnerId = chatRoom.getOtherUserId(userId); // 상대 유저 ID 구하는 메서드 필요
@@ -171,8 +171,8 @@ public class ChatRoomService {
         String sellerId = chatRoom.getSellerId();
         Long productId = chatRoom.getProductId();
 
-        User buyer = userRepository.findUserById(buyerId);
-        User seller = userRepository.findUserById(sellerId);
+        User buyer = userService.findById(buyerId);
+        User seller = userService.findById(sellerId);
         Product product = productRepository.findById(productId).orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
 
         return ChatRoomListResponse.fromInitial(chatRoom, userId, seller, buyer, product);
