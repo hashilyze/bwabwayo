@@ -136,7 +136,7 @@ public class ProductService {
         }
         
         // DB 조회
-        Page<ProductWithWishDTO> pageData = productRepository.searchByCondition(keyword, categoryIds, pageable, user.getId());
+        Page<ProductWithWishDTO> pageData = productRepository.searchByCondition(keyword, categoryIds, pageable, user != null ? user.getId() : null);
         List<ProductWithWishDTO> content = pageData.getContent();
 
         List<ProductSearchResultDTO> result = content.stream().map(dto -> {
