@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Getter
 @Builder
 @NoArgsConstructor
@@ -17,12 +19,12 @@ public class ReportRequest {
     private String title;
     private String description;
     private User target;
-    private String imageUrl;
+    private List<String> imageUrlList;
 
     public static Report toEntity(ReportRequest request){
         return Report.builder()
                 .title(request.getTitle())
-                .imageUrl(request.getImageUrl())
+                .imageUrlList(request.getImageUrlList())
                 .description(request.getDescription())
                 .target(request.getTarget())
                 .build();
