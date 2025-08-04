@@ -7,15 +7,15 @@ import Image from 'next/image'
 
 import Category from '@/components/Category';
 import { useCategoryStore } from '@/stores/categoryStore';
-import LoginModal from '@/components/auth/LoginModal'
 import { useAuthStore } from '@/stores/auth/authStore';
+import { useModalStore } from '@/stores/modalStore';
 
 export default function Navbar() {
     const [title, setTitle] = useState('')
     const [showCategory, setShowCategory] = useState(false);
-    const [showLoginModal, setShowLoginModal] = useState(false); // 모달 상태 추가
     const [showMyPageMenu, setShowMyPageMenu] = useState(false); // 내상점 메뉴 상태
     const { isLoggedIn, logout, initializeAuth, authenticatedFetch, getToken } = useAuthStore(); // 새로운 authStore 사용
+    const { openLoginModal } = useModalStore();
     const [isScrolled, setIsScrolled] = useState(false) // 스크롤 상태 추가
     const categoryRef = useRef<HTMLDivElement>(null);
     const myPageMenuRef = useRef<HTMLDivElement>(null); // 내상점 메뉴 참조
@@ -161,29 +161,51 @@ export default function Navbar() {
                     )}
                 </form>
             </div>
-            <div className="nav-btn-wrap flex gap-3">
-                <Link href="/product/new" className="bg-orange-500 text-white text-sm px-4 py-2 rounded hover:bg-orange-600">판매하기</Link>
-                <Link href="/chat" className="text-[#2B6CEE] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BFDBFE]">채팅목록</Link>
-                <Link href="#" className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]">알림</Link>
+                         <div className="nav-btn-wrap flex gap-3">
+                 <button 
+                     onClick={() => {
+                         if (isLoggedIn) {
+                             router.push('/product/new');
+                         } else {
+                             openLoginModal();
+                         }
+                     }}
+                     className="bg-orange-500 text-white text-sm px-4 py-2 rounded hover:bg-orange-600"
+                 >
+                     판매하기
+                 </button>
+                 <button 
+                     onClick={() => {
+                         if (isLoggedIn) {
+                             router.push('/chat');
+                         } else {
+                             openLoginModal();
+                         }
+                     }}
+                     className="text-[#2B6CEE] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BFDBFE]"
+                 >
+                     채팅목록
+                 </button>
+                 <Link href="#" className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]">알림</Link>
             
                 <div 
                     className="relative"
                     ref={myPageMenuRef}
                 >
-                    <button 
-                        onClick={() => {
-                            if (isLoggedIn) {
-                                // 로그인된 상태: 마이페이지 메뉴 토글
-                                setShowMyPageMenu(prev => !prev)
-                            } else {
-                                // 로그인 안된 상태: 로그인 모달 띄우기
-                                setShowLoginModal(true)
-                            }
-                        }}
-                        className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0] flex items-center gap-2"
-                    >
-                        <span>내상점</span>
-                    </button>
+                                         <button 
+                         onClick={() => {
+                             if (isLoggedIn) {
+                                 // 로그인된 상태: 마이페이지 메뉴 토글
+                                 setShowMyPageMenu(prev => !prev)
+                             } else {
+                                 // 로그인 안된 상태: 로그인 모달 띄우기
+                                 openLoginModal()
+                             }
+                         }}
+                         className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0] flex items-center gap-2"
+                     >
+                         <span>내상점</span>
+                     </button>
                     
                     {/* 로그인된 상태일 때만 드롭다운 메뉴 표시 */}
                     {isLoggedIn && showMyPageMenu && (
@@ -238,13 +260,7 @@ export default function Navbar() {
             )}
         </div>
     </div>
-        {/* ✅ 모달은 nav 바깥에서 조건부로 렌더링 */}
-        {showLoginModal && (
-        <LoginModal
-            isOpen={showLoginModal} 
-            onClose={() => setShowLoginModal(false)}
-        />
-        )}
+        
 
     </nav>
         

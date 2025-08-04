@@ -3,13 +3,13 @@ import '@/app/globals.css'
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Chatbot from "@/components/chat/Chatbot";
-
+import LoginModalWrapper from '@/components/common/LoginModalWrapper';
 import { Suspense } from "react";
 export const metadata: Metadata = {
   title: "봐봐요",
   description: "화상중고거래 플랫폼, 봐봐요",
   icons: {
-    icon: process.env.NODE_ENV === 'production' ? '/fe/favicon.png' : '/favicon.png',
+    icon: `${process.env.PUBLIC_URL}/favicon.png`,
   },
   other: {
     "Content-Security-Policy": "upgrade-insecure-requests",
@@ -28,6 +28,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
         </Suspense>
         <Navbar />
+        <LoginModalWrapper />
         <div className="bg-[#FAFDFF] pt-[124px]">
           <div className="w-[1280px] m-auto">
             {children}

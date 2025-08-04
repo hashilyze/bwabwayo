@@ -8,6 +8,7 @@ import { useChatRoomStore } from "@/stores/chatting/chatRoomStore";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuthStore } from "@/stores/auth/authStore";
+import { useModalStore } from "@/stores/modalStore";
 
 interface Seller {
   id: number,
@@ -21,6 +22,7 @@ export default function ProductDetailPage() {
   const { product, loading, error, getProductDetail } = useProductStore();
   const { roomInfo, addChatRoom } = useChatRoomStore();
   const { isLoggedIn } = useAuthStore();
+  const { openLoginModal } = useModalStore();
   const router = useRouter();
 
   const params = useParams();
@@ -65,7 +67,7 @@ export default function ProductDetailPage() {
 
   const makeChatRoom = async () => {
     if (!isLoggedIn) {
-      alert('로그인이 필요한 서비스입니다.');
+      openLoginModal();
       return;
     }
     
@@ -168,11 +170,12 @@ export default function ProductDetailPage() {
                  />
                  찜하기
                </div>
-              <div onClick={makeChatRoom}
-                className="flex-1 py-4 flex items-center justify-center gap-2 bg-blue-600 text-white rounded-lg py-3 font-bold cursor-pointer"
-              >
-                채팅하기
-              </div>
+                <div
+                  onClick={makeChatRoom}
+                  className={`flex-1 py-4 flex items-center justify-center gap-2 rounded-lg py-3 font-bold cursor-pointer bg-blue-600 text-white hover:bg-blue-700`}
+                >
+                 1:1 채팅하기
+               </div>
             </div>
           </div>
           
