@@ -13,6 +13,8 @@ public interface StorageService {
      */
     String upload(MultipartFile file, String dir);
 
+    String upload(String url, String dir);
+
     /**
      * 파일을 삭제합니다.
      *
