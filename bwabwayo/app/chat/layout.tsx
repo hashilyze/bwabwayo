@@ -12,15 +12,19 @@ interface ChatRoom {
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const params = useParams();
-  const { roomList, setRoomList } = useRoomListStore();
+  const { roomList, setRoomList, connectStomp, disconnectStomp } = useRoomListStore();
   
   // URL에서 현재 선택된 roomId 가져오기 
   const currentRoomId = params?.roomId ? Number(params.roomId) : null;
   
-  // 컴포넌트 마운트 시 채팅방 목록 로드
+  // 컴포넌트 마운트 시 STOMP 연결 및 채팅방 목록 로드
   useEffect(() => {
-    setRoomList();
-  }, [setRoomList]);
+    connectStomp();
+    
+    return () => {
+      disconnectStomp();
+    }
+  }, [connectStomp, disconnectStomp]);
   
   const handleChatRoomSelect = (chatRoom: ChatRoom) => {
     console.log(`채팅방 ${chatRoom.id} 선택됨`);
