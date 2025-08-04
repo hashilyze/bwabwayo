@@ -25,13 +25,39 @@ interface ChatMessage {
     type: string
 }
 
+interface ChatRoom {
+    roomId: number
+    productName: string
+    partnerNickName: string
+    partnerId: string
+    lastChatmessageDto: {
+        content: string
+        createdAt: string
+        type: string
+    }
+    unreadMessagesNum: number
+    lastMessageContent: string
+    lastMessageTime: string
+    type: string
+    seller: {
+        id: number
+        nickname: string
+    }
+    product: {
+        id: number
+        thumnail: string
+    }
+}
+
 interface ChatRoomStore{
     roomInfo: RoomInfo[]
+    roomList: ChatRoom[]
     messages: ChatMessage[]
     stompClient: Client | null
     isConnected: boolean
     addChatRoom: (addRoom: addRoom) => Promise<RoomInfo | null>
     getRoomInfo: (roomId: number) => Promise<RoomInfo | null>
+    getRoomList: () => void
     connectStomp: (roomId?: number) => void
     disconnectStomp: () => void
     appendMessage: (msg: ChatMessage, isMine: boolean) => void
@@ -39,6 +65,7 @@ interface ChatRoomStore{
 
 export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     roomInfo: [],
+    roomList: [],
     messages: [],
     stompClient: null,
     isConnected: false,
@@ -68,6 +95,94 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         } catch (error) {
             console.error('Error getting room info:', error)
             return null;
+        }
+    },
+
+    getRoomList: () => {
+        const serverUrl = 'https://i13e202.p.ssafy.io/be/ws-stomp'
+        
+        try {
+            console.log('STOMP 연결 시도 (채팅방 목록):', serverUrl)
+            
+            // SockJS 사용
+            const socket = new SockJS(serverUrl)
+            
+            // STOMP 클라이언트 생성
+            const client = new Client({
+                webSocketFactory: () => socket,
+                debug: (str) => {
+                    console.log('STOMP Debug (채팅방 목록):', str)
+                },
+                reconnectDelay: 0,
+                heartbeatIncoming: 4000,
+                heartbeatOutgoing: 4000
+            })
+            
+            // 연결 성공
+            client.onConnect = (frame) => {
+                console.log('✅ STOMP 연결 성공 (채팅방 목록)!')
+                console.log('연결된 서버:', serverUrl)
+                
+                // 연결 상태 업데이트
+                set({ isConnected: true, stompClient: client })
+                
+                // 토큰에서 사용자 ID 추출
+                const token = localStorage.getItem('accessToken')
+                if (token) {
+                    try {
+                        const payload = JSON.parse(atob(token.split('.')[1]))
+                        const myUserId = payload.sub
+                        
+                        console.log(`📡 채팅방 목록 구독 시작 (사용자: ${myUserId})`)
+                        
+                        // 채팅방 목록 구독
+                        client.subscribe(`/sub/chat/roomlist/${myUserId}`, (messageOutput) => {
+                            const roomList = JSON.parse(messageOutput.body)
+                            console.log('📥 채팅방 목록 수신:', roomList)
+                            
+                            // 받은 데이터를 ChatRoom 형식으로 변환
+                            const formattedRoomList = roomList.map((room: any) => ({
+                                roomId: room.roomId,
+                                productName: room.productName,
+                                partnerNickName: room.partnerNickName,
+                                partnerId: room.partnerId,
+                                lastChatmessageDto: room.lastChatmessageDto,
+                                unreadMessagesNum: room.unreadMessagesNum || 0,
+                                lastMessageContent: room.lastChatmessageDto?.content || '',
+                                lastMessageTime: room.lastChatmessageDto?.createdAt || '',
+                                type: room.lastChatmessageDto?.type || 'TEXT',
+                                seller: {
+                                    id: room.sellerId,
+                                    nickname: room.partnerNickName || '판매자'
+                                },
+                                product: {
+                                    id: room.productId,
+                                    thumnail: room.productThumbnail || ''
+                                }
+                            }))
+                            
+                            set({ roomList: formattedRoomList })
+                        })
+                        
+                        console.log(`✅ 채팅방 목록 구독 완료`)
+                    } catch (error) {
+                        console.error('토큰 파싱 실패:', error)
+                    }
+                }
+            }
+            
+            // 연결 오류
+            client.onStompError = (error) => {
+                console.error('❌ STOMP 연결 실패 (채팅방 목록):', error)
+                set({ isConnected: false })
+            }
+            
+            // 연결 시작
+            client.activate()
+            
+        } catch (error) {
+            console.error('STOMP 연결 실패 (채팅방 목록):', error)
+            set({ isConnected: false })
         }
     },
 
