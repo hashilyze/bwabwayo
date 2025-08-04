@@ -12,7 +12,7 @@ interface ChatRoom {
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const params = useParams();
-  const { roomList, getRoomList, isConnected, loadChatHistory, clearMessages } = useChatRoomStore();
+  const { roomList, getRoomList, isConnected, clearMessages } = useChatRoomStore();
   const [isLoading, setIsLoading] = useState(true);
   
   // URL에서 현재 선택된 roomId 가져오기 
@@ -75,11 +75,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
       // 1. 기존 메시지 초기화
       clearMessages();
       
-      // 2. 선택한 채팅방의 메시지 히스토리 로드
-      console.log(`📚 채팅방 ${chatRoom.id} 메시지 히스토리 로드 시작`);
-      await loadChatHistory(chatRoom.id);
-      
-      // 3. 채팅방 페이지로 이동
+      // 2. 채팅방 페이지로 이동 (STOMP 구독으로 메시지 로드)
       router.push(`/chat/${chatRoom.id}`);
       
     } catch (error) {

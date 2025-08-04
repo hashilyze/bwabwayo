@@ -23,7 +23,7 @@ export default function ChatRoomPage({
 }) {
   const params = useParams()
   const roomId = Number(params.roomId)
-  const { messages, stompClient, isConnected, connectStomp, disconnectStomp, appendMessage, roomInfo, loadChatHistory, clearMessages, setCurrentRoomId } = useChatRoomStore()
+  const { messages, stompClient, isConnected, connectStomp, disconnectStomp, appendMessage, roomInfo, clearMessages, setCurrentRoomId } = useChatRoomStore()
   const { userInfo } = useUserInfoStore()
   const chatBodyRef = useRef<HTMLDivElement>(null)
 
@@ -38,12 +38,8 @@ export default function ChatRoomPage({
         // 2. 기존 메시지 초기화
         clearMessages();
         
-        // 3. 채팅방 메시지 히스토리 로드
-        console.log(`📚 2단계: 채팅방 ${roomId} 메시지 히스토리 로드`);
-        await loadChatHistory(roomId);
-        
-        // 4. STOMP 연결 및 실시간 메시지 구독
-        console.log(`📡 3단계: 채팅방 ${roomId} STOMP 연결 및 구독`);
+        // 3. STOMP 연결 및 실시간 메시지 구독 (히스토리 포함)
+        console.log(`📡 채팅방 ${roomId} STOMP 연결 및 구독`);
         connectStomp(roomId);
         
       } catch (error) {
@@ -59,7 +55,7 @@ export default function ChatRoomPage({
       disconnectStomp();
       setCurrentRoomId(null);
     }
-  }, [roomId, connectStomp, disconnectStomp, loadChatHistory, clearMessages])
+  }, [roomId, connectStomp, disconnectStomp, clearMessages])
 
   // 사용자 정보 로드
   useEffect(() => {

@@ -62,7 +62,6 @@ interface ChatRoomStore{
     connectStomp: (roomId?: number) => void
     disconnectStomp: () => void
     appendMessage: (msg: ChatMessage, isMine: boolean) => void
-    loadChatHistory: (roomId: number) => Promise<void>
     clearMessages: () => void
     setCurrentRoomId: (roomId: number | null) => void
 }
@@ -310,67 +309,6 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         
         console.log('✅ 메시지 추가 완료. 총 메시지 개수:', get().messages.length)
         console.log('📋 현재 모든 메시지:', get().messages)
-    },
-
-    loadChatHistory: async (roomId: number) => {
-        try {
-            console.log(`📚 채팅방 ${roomId} 메시지 히스토리 로드 시작`);
-            
-            // 기존 메시지 초기화
-            set({ messages: [] });
-            
-            // API로 채팅 히스토리 요청
-            const response = await useAuthStore.getState().authenticatedFetch(
-                `https://i13e202.p.ssafy.io/be/api/chatrooms/${roomId}/messages`
-            );
-            
-            if (response.ok) {
-                const chatHistory = await response.json();
-                console.log(`📥 채팅방 ${roomId} 히스토리 수신:`, chatHistory);
-                
-                // 받은 메시지들을 ChatMessage 형식으로 변환
-                const formattedMessages: ChatMessage[] = chatHistory.map((msg: any) => ({
-                    roomId: msg.roomId,
-                    senderId: msg.senderId,
-                    receiverId: msg.receiverId,
-                    content: msg.content,
-                    isRead: msg.isRead,
-                    createdAt: new Date(msg.createdAt),
-                    type: msg.type || 'TEXT'
-                }));
-                
-                // 메시지들을 시간순으로 정렬
-                const sortedMessages = formattedMessages.sort((a, b) => 
-                    new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-                );
-                
-                set({ messages: sortedMessages });
-                console.log(`✅ 채팅방 ${roomId} 히스토리 로드 완료: ${sortedMessages.length}개 메시지`);
-                
-                // 각 메시지의 발신자 판단하여 로깅
-                const token = localStorage.getItem('accessToken');
-                let myUserId = null;
-                
-                if (token) {
-                    try {
-                        const payload = JSON.parse(atob(token.split('.')[1]));
-                        myUserId = payload.sub || payload.userId || payload.id;
-                    } catch (error) {
-                        console.error('토큰 파싱 실패:', error);
-                    }
-                }
-                
-                sortedMessages.forEach((msg, index) => {
-                    const isMine = myUserId && msg.senderId === myUserId;
-                    console.log(`${index + 1}. ${isMine ? '나' : '상대'}: ${msg.content}`);
-                });
-                
-            } else {
-                console.error(`❌ 채팅방 ${roomId} 히스토리 로드 실패:`, response.status);
-            }
-        } catch (error) {
-            console.error(`❌ 채팅방 ${roomId} 히스토리 로드 중 오류:`, error);
-        }
     },
 
     clearMessages: () => {
