@@ -12,19 +12,22 @@ interface ChatRoom {
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const params = useParams();
-  const { roomList, getRoomList } = useChatRoomStore();
+  const { roomList, getRoomList, isConnected } = useChatRoomStore();
   
   // URL에서 현재 선택된 roomId 가져오기 
   const currentRoomId = params?.roomId ? Number(params.roomId) : null;
   
   // 컴포넌트 마운트 시 채팅방 목록 로드
   useEffect(() => {
+    console.log('🚀 채팅 레이아웃 마운트 - 채팅방 목록 로드 시작');
     getRoomList();
   }, [getRoomList]);
 
   console.log("🔍 layout 컴포넌트 렌더링 - roomList:", roomList);
+  console.log("🔍 연결 상태:", isConnected);
   
   const handleChatRoomSelect = (chatRoom: ChatRoom) => {
+    console.log('🎯 채팅방 선택:', chatRoom.id);
     router.push(`/chat/${chatRoom.id}`);
   }
 
@@ -39,15 +42,28 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
         
         {/* 채팅 목록 */}
         <div className="flex-1 overflow-y-auto">
-          {roomList.map((room) => (
-            <ChatRoomItem 
-              key={room.roomId} 
-              chatRoom={{ id: room.roomId }}
-              roomData={room}
-              onSelect={handleChatRoomSelect}
-              isSelected={currentRoomId === room.roomId}
-            />
-          ))}
+          {roomList.length > 0 ? (
+            roomList.map((room) => (
+              <ChatRoomItem 
+                key={room.roomId} 
+                chatRoom={{ id: room.roomId }}
+                roomData={room}
+                onSelect={handleChatRoomSelect}
+                isSelected={currentRoomId === room.roomId}
+              />
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-gray-500">
+              <div className="text-center">
+                <div className="text-4xl mb-4">💬</div>
+                <p className="text-lg font-medium mb-2">채팅방이 없습니다</p>
+                <p className="text-sm">상품을 구매하거나 판매하면 채팅방이 생성됩니다</p>
+                {!isConnected && (
+                  <p className="text-xs text-red-500 mt-2">연결 중...</p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

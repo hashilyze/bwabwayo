@@ -129,42 +129,41 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 
                 // 토큰에서 사용자 ID 추출
                 const token = localStorage.getItem('accessToken')
-                console.log('🔍 토큰 확인:', token ? '토큰 있음' : '토큰 없음');
                 
                 if (token) {
                     try {
                         const payload = JSON.parse(atob(token.split('.')[1]))
                         const myUserId = payload.sub
-                        console.log('🔍 추출된 사용자 ID:', myUserId);
-                        
-                        console.log(`📡 채팅방 목록 구독 시작 (사용자: ${myUserId})`)
+                        console.log('👤 내 사용자 ID:', myUserId)
                         
                         // 채팅방 목록 구독
                         client.subscribe(`/sub/chat/roomlist/${myUserId}`, (messageOutput) => {
-                            console.log("📨 원시 메시지 수신:", messageOutput);
-                            console.log("📨 메시지 바디:", messageOutput.body);
-                            
                             try {
+                                console.log('📥 원시 채팅방 목록 데이터:', messageOutput.body);
                                 const roomList = JSON.parse(messageOutput.body)
-                                console.log("📥 채팅방 목록 수신:", roomList)
+                                console.log('📋 파싱된 채팅방 목록:', roomList);
                                 
                                 // 받은 데이터를 ChatRoom 형식으로 변환
                                 const formattedRoomList = roomList.map((room: any) => ({
                                     roomId: room.roomId,
-                                    productName: room.productName,
-                                    partnerNickName: room.partnerNickName,
+                                    productName: room.productName || '상품명 없음',
+                                    partnerNickName: room.partnerNickName || '사용자',
                                     partnerId: room.partnerId,
-                                    lastChatmessageDto: room.lastChatmessageDto,
+                                    lastChatmessageDto: room.lastChatmessageDto || {
+                                        content: '메시지 없음',
+                                        createdAt: '',
+                                        type: 'TEXT'
+                                    },
                                     unreadMessagesNum: room.unreadMessagesNum || 0,
-                                    lastMessageContent: room.lastChatmessageDto?.content || '',
+                                    lastMessageContent: room.lastChatmessageDto?.content || '메시지 없음',
                                     lastMessageTime: room.lastChatmessageDto?.createdAt || '',
                                     type: room.lastChatmessageDto?.type || 'TEXT',
                                     seller: {
-                                        id: room.sellerId,
+                                        id: room.sellerId || 0,
                                         nickname: room.partnerNickName || '판매자'
                                     },
                                     product: {
-                                        id: room.productId,
+                                        id: room.productId || 0,
                                         thumnail: room.productThumbnail || ''
                                     }
                                 }))
@@ -174,76 +173,21 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                                 
                                 // updateRoomList와 동일한 기능
                                 console.log('🔔 채팅방 목록 업데이트 완료')
-                                formattedRoomList.forEach((room: ChatRoom) => {
-                                    console.log(`[${room.productName}] ${room.partnerNickName}: ${room.lastChatmessageDto?.content || '메시지 없음'}`)
+                                console.log('📋 총 채팅방 개수:', formattedRoomList.length)
+                                formattedRoomList.forEach((room: ChatRoom, index: number) => {
+                                    console.log(`${index + 1}. [${room.productName}] ${room.partnerNickName}: ${room.lastChatmessageDto?.content || '메시지 없음'}`)
                                 })
                             } catch (error) {
                                 console.error('❌ 채팅방 목록 파싱 실패:', error);
                                 console.error('❌ 원시 데이터:', messageOutput.body);
                             }
                         })
-                        
-                        console.log(`✅ 채팅방 목록 구독 완료`)
-                        
-                        // 임시 테스트 데이터 (서버 응답이 없을 때)
-                        setTimeout(() => {
-                            console.log('⏰ 5초 후 테스트 데이터 추가');
-                            const testRoomList = [
-                                {
-                                    roomId: 1,
-                                    productName: "테스트 상품 1",
-                                    partnerNickName: "판매자1",
-                                    partnerId: "seller1",
-                                    lastChatmessageDto: {
-                                        content: "안녕하세요!",
-                                        createdAt: "2024-01-01T10:00:00",
-                                        type: "TEXT"
-                                    },
-                                    unreadMessagesNum: 2,
-                                    lastMessageContent: "안녕하세요!",
-                                    lastMessageTime: "2024-01-01T10:00:00",
-                                    type: "TEXT",
-                                    seller: {
-                                        id: 1,
-                                        nickname: "판매자1"
-                                    },
-                                    product: {
-                                        id: 1,
-                                        thumnail: "/image/sample.png"
-                                    }
-                                },
-                                {
-                                    roomId: 2,
-                                    productName: "테스트 상품 2",
-                                    partnerNickName: "판매자2",
-                                    partnerId: "seller2",
-                                    lastChatmessageDto: {
-                                        content: "상품 문의드립니다",
-                                        createdAt: "2024-01-01T11:00:00",
-                                        type: "TEXT"
-                                    },
-                                    unreadMessagesNum: 0,
-                                    lastMessageContent: "상품 문의드립니다",
-                                    lastMessageTime: "2024-01-01T11:00:00",
-                                    type: "TEXT",
-                                    seller: {
-                                        id: 2,
-                                        nickname: "판매자2"
-                                    },
-                                    product: {
-                                        id: 2,
-                                        thumnail: "/image/sample.png"
-                                    }
-                                }
-                            ];
-                            
-                            set({ roomList: testRoomList });
-                            console.log('🔔 테스트 채팅방 목록 추가 완료');
-                        }, 5000); // 5초 후 실행
-                        
+                        console.log(`✅ 채팅방 목록 구독 완료: /sub/chat/roomlist/${myUserId}`)
                     } catch (error) {
                         console.error('토큰 파싱 실패:', error)
                     }
+                } else {
+                    console.error('❌ 액세스 토큰이 없습니다.')
                 }
             }
             
@@ -298,17 +242,28 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 if (roomId) {
                     console.log(`📡 채팅방 ${roomId} 구독 시작`)
                     client.subscribe(`/sub/chat/room/${roomId}`, (messageOutput) => {
-                        const msg = JSON.parse(messageOutput.body)
-                        console.log('📨 받은 메시지:', msg)
-                        
-                        // localStorage에서 토큰 가져오기
-                        const token = localStorage.getItem('accessToken')
-                        const isMine = msg.senderId === token
-                        
-                        // appendMessage를 통해 메시지 추가
-                        get().appendMessage(msg, isMine)
+                        try {
+                            const msg = JSON.parse(messageOutput.body)
+                            console.log('📨 받은 메시지:', msg)
+                            
+                            // localStorage에서 토큰 가져오기
+                            const token = localStorage.getItem('accessToken')
+                            const isMine = String(msg.senderId) === String(token)
+                            
+                            console.log('👤 발신자 확인:', {
+                                msgSenderId: msg.senderId,
+                                myToken: token,
+                                isMine: isMine
+                            })
+                            
+                            // appendMessage를 통해 메시지 추가
+                            get().appendMessage(msg, isMine)
+                        } catch (error) {
+                            console.error('❌ 메시지 파싱 실패:', error)
+                            console.error('❌ 원시 데이터:', messageOutput.body)
+                        }
                     })
-                    console.log(`✅ 채팅방 ${roomId} 구독 완료`)
+                    console.log(`✅ 채팅방 ${roomId} 구독 완료: /sub/chat/room/${roomId}`)
                 }
             }
             
@@ -340,6 +295,12 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         console.log('👤 발신자:', isMine ? '나' : '상대')
         console.log('📋 현재 메시지 개수:', get().messages.length)
         
+        // 메시지 데이터 검증
+        if (!msg.content || !msg.senderId) {
+            console.error('❌ 유효하지 않은 메시지 데이터:', msg)
+            return
+        }
+        
         // 중복 메시지 체크 (같은 내용, 같은 시간, 같은 발신자)
         const existingMessage = get().messages.find(existing => 
             existing.content === msg.content && 
@@ -352,12 +313,24 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
             return
         }
         
+        // 메시지 데이터 정규화
+        const normalizedMessage: ChatMessage = {
+            ...msg,
+            createdAt: new Date(msg.createdAt),
+            content: msg.content.trim()
+        }
+        
         // 새 메시지를 기존 메시지 배열에 추가
         set(state => ({ 
-            messages: [...state.messages, msg] 
+            messages: [...state.messages, normalizedMessage] 
         }))
         
         console.log('✅ 메시지 추가 완료. 총 메시지 개수:', get().messages.length)
-        console.log('📋 현재 모든 메시지:', get().messages)
+        console.log('📋 새 메시지:', {
+            content: normalizedMessage.content,
+            senderId: normalizedMessage.senderId,
+            isMine: isMine,
+            time: normalizedMessage.createdAt.toLocaleTimeString()
+        })
     }
 }))
