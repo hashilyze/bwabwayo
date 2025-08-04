@@ -7,6 +7,14 @@ import { useParams } from "next/navigation";
 import { useChatRoomStore } from "@/stores/chatting/chatRoomStore";
 import { useRouter } from "next/navigation";
 
+interface Seller {
+  id: number,
+  nickname: string,
+  profileImage: string,
+  rating: number,
+  score: number,
+}
+
 export default function ProductDetailPage() {
   const { product, loading, error, getProductDetail } = useProductStore();
   const { roomInfo, addChatRoom } = useChatRoomStore();
@@ -14,6 +22,13 @@ export default function ProductDetailPage() {
 
   const params = useParams();
   const productId = Number(params.id);
+  const seller: Seller = {
+    id: Number(product?.seller.id) || 0,
+    nickname: product?.seller.nickname || '',
+    profileImage: product?.seller.profileImage || '',
+    rating: product?.seller.rating || 0,
+    score: product?.seller.score || 0,
+  }
 
   useEffect(() => {
     getProductDetail(productId);
@@ -21,22 +36,37 @@ export default function ProductDetailPage() {
 
   console.log(product)
 
+  // 상대적 시간 계산 함수
+  const getRelativeTime = (dateString: string) => {
+    if (!dateString) return '';
+    
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return '방금 전';
+    if (diffInMinutes < 60) return `${diffInMinutes}분 전`;
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours}시간 전`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}일 전`;
+    
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    if (diffInWeeks < 4) return `${diffInWeeks}주 전`;
+    
+    const diffInMonths = Math.floor(diffInDays / 30);
+    return `${diffInMonths}개월 전`;
+  };
+
   const makeChatRoom = async () => {
-    try {
-      const createdRoom = await addChatRoom({
-        // sellerId: product?.seller.id || '',
-        // productId: product?.product.id || 0
-        sellerId: '4375461526',
-        productId: 66
+    try {      
+      const result = await addChatRoom({
+        sellerId: product?.seller.id || '',
+        productId: productId || 0
       })
-      
-      console.log('생성된 채팅방:', createdRoom);
-      
-      if (createdRoom && createdRoom.roomId) {
-        router.push(`/chat/${createdRoom.roomId}?productId=${createdRoom.productId}&sellerId=${createdRoom.sellerId}`)
-      } else {
-        console.error('채팅방 생성 후 roomId를 찾을 수 없습니다.');
-      }
+      router.push(`/chat/${result?.roomId}?productId=${result?.productId}&sellerId=${result?.sellerId}&buyerId=${result?.buyerId}`)
     } catch (error) {
       console.error('채팅방 생성 중 오류:', error);
     }
@@ -92,45 +122,49 @@ export default function ProductDetailPage() {
         {/* Product Info */}
         <div className="flex-3 min-h-screen">
           <div className="bg-white rounded-2xl shadow-sm p-8 mb-6">
-            <p className="text-gray-500 text-sm mb-2">홈 &gt; 디지털</p>
-                         <div className="flex flex-col mt-6 mb-2">
+                         <p className="text-gray-500 text-sm mb-2">
+               홈 &gt; {product?.categories?.[0]?.name || '대분류'} &gt; {product?.categories?.[1]?.name || '소분류'}
+             </p>
+              <div className="flex flex-col mt-6 mb-2">
                <h1 className="text-2xl font-bold">{product?.title || '상품명'}</h1>
-               <p className="text-[32px] font-black text-gray-800">{product?.price || 0}원</p>
+               <p className="text-[32px] font-black text-gray-800">
+                 {(product?.price || 0).toLocaleString()}원
+               </p>
              </div>
-             <div className="text-gray-400 text-sm mb-[30px]">
-               {product?.createdAt || ''} · 찜 {product?.wishCount || 0} · 조회 {product?.viewCount || 0}
-             </div>
+                           <div className="text-gray-400 text-sm mb-[30px]">
+                {getRelativeTime(product?.createdAt || '')} · 찜 {product?.wishCount || 0} · 조회 {product?.viewCount || 0}
+              </div>
             
             <ul className="flex items-center mb-4 border border-gray-200 rounded-lg p-6 relative">
               <li className="flex flex-1 flex-col gap-1 items-center">
                 <div className="text-xs text-black/50">가격제안</div>
-                <div className="text-base font-semibold">가능</div>
+                <div className="text-base font-semibold">{product?.canNegotiate ? '가능' : '불가능'}</div>
               </li>
               <li className="flex-0.5 flex items-center justify-center">
                 <div className="block w-[1px] h-7 bg-gray-200"></div>
               </li>
               <li className="flex flex-1 flex-col gap-1 items-center">
                 <p className="text-xs text-black/50">화상거래</p>
-                <p className="text-base font-semibold">가능</p>
+                <p className="text-base font-semibold">{product?.canVideoCall ? '가능' : '불가능'}</p>
               </li>
               <li className="flex-0.5 flex items-center justify-center">
                 <div className="block w-[1px] h-7 bg-gray-200"></div>
               </li>
               <li className="flex flex-1 flex-col gap-1 items-center">
                 <p className="text-xs text-black/50">거래방식</p>
-                <p className="text-base font-semibold">직거래, 택배</p>
+                <p className="text-base font-semibold">{product?.canDirect ? '직거래' : ''} {product?.canDelivery ? ', 택배' : ''}</p>
               </li>
               <li className="flex-0.5 flex items-center justify-center">
                 <div className="block w-[1px] h-7 bg-gray-200"></div>
               </li>
               <li className="flex flex-1 flex-col gap-1 items-center">
                 <p className="text-xs text-black/50">배송비</p>
-                <p className="text-base font-semibold">3,500원</p>
+                <p className="text-base font-semibold">{product?.shippingFee || 0}원</p>
               </li>
             </ul>
 
             <div className="flex gap-4">
-                             <div className="flex-1 py-4 flex items-center justify-center gap-2 border-1 border-[#eee] text-[#777] rounded-lg cursor-pointer">
+                <div className="flex-1 py-4 flex items-center justify-center gap-2 border-1 border-[#eee] text-[#777] rounded-lg cursor-pointer">
                  <img 
                    src={product?.isWish ? "/icon/heart-on.svg" : "/icon/heart-off.svg"} 
                    alt="찜하기" 
@@ -150,7 +184,7 @@ export default function ProductDetailPage() {
         {/* 판매자 정보 */}
         <div className="bg-white rounded-2xl shadow-sm p-8 flex flex-col items-start gap-4">
           {/* 판매자 평판 */}
-          <SellerTitle />
+          <SellerTitle seller={seller} />
 
           {/* 판매물품 */}
           <div className="mt-8">

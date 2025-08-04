@@ -1,6 +1,9 @@
 interface Seller {
   id: number;
   nickname: string;
+  profileImage: string;
+  rating: number;
+  score: number;
 }
 
 interface SellerTitleProps {
@@ -8,9 +11,10 @@ interface SellerTitleProps {
 }
 
 export default function SellerTitle({ seller }: SellerTitleProps) {
-    const trustScore = 234;
+    const trustScore = seller?.score || 0;
     const trustPercentage = (trustScore / 1000) * 100;
     const sellerName = seller?.nickname || "판매자";
+    const sellerRating = seller?.rating || 0;
 
     return (
         <div className="w-full">
@@ -23,9 +27,9 @@ export default function SellerTitle({ seller }: SellerTitleProps) {
                     <div className="flex flex-col items-start">
                         <h3 className="text-lg font-bold">{sellerName}님의 상점</h3>
                         <div className="flex items-center gap-1">
-                            <span className="text-gray-400 text-base font-light">4.8</span>
+                            <span className="text-gray-400 text-base font-light">{sellerRating}</span>
                             <img src="/icon/star-on.svg" alt="별점" className="w-4 h-4" />
-                            <span className="text-gray-400 text-base font-light">(12)</span>
+                            <span className="text-gray-400 text-base font-light">(0)</span>
                         </div>
                     </div>
                 </div>
