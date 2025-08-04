@@ -40,7 +40,8 @@ const processQueue = (error: Error | null, token: string | null = null) => {
         }
         const response = await fetch(request.url, {
           ...request.options,
-          headers
+          headers,
+          credentials: 'include',
         })
         request.resolve(response)
       } catch (retryError) {

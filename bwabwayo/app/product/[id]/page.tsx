@@ -6,10 +6,11 @@ import { useProductStore } from "@/stores/productStore";
 import { useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useChatRoomStore } from "@/stores/chatting/chatRoomStore";
+import router from "next/router";
 
 export default function ProductDetailPage() {
   const { product, loading, error, getProductDetail } = useProductStore();
-  const { addChatRoom } = useChatRoomStore();
+  const { roomInfo, addChatRoom } = useChatRoomStore();
 
   const params = useParams();
   const productId = Number(params.id);
@@ -25,6 +26,7 @@ export default function ProductDetailPage() {
       sellerId: '4375461526',
       productId: 66
     })
+    // router.push(`/chat/${response.result.id}`)
   }
   
   return (

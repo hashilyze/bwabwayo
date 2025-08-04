@@ -125,8 +125,8 @@ export default function CreateProductPage() {
       console.log('S3 업로드 성공:', data);
       
       // S3에서 받아온 key값들을 바로 images에 저장
-      const imageKeys = data.result.map((item: any) => item.key);
-      const imageUrls = data.result.map((item: any) => item.url);
+      const imageKeys = data.results.map((item: any) => item.key);
+      const imageUrls = data.results.map((item: any) => item.url);
       
       setImgPreviews(prev => [...prev, ...imageUrls]);
       setUploadedImageUrls(prev => [...prev, ...imageKeys]);
