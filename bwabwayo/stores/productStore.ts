@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { useAuthStore } from './auth/authStore'
 
 interface Seller {
   id: number
@@ -447,11 +448,10 @@ export const useProductStore = create<ProductStore>((set) => ({
       console.log('JSON.stringify(product):', JSON.stringify(product, null, 2));
       console.log('=====================');
       
-      const response = await fetch(`${baseUrl}/products`, {
+      const { authenticatedFetch } = useAuthStore.getState();
+      
+      const response = await authenticatedFetch(`${baseUrl}/products`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(product)
       })
       
