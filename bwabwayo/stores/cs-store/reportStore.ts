@@ -2,25 +2,25 @@ import {create} from 'zustand';
 import { useAuthStore } from '@/stores/auth/authStore';
 
 // 신고 등록 시 포함될 이미지 데이터 인터페이스
-interface ReportImage {
+export interface ReportImage {
     imageUrl: string;
     order: number;
 }
 
 // 신고 등록을 위한 데이터 인터페이스
-interface ReportData {
+export interface ReportData {
     title: string;
     description: string;
     images: ReportImage[];
 }
 
 // 서버에서 조회해온 신고 내역에 포함된 이미지 데이터 인터페이스
-interface FetchedReportImage {
+export interface FetchedReportImage {
     imageUrl: string;
 }
 
 // 서버에서 조회해온 신고 내역 데이터 인터페이스
-interface Report {
+export interface Report {
     id: number;
     title: string;  
     description: string;
@@ -31,7 +31,7 @@ interface Report {
 }
 
 // 신고 스토어 인터페이스
-interface ReportStore {
+export interface ReportStore {
     reports: Report[];
     loading: boolean;
     error: string | null;

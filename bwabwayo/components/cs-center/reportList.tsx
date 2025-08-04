@@ -2,17 +2,33 @@
 
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useReportStore } from '@/stores/cs-store/reportStore';
+import type { Report } from '@/stores/cs-store/reportStore';
+import ReportDetail from '@/components/cs-center/ReportDetail';
 
 const ReportList = () => {
   // 1. reportStore에서 상태와 액션을 가져옵니다.
   const { reports, loading, error, getReports } = useReportStore();
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+
+  const formatDateSimple = (dateString: string) => {
+    if (!dateString) return '';
+    const parsableDateString = dateString.replace(' ', 'T');
+    return new Date(parsableDateString).toLocaleDateString('ko-KR');
+  };
 
   // 2. 컴포넌트가 마운트될 때 getReports 액션을 호출하여 데이터를 가져옵니다.
   useEffect(() => {
-    getReports();
-  }, [getReports]);
+    // 상세 보기에서 목록으로 돌아왔을 때는 목록을 새로고침하지 않습니다.
+    if (!selectedReport) {
+      getReports();
+    }
+  }, [getReports, selectedReport]);
+
+  if (selectedReport) {
+    return <ReportDetail report={selectedReport} onBack={() => setSelectedReport(null)} />;
+  }
 
   // 3. 로딩 상태에 따른 UI 처리
   if (loading) {
@@ -33,7 +49,11 @@ const ReportList = () => {
         <ul className="divide-y divide-gray-200">
           {/* 5. 조회된 신고 목록을 순회하며 렌더링합니다. */}
           {reports.map((report) => (
-            <li key={report.id} className="py-4 flex items-center justify-between">
+            <li
+              key={report.id}
+              className="py-4 flex items-center justify-between cursor-pointer hover:bg-gray-50"
+              onClick={() => setSelectedReport(report)}
+            >
               <div className="flex items-center space-x-4">
                 {/* 6. repliedAt 값에 따라 '처리완료' 또는 '처리대기' 배지를 표시합니다. */}
                 {report.repliedAt ? (
@@ -47,7 +67,7 @@ const ReportList = () => {
                 )}
                 <p className="text-lg font-medium text-gray-900 truncate">{report.title}</p>
               </div>
-              <p className="text-sm text-gray-500">{new Date(report.createdAt).toLocaleDateString('ko-KR')}</p>
+              <p className="text-sm text-gray-500">{formatDateSimple(report.createdAt)}</p>
             </li>
           ))}
         </ul>
