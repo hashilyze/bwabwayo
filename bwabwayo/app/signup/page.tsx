@@ -67,13 +67,13 @@ export default function SignUpPage() {
     // --- 추가된 부분: URL 파라미터를 읽어 스토어에 저장하고 URL을 정리합니다. ---
     useEffect(() => {
         const accessToken = searchParams.get('accessToken');
-        const isNewUser = searchParams.get('isNewUser');
         const id = searchParams.get('id');
         const emailFromQuery = searchParams.get('email');
         const profileImageFromQuery = searchParams.get('profileImage');
 
-        // 신규 유저 정보가 URL에 있을 경우에만 실행합니다.
-        if (isNewUser === 'true' && accessToken && id) {
+        // 소셜 로그인 후 전달된 accessToken과 id가 있다면, 신규 유저로 간주하고 정보를 채웁니다.
+        // isNewUser 판단은 콜백 페이지의 역할이므로, 여기서는 중복 확인을 제거하여 로직을 단순화하고 안정성을 높입니다.
+        if (accessToken && id) {
             // 1. 스토어에 소셜 로그인 정보를 저장합니다.
             setSocialInfo({ token: accessToken, id });
             if (emailFromQuery) setEmail(emailFromQuery);
@@ -305,4 +305,3 @@ export default function SignUpPage() {
     </>
 )
 }
-
