@@ -145,7 +145,7 @@ export default function CreateProductPage() {
       });
       formData.append('dir', 'products');
 
-      const response = await fetch('<https://i13e202.p.ssafy.io/be/api/s3/upload>', {
+      const response = await fetch('<https://i13e202.p.ssafy.io/be/api/storage/upload/product>', {
         method: 'POST',
         body: formData,
       });
