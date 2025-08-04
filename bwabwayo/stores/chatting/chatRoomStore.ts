@@ -110,9 +110,9 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                         const msg = JSON.parse(messageOutput.body)
                         console.log('📨 받은 메시지:', msg)
                         
-                        // 현재 사용자 ID (임시로 하드코딩, 실제로는 인증 정보에서 가져와야 함)
-                        const currentUserId = '4375126834'
-                        const isMine = String(msg.senderId) === currentUserId
+                        // localStorage에서 토큰 가져오기
+                        const token = localStorage.getItem('accessToken')
+                        const isMine = msg.senderId === token
                         
                         // appendMessage를 통해 메시지 추가
                         get().appendMessage(msg, isMine)
@@ -122,10 +122,8 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
             }
             
             // 연결 오류
-            client.onStompError = (frame) => {
-                console.error('❌ STOMP 연결 실패')
-                console.error('서버 URL:', serverUrl)
-                console.error('에러 메시지:', frame)
+            client.onStompError = (error) => {
+                console.error('에러 메시지:', error)
                 set({ isConnected: false })
             }
             
