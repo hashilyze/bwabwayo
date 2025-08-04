@@ -143,7 +143,6 @@ export default function CreateProductPage() {
       files.forEach((file) => {
         formData.append('files', file);
       });
-      formData.append('dir', 'products');
 
       const response = await fetch('https://i13e202.p.ssafy.io/be/api/storage/upload/product', {
         method: 'POST',

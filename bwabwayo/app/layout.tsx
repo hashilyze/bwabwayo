@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Chatbot from "@/components/chat/Chatbot";
 import LoginModalWrapper from '@/components/common/LoginModalWrapper';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 import { Suspense } from "react";
 export const metadata: Metadata = {
   title: "봐봐요",
@@ -29,11 +30,13 @@ export default function RootLayout({
         </Suspense>
         <Navbar />
         <LoginModalWrapper />
-        <div className="bg-[#FAFDFF] pt-[124px]">
-          <div className="w-[1280px] m-auto">
-            {children}
+        <ProtectedRoute>
+          <div className="bg-[#FAFDFF] pt-[124px]">
+            <div className="w-[1280px] m-auto">
+              {children}
+            </div>
           </div>
-        </div>
+        </ProtectedRoute>
         <Chatbot />
         <Footer />
       </body>

@@ -4,6 +4,8 @@ import ProductCard from "@/components/product/ProductCard";
 import WebTest from "@/components/home/WebTest";
 import React, { useEffect, useState } from 'react';
 import { useProductStore } from '@/stores/product/productStore';
+import { useSearchParams } from 'next/navigation';
+import { useModalStore } from '@/stores/modalStore';
 // swiper
 import { Navigation, Pagination } from 'swiper/modules';
 import { Swiper, SwiperClass, SwiperSlide } from 'swiper/react';
@@ -85,7 +87,17 @@ function ProductSlider({ products, navigationId }: { products: any[], navigation
 
 export default function Home() {
   const { products, hotKeywordProducts, videoCallProducts, loading, error, getProducts, getHotKewordProducts, getVideoCallProducts } = useProductStore();
+  const searchParams = useSearchParams();
+  const { openLoginModal } = useModalStore();
   const hotKeyword = '라부부';
+
+  // 인증이 필요한 페이지로 리다이렉트된 경우 로그인 모달 표시
+  useEffect(() => {
+    const authRequired = searchParams.get('auth');
+    if (authRequired === 'required') {
+      openLoginModal();
+    }
+  }, [searchParams, openLoginModal]);
 
   useEffect(() => {
     const fetchData = async () => {
