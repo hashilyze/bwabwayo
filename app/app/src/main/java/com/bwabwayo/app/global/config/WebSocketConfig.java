@@ -19,20 +19,34 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws-stomp").setAllowedOriginPatterns("*").withSockJS();
-        registry.addEndpoint("/ws-stomp").setAllowedOriginPatterns("*");
+        registry.addEndpoint("/ws-stomp")
+                .setAllowedOriginPatterns(
+                        "http://localhost:3000",
+                        "https://localhost:3000",
+                        "http://localhost:3001",
+                        "https://localhost:3001",
+                        "http://localhost:8081",
+                        "https://i13e202.p.ssafy.io",
+                        "https://i13e202.p.ssafy.io/fe/",
+                        "https://i13e202.p.ssafy.io/be/",
+                        "https://i13e202.p.ssafy.io/api/",
+                        "https://i13e202.p.ssafy.io:3000",
+                        "https://i13e202.p.ssafy.io:3001"
+                ).withSockJS();
+        registry.addEndpoint("/ws-stomp")
+                .setAllowedOriginPatterns(
+                        "http://localhost:3000",
+                        "https://localhost:3000",
+                        "http://localhost:3001",
+                        "https://localhost:3001",
+                        "http://localhost:8081",
+                        "https://i13e202.p.ssafy.io",
+                        "https://i13e202.p.ssafy.io/fe/",
+                        "https://i13e202.p.ssafy.io/be/",
+                        "https://i13e202.p.ssafy.io/api/",
+                        "https://i13e202.p.ssafy.io:3000",
+                        "https://i13e202.p.ssafy.io:3001"
+                );
     }
-
-    /*
-    로컬 테스트용
-    @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws-stomp")
-                .setAllowedOriginPatterns("http://localhost:8082") // ✅ HTML 열려 있는 주소
-                .withSockJS();
-
-        registry.addEndpoint("/ws-stomp")
-                .setAllowedOriginPatterns("http://localhost:8082"); // ✅ SockJS 아닌 경우도 커버
-    }*/
 
 }

@@ -11,7 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Date;
 import java.util.UUID;
 
@@ -39,6 +41,38 @@ public class S3Service implements StorageService {
             return key;
         } catch (IOException e) {
             throw new RuntimeException("S3 업로드 실패", e);
+        }
+    }
+
+    @Override
+    public String upload(String srcURL, String dir) {
+        try {
+            // URL 로부터 InputStream
+            URL url = new URL(srcURL);
+            URLConnection connection = url.openConnection();
+            connection.setConnectTimeout(5000); // 5초 연결 타임아웃
+            connection.setReadTimeout(5000);    // 5초 읽기 타임아웃
+
+            String contentType = connection.getContentType(); // image/jpeg
+            long contentLength = connection.getContentLengthLong();
+
+            String extension = contentType.substring(contentType.lastIndexOf("/") + 1);
+            String key = dir + "/" + UUID.randomUUID() + "." + extension;
+
+            // InputStream 으로 S3 업로드
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentType(contentType);
+            metadata.setContentLength(contentLength);
+
+
+            try (InputStream inputStream = connection.getInputStream()) {
+                PutObjectRequest putRequest = new PutObjectRequest(bucketName, key, inputStream, metadata);
+                amazonS3.putObject(putRequest);
+            }
+
+            return key;
+        } catch (IOException e) {
+            throw new RuntimeException("파일 업로드 실패", e);
         }
     }
 
