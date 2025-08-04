@@ -21,6 +21,8 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     getRoomList();
   }, [getRoomList]);
+
+  console.log("layout", roomList);
   
   const handleChatRoomSelect = (chatRoom: ChatRoom) => {
     console.log(`채팅방 ${chatRoom.id} 선택됨`);

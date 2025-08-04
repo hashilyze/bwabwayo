@@ -161,7 +161,14 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                                 }
                             }))
                             
+                            // 채팅방 목록 상태 업데이트
                             set({ roomList: formattedRoomList })
+                            
+                            // 채팅방 목록 표시 (updateRoomList와 동일한 기능)
+                            console.log('🔔 채팅방 목록 업데이트 완료')
+                            formattedRoomList.forEach((room: ChatRoom) => {
+                                console.log(`[${room.productName}] ${room.partnerNickName}: ${room.lastChatmessageDto?.content || '메시지 없음'}`)
+                            })
                         })
                         
                         console.log(`✅ 채팅방 목록 구독 완료`)
