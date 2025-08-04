@@ -132,38 +132,46 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                         
                         // 내 채팅방 목록 구독 (예시 코드와 동일한 방식)
                         stompClient.subscribe(`/sub/chat/roomlist/${myUserId}`, function (output: any) {
-                            const roomList = JSON.parse(output.body);
-                            console.log("📥 채팅방 목록 수신:", roomList);
+                            console.log("📨 원시 메시지 수신:", output);
+                            console.log("📨 메시지 바디:", output.body);
                             
-                            // 받은 데이터를 ChatRoom 형식으로 변환
-                            const formattedRoomList = roomList.map((room: any) => ({
-                                roomId: room.roomId,
-                                productName: room.productName,
-                                partnerNickName: room.partnerNickName,
-                                partnerId: room.partnerId,
-                                lastChatmessageDto: room.lastChatmessageDto,
-                                unreadMessagesNum: room.unreadMessagesNum || 0,
-                                lastMessageContent: room.lastChatmessageDto?.content || '',
-                                lastMessageTime: room.lastChatmessageDto?.createdAt || '',
-                                type: room.lastChatmessageDto?.type || 'TEXT',
-                                seller: {
-                                    id: room.sellerId,
-                                    nickname: room.partnerNickName || '판매자'
-                                },
-                                product: {
-                                    id: room.productId,
-                                    thumnail: room.productThumbnail || ''
-                                }
-                            }))
-                            
-                            // 채팅방 목록 상태 업데이트
-                            set({ roomList: formattedRoomList })
-                            
-                            // updateRoomList와 동일한 기능
-                            console.log('🔔 채팅방 목록 업데이트 완료')
-                            formattedRoomList.forEach((room: ChatRoom) => {
-                                console.log(`[${room.productName}] ${room.partnerNickName}: ${room.lastChatmessageDto?.content || '메시지 없음'}`)
-                            })
+                            try {
+                                const roomList = JSON.parse(output.body);
+                                console.log("📥 채팅방 목록 수신:", roomList);
+                                
+                                // 받은 데이터를 ChatRoom 형식으로 변환
+                                const formattedRoomList = roomList.map((room: any) => ({
+                                    roomId: room.roomId,
+                                    productName: room.productName,
+                                    partnerNickName: room.partnerNickName,
+                                    partnerId: room.partnerId,
+                                    lastChatmessageDto: room.lastChatmessageDto,
+                                    unreadMessagesNum: room.unreadMessagesNum || 0,
+                                    lastMessageContent: room.lastChatmessageDto?.content || '',
+                                    lastMessageTime: room.lastChatmessageDto?.createdAt || '',
+                                    type: room.lastChatmessageDto?.type || 'TEXT',
+                                    seller: {
+                                        id: room.sellerId,
+                                        nickname: room.partnerNickName || '판매자'
+                                    },
+                                    product: {
+                                        id: room.productId,
+                                        thumnail: room.productThumbnail || ''
+                                    }
+                                }))
+                                
+                                // 채팅방 목록 상태 업데이트
+                                set({ roomList: formattedRoomList })
+                                
+                                // updateRoomList와 동일한 기능
+                                console.log('🔔 채팅방 목록 업데이트 완료')
+                                formattedRoomList.forEach((room: ChatRoom) => {
+                                    console.log(`[${room.productName}] ${room.partnerNickName}: ${room.lastChatmessageDto?.content || '메시지 없음'}`)
+                                })
+                            } catch (error) {
+                                console.error('❌ 채팅방 목록 파싱 실패:', error);
+                                console.error('❌ 원시 데이터:', output.body);
+                            }
                         });
                         
                         console.log(`✅ 채팅방 목록 구독 완료`)

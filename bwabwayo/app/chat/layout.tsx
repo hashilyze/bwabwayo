@@ -19,15 +19,12 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   
   // 컴포넌트 마운트 시 채팅방 목록 로드
   useEffect(() => {
-    console.log("🔍 useEffect 실행됨 - getRoomList 호출");
     getRoomList();
   }, [getRoomList]);
 
   console.log("🔍 layout 컴포넌트 렌더링 - roomList:", roomList);
-  console.log("🔍 roomList 길이:", roomList?.length || 0);
   
   const handleChatRoomSelect = (chatRoom: ChatRoom) => {
-    console.log(`채팅방 ${chatRoom.id} 선택됨`);
     router.push(`/chat/${chatRoom.id}`);
   }
 
