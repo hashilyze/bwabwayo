@@ -3,7 +3,7 @@ import { useAuthStore } from '@/stores/auth/authStore';
 
 // 신고 등록 시 포함될 이미지 데이터 인터페이스
 interface ReportImage {
-    image_url: string;
+    imageUrl: string;
     order: number;
 }
 
@@ -16,17 +16,17 @@ interface ReportData {
 
 // 서버에서 조회해온 신고 내역에 포함된 이미지 데이터 인터페이스
 interface FetchedReportImage {
-    image_url: string;
+    imageUrl: string;
 }
 
 // 서버에서 조회해온 신고 내역 데이터 인터페이스
 interface Report {
     id: number;
-    title: string;
+    title: string;  
     description: string;
     reply: string | null;
-    created_at: string;
-    replied_at: string | null;
+    createdAt: string;
+    repliedAt: string | null;
     images: FetchedReportImage[];
 }
 
