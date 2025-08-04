@@ -12,6 +12,7 @@ import com.bwabwayo.app.domain.auth.dto.response.UserTokenResponse;
 import com.bwabwayo.app.domain.auth.service.AuthService;
 import com.bwabwayo.app.domain.auth.service.AuthRedisService;
 import com.bwabwayo.app.domain.auth.utils.JWTUtils;
+import io.jsonwebtoken.Jwts;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -49,31 +51,16 @@ public class AuthController {
 
     @PostMapping("/signup")
     @Operation(summary = "회원가입", description = "OAuth2 로그인 후, 추가 회원 정보를 입력 받아 가입 처리 후 토큰을 발급합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "회원가입 성공"),
-            @ApiResponse(responseCode = "400", description = "입력값 오류 또는 중복된 정보"),
-            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
-    })
     public ResponseEntity<?> signup(@RequestBody UserSignUpRequest request) {
         try {
-            System.out.println("SignUp");
             UserTokenResponse tokens = authService.signUp(request);
-
-            // ✅ RT를 Redis에 저장 (TTL: 7일)
-            authRedisService.saveRefreshToken(request.getId(), tokens.getRefreshToken());
-
-            // AccessToken만 바디에 포함
-            Map<String, String> responseBody = Map.of(
-                    "accessToken", tokens.getAccessToken()
-            );
 
             // RefreshToken은 HttpOnly 쿠키로 설정
             ResponseCookie refreshTokenCookie = JWTUtils.createHttpOnlyCookie(tokens.getRefreshToken());
-            System.out.println("Set-Cookie: " + refreshTokenCookie.toString());
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
-                    .body(responseBody);
+                    .body(Map.of("accessToken", tokens.getAccessToken())); //accessToken 바디 추가
         } catch (DataIntegrityViolationException e) {
             // 중복 이메일, 닉네임, 전화번호 등 제약조건 위반
             String message = e.getMostSpecificCause().getMessage();
@@ -112,31 +99,11 @@ public class AuthController {
     @Transactional
     @PostMapping("/refresh/logout")
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
-        //Cookie를 가져와서 거기서 refreshToken을 찾고 mapping한 뒤에 첫번째거 들고와서
-        //있으면 그대로 받고 없으면 null값
-        String refreshToken = Optional.ofNullable(request.getCookies())
-                .map(Arrays::stream)
-                .orElseGet(Stream::empty)
-                .filter(cookie -> "refreshToken".equals(cookie.getName()))
-                .map(Cookie::getValue)
-                .findFirst()
-                .orElse(null);
-
-        //refreshToken이 있는 지 체크
-        if (refreshToken != null) {
-            String userId = jwtUtils.getSubject(refreshToken); // 서명 검증 없이 claim 추출만
-            //refreshToken 안에 userId 있는 지 체크
-            if (userId != null) {
-                authRedisService.deleteRefreshToken(userId);
-            }
-        }
+        //RT가 Redis에 있으면 삭제
+        authService.deleteRefreshTokenFromRequest(request);
 
         // RT 쿠키 제거
-        ResponseCookie expiredCookie = ResponseCookie.from("refreshToken", "")
-                .path("/api/auth/refresh")
-                .maxAge(0)
-                .httpOnly(true)
-                .build();
+        ResponseCookie expiredCookie = authService.generateExpiredRefreshTokenCookie();
         response.addHeader(HttpHeaders.SET_COOKIE, expiredCookie.toString());
 
         return ResponseEntity.ok("로그아웃 완료");
@@ -149,10 +116,21 @@ public class AuthController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("인증된 사용자가 없습니다.");
         }
-        //그 토큰을 HttpOnlyCookie로 만들어서 response에 담아서 전송
+
+        // 기존 refreshToken이 있다면 삭제 처리 (logout과 같은 로직)
+        authService.deleteRefreshTokenFromRequest(request);
+        ResponseCookie expiredCookie = authService.generateExpiredRefreshTokenCookie();
+        response.addHeader(HttpHeaders.SET_COOKIE, expiredCookie.toString());
+
+        //RT 토큰을 HttpOnlyCookie로 만들어서 response에 담아서 전송
         String refreshToken;
+        String tempId;
         try {
-            refreshToken = jwtUtils.createToken(new OAuth2UserRequest(user), jwtProperties.getRefreshExpMinutes(), user.getRole());
+            tempId = jwtUtils.generateTempId(user.getId());
+            if(tempId == null){
+                throw new IllegalStateException("임시 ID 생성 실패: UUID 충돌 또는 내부 오류");
+            }
+            refreshToken = jwtUtils.createToken(tempId, jwtProperties.getRefreshExpMinutes(), user.getRole(), jwtProperties.getTypeRefresh());
         } catch (Exception e) {
             log.error("RefreshToken 생성 실패", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("토큰 생성 실패");
@@ -160,7 +138,7 @@ public class AuthController {
 
         // ✅ RT를 Redis에 저장 (TTL: 7일)
         try {
-            authRedisService.saveRefreshToken(user.getId(), refreshToken);
+            authRedisService.saveRefreshToken(tempId, user.getId(), refreshToken);
         } catch (Exception e) {
             log.error("Redis 저장 실패", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Redis 저장 실패");
@@ -175,14 +153,8 @@ public class AuthController {
 
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) {
-        String refreshToken = Optional.ofNullable(request.getCookies())
-                .map(Arrays::stream)
-                .orElseGet(Stream::empty)
-                .filter(cookie -> "refreshToken".equals(cookie.getName()))
-                .map(Cookie::getValue)
-                .findFirst()
-                .orElse(null);
+    public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        String refreshToken = jwtUtils.extractRefreshTokenFromCookies(request);
 
         //refreshToken 유효성 검사
         if (refreshToken == null || !jwtUtils.validateToken(refreshToken)) {
@@ -190,39 +162,61 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("유효하지 않은 리프레시 토큰입니다.");
         }
 
-        //user 유효성 검사
-        String userId = jwtUtils.getSubject(refreshToken);
-        if (userId == null) {
+        //tempId 유효성 검사
+        String tempId = jwtUtils.getSubject(refreshToken);
+        if (tempId == null) {
             //401
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("토큰에서 사용자 정보를 가져올 수 없습니다.");
         }
 
+        //tempId 유효성 검사
+        String type = jwtUtils.getTokenType(refreshToken);
+        if (type == null ||  !type.equals(jwtProperties.getTypeRefresh())) {
+            //401
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("리프레시 토큰이 아닙니다.");
+        }
+
         //DB에서 조회
-        String savedRefreshToken = authRedisService.getRefreshToken(userId);
+        String savedRefreshToken = authRedisService.getDecryptedRefreshToken(tempId);
         if (savedRefreshToken == null || !savedRefreshToken.equals(refreshToken)) {
             // 401 Unauthorized
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("허용하지 않는 리프레시 토큰입니다.");
         }
 
+        String userId = authRedisService.getDecryptedUserId(tempId);
         User user = userService.findById(userId);
 
-        //아래에 주석 처리 된건, RT의 남은 시간이 규정한 시간보다 적게 되면 RT를 재발급해주는 로직을 위해 남겨둠
-        Role role = user.getRole();
-        OAuth2UserRequest oauth2 = new OAuth2UserRequest(userId, role, "", "");
-        String newAccessToken = jwtUtils.createToken(oauth2, jwtProperties.getAccessExpMinutes(), role);
-//        String newRefreshToken = jwtUtils.createToken(oauth2, jwtProperties.getRefreshExpMinutes(), role);
+        String newAccessToken = jwtUtils.createToken(userId, jwtProperties.getAccessExpMinutes(), user.getRole(), jwtProperties.getTypeAccess());
 
-        // AccessToken만 바디에 포함
-        Map<String, String> responseBody = Map.of(
+        // 리프레시 토큰 남은 시간 계산
+        Date expiration = Jwts.parserBuilder().setSigningKey(jwtUtils.getSecretKey()).build().parseClaimsJws(refreshToken).getBody().getExpiration();
+        long remainingMillis = expiration.getTime() - System.currentTimeMillis();
+        long thresholdMillis = jwtProperties.getRefreshReissueThresholdDays() * 24 * 60 * 60 * 1000L;
+
+        boolean refreshReissued = false;
+
+        if (remainingMillis <= thresholdMillis) {
+            try {
+                authRedisService.deleteRefreshToken(tempId); // 기존 refreshToken 삭제
+                String newTempId = jwtUtils.generateTempId(userId);
+                String newRefreshToken = jwtUtils.createToken(newTempId, jwtProperties.getRefreshExpMinutes(), user.getRole(), jwtProperties.getTypeRefresh());
+                authRedisService.saveRefreshToken(newTempId, userId, newRefreshToken);
+                ResponseCookie refreshTokenCookie = JWTUtils.createHttpOnlyCookie(newRefreshToken);
+                response.setHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+                refreshReissued = true;
+            } catch (Exception e) {
+                log.error("RefreshToken 재발급 실패", e);
+            }
+        }
+
+        Map<String, Object> responseBody = Map.of(
                 "accessToken", newAccessToken,
-                "message", "AccessToken이 재발급되었습니다."
+                "message", refreshReissued
+                        ? "AccessToken과 RefreshToken이 모두 재발급되었습니다."
+                        : "AccessToken이 재발급되었습니다."
         );
 
-        // RefreshToken은 HttpOnly 쿠키로 설정
-//        ResponseCookie refreshTokenCookie = JWTUtils.createHttpOnlyCookie(newRefreshToken);
-
         return ResponseEntity.ok()
-//                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
                 .body(responseBody);
     }
 }

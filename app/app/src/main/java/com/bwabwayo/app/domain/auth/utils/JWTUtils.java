@@ -1,28 +1,35 @@
 package com.bwabwayo.app.domain.auth.utils;
 
+import com.bwabwayo.app.domain.auth.service.AuthRedisService;
 import com.bwabwayo.app.domain.user.domain.Role;
-import com.bwabwayo.app.domain.auth.dto.request.OAuth2UserRequest;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.time.Duration;
 import java.time.ZonedDateTime;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
+
+import static org.apache.commons.codec.digest.DigestUtils.sha256;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
+@Getter
 //JWT에 필요한 여러 함수를 만들어 놓은 Util 클래스
 public class JWTUtils {
     private SecretKey secretKey;
     private final JwtProperties jwtProperties;
+    private final AuthRedisService  authRedisService;
 
     //Bean 생성할 때 실행하는 생성자
     @PostConstruct
@@ -36,15 +43,37 @@ public class JWTUtils {
     }
 
     //토큰 생성 함수 (유효시간, 역할을 받아서 생성) (AccessToken/RefreshToken 둘 다 이걸로 생성 가능)
-    public String createToken(OAuth2UserRequest user, long validTime, Role role) {
+    public String createToken(String id, long validTime, Role role, String type) {
         return Jwts.builder()
                 .setHeader(Map.of("typ","JWT"))   // JWT 헤더 명시 (선택)
-                .setSubject(user.getId())                // sub 필드 → 주체, 일반적으로 user_id
+                .setSubject(id)                // sub 필드 → 주체, 일반적으로 user_id (RT는 tempId 넣을 예정)
                 .claim("role", role)                  // 사용자 권한(roles) claim에 저장
+                .claim("tokenType", type)                  // tokenType 저장해서 혼용 못하게 설정
                 .setIssuedAt(Date.from(ZonedDateTime.now().toInstant())) // 토큰 생성 시각
                 .setExpiration(Date.from(ZonedDateTime.now().plusMinutes(validTime).toInstant())) // 토큰 만료 시각
                 .signWith(secretKey) // 비밀키로 서명 (HS256)
                 .compact(); // JWT 문자열 생성
+    }
+
+    public String generateTempId(String userId) {
+        int maxAttempts = 3;
+
+        try {
+            for (int i = 0; i < maxAttempts; i++) {
+                String raw = userId + ":" + UUID.randomUUID();
+                byte[] hashBytes = sha256(raw); // SHA-256 해시
+                String hash = Base64.getUrlEncoder().withoutPadding().encodeToString(hashBytes); // 올바른 인코딩
+                String key = "token:" + hash;
+
+                if (!authRedisService.keyCheck(key)) {
+                    return hash;
+                }
+            }
+            throw new IllegalStateException("임시 ID 생성 실패: 충돌이 너무 많습니다.");
+        } catch (Exception e) {
+            log.error("임시 ID 생성 중 예외 발생: {}", e.getMessage(), e);
+            return null; // 또는 Optional<String>으로 바꾸는 것도 가능
+        }
     }
 
     //토큰 유효한지 체크 (만료, 위조, 서명, 등등) 함수
@@ -58,28 +87,6 @@ public class JWTUtils {
         } catch (JwtException | IllegalArgumentException e) {
             return false; // 토큰이 유효하지 않은 경우
         }
-    }
-
-    //토큰이 만료되었는 지만 체크 함수
-    public boolean isExpired(String token) {
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(secretKey) // 비밀키 설정
-                    .build()
-                    .parseClaimsJws(token); // 토큰 파싱 및 유효성 검증
-            return false;
-        } catch (ExpiredJwtException e) {
-            return true;
-        } catch (JwtException e) {
-            return false;
-        }
-    }
-
-    //토큰 남은 시간 계산 함수
-    public long tokenRemainTime(Integer expTime) {
-        Date expDate = new Date((long) expTime * (1000)); // 초 → 밀리초
-        long remainMs = expDate.getTime() - System.currentTimeMillis(); // 남은 ms
-        return remainMs / (1000 * 60); // 분 단위 반환
     }
 
     //JWT payload의 "sub"을 꺼내는 함수
@@ -109,6 +116,30 @@ public class JWTUtils {
         } catch (JwtException e) {
             return null;
         }
+    }
+
+    // JWT payload의 "tokenType"을 꺼내는 함수
+    public String getTokenType(String jwt) {
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(jwt)
+                    .getBody()
+                    .get("tokenType", String.class); // type 필드 꺼냄
+        } catch (JwtException e) {
+            return null;
+        }
+    }
+
+    public String extractRefreshTokenFromCookies(HttpServletRequest request) {
+        if (request.getCookies() == null) return null;
+
+        return Arrays.stream(request.getCookies())
+                .filter(cookie -> "refreshToken".equals(cookie.getName()))
+                .map(Cookie::getValue)
+                .findFirst()
+                .orElse(null);
     }
 
     public static ResponseCookie createHttpOnlyCookie(String refreshToken) { // 수정
