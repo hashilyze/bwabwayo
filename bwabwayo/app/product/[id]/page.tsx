@@ -88,24 +88,26 @@ export default function ProductDetailPage() {
           <div className="sticky top-40 z-8">
             <div className="flex flex-col gap-4">
               <div className="rounded-2xl overflow-hidden border border-gray-200 relative aspect-square">
-                <Image
-                   src={product?.imageUrls?.[0] || '/image/no-image.jpg'}
-                   width={400}
-                   height={400} 
-                   alt="상품 대표 이미지" 
-                   className="object-cover w-full h-full"
-                 />
+                  <Image
+                    src={product?.imageUrls?.[0] || '/image/no-image.jpg'}
+                    width={400}
+                    height={400} 
+                    alt="상품 대표 이미지" 
+                    className="object-cover w-full h-full"
+                    unoptimized
+                  />
               </div>
                 <ul className="grid grid-cols-4 gap-4">
                  {product?.imageUrls?.slice(1, 5).map((imageUrl, index) => (
                    <li key={index} className="relative aspect-square">
-                     <Image 
-                       src={imageUrl || `/image/no-image.jpg`} 
-                       alt={`상품 썸네일${index + 1}`} 
-                       className="rounded-xl border border-[#eeeeee] object-cover w-full h-full"
-                       width={100}
-                       height={100}
-                     />
+                      <Image 
+                        src={imageUrl || `/image/no-image.jpg`} 
+                        alt={`상품 썸네일${index + 1}`} 
+                        className="rounded-xl border border-[#eeeeee] object-cover w-full h-full"
+                        width={100}
+                        height={100}
+                        unoptimized
+                      />
                    </li>
                  ))}
                </ul>

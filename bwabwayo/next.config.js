@@ -4,6 +4,14 @@ const nextConfig = {
     basePath: process.env.NODE_ENV === 'production' ? '/fe' : '',
     images: {
       domains: ['bwabwayo-general-bucket.s3.ap-northeast-2.amazonaws.com', 'localhost'],
+      remotePatterns: [
+        {
+          protocol: 'https',
+          hostname: 'bwabwayo-general-bucket.s3.ap-northeast-2.amazonaws.com',
+          port: '',
+          pathname: '/**',
+        },
+      ],
     },
     async rewrites() {
       return [
