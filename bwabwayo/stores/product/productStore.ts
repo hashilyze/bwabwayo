@@ -73,7 +73,6 @@ interface ProductStore {
 const baseUrl = 'https://i13e202.p.ssafy.io/be/api'
 
 export const useProductStore = create<ProductStore>((set) => ({
-  
   product: null,
   products: [],
   hotKeywordProducts: [],
@@ -84,43 +83,36 @@ export const useProductStore = create<ProductStore>((set) => ({
   getProducts: async (options = {}) => {
     set({ loading: true, error: null })
     try {
-      const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products`)
+      // 쿼리 파라미터 구성
+      const queryParams = new URLSearchParams();
       
-      if (!response.ok) {
-        throw new Error('상품 조회에 실패했습니다')
-      }
-      
-      const data = await response.json()
-      console.log('상품 조회 성공:', data.result)
-      
-      // 클라이언트 사이드 필터링
-      let filteredProducts = data.result;
-      
-      // 제목 필터링
       if (options.title) {
-        filteredProducts = filteredProducts.filter((item: any) => 
-          item.product.title.toLowerCase().includes(options.title!.toLowerCase())
-        );
+        queryParams.append('keyword', options.title);
       }
       
-      // 카테고리 필터링
       if (options.category_id) {
-        filteredProducts = filteredProducts.filter((item: any) => 
-          item.product.categoryId === options.category_id
-        );
+        queryParams.append('categoryId', options.category_id.toString());
       }
       
+      // API URL 구성
+      const url = queryParams.toString() 
+        ? `${baseUrl}/products?${queryParams.toString()}`
+        : `${baseUrl}/products`;
+      
+      const response = await useAuthStore.getState().authenticatedFetch(url)
+      const data = await response.json()
+      let filteredProducts = data.result;
+
       // 가격 필터링
       if (options.minPrice || options.maxPrice) {
         filteredProducts = filteredProducts.filter((item: any) => {
           const price = parseInt(item.product.price);
           const minPrice = options.minPrice || 0;
           const maxPrice = options.maxPrice || Infinity;
-          
           return price >= minPrice && price <= maxPrice;
         });
       }
-      
+
       set({ products: filteredProducts, loading: false })
     } catch (error) {
       console.error('상품 조회 실패:', error)
@@ -138,24 +130,11 @@ export const useProductStore = create<ProductStore>((set) => ({
     try {
       const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products?keyword=${title}`)
       
-      if (!response.ok) {
-        throw new Error('핫 키워드 상품 조회에 실패했습니다')
-      }
-      
       const data = await response.json()
-      const filteredProducts = data.result.filter((item: any) => 
-        item.product.title === title
-      )
-      console.log('핫 키워드 상품 조회 성공:', filteredProducts)
-
-      set({ hotKeywordProducts: filteredProducts, loading: false })
+      // console.log('핫 키워드 상품 조회 성공:', data.result)
+      set({ hotKeywordProducts: data.result, loading: false })
     } catch (error) {
-      console.error('핫 키워드 상품 조회 실패:', error)
-      set({ 
-        hotKeywordProducts: [], 
-        loading: false, 
-        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다' 
-      })
+      console.error(error)
     }
   },
 
@@ -164,17 +143,11 @@ export const useProductStore = create<ProductStore>((set) => ({
     set({ loading: true, error: null })
     try {
       const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products`)
-      
-      if (!response.ok) {
-        throw new Error('화상통화 상품 조회에 실패했습니다')
-      }
-      
       const data = await response.json()
       const filteredProducts = data.result.filter((item: any) => 
          item.product.canVideoCall === true
       )
-      console.log('화상통화 상품 조회 성공:', filteredProducts)
-
+      // console.log('화상통화 상품 조회 성공:', filteredProducts)
       set({ videoCallProducts: filteredProducts, loading: false })
     } catch (error) {
       console.error('화상통화 상품 조회 실패:', error)

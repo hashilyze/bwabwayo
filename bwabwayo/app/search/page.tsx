@@ -47,12 +47,24 @@ export default function SearchPage({
     setAppliedMaxPrice('');
   }, []);
 
+  // 초기 데이터 로드
   useEffect(() => {
-    getProducts();
+    // 카테고리 데이터 로드
     getCategories();
-  }, [getCategories, getProducts]);
-
-  console.log(products)
+    
+    // 검색 조건에 따른 상품 로드
+    const searchQuery: any = {};
+    
+    if (searchParams.title) {
+      searchQuery.title = searchParams.title;
+    }
+    
+    if (searchParams.category) {
+      searchQuery.category_id = parseInt(searchParams.category);
+    }
+    
+    getProducts(searchQuery);
+  }, [searchParams.title, searchParams.category, getProducts, getCategories]);
 
   // URL에서 카테고리 정보를 파싱하여 브레드크럼 구성
   const parseCategoryFromUrl = React.useCallback(() => {
@@ -128,23 +140,7 @@ export default function SearchPage({
       // 카테고리 없음: 현재 탭 상태 유지 (전체 클릭 시 대분류 탭이 열려있을 수 있음)
       setShowMinorCategories(false);
     }
-    
-    // API 호출 - 모든 쿼리 파라미터를 조합하여 전달
-    const searchQuery: any = {};
-    
-    if (searchParams.title) {
-      searchQuery.title = searchParams.title;
-    }
-    
-    if (searchParams.category) {
-      searchQuery.category_id = parseInt(searchParams.category);
-    }
-    
-    // 쿼리 파라미터가 있으면 API 호출
-    if (Object.keys(searchQuery).length > 0) {
-      getProducts(searchQuery);
-    }
-  }, [searchParams.category, searchParams.title, parseCategoryFromUrl, getProducts]);
+  }, [searchParams.category, searchParams.title, parseCategoryFromUrl]);
 
   // URL 생성 헬퍼 함수
   const createSearchUrl = (categoryId?: number) => {
@@ -173,14 +169,14 @@ export default function SearchPage({
 
   // 가격 적용
   const handlePriceApply = () => {
-    const min = minPrice ? parseInt(removeCommas(minPrice)) : 0;
+    const min = minPrice ? parseInt(removeCommas(minPrice)) : undefined;
     const max = maxPrice ? parseInt(removeCommas(maxPrice)) : undefined;
     
     // 적용된 가격 상태 업데이트
     setAppliedMinPrice(minPrice);
     setAppliedMaxPrice(maxPrice);
     
-    // 기존 검색 조건과 가격 조건을 조합
+    // 검색 조건 구성
     const searchQuery: any = {};
     
     if (searchParams.title) {
@@ -191,10 +187,8 @@ export default function SearchPage({
       searchQuery.category_id = parseInt(searchParams.category);
     }
     
-    if (minPrice || maxPrice) {
-      if (minPrice) searchQuery.minPrice = min;
-      if (maxPrice) searchQuery.maxPrice = max;
-    }
+    if (min) searchQuery.minPrice = min;
+    if (max) searchQuery.maxPrice = max;
     
     getProducts(searchQuery);
   };
@@ -379,7 +373,7 @@ export default function SearchPage({
                         setAppliedMinPrice('');
                         setAppliedMaxPrice('');
                         
-                        // 기존 검색 조건은 유지하고 가격 필터만 초기화
+                        // 검색 조건 구성 (가격 제외)
                         const searchQuery: any = {};
                         
                         if (searchParams.title) {
@@ -390,8 +384,7 @@ export default function SearchPage({
                           searchQuery.category_id = parseInt(searchParams.category);
                         }
                         
-                        // 가격 필터 없이 API 호출
-                        getProducts(Object.keys(searchQuery).length > 0 ? searchQuery : {});
+                        getProducts(searchQuery);
                       }}
                       className="ml-2 text-gray-500 hover:text-gray-700 cursor-pointer"
                     >
