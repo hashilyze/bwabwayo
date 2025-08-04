@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { Client } from '@stomp/stompjs'
+import { Client, Stomp } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
 import { useAuthStore } from '../auth/authStore'
 
@@ -108,28 +108,20 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
             // SockJS 사용
             const socket = new SockJS(serverUrl)
             
-            // STOMP 클라이언트 생성
-            const client = new Client({
-                webSocketFactory: () => socket,
-                debug: (str) => {
-                    console.log('STOMP Debug (채팅방 목록):', str)
-                },
-                reconnectDelay: 0,
-                heartbeatIncoming: 4000,
-                heartbeatOutgoing: 4000
-            })
+            // Stomp.over 방식으로 변경 (예시 코드와 동일하게)
+            const stompClient = Stomp.over(socket)
             
             // 연결 성공
-            client.onConnect = (frame) => {
-                console.log('✅ STOMP 연결 성공 (채팅방 목록)!')
-                console.log('연결된 서버:', serverUrl)
+            stompClient.connect({}, function () {
+                console.log("✅ 웹소켓 연결 성공");
                 
                 // 연결 상태 업데이트
-                set({ isConnected: true, stompClient: client })
+                set({ isConnected: true, stompClient: stompClient })
                 
                 // 토큰에서 사용자 ID 추출
                 const token = localStorage.getItem('accessToken')
                 console.log('🔍 토큰 확인:', token ? '토큰 있음' : '토큰 없음');
+                
                 if (token) {
                     try {
                         const payload = JSON.parse(atob(token.split('.')[1]))
@@ -138,10 +130,10 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                         
                         console.log(`📡 채팅방 목록 구독 시작 (사용자: ${myUserId})`)
                         
-                        // 채팅방 목록 구독
-                        client.subscribe(`/sub/chat/roomlist/${myUserId}`, (messageOutput) => {
-                            const roomList = JSON.parse(messageOutput.body)
-                            console.log('📥 채팅방 목록 수신:', roomList)
+                        // 내 채팅방 목록 구독 (예시 코드와 동일한 방식)
+                        stompClient.subscribe(`/sub/chat/roomlist/${myUserId}`, function (output: any) {
+                            const roomList = JSON.parse(output.body);
+                            console.log("📥 채팅방 목록 수신:", roomList);
                             
                             // 받은 데이터를 ChatRoom 형식으로 변환
                             const formattedRoomList = roomList.map((room: any) => ({
@@ -167,28 +159,19 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                             // 채팅방 목록 상태 업데이트
                             set({ roomList: formattedRoomList })
                             
-                            // 채팅방 목록 표시 (updateRoomList와 동일한 기능)
+                            // updateRoomList와 동일한 기능
                             console.log('🔔 채팅방 목록 업데이트 완료')
                             formattedRoomList.forEach((room: ChatRoom) => {
                                 console.log(`[${room.productName}] ${room.partnerNickName}: ${room.lastChatmessageDto?.content || '메시지 없음'}`)
                             })
-                        })
+                        });
                         
                         console.log(`✅ 채팅방 목록 구독 완료`)
                     } catch (error) {
                         console.error('토큰 파싱 실패:', error)
                     }
                 }
-            }
-            
-            // 연결 오류
-            client.onStompError = (error) => {
-                console.error('❌ STOMP 연결 실패 (채팅방 목록):', error)
-                set({ isConnected: false })
-            }
-            
-            // 연결 시작
-            client.activate()
+            });
             
         } catch (error) {
             console.error('STOMP 연결 실패 (채팅방 목록):', error)
