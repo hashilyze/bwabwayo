@@ -2,16 +2,17 @@
 import { useState, useRef, ChangeEvent, useEffect, FormEvent } from 'react';
 
 import { useCategoryStore } from '@/stores/categoryStore';
+import { useAiDescriptionStore } from '@/stores/ai/aiDescriptionStore';
 import { useProductStore } from '@/stores/product/productStore';
 
 // --- 아이콘 컴포넌트 (Icons) ---
 const CheckIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+  <svg xmlns="<http://www.w3.org/2000/svg>" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
   </svg>
 );
 const XCircleIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <svg xmlns="<http://www.w3.org/2000/svg>" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
 );
@@ -20,6 +21,14 @@ const XCircleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export default function CreateProductPage() {
   const { categories, getCategories } = useCategoryStore();
   const { addProduct } = useProductStore();
+  const {
+    description,
+    loading: aiLoading,
+    error: aiError,
+    fetchDescription,
+    setDescription,
+    reset: resetAiDescription
+  } = useAiDescriptionStore();
 
   useEffect(() => {
     getCategories();
@@ -32,7 +41,6 @@ export default function CreateProductPage() {
   const [productName, setProductName] = useState('');
   const [price, setPrice] = useState('');
   const [isNegotiable, setIsNegotiable] = useState(false);
-  const [description, setDescription] = useState('');
   const [tradeMethods, setTradeMethods] = useState({ delivery: false, direct: false, video: false });
   const [shippingCost, setShippingCost] = useState('');
   const [termsAgreed, setTermsAgreed] = useState(false);
@@ -42,6 +50,27 @@ export default function CreateProductPage() {
   const [isUploading, setIsUploading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // AI 템플릿 생성 핸들러
+  const handleGenerateAiTemplate = async () => {
+    // 사용자가 선택한 대분류/소분류 이름에 해당하는 최종 categoryId를 찾는 함수입니다.
+    // 설명해주신 ID 구조(대분류 1 + 소분류 001 = 1001)에 따라, 백엔드에서 이미 조합된 최종 ID를 제공한다고 가정합니다.
+    // 이 로직은 먼저 선택된 대분류를 찾고, 그 안에서 소분류를 찾아 ID를 반환하여 더 정확하고 안정적입니다.
+    const getCategoryId = (): number | null => {
+        const selectedMajor = categories.find(cat => cat.categoryName === majorCategory);
+        if (!selectedMajor) return null;
+
+        if (minorCategory) {
+            const selectedMinor = selectedMajor.subCategories.find(sub => sub.categoryName === minorCategory);
+            return selectedMinor ? selectedMinor.categoryId : null;
+        }
+        return selectedMajor.categoryId;
+    };
+
+    const categoryId = getCategoryId();
+    if (!categoryId) { alert('AI 템플릿을 생성하려면 카테고리를 먼저 선택해주세요.'); return; }
+    await fetchDescription(categoryId);
+  };
 
   // 숫자에 콤마 추가하는 함수
   const formatNumber = (value: string): string => {
@@ -80,7 +109,7 @@ export default function CreateProductPage() {
     if (!files) return;
 
     const fileArray = Array.from(files);
-    
+
     // 10개 제한 확인
     if (imgFiles.length + fileArray.length > 10) {
       setShowAlert(true);
@@ -108,26 +137,26 @@ export default function CreateProductPage() {
   // S3 업로드 함수
   const uploadToS3 = async (files: File[]) => {
     setIsUploading(true);
-    
+
     try {
       const formData = new FormData();
       files.forEach((file) => {
         formData.append('files', file);
       });
       formData.append('dir', 'products');
-      
-      const response = await fetch('https://i13e202.p.ssafy.io/be/api/s3/upload', {
+
+      const response = await fetch('<https://i13e202.p.ssafy.io/be/api/s3/upload>', {
         method: 'POST',
         body: formData,
       });
       const data = await response.json();
 
       console.log('S3 업로드 성공:', data);
-      
+
       // S3에서 받아온 key값들을 바로 images에 저장
       const imageKeys = data.results.map((item: any) => item.key);
       const imageUrls = data.results.map((item: any) => item.url);
-      
+
       setImgPreviews(prev => [...prev, ...imageUrls]);
       setUploadedImageUrls(prev => [...prev, ...imageKeys]);
 
@@ -159,22 +188,22 @@ export default function CreateProductPage() {
     setImgFiles([]);
     setImgPreviews([]);
     setUploadedImageUrls([]);
-    
+
     // 상품 정보 초기화
     setProductName('');
     setPrice('');
     setIsNegotiable(false);
-    setDescription('');
     setTradeMethods({ delivery: false, direct: false, video: false });
     setShippingCost('');
-    
+    resetAiDescription(); // AI 스토어 상태 초기화
+
     // 카테고리 초기화
     setMajorCategory(null);
     setMinorCategory(null);
-    
+
     // 약관 동의 초기화
     setTermsAgreed(false);
-    
+
     // 파일 입력 초기화
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -261,25 +290,25 @@ export default function CreateProductPage() {
 
     try {
       console.log('--- 🛒 상품 등록 API 호출 시작 ---');
-      
+
       const result = await addProduct(requestData as any);
       console.log('✅ 상품 등록 성공:', result);
-      
-      alert(`상품이 성공적으로 등록되었습니다!\n\n📝 제목: ${requestData.title}\n💰 가격: ${requestData.price}원\n📸 이미지: ${requestData.images.length}개`);
-      
+
+      alert(`상품이 성공적으로 등록되었습니다!\\n\\n📝 제목: ${requestData.title}\\n💰 가격: ${requestData.price}원\\n📸 이미지: ${requestData.images.length}개`);
+
       // 성공 후 폼 초기화
       resetForm();
-      
+
     } catch (error) {
       console.error('❌ 상품 등록 실패:', error);
-      
+
       // 에러 타입별 상세 메시지
       if (error instanceof Error) {
         console.error('에러 메시지:', error.message);
         console.error('에러 스택:', error.stack);
       }
-      
-      alert(`상품 등록에 실패했습니다.\n\n다음을 확인해주세요:\n• 모든 필수 항목이 입력되었는지\n• 이미지가 정상적으로 업로드되었는지\n• 네트워크 연결 상태\n\n콘솔에서 자세한 오류를 확인할 수 있습니다.`);
+
+      alert(`상품 등록에 실패했습니다.\\n\\n다음을 확인해주세요:\\n• 모든 필수 항목이 입력되었는지\\n• 이미지가 정상적으로 업로드되었는지\\n• 네트워크 연결 상태\\n\\n콘솔에서 자세한 오류를 확인할 수 있습니다.`);
     }
   };
 
@@ -304,8 +333,8 @@ export default function CreateProductPage() {
         {/* 이미지 업로드 전용 Form */}
         <form className="mb-10" encType="multipart/form-data">
           <div className="flex items-center space-x-4 overflow-x-auto pb-4">
-            <div 
-              onClick={handleUploadClick} 
+            <div
+              onClick={handleUploadClick}
               className={`flex-shrink-0 w-24 h-24 bg-gray-100 rounded-lg flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 hover:bg-gray-200 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {isUploading ? (
@@ -315,28 +344,28 @@ export default function CreateProductPage() {
                 </div>
               ) : (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  <svg xmlns="<http://www.w3.org/2000/svg>" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                   <span className="text-sm text-gray-500 mt-1">{imgPreviews.length}/10</span>
                 </>
               )}
             </div>
-            <input 
-              type="file" 
-              multiple 
-              accept="image/*" 
-              ref={fileInputRef} 
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              ref={fileInputRef}
               onChange={handleFileChange}
               disabled={isUploading}
-              className="hidden" 
+              className="hidden"
             />
             {imgPreviews.map((preview, index) => (
               <div key={preview} className="relative flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden">
                 <img src={preview} alt={`이미지 미리보기 ${index + 1}`} className="w-full h-full object-cover" />
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => handleDeleteImage(index)}
                   disabled={isUploading}
-                  className="absolute top-1 right-1 bg-black bg-opacity-50 text-white rounded-full p-0.5 hover:bg-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed" 
+                  className="absolute top-1 right-1 bg-black bg-opacity-50 text-white rounded-full p-0.5 hover:bg-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="이미지 삭제"
                 >
                   <XCircleIcon className="w-5 h-5" />
@@ -375,7 +404,15 @@ export default function CreateProductPage() {
               </ul>
             </div>
             <div>
-              <button type="button" className="w-full bg-blue-600 text-white font-bold px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm">AI 템플릿 생성</button>
+              <button
+                type="button"
+                onClick={handleGenerateAiTemplate}
+                disabled={aiLoading || (!majorCategory && !minorCategory)}
+                className="w-full bg-blue-600 text-white font-bold px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                {aiLoading ? 'AI가 생성 중...' : 'AI 템플릿 생성'}
+              </button>
+              {aiError && <p className="text-xs text-red-500 mt-1">{aiError}</p>}
             </div>
           </section>
 
@@ -397,7 +434,13 @@ export default function CreateProductPage() {
 
           <section> {/* 게시물 내용 */}
             <label htmlFor="description" className="block text-base font-semibold text-gray-800 mb-2">상품 설명 <span className="text-red-500">*</span></label>
-             <textarea id="description" rows={10} value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 bg-white" placeholder="- 상품명(브랜드)&#10;- 구매 시기 (년, 월, 일)&#10;- 착용 기간&#10;- 오염 여부&#10;- 하자 여부&#10;* 실제 촬영한 사진과 함께 상세 정보를 입력해주세요.&#10;* 카카오톡 아이디 첨부 시 게시물 삭제 및 이용제재 처리될 수 있어요."/>
+             <textarea
+                id="description"
+                rows={10}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 bg-white"
+                placeholder="- 상품명(브랜드)&#10;- 구매 시기 (년, 월, 일)&#10;- 착용 기간&#10;- 오염 여부&#10;- 하자 여부&#10;* 실제 촬영한 사진과 함께 상세 정보를 입력해주세요.&#10;* 카카오톡 아이디 첨부 시 게시물 삭제 및 이용제재 처리될 수 있어요."/>
           </section>
 
           <section> {/* 거래 방법 */}
@@ -411,7 +454,7 @@ export default function CreateProductPage() {
               <p className="text-sm text-red-500 mt-2">직거래 또는 택배거래 중 하나는 선택해야 합니다.</p>
             )}
           </section>
-          
+
           <section> {/* 배송비 설정 */}
             <label htmlFor="shippingCost" className="block text-base font-semibold text-gray-800 mb-2">배송비 설정</label>
             <div className="relative"><input type="text" id="shippingCost" value={shippingCost} onChange={(e) => {
@@ -421,7 +464,7 @@ export default function CreateProductPage() {
               }
             }} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 pr-8 bg-white" placeholder="배송비를 입력해주세요." /><span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-500">원</span></div>
           </section>
-          
+
           <section className="border-t border-gray-200 pt-8 space-y-6"> {/* 약관 동의 및 등록 버튼 */}
             <div className="flex items-start">
               <div className="flex items-center h-5"><input id="terms" type="checkbox" checked={termsAgreed} onChange={(e) => setTermsAgreed(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-white" /></div>
