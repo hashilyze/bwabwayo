@@ -99,6 +99,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     },
 
     getRoomList: () => {
+        console.log('🔍 getRoomList 함수 호출됨');
         const serverUrl = 'https://i13e202.p.ssafy.io/be/ws-stomp'
         
         try {
@@ -128,10 +129,12 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 
                 // 토큰에서 사용자 ID 추출
                 const token = localStorage.getItem('accessToken')
+                console.log('🔍 토큰 확인:', token ? '토큰 있음' : '토큰 없음');
                 if (token) {
                     try {
                         const payload = JSON.parse(atob(token.split('.')[1]))
                         const myUserId = payload.sub
+                        console.log('🔍 추출된 사용자 ID:', myUserId);
                         
                         console.log(`📡 채팅방 목록 구독 시작 (사용자: ${myUserId})`)
                         
