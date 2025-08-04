@@ -49,7 +49,10 @@ public class ProductController {
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductSearchResponseDTO.class))
     )
     @GetMapping
-    public ResponseEntity<?> getProducts(@Valid @ModelAttribute ProductSearchRequestDTO requestDTO, @LoginUser(required = false) User user) {
+    public ResponseEntity<?> getProducts(
+            @Valid @ModelAttribute ProductSearchRequestDTO requestDTO,
+            @Parameter(hidden = true) @LoginUser(required = false) User user
+    ) {
         ProductSearchResponseDTO response = productService.searchProducts(requestDTO, user);
         return ResponseEntity.ok(response);
     }
@@ -60,7 +63,10 @@ public class ProductController {
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDetailResponseDTO.class))
     )
     @GetMapping("/{productId}")
-    public ResponseEntity<?> getProductById(@PathVariable Long productId, @LoginUser(required = false) User user) {
+    public ResponseEntity<?> getProductById(
+            @PathVariable Long productId,
+            @Parameter(hidden = true) @LoginUser(required = false) User user
+    ) {
         ProductDetailResponseDTO productDetail = productService.getProductDetail(productId, user);
         return ResponseEntity.ok(productDetail);
     }
