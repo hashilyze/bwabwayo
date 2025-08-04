@@ -63,17 +63,18 @@ const InquiryDetail: React.FC<InquiryDetailProps> = ({ inquiry, onBack }) => {
           </div>
         )}
 
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">답변 내용</h3>
-          {inquiry.reply ? (
+        답변이 있을 경우에만 답변 섹션을 렌더링합니다.
+        {inquiry.reply && (
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">답변 내용</h3>
             <p className="text-gray-700 whitespace-pre-wrap">{inquiry.reply}</p>
-          ) : (
-            <p className="text-gray-500">아직 답변이 등록되지 않았습니다.</p>
-          )}
-          {inquiry.repliedAt && (
-            <p className="text-right text-xs text-gray-400 mt-4">답변일: {formatDate(inquiry.repliedAt)}</p>
-          )}
-        </div>
+            {inquiry.repliedAt && (
+              <p className="text-right text-xs text-gray-400 mt-4">
+                답변일: {formatDate(inquiry.repliedAt)}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="mt-8 flex justify-end">

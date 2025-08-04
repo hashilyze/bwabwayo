@@ -11,6 +11,7 @@ export interface ReportImage {
 export interface ReportData {
     title: string;
     description: string;
+
     images: ReportImage[];
 }
 
@@ -30,14 +31,29 @@ export interface Report {
     images: FetchedReportImage[];
 }
 
+// API에서 직접 받아오는 원시 신고 데이터 타입
+interface RawReportFromServer {
+    id: number;
+    title: string;
+    description: string;
+    reply: string | null;
+    createdAt: string;
+    repliedAt: string | null;
+    imageUrlList?: string[];
+    name?: string;
+}
+
 // 신고 스토어 인터페이스
 export interface ReportStore {
     reports: Report[];
+    totalPages: number;
+    totalElements: number;
+    currentPage: number;
     loading: boolean;
     error: string | null;
     success: boolean;
     addReport: (reportData: ReportData) => Promise<void>;
-    getReports: () => Promise<void>;
+    getReports: (page?: number, size?: number) => Promise<void>;
 }
 
 const baseUrl = 'https://i13e202.p.ssafy.io/be/api'
@@ -45,6 +61,9 @@ const baseUrl = 'https://i13e202.p.ssafy.io/be/api'
 export const useReportStore = create<ReportStore>((set, get) => ({
     reports: [],
     loading: false,
+    totalPages: 0,
+    totalElements: 0,
+    currentPage: 0,
     error: null,
     success: false,
 
@@ -56,6 +75,7 @@ export const useReportStore = create<ReportStore>((set, get) => ({
             const serverPayload = {
                 title: reportData.title,
                 description: reportData.description,
+
                 imageUrlList: reportData.images.map(img => img.imageUrl),
             };
 
@@ -72,7 +92,7 @@ export const useReportStore = create<ReportStore>((set, get) => ({
             const responseText = await response.text();
             console.log('신고가 성공적으로 등록되었습니다:', responseText);
             set({ loading: false, success: true });
-            get().getReports(); // 새 신고 등록 후 목록을 다시 불러옵니다.
+            get().getReports(0, 10); // 새 신고 등록 후 목록의 첫 페이지를 다시 불러옵니다.
         }
         catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
@@ -81,16 +101,26 @@ export const useReportStore = create<ReportStore>((set, get) => ({
         }
     },
 
-    getReports: async () => {
+    getReports: async (page = 0, size = 10) => {
         set({ loading: true, error: null });
         try {
-            const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/support/report`);
+            const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/support/report?page=${page}&size=${size}`);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            // API 응답에서 'reports' 키로 데이터가 온다고 가정합니다.
             const data = await response.json();
-            set({ reports: data.reports || [], loading: false });
+            // API 응답의 imageUrlList (string[])를 FetchedReportImage[] 형태로 변환합니다.
+            const transformedReports = (data.content || []).map((report: RawReportFromServer) => ({
+                ...report,
+                images: (report.imageUrlList || []).map((url: string) => ({ imageUrl: url })),
+            }));
+            set({ 
+                reports: transformedReports, 
+                totalPages: data.totalPages,
+                totalElements: data.totalElements,
+                currentPage: data.number,
+                loading: false 
+            });
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
             console.error('신고 내역 조회 중 오류 발생:', errorMessage);

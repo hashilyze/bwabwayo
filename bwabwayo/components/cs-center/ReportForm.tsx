@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useReportStore } from '@/stores/cs-store/reportStore';
+import type { ReportData } from '@/stores/cs-store/reportStore';
 
 interface ReportFormProps {
   onBack: () => void;
@@ -26,7 +27,7 @@ const ReportForm: React.FC<ReportFormProps> = ({ onBack }) => {
       imageUrl = 'https://example.com/placeholder.jpg'; // 임시 URL
     }
 
-    const reportData = {
+    const reportData: ReportData = {
       title,
       description,
       images: imageUrl ? [{ imageUrl: imageUrl, order: 1 }] : [],
@@ -46,7 +47,7 @@ const ReportForm: React.FC<ReportFormProps> = ({ onBack }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* <div>
+      <div>
         <label htmlFor="category" className="block text-sm font-medium text-gray-700">
           신고 유형
         </label>
@@ -55,14 +56,14 @@ const ReportForm: React.FC<ReportFormProps> = ({ onBack }) => {
           name="category"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-black focus:border-black sm:text-sm rounded-md"
         >
           <option>부적절한 상품</option>
           <option>사용자 신고</option>
           <option>거래/사기 신고</option>
           <option>기타 신고</option>
         </select>
-      </div> */}
+      </div>
 
       <div>
         <label htmlFor="title" className="block text-sm font-medium text-gray-700">

@@ -63,15 +63,18 @@ const ReportDetail: React.FC<ReportDetailProps> = ({ report, onBack }) => {
           </div>
         )}
 
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">처리 결과</h3>
-          {report.reply ? (
+        {/* 답변이 있을 경우에만 처리 결과 섹션을 렌더링합니다. */}
+        {/* {report.reply && (
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">처리 결과</h3>
             <p className="text-gray-700 whitespace-pre-wrap">{report.reply}</p>
-          ) : (
-            <p className="text-gray-500">아직 처리되지 않았습니다.</p>
-          )}
-          {report.repliedAt && <p className="text-right text-xs text-gray-400 mt-4">처리일: {formatDate(report.repliedAt)}</p>}
-        </div>
+            {report.repliedAt && (
+              <p className="text-right text-xs text-gray-400 mt-4">
+                처리일: {formatDate(report.repliedAt)}
+              </p>
+            )}
+          </div>
+        )} */}
       </div>
 
       <div className="mt-8 flex justify-end">
@@ -84,4 +87,3 @@ const ReportDetail: React.FC<ReportDetailProps> = ({ report, onBack }) => {
 };
 
 export default ReportDetail;
-
