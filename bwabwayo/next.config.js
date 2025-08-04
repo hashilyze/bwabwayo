@@ -2,6 +2,9 @@
 const nextConfig = {
     // 프로덕션 환경에서만 basePath 적용
     basePath: process.env.NODE_ENV === 'production' ? '/fe' : '',
+    images: {
+      domains: ['bwabwayo-general-bucket.s3.ap-northeast-2.amazonaws.com', 'localhost'],
+    },
     async rewrites() {
       return [
         {

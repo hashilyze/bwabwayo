@@ -7,6 +7,7 @@ import { useParams } from "next/navigation";
 import { useChatRoomStore } from "@/stores/chatting/chatRoomStore";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useAuthStore } from "@/stores/auth/authStore";
 
 interface Seller {
   id: number,
@@ -19,6 +20,7 @@ interface Seller {
 export default function ProductDetailPage() {
   const { product, loading, error, getProductDetail } = useProductStore();
   const { roomInfo, addChatRoom } = useChatRoomStore();
+  const { isLoggedIn } = useAuthStore();
   const router = useRouter();
 
   const params = useParams();
@@ -62,7 +64,12 @@ export default function ProductDetailPage() {
   };
 
   const makeChatRoom = async () => {
-    try {      
+    if (!isLoggedIn) {
+      alert('로그인이 필요한 서비스입니다.');
+      return;
+    }
+    
+    try {
       const result = await addChatRoom({
         sellerId: product?.seller.id || '',
         productId: productId || 0
@@ -82,20 +89,22 @@ export default function ProductDetailPage() {
             <div className="flex flex-col gap-4">
               <div className="rounded-2xl overflow-hidden border border-gray-200 relative aspect-square">
                 <Image
-                   src={product?.imageUrls?.[0] || `${process.env.PUBLIC_URL}/image/no-image.jpg`}
-                   fill
+                   src={product?.imageUrls?.[0] || '/image/no-image.jpg'}
+                   width={400}
+                   height={400} 
                    alt="상품 대표 이미지" 
-                   className="object-cover"
+                   className="object-cover w-full h-full"
                  />
               </div>
                 <ul className="grid grid-cols-4 gap-4">
                  {product?.imageUrls?.slice(1, 5).map((imageUrl, index) => (
                    <li key={index} className="relative aspect-square">
                      <Image 
-                       src={imageUrl || `${process.env.PUBLIC_URL}/image/no-image.jpg`} 
+                       src={imageUrl || `/image/no-image.jpg`} 
                        alt={`상품 썸네일${index + 1}`} 
-                       className="rounded-xl border border-[#eeeeee] object-cover"
-                       fill
+                       className="rounded-xl border border-[#eeeeee] object-cover w-full h-full"
+                       width={100}
+                       height={100}
                      />
                    </li>
                  ))}
@@ -158,7 +167,6 @@ export default function ProductDetailPage() {
                  찜하기
                </div>
               <div onClick={makeChatRoom}
-                //href={`/chat/temp?sellerId=${product?.seller.id}&productId=${product?.product.id}&thumbnail=${product?.product.thumbnail}&price=${product?.product.price}&can_direct=${product?.product.can_direct}&can_delivery=${product?.product.can_delivery}&shippingFee=${product?.product.shippingFee}&canVideoCall=${product?.product.canVideoCall}`} 
                 className="flex-1 py-4 flex items-center justify-center gap-2 bg-blue-600 text-white rounded-lg py-3 font-bold cursor-pointer"
               >
                 채팅하기
