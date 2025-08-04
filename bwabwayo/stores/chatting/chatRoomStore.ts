@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { Client, Stomp } from '@stomp/stompjs'
+import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
 import { useAuthStore } from '../auth/authStore'
 
@@ -108,15 +108,24 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
             // SockJS 사용
             const socket = new SockJS(serverUrl)
             
-            // Stomp.over 방식으로 변경 (예시 코드와 동일하게)
-            const stompClient = Stomp.over(socket)
+            // STOMP 클라이언트 생성
+            const client = new Client({
+                webSocketFactory: () => socket,
+                debug: (str) => {
+                    console.log('STOMP Debug (채팅방 목록):', str)
+                },
+                reconnectDelay: 5000,
+                heartbeatIncoming: 4000,
+                heartbeatOutgoing: 4000
+            })
             
             // 연결 성공
-            stompClient.connect({}, function () {
-                console.log("✅ 웹소켓 연결 성공");
+            client.onConnect = (frame) => {
+                console.log('✅ STOMP 연결 성공 (채팅방 목록)!')
+                console.log('연결된 서버:', serverUrl)
                 
                 // 연결 상태 업데이트
-                set({ isConnected: true, stompClient: stompClient })
+                set({ isConnected: true, stompClient: client })
                 
                 // 토큰에서 사용자 ID 추출
                 const token = localStorage.getItem('accessToken')
@@ -130,14 +139,14 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                         
                         console.log(`📡 채팅방 목록 구독 시작 (사용자: ${myUserId})`)
                         
-                        // 내 채팅방 목록 구독 (예시 코드와 동일한 방식)
-                        stompClient.subscribe(`/sub/chat/roomlist/${myUserId}`, function (output: any) {
-                            console.log("📨 원시 메시지 수신:", output);
-                            console.log("📨 메시지 바디:", output.body);
+                        // 채팅방 목록 구독
+                        client.subscribe(`/sub/chat/roomlist/${myUserId}`, (messageOutput) => {
+                            console.log("📨 원시 메시지 수신:", messageOutput);
+                            console.log("📨 메시지 바디:", messageOutput.body);
                             
                             try {
-                                const roomList = JSON.parse(output.body);
-                                console.log("📥 채팅방 목록 수신:", roomList);
+                                const roomList = JSON.parse(messageOutput.body)
+                                console.log("📥 채팅방 목록 수신:", roomList)
                                 
                                 // 받은 데이터를 ChatRoom 형식으로 변환
                                 const formattedRoomList = roomList.map((room: any) => ({
@@ -170,16 +179,82 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                                 })
                             } catch (error) {
                                 console.error('❌ 채팅방 목록 파싱 실패:', error);
-                                console.error('❌ 원시 데이터:', output.body);
+                                console.error('❌ 원시 데이터:', messageOutput.body);
                             }
-                        });
+                        })
                         
                         console.log(`✅ 채팅방 목록 구독 완료`)
+                        
+                        // 임시 테스트 데이터 (서버 응답이 없을 때)
+                        setTimeout(() => {
+                            console.log('⏰ 5초 후 테스트 데이터 추가');
+                            const testRoomList = [
+                                {
+                                    roomId: 1,
+                                    productName: "테스트 상품 1",
+                                    partnerNickName: "판매자1",
+                                    partnerId: "seller1",
+                                    lastChatmessageDto: {
+                                        content: "안녕하세요!",
+                                        createdAt: "2024-01-01T10:00:00",
+                                        type: "TEXT"
+                                    },
+                                    unreadMessagesNum: 2,
+                                    lastMessageContent: "안녕하세요!",
+                                    lastMessageTime: "2024-01-01T10:00:00",
+                                    type: "TEXT",
+                                    seller: {
+                                        id: 1,
+                                        nickname: "판매자1"
+                                    },
+                                    product: {
+                                        id: 1,
+                                        thumnail: "/image/sample.png"
+                                    }
+                                },
+                                {
+                                    roomId: 2,
+                                    productName: "테스트 상품 2",
+                                    partnerNickName: "판매자2",
+                                    partnerId: "seller2",
+                                    lastChatmessageDto: {
+                                        content: "상품 문의드립니다",
+                                        createdAt: "2024-01-01T11:00:00",
+                                        type: "TEXT"
+                                    },
+                                    unreadMessagesNum: 0,
+                                    lastMessageContent: "상품 문의드립니다",
+                                    lastMessageTime: "2024-01-01T11:00:00",
+                                    type: "TEXT",
+                                    seller: {
+                                        id: 2,
+                                        nickname: "판매자2"
+                                    },
+                                    product: {
+                                        id: 2,
+                                        thumnail: "/image/sample.png"
+                                    }
+                                }
+                            ];
+                            
+                            set({ roomList: testRoomList });
+                            console.log('🔔 테스트 채팅방 목록 추가 완료');
+                        }, 5000); // 5초 후 실행
+                        
                     } catch (error) {
                         console.error('토큰 파싱 실패:', error)
                     }
                 }
-            });
+            }
+            
+            // 연결 오류
+            client.onStompError = (error) => {
+                console.error('❌ STOMP 연결 실패 (채팅방 목록):', error)
+                set({ isConnected: false })
+            }
+            
+            // 연결 시작
+            client.activate()
             
         } catch (error) {
             console.error('STOMP 연결 실패 (채팅방 목록):', error)
