@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 interface ChatRoom {
   id: number;
 }
@@ -41,10 +43,12 @@ export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected 
       onClick={handleClick}
     >
       <div className="w-[60px] h-[60px] bg-gray-200 rounded-full mr-[18px]">
-        <img 
+        <Image 
           src='/image/sample.png'
-          alt={`${roomData?.seller.nickname} 프로필`} 
+          alt={`${roomData?.seller.nickname} 프로필`}
           className="w-full h-full rounded-full object-cover"
+          width={60}
+          height={60}
         />
       </div>
       
@@ -58,14 +62,13 @@ export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected 
       </div>
       
       <div className="w-[40px] h-[40px] bg-gray-300 rounded">
-        <img 
-          src={roomData?.product.thumnail}
+        <Image 
+          src={roomData?.product.thumnail || '/image/no-image.jpg'}
           alt="상품 이미지" 
           className="w-full h-full rounded object-cover"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = '/image/no-image.jpg';
-          }}
+          width={40}
+          height={40}
+          unoptimized
         />
       </div>
     </div>
