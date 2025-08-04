@@ -56,8 +56,22 @@ export default function ChatRoomPage({
   const handleSendMessage = async (content: string) => {
     if (!content.trim() || !isConnected) return
 
-    // 현재 로그인한 사용자 정보 확인
-    if (!userInfo?.id) {
+    // 토큰에서 사용자 ID 추출
+    const token = localStorage.getItem('accessToken')
+    let myUserId = null
+    
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        myUserId = payload.sub || payload.userId || payload.id
+        console.log('🔍 토큰에서 추출한 사용자 ID:', myUserId)
+      } catch (error) {
+        console.error('토큰 파싱 실패:', error)
+        return
+      }
+    }
+
+    if (!myUserId) {
       console.error('❌ 로그인한 사용자 정보가 없습니다')
       return
     }
@@ -68,10 +82,10 @@ export default function ChatRoomPage({
 
     // 현재 사용자가 누구인지 판단하여 receiverId 결정
     let receiverId = ''
-    if (userInfo.id === buyerId) {
+    if (myUserId === buyerId) {
       // 현재 사용자가 구매자인 경우, 판매자에게 메시지 전송
       receiverId = sellerId
-    } else if (userInfo.id === sellerId) {
+    } else if (myUserId === sellerId) {
       // 현재 사용자가 판매자인 경우, 구매자에게 메시지 전송
       receiverId = buyerId
     } else {
@@ -81,7 +95,7 @@ export default function ChatRoomPage({
 
     const message: ChatMessage = {
       roomId: roomId,
-      senderId: userInfo.id,
+      senderId: myUserId,
       receiverId: receiverId,
       content: content,
       isRead: false,
@@ -96,6 +110,7 @@ export default function ChatRoomPage({
           destination: '/pub/chat/message',
           body: JSON.stringify(message)
         })
+        console.log('📤 메시지 전송 완료:', message)
       } else {
         console.warn('⚠️ STOMP 연결되지 않음')
       }
@@ -126,7 +141,20 @@ export default function ChatRoomPage({
                  ) : (
            <>
             {messages.map((message, index) => {
-              const isMine = message.senderId === userInfo?.id
+              // 토큰에서 사용자 ID 추출하여 내 메시지인지 판단
+              const token = localStorage.getItem('accessToken')
+              let myUserId = null
+              
+              if (token) {
+                try {
+                  const payload = JSON.parse(atob(token.split('.')[1]))
+                  myUserId = payload.sub || payload.userId || payload.id
+                } catch (error) {
+                  console.error('토큰 파싱 실패:', error)
+                }
+              }
+              
+              const isMine = myUserId && message.senderId === myUserId
               return (
                 <div
                   key={index}

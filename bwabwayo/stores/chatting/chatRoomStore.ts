@@ -122,7 +122,8 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 if (token) {
                     try {
                         const payload = JSON.parse(atob(token.split('.')[1]))
-                        const myUserId = payload.sub
+                        const myUserId = payload.sub || payload.userId || payload.id
+                        console.log('🔍 채팅방 목록 - 토큰에서 추출한 사용자 ID:', myUserId)
 
                         // 채팅방 목록 구독
                         client.subscribe(`/sub/chat/roomlist/${myUserId}`, (messageOutput) => {
@@ -221,9 +222,25 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                         const msg = JSON.parse(messageOutput.body)
                         console.log('📨 받은 메시지:', msg)
                         
-                        // localStorage에서 토큰 가져오기
+                        // 토큰에서 사용자 ID 추출
                         const token = localStorage.getItem('accessToken')
-                        const isMine = msg.senderId === token
+                        let myUserId = null
+                        
+                        if (token) {
+                            try {
+                                // JWT 토큰 디코딩
+                                const payload = JSON.parse(atob(token.split('.')[1]))
+                                myUserId = payload.sub || payload.userId || payload.id
+                                console.log('🔍 토큰에서 추출한 사용자 ID:', myUserId)
+                            } catch (error) {
+                                console.error('토큰 파싱 실패:', error)
+                            }
+                        }
+                        
+                        // 내가 보낸 메시지인지 판단
+                        const isMine = myUserId && msg.senderId === myUserId
+                        console.log('👤 메시지 발신자:', isMine ? '나' : '상대')
+                        console.log('📝 메시지 내용:', msg.content)
                         
                         // appendMessage를 통해 메시지 추가
                         get().appendMessage(msg, isMine)

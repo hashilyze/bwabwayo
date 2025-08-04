@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import ChatRoomItem from '@/components/chat/ChatRoomItem'
-import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
+import { useChatRoomStore } from '@/stores/chatting/chatRoomStore';
 
 interface ChatRoom {
   id: number;
