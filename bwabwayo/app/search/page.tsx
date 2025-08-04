@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useProductStore, ProductWithSeller } from '@/stores/product/productStore';
-import { useCategoryStore, Category, SubCategory } from '@/stores/categoryStore';
+import { useCategoryStore } from '@/stores/categoryStore';
 import ProductCard from '@/components/product/ProductCard';
 
 export default function SearchPage({

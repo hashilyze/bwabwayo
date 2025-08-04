@@ -64,10 +64,10 @@ export default function ProductDetailPage() {
   };
 
   const makeChatRoom = async () => {
-    if (!isLoggedIn) {
-      openLoginModal();
-      return;
-    }
+    // if (!isLoggedIn) {
+    //   openLoginModal();
+    //   return;
+    // }
     
     try {
       const result = await addChatRoom({

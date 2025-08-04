@@ -54,13 +54,6 @@ const ChatInputActive: React.FC<ChatModalProps> = ({ onSendMessage, isConnected 
             className="flex-1 bg-transparent text-xs text-gray-500 outline-none placeholder-gray-500"
             disabled={!isConnected}
           />
-          <button
-            onClick={handleSendMessage}
-            disabled={!messageInput.trim() || !isConnected}
-            className="ml-2 px-3 py-1 bg-blue-500 text-white text-xs rounded-full hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
-          >
-            전송
-          </button>
         </div>
       </div>
 

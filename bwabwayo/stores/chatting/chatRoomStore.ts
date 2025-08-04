@@ -31,6 +31,7 @@ interface ChatRoomStore{
     stompClient: Client | null
     isConnected: boolean
     addChatRoom: (addRoom: addRoom) => Promise<RoomInfo | null>
+    getRoomInfo: (roomId: number) => Promise<RoomInfo | null>
     connectStomp: (roomId?: number) => void
     disconnectStomp: () => void
     appendMessage: (msg: ChatMessage, isMine: boolean) => void
@@ -54,6 +55,18 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         }
         catch (error) {
             console.error('Error adding chat room:', error)
+            return null;
+        }
+    },
+
+    getRoomInfo: async (roomId: number) => {
+        try {
+            const response = await useAuthStore.getState().authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/chatrooms/${roomId}`)
+            const data = await response.json()
+            set({ roomInfo: [data] })
+            return data as RoomInfo
+        } catch (error) {
+            console.error('Error getting room info:', error)
             return null;
         }
     },

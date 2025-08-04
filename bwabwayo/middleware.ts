@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server'
 // 인증이 필요한 경로들
 const protectedRoutes = [
   '/product/new',
-  '/chat',
+  // '/chat',
   '/mypage',
   '/shop',
   '/protected'
