@@ -2,7 +2,7 @@
 
 import ProductCard from "@/components/product/ProductCard";
 import WebTest from "@/components/home/WebTest";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useProductStore } from '@/stores/product/productStore';
 import { useSearchParams } from 'next/navigation';
 import { useModalStore } from '@/stores/modalStore';
@@ -12,6 +12,21 @@ import { Swiper, SwiperClass, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+
+// 인증 처리 컴포넌트
+function AuthHandler() {
+  const searchParams = useSearchParams();
+  const { openLoginModal } = useModalStore();
+
+  useEffect(() => {
+    const authRequired = searchParams.get('auth');
+    if (authRequired === 'required') {
+      openLoginModal();
+    }
+  }, [searchParams, openLoginModal]);
+
+  return null;
+}
 
 // ProductSlider 컴포넌트
 function ProductSlider({ products, navigationId }: { products: any[], navigationId: string }) {
@@ -87,17 +102,7 @@ function ProductSlider({ products, navigationId }: { products: any[], navigation
 
 export default function Home() {
   const { products, hotKeywordProducts, videoCallProducts, loading, error, getProducts, getHotKewordProducts, getVideoCallProducts } = useProductStore();
-  const searchParams = useSearchParams();
-  const { openLoginModal } = useModalStore();
   const hotKeyword = '라부부';
-
-  // 인증이 필요한 페이지로 리다이렉트된 경우 로그인 모달 표시
-  useEffect(() => {
-    const authRequired = searchParams.get('auth');
-    if (authRequired === 'required') {
-      openLoginModal();
-    }
-  }, [searchParams, openLoginModal]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -118,6 +123,11 @@ export default function Home() {
 
   return (
     <div className="py-12">
+      {/* 인증 처리 */}
+      <Suspense fallback={null}>
+        <AuthHandler />
+      </Suspense>
+      
       {/* 화상서비스 테스트 */}
       <WebTest />
 
