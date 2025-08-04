@@ -65,36 +65,31 @@ export default function SignUpPage() {
     const searchParams = useSearchParams();
 
     // --- 추가된 부분: URL 파라미터를 읽어 스토어에 저장하고 URL을 정리합니다. ---
-    useEffect(() => {
-        const accessToken = searchParams.get('accessToken');
-        const id = searchParams.get('id');
-        const emailFromQuery = searchParams.get('email');
-        const profileImageFromQuery = searchParams.get('profileImage');
-        
-        console.log('[SignUpPage] 페이지 진입: useEffect 실행됨');
+   useEffect(() => {
+    const accessToken = searchParams.get('accessToken');
+    const id = searchParams.get('id');
+    const emailFromQuery = searchParams.get('email');
+    const profileImageFromQuery = searchParams.get('profileImage');
 
-         console.log('[SignUpPage] URL에서 파싱한 소셜 로그인 정보:', {
-                accessToken,
-                id,
-                email: emailFromQuery,
-                profileImage: profileImageFromQuery
-            });
+    console.log('URL 파라미터:', { accessToken, id, emailFromQuery, profileImageFromQuery });
 
-        // 소셜 로그인 후 전달된 accessToken과 id가 있다면, 신규 유저로 간주하고 정보를 채웁니다.
-        // isNewUser 판단은 콜백 페이지의 역할이므로, 여기서는 중복 확인을 제거하여 로직을 단순화하고 안정성을 높입니다.
-        if (accessToken && id) {
-            // 1. 스토어에 소셜 로그인 정보를 저장합니다.
-            setSocialInfo({ token: accessToken, id });
-            if (emailFromQuery) setEmail(emailFromQuery);
-            if (profileImageFromQuery) setProfileImage(decodeURIComponent(profileImageFromQuery));
-                        console.log('[SignUpPage] 신규 유저로 판단하여 스토어 업데이트 및 URL 정리 시작');
 
-               
-            
-            // 2. URL에서 파라미터를 제거하여 주소창을 정리합니다.
-            router.replace('/signup', { scroll: false });
+   if (accessToken && id) {
+        setSocialInfo({ token: accessToken, id });
+        if (emailFromQuery) {
+            setEmail(emailFromQuery);
+            console.log('setEmail 호출:', emailFromQuery);
         }
-    }, [searchParams, setEmail, setProfileImage, setSocialInfo, router]);
+        if (profileImageFromQuery) {
+            const decoded = decodeURIComponent(profileImageFromQuery);
+            setProfileImage(decoded);
+            console.log('setProfileImage 호출:', decoded);
+        }
+        setTimeout(() => {
+            router.replace('/signup', { scroll: false });
+        }, 0);
+    }
+}, [searchParams, setEmail, setProfileImage, setSocialInfo, router]);
 
     // --- 이벤트 핸들러 ---
     const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {

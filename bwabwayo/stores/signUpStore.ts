@@ -81,10 +81,16 @@ export const useSignupStore = create<SignupState>((set, get) => ({
 
     // 액션 구현
     setShowOptionalFields: (show) => set({ showOptionalFields: show }),
-    setProfileImage: (image) => set({ profileImage: image }),
+    setProfileImage: (image) => {
+    console.log('스토어 setProfileImage:', image);
+    set({ profileImage: image });
+},
     setNickname: (nickname) => set({ nickname }),
     setPhoneNumber: (phone) => set({ phoneNumber: phone }),
-    setEmail: (email) => set({ email }),
+   setEmail: (email) => {
+    console.log('스토어 setEmail:', email);
+    set({ email });
+},
     setAccountNumber: (accountNumber) => set({ accountNumber }),
     setBankName: (bankName) => set({ bankName }),
     setAccountHolder: (name) => set({ accountHolder: name }),
@@ -97,7 +103,10 @@ export const useSignupStore = create<SignupState>((set, get) => ({
         set((state) => ({ agreements: { ...state.agreements, [name]: checked } })),
     reset: () => set(initialState),
     // --- 추가된 부분: 소셜 정보 저장 액션 구현 ---
-    setSocialInfo: ({ token, id }) => set({ socialAccessToken: token, socialId: id }),
+   setSocialInfo: ({ token, id }) => {
+    console.log('스토어 setSocialInfo:', { token, id });
+    set({ socialAccessToken: token, socialId: id });
+},
 
     submitSignup: async (): Promise<boolean> => {
         set({ loading: true, error: null, isSuccess: false });
