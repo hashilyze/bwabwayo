@@ -23,7 +23,7 @@ export default function ChatRoomPage({
 }) {
   const params = useParams()
   const roomId = Number(params.roomId)
-  const { messages, stompClient, isConnected, connectStomp, disconnectStomp, appendMessage, roomInfo, loadChatHistory, clearMessages } = useChatRoomStore()
+  const { messages, stompClient, isConnected, connectStomp, disconnectStomp, appendMessage, roomInfo, loadChatHistory, clearMessages, setCurrentRoomId } = useChatRoomStore()
   const { userInfo } = useUserInfoStore()
   const chatBodyRef = useRef<HTMLDivElement>(null)
 
@@ -32,15 +32,18 @@ export default function ChatRoomPage({
     
     const initializeChatRoom = async () => {
       try {
-        // 1. 기존 메시지 초기화
+        // 1. 현재 채팅방 ID 설정
+        setCurrentRoomId(roomId);
+        
+        // 2. 기존 메시지 초기화
         clearMessages();
         
-        // 2. 채팅방 메시지 히스토리 로드
-        console.log(`📚 1단계: 채팅방 ${roomId} 메시지 히스토리 로드`);
+        // 3. 채팅방 메시지 히스토리 로드
+        console.log(`📚 2단계: 채팅방 ${roomId} 메시지 히스토리 로드`);
         await loadChatHistory(roomId);
         
-        // 3. STOMP 연결 및 실시간 메시지 구독
-        console.log(`📡 2단계: 채팅방 ${roomId} STOMP 연결 및 구독`);
+        // 4. STOMP 연결 및 실시간 메시지 구독
+        console.log(`📡 3단계: 채팅방 ${roomId} STOMP 연결 및 구독`);
         connectStomp(roomId);
         
       } catch (error) {
@@ -51,9 +54,10 @@ export default function ChatRoomPage({
     initializeChatRoom();
     
     return () => {
-      // 컴포넌트 언마운트 시 연결 해제
+      // 컴포넌트 언마운트 시 연결 해제 및 현재 채팅방 초기화
       console.log(`👋 채팅방 ${roomId} 퇴장 - 연결 해제`);
       disconnectStomp();
+      setCurrentRoomId(null);
     }
   }, [roomId, connectStomp, disconnectStomp, loadChatHistory, clearMessages])
 
@@ -135,8 +139,8 @@ export default function ChatRoomPage({
         console.warn('⚠️ STOMP 연결되지 않음')
       }
       
-      // 내가 보낸 메시지를 UI에 즉시 추가
-      appendMessage(message, true)
+      // 메시지 전송 후 UI에 즉시 추가하지 않음
+      // STOMP를 통해 받은 메시지만 표시
     } catch (error) {
       console.error('❌ 메시지 전송 실패:', error)
     }

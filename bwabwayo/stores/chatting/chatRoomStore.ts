@@ -53,6 +53,7 @@ interface ChatRoomStore{
     roomInfo: RoomInfo[]
     roomList: ChatRoom[]
     messages: ChatMessage[]
+    currentRoomId: number | null
     stompClient: Client | null
     isConnected: boolean
     addChatRoom: (addRoom: addRoom) => Promise<RoomInfo | null>
@@ -63,12 +64,14 @@ interface ChatRoomStore{
     appendMessage: (msg: ChatMessage, isMine: boolean) => void
     loadChatHistory: (roomId: number) => Promise<void>
     clearMessages: () => void
+    setCurrentRoomId: (roomId: number | null) => void
 }
 
 export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     roomInfo: [],
     roomList: [],
     messages: [],
+    currentRoomId: null,
     stompClient: null,
     isConnected: false,
 
@@ -275,15 +278,24 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     },
 
     appendMessage: (msg: ChatMessage, isMine: boolean) => {
+        const { currentRoomId } = get();
         console.log('📨 새 메시지 추가 시도:', msg)
         console.log('👤 발신자:', isMine ? '나' : '상대')
+        console.log('🏠 현재 채팅방:', currentRoomId)
         console.log('📋 현재 메시지 개수:', get().messages.length)
         
-        // 중복 메시지 체크 (같은 내용, 같은 시간, 같은 발신자)
+        // 현재 채팅방의 메시지만 추가
+        if (currentRoomId && msg.roomId !== currentRoomId) {
+            console.log('⚠️ 다른 채팅방 메시지, 추가하지 않음:', msg.roomId, 'vs', currentRoomId)
+            return
+        }
+        
+        // 더 엄격한 중복 메시지 체크
         const existingMessage = get().messages.find(existing => 
             existing.content === msg.content && 
             existing.senderId === msg.senderId &&
-            Math.abs(new Date(existing.createdAt).getTime() - new Date(msg.createdAt).getTime()) < 1000 // 1초 이내
+            existing.roomId === msg.roomId &&
+            Math.abs(new Date(existing.createdAt).getTime() - new Date(msg.createdAt).getTime()) < 2000 // 2초 이내
         )
         
         if (existingMessage) {
@@ -364,5 +376,10 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     clearMessages: () => {
         console.log('🗑️ 메시지 목록 초기화');
         set({ messages: [] });
+    },
+
+    setCurrentRoomId: (roomId: number | null) => {
+        console.log(`🏠 현재 채팅방 설정: ${roomId}`);
+        set({ currentRoomId: roomId });
     }
 }))
