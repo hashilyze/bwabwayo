@@ -2,8 +2,8 @@
 'use client';
 
 import React, { useRef, ChangeEvent, FormEvent, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation'; // useRouter와 useSearchParams import
-import { useSignupStore } from '@/stores/signUpStore'; // Zustand 스토어를 import 합니다.
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useSignupStore } from '../../stores/signupStore';
 import Script from 'next/script';
 
 // --- 타입 정의 ---
@@ -47,13 +47,12 @@ const BANK_LIST = [
 
 // --- 회원가입 페이지 컴포넌트 ---
 export default function SignUpPage() {
-    // --- Zustand 스토어에서 상태와 액션을 모두 가져옵니다. ---
     const {
-        // 상태 (State)
         showOptionalFields, profileImage, nickname, phoneNumber, email,
         accountNumber, bankName, accountHolder, address, addressDetail, zipcode,
         recipientName, recipientPhoneNumber, agreements, loading, error, isSuccess,
-        // 액션 (Actions)
+        // --- 수정된 부분: 스토어에서 socialAccessToken 상태도 가져옵니다. ---
+        socialAccessToken,
         setShowOptionalFields, setProfileImage, setNickname, setPhoneNumber, setEmail,
         setAccountNumber, setBankName, setAccountHolder, setAddress,
         setAddressDetail, setZipcode, setRecipientName, setRecipientPhoneNumber,
@@ -64,16 +63,17 @@ export default function SignUpPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    // --- 추가된 부분: URL 파라미터를 읽어 스토어에 저장하고 URL을 정리합니다. ---
+    // --- 수정된 부분: URL 파라미터 처리 로직 개선 ---
     useEffect(() => {
         const accessToken = searchParams.get('accessToken');
         const id = searchParams.get('id');
-        const emailFromQuery = searchParams.get('email');
-        const profileImageFromQuery = searchParams.get('profileImage');
+        
+        // URL에는 토큰이 있지만, 아직 스토어에는 저장되지 않은 경우에만 실행합니다.
+        // 이렇게 하면 불필요한 반복 실행을 막을 수 있습니다.
+        if (accessToken && id && !socialAccessToken) {
+            const emailFromQuery = searchParams.get('email');
+            const profileImageFromQuery = searchParams.get('profileImage');
 
-        // 소셜 로그인 후 전달된 accessToken과 id가 있다면, 신규 유저로 간주하고 정보를 채웁니다.
-        // isNewUser 판단은 콜백 페이지의 역할이므로, 여기서는 중복 확인을 제거하여 로직을 단순화하고 안정성을 높입니다.
-        if (accessToken && id) {
             // 1. 스토어에 소셜 로그인 정보를 저장합니다.
             setSocialInfo({ token: accessToken, id });
             if (emailFromQuery) setEmail(emailFromQuery);
@@ -82,7 +82,8 @@ export default function SignUpPage() {
             // 2. URL에서 파라미터를 제거하여 주소창을 정리합니다.
             router.replace('/signup', { scroll: false });
         }
-    }, [searchParams, setEmail, setProfileImage, setSocialInfo, router]);
+    // 의존성 배열에 socialAccessToken을 추가하여 스토어 상태 변경을 감지하도록 합니다.
+    }, [searchParams, setEmail, setProfileImage, setSocialInfo, router, socialAccessToken]);
 
     // --- 이벤트 핸들러 ---
     const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
