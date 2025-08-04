@@ -8,34 +8,29 @@ import Image from 'next/image'
 import Category from '@/components/Category';
 import { useCategoryStore } from '@/stores/categoryStore';
 import LoginModal from '@/components/auth/LoginModal'
-import { useAuthStore } from '@/stores/auth/authStore'; // 1. 전역 인증 스토어 import
+import { useAuthStore } from '@/stores/auth/authStore';
 
 export default function Navbar() {
     const [title, setTitle] = useState('')
     const [showCategory, setShowCategory] = useState(false);
     const [showLoginModal, setShowLoginModal] = useState(false); // 모달 상태 추가
-    const [showMyPageMenu, setShowMyPageMenu] = useState(false);
-    const [isMounted, setIsMounted] = useState(false); // ✅ 하이드레이션 오류 방지를 위한 상태
+    const [showMyPageMenu, setShowMyPageMenu] = useState(false); // 내상점 메뉴 상태
+    const { isLoggedIn, logout, initializeAuth, authenticatedFetch, getToken } = useAuthStore(); // 새로운 authStore 사용
     const [isScrolled, setIsScrolled] = useState(false) // 스크롤 상태 추가
     const categoryRef = useRef<HTMLDivElement>(null);
+    const myPageMenuRef = useRef<HTMLDivElement>(null); // 내상점 메뉴 참조
     const router = useRouter()
     const { getCategories } = useCategoryStore();
-    const { isLoggedIn, logout, initializeAuth } = useAuthStore(); // 2. 스토어에서 상태와 함수 가져오기
 
     // 컴포넌트 마운트 시 카테고리 데이터 로드
     useEffect(() => {
         getCategories();
     }, [getCategories]);
 
-    // 3. 컴포넌트 마운트 시 전역 인증 상태 초기화
+    // 컴포넌트 마운트 시 로그인 상태 확인 (토큰 초기화)
     useEffect(() => {
         initializeAuth();
     }, [initializeAuth]);
-
-    // ✅ 컴포넌트가 클라이언트에서 마운트되었는지 확인
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
 
     // 스크롤 이벤트 리스너 추가
     useEffect(() => {
@@ -47,23 +42,42 @@ export default function Navbar() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    // 내상점 메뉴 외부 클릭 감지
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (myPageMenuRef.current && !myPageMenuRef.current.contains(event.target as Node)) {
+                setShowMyPageMenu(false);
+            }
+        };
+
+        if (showMyPageMenu) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showMyPageMenu]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     router.push(`/search?title=${encodeURIComponent(title)}`)
   }
 
-  const handleLogout = () => {
-    logout(); // 4. 스토어의 logout 함수 사용
-    router.replace('/'); 
-  };
-
-  // 5. 로그인이 필요한 링크를 처리하는 공통 함수
-  const handleProtectedAction = (callback: () => void) => {
-    if (!isLoggedIn) {
-        alert('로그인이 필요한 서비스입니다.');
-        setShowLoginModal(true); // 로그인 모달 열기
-    } else {
-        callback(); // 로그인 상태이면 콜백 함수 실행 (페이지 이동 등)
+  const handleLogout = async () => {
+    try {
+      // 서버에 로그아웃 요청을 보냅니다.
+      // 강화된 authenticatedFetch가 자동으로 토큰 관리, 갱신, 재시도를 처리합니다.
+      await authenticatedFetch('https://i13e202.p.ssafy.io/be/api/auth/refresh/logout', {
+        method: 'POST'
+      });
+    } catch (error) {
+      // 서버 요청 실패 시에도 클라이언트 측 로그아웃은 진행되도록 합니다.
+      console.error('Logout failed on server:', error);
+    } finally {
+      // AuthStore의 logout 액션을 호출합니다.
+      logout();
+      // 사용자 정보도 초기화
+      setShowMyPageMenu(false);
+      router.replace('/'); 
     }
   };
 
@@ -84,9 +98,10 @@ export default function Navbar() {
 
     {/* center-nav */}
     <div className="center-nav border-t border-[#eee]">
-        <div className="w-[1280px] m-auto py-4 flex items-center justify-between">
+        <div className="w-[1280px] m-auto py-4 pb-2 flex items-center justify-between">
             <div className="logo-wrap flex items-center gap-2 flex-1 mr-16">
                 <div className="logo text-xl font-bold">
+                    
                     <Link href="/"><Image src="/logo.png" alt="logo" className="h-[40px]" width={97} height={40} /></Link>
                 </div>
                 <form className="flex items-center ml-[80px] flex-1 px-2 border-1 border-[#eee] rounded-lg bg-[#fff]" onSubmit={handleSubmit}>
@@ -147,78 +162,74 @@ export default function Navbar() {
                 </form>
             </div>
             <div className="nav-btn-wrap flex gap-3">
-                {/* 6. "판매하기", "채팅목록" 버튼에 보호 로직 적용 */}
-                <button 
-                    onClick={() => handleProtectedAction(() => router.push('/product/new'))} 
-                    className="bg-orange-500 text-white text-sm px-4 py-2 rounded hover:bg-orange-600"
-                >
-                    판매하기
-                </button>
-                <button 
-                    onClick={() => handleProtectedAction(() => router.push('/chat'))} 
-                    className="text-[#2B6CEE] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BFDBFE]"
-                >
-                    채팅목록
-                </button>
+                <Link href="/product/new" className="bg-orange-500 text-white text-sm px-4 py-2 rounded hover:bg-orange-600">판매하기</Link>
+                <Link href="/chat" className="text-[#2B6CEE] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BFDBFE]">채팅목록</Link>
                 <Link href="#" className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]">알림</Link>
-                {/* "내 상점" 버튼은 이미 isLoggedIn 상태를 사용하고 있으므로 잘 동작합니다. */}
-                {isLoggedIn ? (
-                    <div 
-                        className="relative"
-                        onMouseEnter={() => setShowMyPageMenu(true)}
-                        onMouseLeave={() => setShowMyPageMenu(false)}
-                    >
-                        <button className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]">내상점</button>
-                        {showMyPageMenu && (
-                            <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-20">
-                                <ul className="py-1">
-                                    <li>
-                                        <Link href="/shop" className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            마이페이지
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            로그아웃
-                                        </button>
-                                    </li>
-                                </ul>
-                            </div>
-                        )}
-                    </div>
-                ) : (
+            
+                <div 
+                    className="relative"
+                    ref={myPageMenuRef}
+                >
                     <button 
-                        onClick={() => handleProtectedAction(() => router.push('/shop'))} 
-                        className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]"
+                        onClick={() => {
+                            if (isLoggedIn) {
+                                // 로그인된 상태: 마이페이지 메뉴 토글
+                                setShowMyPageMenu(prev => !prev)
+                            } else {
+                                // 로그인 안된 상태: 로그인 모달 띄우기
+                                setShowLoginModal(true)
+                            }
+                        }}
+                        className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0] flex items-center gap-2"
                     >
-                        내상점
+                        <span>내상점</span>
                     </button>
-                )}
+                    
+                    {/* 로그인된 상태일 때만 드롭다운 메뉴 표시 */}
+                    {isLoggedIn && showMyPageMenu && (
+                        <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-20">
+                            {/* 사용자 정보 헤더 */}
+                            <ul className="py-1">
+                                <li>
+                                    <Link href="/shop" className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                                        <span>마이페이지</span>
+                                    </Link>
+                                </li>
+                                <li className="border-t border-gray-100 mt-1 pt-1">
+                                    <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+                                        <span>로그아웃</span>
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     </div>
 
     {/* btm-nav */}
-    <div className="btm-nav py-4">
-        <div className="category-wrap relative w-[1280px] m-auto flex items-center gap-5" ref={categoryRef}>
+    <div className="btm-nav">
+        <div className="category-wrap relative w-[1280px] m-auto flex items-center gap-3" ref={categoryRef}>
             <div 
-                className="flex gap-3 items-center bg-[#212121] rounded-lg px-4 py-3 cursor-pointer group relative before:absolute before:left-0 before:top-full before:w-full before:h-4 before:bg-transparent before:z-10"
+                className="flex items-center gap-3 cursor-pointer group relative before:absolute before:left-0 before:top-full before:w-full before:h-4 before:bg-transparent before:z-10"
                 onMouseEnter={() => setShowCategory(true)}
                 onMouseLeave={() => setShowCategory(false)}
             >
-                <ul className="category-btn w-4 h-3 flex flex-col justify-between">
-                    <li className="h-0.5 bg-white rounded"></li>
-                    <li className="h-0.5 bg-white rounded"></li>
-                    <li className="h-0.5 bg-white rounded"></li>
+                <ul className="category-btn flex flex-col justify-between gap-[5px]">
+                    <li className="w-5 h-[2px] bg-black"></li>
+                    <li className="w-5 h-[2px] bg-black"></li>
+                    <li className="w-5 h-[2px] bg-black"></li>
                 </ul>
-                <div className="text-white text-sm">카테고리</div>
+                <div className="text-sm">카테고리</div>
             </div>
-            <ul className="flex items-center gap-7 ml-2 text-[15px] font-normal">
-                <li><Link href="/cs-center">고객센터</Link></li>
+            <ul className="flex items-center ml-2 text-[15px] font-normal">
+                <li><Link className="nav-link block text-sm text-[#666] p-3 py-4 relative" href="/cs-center">고객센터</Link></li>
+                <li><Link className="nav-link block text-sm text-[#666] p-3 py-4 relative" href="#">전체상품</Link></li>
             </ul>
             {showCategory && (
             <div 
-                className="absolute left-0 top-full mt-4 z-20"
+                className="absolute left-0 top-full z-20"
                 onMouseEnter={() => setShowCategory(true)}
                 onMouseLeave={() => setShowCategory(false)}
             >
@@ -230,12 +241,13 @@ export default function Navbar() {
         {/* ✅ 모달은 nav 바깥에서 조건부로 렌더링 */}
         {showLoginModal && (
         <LoginModal
-            isOpen={showLoginModal}
+            isOpen={showLoginModal} 
             onClose={() => setShowLoginModal(false)}
         />
         )}
 
     </nav>
+        
         
   )
 }
