@@ -1,10 +1,10 @@
 'use client'
 
 import ChatModal from '@/components/chat/ChatModal'
-import { useEffect, useRef, useState } from 'react' // useState 추가
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
-import ReservationModal from '@/components/chat/ReservationModal' // ReservationModal 추가
+import ReservationModal from '@/components/chat/ReservationModal'
 
 export default function ChatRoomPage() {
   const params = useParams()
@@ -15,7 +15,6 @@ export default function ChatRoomPage() {
   const { messages, getMessageHistory, connectStomp } = useChatRoomStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // 예약 모달 상태 추가
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
 
   const openReservationModal = () => setIsReservationModalOpen(true);
@@ -124,7 +123,7 @@ export default function ChatRoomPage() {
       </div>
       
       {/* 예약 모달 조건부 렌더링 */}
-      {isReservationModalOpen && <ReservationModal onClose={closeReservationModal} />}
+      {isReservationModalOpen && <ReservationModal onClose={closeReservationModal} chatRoomId={roomId} />}
 
       {/* + 버튼 */}
       <ChatModal onOpenReservationModal={openReservationModal} />
