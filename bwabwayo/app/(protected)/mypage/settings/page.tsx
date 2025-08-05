@@ -16,7 +16,6 @@ export default function SettingsPage() {
     const [accountHolder, setAccountHolder] = useState('');
     const [profileImage, setProfileImage] = useState<File | null>(null);
     const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -47,7 +46,6 @@ export default function SettingsPage() {
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setIsSubmitting(true);
 
         // Validation
         if (!nickname.trim()) {
@@ -66,7 +64,7 @@ export default function SettingsPage() {
         const formData = new FormData();
         const profileUpdateRequest = {
             nickname,
-            // bio,
+            bio,
             bankName: bankName.trim() ? bankName : null,
             accountNumber: accountNumber.trim() ? accountNumber : null,
             accountHolder: accountHolder.trim() ? accountHolder : null,
@@ -89,8 +87,6 @@ export default function SettingsPage() {
         } catch (error) {
             console.error('프로필 업데이트 실패:', error);
             alert('프로필 업데이트에 실패했습니다.');
-        } finally {
-            setIsSubmitting(false);
         }
     };
 
@@ -139,10 +135,10 @@ export default function SettingsPage() {
                     </div>
 
                     {/* Bio */}
-                    {/* <div>
+                    <div>
                         <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-2">상점 소개</label>
                         <textarea id="bio" rows={4} value={bio} onChange={(e) => setBio(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="상점을 소개해주세요." />
-                    </div> */}
+                    </div>
 
                     {/* Account Info */}
                     <div className="space-y-4 p-6 border border-gray-200 rounded-xl bg-gray-50">
@@ -164,13 +160,7 @@ export default function SettingsPage() {
 
                     {/* Submit Button */}
                     <div className="flex justify-end">
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="px-6 py-3 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-                        >
-                            {isSubmitting ? '저장하는 중...' : '저장하기'}
-                        </button>
+                        <button type="submit" className="px-6 py-3 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition disabled:bg-gray-400">저장하기</button>
                     </div>
                 </form>
             </main>
