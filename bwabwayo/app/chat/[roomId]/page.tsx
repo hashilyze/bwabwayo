@@ -57,7 +57,7 @@ export default function ChatRoomPage() {
           </div>
                  ) : (
            <>
-             {Array.isArray(messages) && messages.map((message, index) => {
+             {Array.isArray(messages) && messages.filter(message => message && typeof message === 'object').map((message, index) => {
                // senderId와 토큰/사용자 ID 비교로 내 메시지인지 판단
                const myToken = localStorage.getItem('accessToken')
                let isMine = false
