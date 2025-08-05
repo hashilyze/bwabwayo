@@ -53,7 +53,6 @@ interface ChatRoomStore{
     roomInfo: RoomInfo[]
     roomList: ChatRoom[]
     messages: ChatMessage[]
-    currentRoomId: number | null
     stompClient: Client | null
     isConnected: boolean
     addChatRoom: (addRoom: addRoom) => Promise<RoomInfo | null>
@@ -63,14 +62,12 @@ interface ChatRoomStore{
     disconnectStomp: () => void
     appendMessage: (msg: ChatMessage, isMine: boolean) => void
     clearMessages: () => void
-    setCurrentRoomId: (roomId: number | null) => void
 }
 
 export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     roomInfo: [],
     roomList: [],
     messages: [],
-    currentRoomId: null,
     stompClient: null,
     isConnected: false,
 
@@ -192,14 +189,8 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         
         try {
             console.log('STOMP 연결 시도:', serverUrl)
-            if (roomId) {
-                console.log('📡 구독할 채팅방:', roomId)
-            }
-            
-            // SockJS 사용
+
             const socket = new SockJS(serverUrl)
-            
-            // STOMP 클라이언트 생성
             const client = new Client({
                 webSocketFactory: () => socket,
                 debug: (str) => {
@@ -277,30 +268,9 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     },
 
     appendMessage: (msg: ChatMessage, isMine: boolean) => {
-        const { currentRoomId } = get();
         console.log('📨 새 메시지 추가 시도:', msg)
         console.log('👤 발신자:', isMine ? '나' : '상대')
-        console.log('🏠 현재 채팅방:', currentRoomId)
         console.log('📋 현재 메시지 개수:', get().messages.length)
-        
-        // 현재 채팅방의 메시지만 추가
-        if (currentRoomId && msg.roomId !== currentRoomId) {
-            console.log('⚠️ 다른 채팅방 메시지, 추가하지 않음:', msg.roomId, 'vs', currentRoomId)
-            return
-        }
-        
-        // 더 엄격한 중복 메시지 체크
-        const existingMessage = get().messages.find(existing => 
-            existing.content === msg.content && 
-            existing.senderId === msg.senderId &&
-            existing.roomId === msg.roomId &&
-            Math.abs(new Date(existing.createdAt).getTime() - new Date(msg.createdAt).getTime()) < 2000 // 2초 이내
-        )
-        
-        if (existingMessage) {
-            console.log('⚠️ 중복 메시지 감지, 추가하지 않음:', msg.content)
-            return
-        }
         
         // 새 메시지를 기존 메시지 배열에 추가
         set(state => ({ 
@@ -315,9 +285,4 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         console.log('🗑️ 메시지 목록 초기화');
         set({ messages: [] });
     },
-
-    setCurrentRoomId: (roomId: number | null) => {
-        console.log(`🏠 현재 채팅방 설정: ${roomId}`);
-        set({ currentRoomId: roomId });
-    }
 }))

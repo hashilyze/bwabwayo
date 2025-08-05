@@ -2,7 +2,6 @@
 
 import ChatModal from '@/components/chat/ChatModal'
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
-import { useUserInfoStore } from '@/stores/user/getUserInfoStore'
 import { useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
 
@@ -23,8 +22,7 @@ export default function ChatRoomPage({
 }) {
   const params = useParams()
   const roomId = Number(params.roomId)
-  const { messages, stompClient, isConnected, connectStomp, disconnectStomp, appendMessage, roomInfo, clearMessages, setCurrentRoomId } = useChatRoomStore()
-  const { userInfo } = useUserInfoStore()
+  const { messages, stompClient, isConnected, connectStomp, disconnectStomp, appendMessage, roomInfo, clearMessages } = useChatRoomStore()
   const chatBodyRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -32,39 +30,26 @@ export default function ChatRoomPage({
     
     const initializeChatRoom = async () => {
       try {
-        // 1. 현재 채팅방 ID 설정
-        setCurrentRoomId(roomId);
-        
-        // 2. 기존 메시지 초기화
+        // 1. 기존 메시지 초기화
         clearMessages();
         
-        // 3. STOMP 연결 및 실시간 메시지 구독 (히스토리 포함)
+        // 2. STOMP 연결 및 실시간 메시지 구독 (히스토리 포함)
         console.log(`📡 채팅방 ${roomId} STOMP 연결 및 구독`);
         connectStomp(roomId);
-        
       } catch (error) {
-        console.error(`❌ 채팅방 ${roomId} 초기화 실패:`, error);
+        console.error(error)
       }
     };
     
     initializeChatRoom();
     
     return () => {
-      // 컴포넌트 언마운트 시 연결 해제 및 현재 채팅방 초기화
+      // 컴포넌트 언마운트 시 연결 해제
       console.log(`👋 채팅방 ${roomId} 퇴장 - 연결 해제`);
       disconnectStomp();
-      setCurrentRoomId(null);
     }
   }, [roomId, connectStomp, disconnectStomp, clearMessages])
 
-  // 사용자 정보 로드
-  useEffect(() => {
-    const loadUserInfo = async () => {
-      const { getUserInfo } = useUserInfoStore.getState()
-      await getUserInfo()
-    }
-    loadUserInfo()
-  }, [])
 
   useEffect(() => {
     // 메시지가 추가될 때마다 스크롤을 맨 아래로
