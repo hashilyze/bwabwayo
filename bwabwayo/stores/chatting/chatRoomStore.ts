@@ -16,18 +16,21 @@ interface addRoom {
 }
 
 interface ChatMessage {
-    productId: number
-    productTitle: string
-    productPrice: number
-    productImageUrl: string
-    buyerId: number
-    sellerId: number
-    type: string
-    senderId: number
-    token?: string
+    roomId: number
+    senderId: string
+    receiverId: string
     content: string
+    type: string
     createdAt: string
     isRead: boolean
+    // 기존 필드들 (호환성을 위해 유지)
+    productId?: number
+    productTitle?: string
+    productPrice?: number
+    productImageUrl?: string
+    buyerId?: number
+    sellerId?: number
+    token?: string
 }
 
 interface ChatRoom {
@@ -155,8 +158,23 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                         // 현재 사용자의 토큰
                         const myToken = localStorage.getItem('accessToken')
                         
-                        // 내가 보낸 메시지인지 판단 (토큰 비교)
-                        const isMine = Boolean(myToken && msg.token === myToken)
+                        // 내가 보낸 메시지인지 판단 (senderId와 토큰/사용자 ID 비교)
+                        let isMine = false
+                        if (myToken) {
+                            // 토큰에서 사용자 ID 추출
+                            try {
+                                const tokenParts = myToken.split('.')
+                                if (tokenParts.length === 3) {
+                                    const payload = JSON.parse(atob(tokenParts[1]))
+                                    const myUserId = payload.sub || payload.userId || payload.id
+                                    isMine = String(msg.senderId) === String(myUserId) || String(msg.senderId) === myToken
+                                } else {
+                                    isMine = String(msg.senderId) === myToken
+                                }
+                            } catch (error) {
+                                isMine = String(msg.senderId) === myToken
+                            }
+                        }
                         console.log('👤 메시지 발신자:', isMine ? '나' : '상대')
                         console.log('📝 메시지 내용:', msg.content)
                         
@@ -215,9 +233,30 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
             const data = await response.json();
             console.log('📥 메시지 히스토리 수신:', data);
             
-            set({ messages: data as ChatMessage[] })
+            // 데이터 구조 확인 및 안전한 처리
+            let messagesArray: ChatMessage[] = [];
+            
+            if (Array.isArray(data)) {
+                messagesArray = data;
+            } else if (data && typeof data === 'object') {
+                // 만약 data가 객체이고 messages 필드가 있다면
+                if (Array.isArray(data.messages)) {
+                    messagesArray = data.messages;
+                } else if (Array.isArray(data.content)) {
+                    messagesArray = data.content;
+                } else {
+                    console.warn('⚠️ 예상하지 못한 데이터 구조:', data);
+                    messagesArray = [];
+                }
+            } else {
+                console.warn('⚠️ 메시지 데이터가 배열이 아닙니다:', data);
+                messagesArray = [];
+            }
+            
+            set({ messages: messagesArray })
         } catch (error) {
             console.error(`❌ 채팅방 ${roomId} 메시지 히스토리 로드 실패:`, error);
+            set({ messages: [] });
         }
     },
 
@@ -243,10 +282,23 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 return
             }
 
-            // 예제 코드를 참고한 STOMP 메시지 형식
+            // 토큰에서 사용자 ID 추출 (JWT 디코드)
+            let userId = null
+            try {
+                const tokenParts = token.split('.')
+                if (tokenParts.length === 3) {
+                    const payload = JSON.parse(atob(tokenParts[1]))
+                    userId = payload.sub || payload.userId || payload.id
+                    console.log('🔑 토큰에서 추출한 사용자 ID:', userId)
+                }
+            } catch (error) {
+                console.warn('⚠️ 토큰 디코드 실패:', error)
+            }
+
+            // STOMP 메시지 형식 (사용자 ID 사용)
             const stompMessage = {
                 roomId: roomId,
-                senderId: token,
+                senderId: userId || token, // 사용자 ID가 있으면 사용, 없으면 토큰 사용
                 content: content.trim(),
                 isRead: false,
                 createdAt: new Date(),
@@ -265,16 +317,11 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
             
             // 로컬에서 즉시 메시지 추가 (UI 반응성 향상)
             const localMessage: ChatMessage = {
-                productId: 0, // 실제 값은 백엔드에서 설정
-                productTitle: '',
-                productPrice: 0,
-                productImageUrl: '',
-                buyerId: 0,
-                sellerId: 0,
-                type: 'TALK',
-                senderId: 0, // 실제 값은 백엔드에서 설정
-                token: token,
+                roomId: roomId,
+                senderId: userId || token, // 사용자 ID가 있으면 사용, 없으면 토큰 사용
+                receiverId: '', // 백엔드에서 설정
                 content: content.trim(),
+                type: 'TEXT',
                 createdAt: new Date().toISOString(),
                 isRead: false
             }
