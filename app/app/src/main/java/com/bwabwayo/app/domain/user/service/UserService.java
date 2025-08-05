@@ -41,7 +41,6 @@ public class UserService {
     @Value("${storage.path.profileImage}")
     private String profilePath;
 
-
     public User findById(String id){
         return userRepository.findUserById(id);
     }
@@ -52,12 +51,12 @@ public class UserService {
             throw new IllegalArgumentException("프로필 이미지가 존재하지 않습니다.");
         }
 
-//        String targetKey;
-//        if (URLValidator.isValidURL(request.getProfileImage())) { // 다운로드 후 S3 업로드
-//            targetKey = storageService.upload(profileImage, profilePath);
-//        } else { // S3의 profile로 이동
-//            targetKey = storageUtil.copyToPermanentDirectory(profileImage, profilePath);
-//        }
+        String targetKey;
+        if (URLValidator.isValidURL(request.getProfileImage())) { // 다운로드 후 S3 업로드
+            targetKey = storageService.upload(profileImage, profilePath);
+        } else { // S3의 profile로 이동
+            targetKey = storageUtil.copyToPermanentDirectory(profileImage, profilePath);
+        }
 
         User user = User.builder()
                 .id(request.getId())
@@ -65,7 +64,7 @@ public class UserService {
                 .version(null)
                 .email(request.getEmail())
                 .phoneNumber(request.getPhoneNumber())
-//                .profileImage(targetKey)
+                .profileImage(targetKey)
                 .bio(request.getNickname() + "의 상점입니다.")
                 .score(500)
                 .point(PointEventType.SIGNUP_FIRST.getPoint())
