@@ -33,28 +33,53 @@ interface ChatMessage {
     token?: string
 }
 
-interface ChatRoom {
+interface Buyer{
+    id: number
+    nickname: string
+    profileImageUrl: string
+}
+
+interface LastMessage{
+    content: string
+    createdAt: string
+    isRead: boolean
+    receiverId: number
     roomId: number
-    productName: string
-    partnerNickName: string
-    partnerId: string
-    lastChatmessageDto: {
-        content: string
-        createdAt: string
-        type: string
-    }
-    unreadMessagesNum: number
-    lastMessageContent: string
-    lastMessageTime: string
+    senderId: number
     type: string
-    seller: {
-        id: number
-        nickname: string
-    }
-    product: {
-        id: number
-        thumnail: string
-    }
+}
+
+interface Seller{
+    avgRating: number
+    dealCount: number
+    id: number
+    nickname: string
+    profileImageUrl: string
+    reviewCount: number
+}
+
+interface Product{
+    canDelivery: boolean
+    canDirect: boolean
+    canNegotiate: boolean
+    id: number
+    imageUrl: string
+    price: number
+    saleStatus: string
+    shippingFee: number
+    title: string
+}
+
+interface ChatRoom {
+    buyer: Buyer
+    lastMessage: LastMessage
+    partnerNickName: string
+    product: Product
+    roomId: number
+    seller: Seller
+    unreadCount: number
+    userId: number
+    userNickname: string
 }
 
 interface ChatRoomStore{
@@ -298,14 +323,28 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         }
 
         try {
-            // 토큰 가져오기
-            const token = localStorage.getItem('accessToken')
+            // URL 파라미터에서 sellerId와 buyerId 가져오기
+            const urlParams = new URLSearchParams(window.location.search)
+            const sellerId = urlParams.get('sellerId')
+            const buyerId = urlParams.get('buyerId')
+            
+            if (!sellerId || !buyerId) {
+                console.error('❌ URL 파라미터에서 sellerId 또는 buyerId를 찾을 수 없습니다.')
+                return
+            }
+
+            // URL 파라미터에서 senderId와 receiverId 결정
+            // 현재 사용자가 판매자인지 구매자인지 판단
+            const currentUserId = sellerId // 임시로 sellerId를 현재 사용자로 설정
+            const isSeller = currentUserId === sellerId
+            const senderId = currentUserId
+            const receiverId = isSeller ? buyerId : sellerId
 
             // STOMP 메시지 형식
             const stompMessage = {
                 roomId: roomId,
-                senderId: token,
-                receiverId: 0,
+                senderId: senderId,
+                receiverId: receiverId,
                 content: content.trim(),
                 isRead: false,
                 createdAt: new Date(),

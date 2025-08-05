@@ -72,7 +72,7 @@ export default function ProductDetailPage() {
         productId: productId || 0
       })
       // console.log(result)
-      router.push(`/chat/${result?.roomId}`)
+      router.push(`/chat/${result?.roomId}?productId=${result?.productId}&sellerId=${result?.sellerId}&buyerId=${result?.buyerId}`)
     } catch (error) {
       console.error('채팅방 생성 중 오류:', error);
     }

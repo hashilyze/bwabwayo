@@ -2,12 +2,15 @@
 
 import ChatModal from '@/components/chat/ChatModal'
 import { useEffect, useRef } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
 
 export default function ChatRoomPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const roomId = Number(params.roomId)
+  const sellerId = searchParams.get('sellerId')
+  const buyerId = searchParams.get('buyerId')
   const { messages, getMessageHistory, connectStomp, sendMessage, isConnected } = useChatRoomStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -40,6 +43,13 @@ export default function ChatRoomPage() {
     }
   }, [])
 
+  // URL 파라미터에서 현재 사용자 ID 결정
+  const getMyUserId = () => {
+    return sellerId // 임시로 sellerId를 현재 사용자로 설정
+  }
+
+  const myUserId = getMyUserId()
+
   return (
     <div className="h-full flex flex-col justify-between">
       {/* 메인 콘텐츠 영역 */}
@@ -48,6 +58,11 @@ export default function ChatRoomPage() {
       >
         <div className="text-center mb-10">
           <h1 className="text-[28px] font-bold text-black mb-4">채팅방 {roomId}</h1>
+          {sellerId && buyerId && (
+            <p className="text-sm text-gray-500">
+              판매자: {sellerId} | 구매자: {buyerId}
+            </p>
+          )}
         </div>
 
         {!messages || !Array.isArray(messages) || messages.length === 0 || !messages.every(msg => msg && typeof msg === 'object') ? (
@@ -58,8 +73,8 @@ export default function ChatRoomPage() {
                  ) : (
            <>
              {Array.isArray(messages) && messages.filter(message => message && typeof message === 'object').map((message, index) => {
-              const myToken = localStorage.getItem('accessToken')
-              const isMine = Boolean(myToken && message.token === myToken)
+              // 내가 보낸 메시지인지 판단 (senderId와 내 사용자 ID 비교)
+              const isMine = myUserId ? String(message.senderId) === String(myUserId) : false
               return (
                 <div
                   key={index}

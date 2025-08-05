@@ -1,24 +1,63 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import ChatRoomItem from '@/components/chat/ChatRoomItem'
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore';
 
+interface Buyer{
+  id: number
+  nickname: string
+  profileImageUrl: string
+}
+
+interface LastMessage{
+  content: string
+  createdAt: string
+  isRead: boolean
+  receiverId: number
+  roomId: number
+  senderId: number
+  type: string
+}
+
+interface Seller{
+  avgRating: number
+  dealCount: number
+  id: number
+  nickname: string
+  profileImageUrl: string
+  reviewCount: number
+}
+
+interface Product{
+  canDelivery: boolean
+  canDirect: boolean
+  canNegotiate: boolean
+  id: number
+  imageUrl: string
+  price: number
+  saleStatus: string
+  shippingFee: number
+  title: string
+}
+
 interface ChatRoom {
-  id: number;
-  thumbnail?: string;
-  productName?: string;
-  partnerNickName?: string;
-  lastMessage?: string;
-  lastMessageTime?: string;
-  unreadCount?: number;
+  buyer: Buyer
+  lastMessage: LastMessage
+  partnerNickName: string
+  product: Product
+  roomId: number
+  seller: Seller
+  unreadCount: number
+  userId: number
+  userNickname: string
 }
 
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const params = useParams();
-  const { roomList, getRoomList } = useChatRoomStore();
+  const { roomList, getRoomList, addChatRoom } = useChatRoomStore();
   const [isLoading, setIsLoading] = useState(true);
   
   // URL에서 현재 선택된 roomId 가져오기 
@@ -43,13 +82,26 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   console.log("layout", roomList)
   
   // 채팅방 선택 시
-  const handleChatRoomSelect = (chatRoom: ChatRoom) => {
+  const handleChatRoomSelect = async (chatRoom: ChatRoom) => {
+    // if (!isLoggedIn) {
+    //   openLoginModal();
+    //   return;
+    // }
+
     try {
-      router.push(`/chat/${chatRoom.id}`);
+      const result = await addChatRoom({
+        sellerId: chatRoom.seller.id.toString(),
+        productId: chatRoom.product.id
+      })
+      console.log('채팅방 생성 결과:', result)
+      
+      if (result) {
+        router.push(`/chat/${result.roomId}?productId=${result.productId}&sellerId=${result.sellerId}&buyerId=${result.buyerId}`)
+      } else {
+        console.error('채팅방 생성 실패: 결과가 null입니다.')
+      }
     } catch (error) {
-      console.error(`❌ 채팅방 ${chatRoom.id} 선택 중 오류:`, error);
-      // 오류가 발생해도 페이지 이동은 진행
-      router.push(`/chat/${chatRoom.id}`);
+      console.error('채팅방 생성 중 오류:', error);
     }
   }
 
@@ -82,14 +134,6 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
             roomList.map((room) => (
               <ChatRoomItem 
                 key={room.roomId} 
-                chatRoom={{ 
-                  id: room.roomId,
-                  thumbnail: room.product?.thumnail || '',
-                  productName: room.productName || '',
-                  lastMessage: room.lastChatmessageDto?.content || room.lastMessageContent || '',
-                  lastMessageTime: room.lastChatmessageDto?.createdAt || room.lastMessageTime || '',
-                  unreadCount: room.unreadMessagesNum || 0
-                }}
                 roomData={room}
                 onSelect={handleChatRoomSelect}
                 isSelected={currentRoomId === room.roomId}

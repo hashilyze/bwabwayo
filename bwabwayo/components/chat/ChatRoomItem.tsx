@@ -1,13 +1,45 @@
 import Image from "next/image";
 
+// 레이아웃에서 사용하는 ChatRoom 타입과 동일하게 정의
 interface ChatRoom {
-  id: number;
-  thumbnail?: string;
-  productName?: string;
-  partnerNickName?: string;
-  lastMessage?: string;
-  lastMessageTime?: string;
-  unreadCount?: number;
+  buyer: {
+    id: number;
+    nickname: string;
+    profileImageUrl: string;
+  };
+  lastMessage: {
+    content: string;
+    createdAt: string;
+    isRead: boolean;
+    receiverId: number;
+    roomId: number;
+    senderId: number;
+    type: string;
+  };
+  partnerNickName: string;
+  product: {
+    canDelivery: boolean;
+    canDirect: boolean;
+    canNegotiate: boolean;
+    id: number;
+    imageUrl: string;
+    price: number;
+    saleStatus: string;
+    shippingFee: number;
+    title: string;
+  };
+  roomId: number;
+  seller: {
+    avgRating: number;
+    dealCount: number;
+    id: number;
+    nickname: string;
+    profileImageUrl: string;
+    reviewCount: number;
+  };
+  unreadCount: number;
+  userId: number;
+  userNickname: string;
 }
 
 interface RoomData {
@@ -35,16 +67,16 @@ interface RoomData {
 }
 
 interface ChatRoomItemProps {
-  chatRoom: ChatRoom;
-  roomData?: RoomData;
-  onSelect?: (chatRoom: ChatRoom) => void;
+  chatRoom?: ChatRoom;
+  roomData?: RoomData | ChatRoom;
+  onSelect?: (chatRoom: ChatRoom) => void | Promise<void>;
   isSelected?: boolean;
 }
 
 export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected }: ChatRoomItemProps) {
-  const handleClick = () => {
-    console.log(`${chatRoom.id} 채팅방 선택됨`);
-    onSelect?.(chatRoom);
+  const handleClick = async () => {
+    console.log(`${roomData?.roomId || chatRoom?.roomId} 채팅방 선택됨`);
+    await onSelect?.(roomData as ChatRoom || chatRoom as ChatRoom);
   };
 
   // 시간 포맷팅 함수
@@ -68,6 +100,14 @@ export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected 
     }
   };
 
+  // LayoutChatRoom인지 확인하는 함수
+  const isLayoutChatRoom = (data: any): data is ChatRoom => {
+    return data && 'buyer' in data && 'seller' in data && 'product' in data;
+  };
+
+  const layoutRoom = isLayoutChatRoom(roomData) ? roomData : null;
+  const regularRoom = !isLayoutChatRoom(roomData) ? roomData : null;
+
   return (
     <div 
       className={`h-[92px] border-b border-gray-100 flex items-center px-5 cursor-pointer ${
@@ -80,7 +120,7 @@ export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected 
       <div className="w-[60px] h-[60px] bg-gray-200 rounded-full mr-[18px]">
         <Image 
           src='/image/sample.png'
-          alt={`${roomData?.partnerNickName || roomData?.seller.nickname} 프로필`}
+          alt={`${layoutRoom?.partnerNickName || layoutRoom?.seller?.nickname || regularRoom?.partnerNickName || regularRoom?.seller?.nickname || chatRoom?.partnerNickName} 프로필`}
           className="w-full h-full rounded-full object-cover"
           width={60}
           height={60}
@@ -90,31 +130,31 @@ export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected 
       <div className="flex-1">
         <div className="flex items-center mb-1">
           <span className="text-base font-bold text-black mr-2">
-            {roomData?.partnerNickName || roomData?.seller.nickname || chatRoom.partnerNickName}
+            {layoutRoom?.partnerNickName || layoutRoom?.seller?.nickname || regularRoom?.partnerNickName || regularRoom?.seller?.nickname || chatRoom?.partnerNickName}
           </span>
           <div className="w-[2px] h-[2px] bg-gray-500 rounded-full mr-2"></div>
           <span className="text-xs text-gray-500">
-            {formatTime(roomData?.lastChatmessageDto?.createdAt || roomData?.lastMessageTime || chatRoom.lastMessageTime)}
+            {formatTime(layoutRoom?.lastMessage?.createdAt || regularRoom?.lastChatmessageDto?.createdAt || regularRoom?.lastMessageTime || chatRoom?.lastMessage?.createdAt)}
           </span>
         </div>
         <div className="flex items-center justify-between">
           <p className="text-xs text-gray-500 truncate flex-1 mr-2">
-            {roomData?.lastChatmessageDto?.content || roomData?.lastMessageContent || chatRoom.lastMessage || '메시지 없음'}
+            {layoutRoom?.lastMessage?.content || regularRoom?.lastChatmessageDto?.content || regularRoom?.lastMessageContent || chatRoom?.lastMessage?.content || '메시지 없음'}
           </p>
-          {(roomData?.unreadMessagesNum || chatRoom.unreadCount) && (roomData?.unreadMessagesNum || chatRoom.unreadCount || 0) > 0 && (
+          {(layoutRoom?.unreadCount || regularRoom?.unreadMessagesNum || chatRoom?.unreadCount) && (layoutRoom?.unreadCount || regularRoom?.unreadMessagesNum || chatRoom?.unreadCount || 0) > 0 && (
             <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
-              {roomData?.unreadMessagesNum || chatRoom.unreadCount}
+              {layoutRoom?.unreadCount || regularRoom?.unreadMessagesNum || chatRoom?.unreadCount}
             </span>
           )}
         </div>
         <p className="text-xs text-gray-400 mt-1">
-          [{roomData?.productName || chatRoom.productName || '상품'}] 상품
+          [{layoutRoom?.product?.title || regularRoom?.productName || chatRoom?.product?.title || '상품'}] 상품
         </p>
       </div>
       
       <div className="w-[40px] h-[40px] bg-gray-300 rounded ml-2">
         <Image 
-          src={roomData?.product?.thumnail || chatRoom.thumbnail || '/image/no-image.jpg'}
+          src={layoutRoom?.product?.imageUrl || regularRoom?.product?.thumnail || chatRoom?.product?.imageUrl || '/image/no-image.jpg'}
           alt="상품 이미지" 
           className="w-full h-full rounded object-cover"
           width={40}
