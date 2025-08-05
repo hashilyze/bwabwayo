@@ -6,7 +6,7 @@ import Sidebar from "@/components/shop/Sidebar";
 import ProductCard from "@/components/product/ProductCard";
 import SellerTitle from '@/components/shop/SellerTitle';
 import { useProductStore, ProductWithSeller } from '@/stores/product/productStore';
-import { useMyPageStore, Evaluation } from '@/stores/mypage/mypageStore';
+import { useMyPageStore, Evaluation } from '@/stores/mypage/myStore';
 
 // 상점 후기 항목 데이터 (실제 item_id에 맞춰야 합니다)
 const reviewItems = [

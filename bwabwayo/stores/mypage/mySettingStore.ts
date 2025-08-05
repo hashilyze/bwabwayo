@@ -78,7 +78,7 @@ export const useMyPageSettingStore = create<MyPageSettingStore>((set) => ({
 
   try {
     const response = await useAuthStore.getState().authenticatedFetch(requestUrl, {
-      method: 'POST',
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },

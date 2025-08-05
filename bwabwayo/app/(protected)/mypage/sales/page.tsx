@@ -3,7 +3,7 @@
 
 import React from "react";
 import Sidebar from "@/components/shop/Sidebar"; // Sidebar 컴포넌트를 import 합니다.
-import { useMyPageActivityStore } from "@/stores/mypage/mypageActivityStore"; // Zustand 스토어를 import 합니다.
+import { useMyPageActivityStore } from "@/stores/mypage/myActivityStore"; // Zustand 스토어를 import 합니다.
 
 // --- 타입 정의 (Type Definition) ---
 // 판매 내역 데이터의 타입을 명확하게 정의합니다.
