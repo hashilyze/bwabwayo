@@ -49,6 +49,19 @@ export interface ActivityProduct {
   seller: Seller;
 }
 
+// API에서 내려오는 구매 상품 정보 타입
+interface RawPurchaseProduct {
+  saleId: number;
+  productId: number;
+  thumbnail: string;
+  title: string;
+  price: number;
+  deliveryStatus: string | null;
+  courierName: string | null;
+  trackingNumber: string | null;
+  purchaseConfirmStatus: number;
+}
+
 // API 응답 타입
 interface ActivityProductsResponse {
   size: number;
@@ -58,7 +71,7 @@ interface ActivityProductsResponse {
 // Zustand 스토어 상태 및 액션 타입
 interface MyActivityStore {
   salesList: ActivityProduct[];
-  purchaseList: ActivityProduct[];
+  purchaseList: myPurchaseProduct[];
   wishList: ActivityProduct[];
   loading: boolean;
   error: string | null;
@@ -96,7 +109,32 @@ export const useMyActivityStore = create<MyActivityStore>((set) => ({
 
   // 내 구매내역 불러오기 (API 확인 필요)
   fetchPurchases: async () => {
-    // ... 구매내역 API 호출 로직 ...
+    set({ loading: true, error: null });
+    const requestUrl = `${baseUrl}/users/orders`; // 구매내역 API
+    try {
+      const response = await useAuthStore.getState().authenticatedFetch(requestUrl);
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || '구매 내역을 가져오는데 실패했습니다.');
+      }
+
+      // API 응답 데이터를 myPurchaseProduct[] 타입으로 변환
+      const formattedPurchases: myPurchaseProduct[] = data.map((item: RawPurchaseProduct) => ({
+        id: item.productId, // productId를 id로 매핑
+        thumbnail: item.thumbnail,
+        title: item.title,
+        price: item.price,
+        deliveryStatus: item.deliveryStatus,
+        courierName: item.courierName,
+        trackingNumber: item.trackingNumber,
+        purchaseStatus: item.purchaseConfirmStatus, // purchaseConfirmStatus를 purchaseStatus로 매핑
+      }));
+
+      set({ purchaseList: formattedPurchases, loading: false });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
+      set({ error: errorMessage, loading: false, purchaseList: [] });
+    }
   },
 
   // 내 찜목록 불러오기 (API 확인 필요)

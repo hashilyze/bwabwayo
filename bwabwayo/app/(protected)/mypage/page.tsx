@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Sidebar from "@/components/shop/Sidebar";
 import ProductCard from "@/components/mypage/MyProductCard";
 import SellerTitle from '@/components/shop/SellerTitle';
-import { useProductStore, ProductWithSeller } from '@/stores/product/productStore';
 import { useMyPageStore, Evaluation } from '@/stores/mypage/myStore';
 import { useMyActivityStore, ActivityProduct } from '@/stores/mypage/myActivityStore';
 
@@ -18,14 +17,12 @@ const reviewItems = [
 ];
 
 export default function MyPage() {
-  const { products, loading: productsLoading, error: productsError, getProducts } = useProductStore();
   const { userData, loading: userLoading, error: userError, fetchUserData } = useMyPageStore();
   const { salesList, loading: salesListLoading, error:salesListError, fetchSales} = useMyActivityStore();
   useEffect(() => {
-    getProducts();
     fetchUserData();
     fetchSales
-  }, [getProducts, fetchUserData, fetchSales]);
+  }, [ fetchUserData, fetchSales]);
 
   // 현재 로그인한 사용자의 상품만 필터링합니다.
   const myProducts = userData ? salesList.filter(p => p.seller.id === userData.userId) : [];

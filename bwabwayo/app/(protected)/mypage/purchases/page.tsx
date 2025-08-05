@@ -1,65 +1,18 @@
 // 파일 경로: app/shop/[id]/purchases/page.tsx
 'use client'; // '구매확정' 버튼 등 상호작용이 있으므로 클라이언트 컴포넌트로 선언합니다.
 
-import React from "react";
+import React, { useEffect } from "react";
 import Sidebar from "@/components/shop/Sidebar"; // Sidebar 컴포넌트를 import 합니다.
+import { useMyActivityStore, myPurchaseProduct } from "@/stores/mypage/myActivityStore"; // Zustand 스토어를 import 합니다.
 
-// --- 타입 정의 (Type Definition) ---
-// 구매 내역 데이터의 타입을 명확하게 정의합니다.
-type Purchase = {
-  id: number;
-  image: string;
-  name: string;
-  price: string;
-  status: string;
-  confirm: string;
-  delivery: {
-    company: string;
-    number: string;
-  } | null;
-  confirmDone: boolean;
-};
-
-// --- 가상 데이터 (Mock Data) ---
-const purchases: Purchase[] = [
-  {
-    id: 1,
-    image: "https://picsum.photos/200/200?random=10",
-    name: "팝마트 라부부 코카콜라 시리즈 인형 키링",
-    price: "70,000원",
-    status: "배송준비중",
-    confirm: "구매확정",
-    delivery: null,
-    confirmDone: false,
-  },
-  {
-    id: 2,
-    image: "https://picsum.photos/200/200?random=11",
-    name: "팝마트 라부부 코카콜라 시리즈 인형 키링",
-    price: "70,000원",
-    status: "배송중",
-    delivery: {
-      company: "우체국택배",
-      number: "262526865323",
-    },
-    confirm: "구매확정",
-    confirmDone: false,
-  },
-  {
-    id: 3,
-    image: "https://picsum.photos/200/200?random=12",
-    name: "팝마트 라부부 코카콜라 시리즈 인형 키링",
-    price: "70,000원",
-    status: "직거래",
-    confirm: "구매확정완료",
-    delivery: null,
-    confirmDone: true,
-  },
-];
-
-// --- 페이지 컴포넌트 (Page Component) ---
-// 동적 경로([id])의 값을 params를 통해 받아옵니다.
 export default function MyPagePurchase() {
+  const {purchaseList, loading: purchaseListLoading, error: purchaseListError, fetchPurchases } = useMyActivityStore();
+
+  useEffect(() => {
+    fetchPurchases();
+  }, [fetchPurchases]);
+
+  
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
@@ -81,14 +34,14 @@ export default function MyPagePurchase() {
           
           {/* 상품 리스트 */}
           <div className="divide-y divide-gray-200 bg-white rounded-b-lg shadow">
-            {purchases.map((item) => (
+            {purchaseList.map((item) => (
               <div key={item.id} className="grid grid-cols-12 items-center px-6 py-6">
                 {/* 상품명 및 이미지 */}
                 <div className="col-span-4 flex items-center gap-4">
                   <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                    <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover" />
                   </div>
-                  <div className="text-gray-700 whitespace-pre-line text-base">{item.name}</div>
+                  <div className="text-gray-700 whitespace-pre-line text-base">{item.title}</div>
                 </div>
                 
                 {/* 가격 */}
@@ -96,25 +49,43 @@ export default function MyPagePurchase() {
                 
                 {/* 배송상태 */}
                 <div className="col-span-3 text-center">
-                  <div className="text-base font-medium text-gray-900">{item.status}</div>
-                  {item.delivery && (
+                  <div className="text-base font-medium text-gray-900">{item.deliveryStatus}</div>
+                  {item.deliveryStatus && (
                     <div className="text-xs text-gray-500 mt-1">
-                      <div>{item.delivery.company}</div>
-                      <div>{item.delivery.number}</div>
+                      <div>{item.courierName}</div>
+                      <div>{item.trackingNumber}</div>
                     </div>
                   )}
                 </div>
                 
                 {/* 구매확정 */}
-                <div className="col-span-3 text-center">
-                  {item.confirmDone ? (
-                    <span className="inline-block px-4 py-1 rounded bg-gray-200 text-gray-600 text-base">{item.confirm}</span>
-                  ) : (
-                    <button className="px-4 py-1 rounded border border-blue-600 text-blue-600 font-semibold hover:bg-blue-50 transition-colors text-base">
-                      {item.confirm}
-                    </button>
-                  )}
-                </div>
+               <div className="col-span-3 text-center">
+  {item.purchaseStatus === 0 && (
+    <button
+      className="px-4 py-1 rounded border border-gray-400 text-gray-400 bg-gray-100 cursor-not-allowed text-base"
+      disabled
+    >
+      구매확정
+    </button>
+  )}
+
+  {item.purchaseStatus === 1 && (
+    <button
+      className="px-4 py-1 rounded border border-blue-600 text-blue-600 font-semibold hover:bg-blue-50 transition-colors text-base"
+    >
+      구매확정
+    </button>
+  )}
+
+  {item.purchaseStatus === 2 && (
+    <button
+      className="px-4 py-1 rounded border border-gray-400 text-gray-400 bg-gray-100 cursor-not-allowed text-base"
+      disabled
+    >
+      구매확정완료
+    </button>
+  )}
+</div>
               </div>
             ))}
           </div>
