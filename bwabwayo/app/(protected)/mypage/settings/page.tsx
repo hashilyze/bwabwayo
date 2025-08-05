@@ -51,7 +51,6 @@ export default function SettingsPage() {
         // Validation
         if (!nickname.trim()) {
             alert('닉네임을 입력해주세요.');
-            setIsSubmitting(false);
 
             return;
         }
@@ -61,7 +60,6 @@ export default function SettingsPage() {
 
         if (accountInfoProvided && !allAccountInfoProvided) {
             alert('계좌 정보를 모두 입력하거나 모두 비워주세요.');
-            setIsSubmitting(false);
 
             return;
         }
