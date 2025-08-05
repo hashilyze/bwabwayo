@@ -114,11 +114,10 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         try{
             const response = await useAuthStore.getState().authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/chatrooms`)
             const data = await response.json()
+            console.log(data)
             set({ roomList: data })
-            return data as ChatRoom[]
         } catch (error) {
             console.error('Error getting room list:', error)
-            return null;
         }
     },
 
@@ -235,9 +234,6 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
             const response = await useAuthStore.getState().authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/chatrooms/${roomId}?page=0`);
             const data = await response.json();
             console.log('📥 메시지 히스토리 수신:', data);
-            console.log('📋 데이터 타입:', typeof data);
-            console.log('📋 배열 여부:', Array.isArray(data));
-            console.log('📋 데이터 길이:', Array.isArray(data) ? data.length : 'N/A');
             
             // 데이터 구조 확인 및 안전한 처리
             let messagesArray: ChatMessage[] = [];
@@ -250,20 +246,28 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                     item.content !== undefined
                 );
             } else if (data && typeof data === 'object') {
-                // 만약 data가 객체이고 messages 필드가 있다면
-                if (Array.isArray(data.messages)) {
-                    messagesArray = data.messages.filter((item: any) => 
-                        item && 
-                        typeof item === 'object' && 
-                        item.content !== undefined
-                    );
-                } else if (Array.isArray(data.content)) {
-                    messagesArray = data.content.filter((item: any) => 
-                        item && 
-                        typeof item === 'object' && 
-                        item.content !== undefined
-                    );
-                } else {
+                // 객체인 경우 다양한 필드명 시도
+                const possibleMessageFields = ['messages', 'content', 'data', 'items', 'chatMessages', 'messageList'];
+                
+                for (const field of possibleMessageFields) {
+                    if (Array.isArray(data[field])) {
+                        console.log(`✅ 메시지 배열을 찾았습니다: ${field}`);
+                        messagesArray = data[field].filter((item: any) => 
+                            item && 
+                            typeof item === 'object' && 
+                            item.content !== undefined
+                        );
+                        break;
+                    }
+                }
+                
+                // 만약 배열 필드를 찾지 못했다면, 객체 자체가 메시지일 수 있음
+                if (messagesArray.length === 0 && data.content !== undefined) {
+                    console.log('✅ 단일 메시지 객체로 처리');
+                    messagesArray = [data as ChatMessage];
+                }
+                
+                if (messagesArray.length === 0) {
                     console.warn('⚠️ 예상하지 못한 데이터 구조:', data);
                     messagesArray = [];
                 }
@@ -296,17 +300,12 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         try {
             // 토큰 가져오기
             const token = localStorage.getItem('accessToken')
-            
-            if (!token) {
-                console.error('❌ 토큰을 찾을 수 없습니다.')
-                return
-            }
 
             // STOMP 메시지 형식
             const stompMessage = {
                 roomId: roomId,
-                senderId: null,
-                receiverId: null,
+                senderId: token,
+                receiverId: 0,
                 content: content.trim(),
                 isRead: false,
                 createdAt: new Date(),

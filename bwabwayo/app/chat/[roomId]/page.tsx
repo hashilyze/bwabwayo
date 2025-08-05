@@ -8,10 +8,7 @@ import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
 export default function ChatRoomPage() {
   const params = useParams()
   const roomId = Number(params.roomId)
-  const { messages, getMessageHistory, connectStomp, isConnected } = useChatRoomStore()
-  
-  // messages가 안전한 배열인지 확인
-  const safeMessages = Array.isArray(messages) ? messages : []
+  const { messages, getMessageHistory, connectStomp, sendMessage, isConnected } = useChatRoomStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -33,7 +30,7 @@ export default function ChatRoomPage() {
   // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [safeMessages])
+  }, [messages])
 
   // 컴포넌트 언마운트 시 소켓 연결 해제
   useEffect(() => {
@@ -53,14 +50,14 @@ export default function ChatRoomPage() {
           <h1 className="text-[28px] font-bold text-black mb-4">채팅방 {roomId}</h1>
         </div>
 
-        {safeMessages.length === 0 ? (
+        {!messages || !Array.isArray(messages) || messages.length === 0 || !messages.every(msg => msg && typeof msg === 'object') ? (
           <div className="text-center text-gray-500 py-8">
             <p>아직 메시지가 없습니다.</p>
             <p className="text-sm mt-10">첫 번째 메시지를 보내보세요!</p>
           </div>
                  ) : (
            <>
-                           {safeMessages.filter(message => message && typeof message === 'object').map((message, index) => {
+             {Array.isArray(messages) && messages.filter(message => message && typeof message === 'object').map((message, index) => {
               const myToken = localStorage.getItem('accessToken')
               const isMine = Boolean(myToken && message.token === myToken)
               return (

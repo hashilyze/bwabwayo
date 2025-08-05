@@ -35,7 +35,7 @@ export default function ProductDetailPage() {
   useEffect(() => {
     getProductDetail(productId);
   }, [getProductDetail, productId]);
-  
+
   // 상대적 시간 계산 함수
   const getRelativeTime = (dateString: string) => {
     if (!dateString) return '';
@@ -71,7 +71,8 @@ export default function ProductDetailPage() {
         sellerId: product?.seller.id || '',
         productId: productId || 0
       })
-      router.push(`/chat/${result?.roomId}?productId=${result?.productId}&sellerId=${result?.sellerId}&buyerId=${result?.buyerId}`)
+      // console.log(result)
+      router.push(`/chat/${result?.roomId}`)
     } catch (error) {
       console.error('채팅방 생성 중 오류:', error);
     }
