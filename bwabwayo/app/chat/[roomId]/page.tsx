@@ -48,7 +48,7 @@ export default function ChatRoomPage() {
 
   // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    messagesEndRef.current?.scrollIntoView()
   }, [messages])
 
   // URL 파라미터에서 현재 사용자 ID 결정
