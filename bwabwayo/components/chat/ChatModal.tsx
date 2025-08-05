@@ -5,10 +5,9 @@ import React, { useState } from 'react';
 
 interface ChatModalProps {
   onSendMessage: (message: string) => void;
-  isConnected: boolean;
 }
 
-const ChatInputActive: React.FC<ChatModalProps> = ({ onSendMessage, isConnected }) => {
+const ChatInputActive: React.FC<ChatModalProps> = ({ onSendMessage }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [messageInput, setMessageInput] = useState('');
 
@@ -17,7 +16,7 @@ const ChatInputActive: React.FC<ChatModalProps> = ({ onSendMessage, isConnected 
   };
 
   const handleSendMessage = () => {
-    if (messageInput.trim() && isConnected) {
+    if (messageInput.trim()) {
       onSendMessage(messageInput);
       setMessageInput('');
     }
@@ -50,11 +49,23 @@ const ChatInputActive: React.FC<ChatModalProps> = ({ onSendMessage, isConnected 
             value={messageInput}
             onChange={(e) => setMessageInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder={isConnected ? "메세지를 입력하세요." : "연결 중..."}
+            placeholder="메세지를 입력하세요."
             className="flex-1 bg-transparent text-xs text-gray-500 outline-none placeholder-gray-500"
-            disabled={!isConnected}
           />
         </div>
+        
+        {/* 전송 버튼 */}
+        <button
+          onClick={handleSendMessage}
+          disabled={!messageInput.trim()}
+          className={`ml-3 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+            messageInput.trim()
+              ? 'bg-[#0047A5] text-white hover:bg-[#003d8f]'
+              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+          }`}
+        >
+          전송
+        </button>
       </div>
 
       {/* 하단 +버튼 확장 메뉴 */}

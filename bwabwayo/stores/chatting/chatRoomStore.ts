@@ -16,13 +16,18 @@ interface addRoom {
 }
 
 interface ChatMessage {
-    roomId: number
-    senderId: string
-    receiverId: string
-    content: string
-    isRead: boolean
-    createdAt: Date
+    productId: number
+    productTitle: string
+    productPrice: number
+    productImageUrl: string
+    buyerId: number
+    sellerId: number
     type: string
+    senderId: number
+    token?: string
+    content: string
+    createdAt: string
+    isRead: boolean
 }
 
 interface ChatRoom {
@@ -63,6 +68,7 @@ interface ChatRoomStore{
     appendMessage: (msg: ChatMessage, isMine: boolean) => void
     clearMessages: () => void
     getMessageHistory: (roomId: number) => Promise<void>
+    sendMessage: (roomId: number, content: string) => void
 }
 
 export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
@@ -79,6 +85,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 body: JSON.stringify(addRoom),
             })
             const data = await response.json()
+            console.log(data)
             set({ roomInfo: data })
             return data as RoomInfo
         }
@@ -100,88 +107,15 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         }
     },
 
-    getRoomList: () => {
-        const serverUrl = 'https://i13e202.p.ssafy.io/be/ws-stomp'
-        
-        try {
-            const socket = new SockJS(serverUrl)
-            const client = new Client({
-                webSocketFactory: () => socket,
-                debug: (str) => {
-                    console.log('STOMP Debug (채팅방 목록):', str)
-                },
-                reconnectDelay: 0,
-                heartbeatIncoming: 4000,
-                heartbeatOutgoing: 4000
-            })
-            
-            client.onConnect = (frame) => {
-                // 연결 상태 업데이트
-                set({ isConnected: true, stompClient: client })
-                
-                // 토큰에서 사용자 ID 추출
-                const token = localStorage.getItem('accessToken')
-                if (token) {
-                    try {
-                        const payload = JSON.parse(atob(token.split('.')[1]))
-                        const myUserId = payload.sub || payload.userId || payload.id
-                        console.log('🔍 채팅방 목록 - 토큰에서 추출한 사용자 ID:', myUserId)
-
-                        // 채팅방 목록 구독
-                        client.subscribe(`/sub/chat/roomlist/${myUserId}`, (messageOutput) => {
-                            const roomList = JSON.parse(messageOutput.body)
-                            console.log('📥 채팅방 목록 수신:', roomList)
-                            
-                            // 받은 데이터를 ChatRoom 형식으로 변환
-                            const formattedRoomList = roomList.map((room: any) => ({
-                                roomId: room.roomId,
-                                productName: room.productName,
-                                partnerNickName: room.partnerNickName,
-                                partnerId: room.partnerId,
-                                lastChatmessageDto: room.lastChatmessageDto,
-                                unreadMessagesNum: room.unreadMessagesNum || 0,
-                                lastMessageContent: room.lastChatmessageDto?.content || '',
-                                lastMessageTime: room.lastChatmessageDto?.createdAt || '',
-                                type: room.lastChatmessageDto?.type || 'TEXT',
-                                seller: {
-                                    id: room.sellerId,
-                                    nickname: room.partnerNickName || '판매자'
-                                },
-                                product: {
-                                    id: room.productId,
-                                    thumnail: room.productThumbnail || ''
-                                }
-                            }))
-                            
-                            // 채팅방 목록 상태 업데이트
-                            set({ roomList: formattedRoomList })
-                            
-                            // 채팅방 목록 표시 (updateRoomList와 동일한 기능)
-                            console.log('🔔 채팅방 목록 업데이트 완료')
-                            formattedRoomList.forEach((room: ChatRoom) => {
-                                console.log(`[${room.productName}] ${room.partnerNickName}: ${room.lastChatmessageDto?.content || '메시지 없음'}`)
-                            })
-                        })
-                        
-                        console.log(`✅ 채팅방 목록 구독 완료`)
-                    } catch (error) {
-                        console.error('토큰 파싱 실패:', error)
-                    }
-                }
-            }
-            
-            // 연결 오류
-            client.onStompError = (error) => {
-                console.error('❌ STOMP 연결 실패 (채팅방 목록):', error)
-                set({ isConnected: false })
-            }
-            
-            // 연결 시작
-            client.activate()
-            
+    getRoomList: async () => {
+        try{
+            const response = await useAuthStore.getState().authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/chatrooms`)
+            const data = await response.json()
+            set({ roomList: data })
+            return data as ChatRoom[]
         } catch (error) {
-            console.error('STOMP 연결 실패 (채팅방 목록):', error)
-            set({ isConnected: false })
+            console.error('Error getting room list:', error)
+            return null;
         }
     },
 
@@ -218,23 +152,11 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                         const msg = JSON.parse(messageOutput.body)
                         console.log('📨 받은 메시지:', msg)
                         
-                        // 토큰에서 사용자 ID 추출
-                        const token = localStorage.getItem('accessToken')
-                        let myUserId = null
+                        // 현재 사용자의 토큰
+                        const myToken = localStorage.getItem('accessToken')
                         
-                        if (token) {
-                            try {
-                                // JWT 토큰 디코딩
-                                const payload = JSON.parse(atob(token.split('.')[1]))
-                                myUserId = payload.sub || payload.userId || payload.id
-                                console.log('🔍 토큰에서 추출한 사용자 ID:', myUserId)
-                            } catch (error) {
-                                console.error('토큰 파싱 실패:', error)
-                            }
-                        }
-                        
-                        // 내가 보낸 메시지인지 판단
-                        const isMine = myUserId && msg.senderId === myUserId
+                        // 내가 보낸 메시지인지 판단 (토큰 비교)
+                        const isMine = Boolean(myToken && msg.token === myToken)
                         console.log('👤 메시지 발신자:', isMine ? '나' : '상대')
                         console.log('📝 메시지 내용:', msg.content)
                         
@@ -273,19 +195,6 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         console.log('👤 발신자:', isMine ? '나' : '상대')
         console.log('📋 현재 메시지 개수:', get().messages.length)
         
-        // 더 엄격한 중복 메시지 체크
-        const existingMessage = get().messages.find(existing => 
-            existing.content === msg.content && 
-            existing.senderId === msg.senderId &&
-            existing.roomId === msg.roomId &&
-            Math.abs(new Date(existing.createdAt).getTime() - new Date(msg.createdAt).getTime()) < 2000 // 2초 이내
-        )
-        
-        if (existingMessage) {
-            console.log('⚠️ 중복 메시지 감지, 추가하지 않음:', msg.content)
-            return
-        }
-        
         // 새 메시지를 기존 메시지 배열에 추가
         set(state => ({ 
             messages: [...state.messages, msg] 
@@ -302,49 +211,58 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
 
     getMessageHistory: async (roomId: number) => {
         try {
-            console.log(`📚 채팅방 ${roomId} 메시지 히스토리 로드 시작`);
-            const response = await useAuthStore.getState().authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/chatrooms/${roomId}/messages`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
+            const response = await useAuthStore.getState().authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/chatrooms/${roomId}?page=0`);
             const data = await response.json();
             console.log('📥 메시지 히스토리 수신:', data);
             
-            // 받은 메시지들을 ChatMessage 형식으로 변환
-            const messages = data.map((msg: any) => ({
-                roomId: msg.roomId,
-                senderId: msg.senderId,
-                receiverId: msg.receiverId,
-                content: msg.content,
-                isRead: msg.isRead,
-                createdAt: new Date(msg.createdAt),
-                type: msg.type
-            }));
-            
-            // 토큰에서 사용자 ID 추출하여 내 메시지인지 판단
-            const token = localStorage.getItem('accessToken');
-            let myUserId = null;
-            
-            if (token) {
-                try {
-                    const payload = JSON.parse(atob(token.split('.')[1]));
-                    myUserId = payload.sub || payload.userId || payload.id;
-                } catch (error) {
-                    console.error('토큰 파싱 실패:', error);
-                }
-            }
-            
-            // 각 메시지에 대해 내 메시지인지 판단하여 추가
-            messages.forEach((msg: ChatMessage) => {
-                const isMine = myUserId && msg.senderId === myUserId;
-                get().appendMessage(msg, isMine);
-            });
-            
-            console.log(`✅ 채팅방 ${roomId} 메시지 히스토리 로드 완료`);
+            set({ messages: data as ChatMessage[] })
         } catch (error) {
             console.error(`❌ 채팅방 ${roomId} 메시지 히스토리 로드 실패:`, error);
+        }
+    },
+
+    sendMessage: (roomId: number, content: string) => {
+        const { stompClient, isConnected } = get()
+        
+        if (!stompClient || !isConnected) {
+            console.error('❌ STOMP 클라이언트가 연결되지 않았습니다.')
+            return
+        }
+
+        if (!content.trim()) {
+            console.warn('⚠️ 빈 메시지는 전송할 수 없습니다.')
+            return
+        }
+
+        try {
+            // 토큰 가져오기
+            const token = localStorage.getItem('accessToken')
+            
+            if (!token) {
+                console.error('❌ 토큰을 찾을 수 없습니다.')
+                return
+            }
+
+            // 메시지 객체 생성 (토큰 포함)
+            const message = {
+                roomId: roomId,
+                token: token,
+                content: content.trim(),
+                type: 'TALK'
+            }
+
+            console.log('📤 메시지 전송 시도:', message)
+            
+            // STOMP를 통해 메시지 전송
+            stompClient.publish({
+                destination: `/pub/chat/message`,
+                body: JSON.stringify(message)
+            })
+
+            console.log('✅ 메시지 전송 완료')
+            
+        } catch (error) {
+            console.error('❌ 메시지 전송 실패:', error)
         }
     },
 

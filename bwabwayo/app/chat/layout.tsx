@@ -7,77 +7,45 @@ import { useChatRoomStore } from '@/stores/chatting/chatRoomStore';
 
 interface ChatRoom {
   id: number;
+  thumbnail?: string;
+  productName?: string;
+  partnerNickName?: string;
+  lastMessage?: string;
+  lastMessageTime?: string;
+  unreadCount?: number;
 }
 
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const params = useParams();
-  const { roomList, getRoomList, isConnected, clearMessages } = useChatRoomStore();
+  const { roomList, getRoomList } = useChatRoomStore();
   const [isLoading, setIsLoading] = useState(true);
   
   // URL에서 현재 선택된 roomId 가져오기 
   const currentRoomId = params?.roomId ? Number(params.roomId) : null;
   
-  // 컴포넌트 마운트 시 소켓 연결 및 채팅방 목록 로드
-  useEffect(() => {
-    console.log('🚀 채팅 레이아웃 마운트 - 소켓 연결 시작');
-    
-    const initializeChat = async () => {
-      try {
-        setIsLoading(true);
-        
-        // 1. 소켓 연결 및 채팅방 목록 구독
-        console.log('📡 1단계: STOMP 소켓 연결 시도');
-        getRoomList();
-        
-        // 연결 상태 확인을 위한 간격 체크
-        const checkConnection = setInterval(() => {
-          if (isConnected) {
-            console.log('✅ 2단계: STOMP 연결 성공');
-            console.log('📡 3단계: 채팅방 목록 구독 완료');
-            setIsLoading(false);
-            clearInterval(checkConnection);
-          }
-        }, 100);
-        
-        // 10초 후 타임아웃
-        setTimeout(() => {
-          if (isLoading) {
-            console.warn('⚠️ 소켓 연결 타임아웃');
-            setIsLoading(false);
-            clearInterval(checkConnection);
-          }
-        }, 10000);
-        
-      } catch (error) {
-        console.error('❌ 채팅 초기화 실패:', error);
-        setIsLoading(false);
-      }
-    };
-    
-    initializeChat();
-  }, [getRoomList, isConnected]);
-  
   // 채팅방 목록 업데이트 로깅
   useEffect(() => {
-    if (roomList.length > 0) {
-      console.log('📋 채팅방 목록 업데이트:', roomList.length, '개의 채팅방');
-      roomList.forEach((room, index) => {
-        console.log(`${index + 1}. [${room.productName}] ${room.partnerNickName}: ${room.lastChatmessageDto?.content || '메시지 없음'}`);
-      });
+    const loadRoomList = async () => {
+      try {
+        setIsLoading(true)
+        await getRoomList()
+        console.log("채팅방 목록 로드 완료:", roomList)
+      } catch (error) {
+        console.error("채팅방 목록 로드 실패:", error)
+      } finally {
+        setIsLoading(false)
+      }
     }
-  }, [roomList]);
+    loadRoomList()
+  }, [getRoomList]);
+
+  // console.log("layout", roomList)
   
-  const handleChatRoomSelect = async (chatRoom: ChatRoom) => {
-    console.log(`채팅방 ${chatRoom.id} 선택됨`);
-    
+  // 채팅방 선택 시
+  const handleChatRoomSelect = (chatRoom: ChatRoom) => {
     try {
-      // 1. 기존 메시지 초기화
-      clearMessages();
-      
-      // 2. 채팅방 페이지로 이동 (STOMP 구독으로 메시지 로드)
       router.push(`/chat/${chatRoom.id}`);
-      
     } catch (error) {
       console.error(`❌ 채팅방 ${chatRoom.id} 선택 중 오류:`, error);
       // 오류가 발생해도 페이지 이동은 진행
@@ -114,7 +82,14 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
             roomList.map((room) => (
               <ChatRoomItem 
                 key={room.roomId} 
-                chatRoom={{ id: room.roomId }}
+                chatRoom={{ 
+                  id: room.roomId,
+                  thumbnail: room.product?.thumnail || '',
+                  productName: room.productName || '',
+                  lastMessage: room.lastChatmessageDto?.content || room.lastMessageContent || '',
+                  lastMessageTime: room.lastChatmessageDto?.createdAt || room.lastMessageTime || '',
+                  unreadCount: room.unreadMessagesNum || 0
+                }}
                 roomData={room}
                 onSelect={handleChatRoomSelect}
                 isSelected={currentRoomId === room.roomId}

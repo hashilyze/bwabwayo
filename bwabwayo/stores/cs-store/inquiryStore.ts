@@ -80,6 +80,8 @@ export const useInquiryStore = create<InquiryStore>((set, get) => ({
                 throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
+
+            console.log("data", data.content)
             // API 응답의 imageUrlList (string[])를 FetchedImage[] 형태로 변환합니다.
             const transformedInquiries = (data.content || []).map((inquiry: RawInquiryFromServer) => ({
                 ...inquiry,

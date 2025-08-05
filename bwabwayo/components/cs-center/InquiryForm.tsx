@@ -1,146 +1,194 @@
-// components/cs-center/InquiryForm.tsx
-
 'use client';
 
-import React, { useState } from 'react';
-// 문의사항 등록을 위해 Zustand 스토어에서 addInquiry 함수를 가져옵니다.
+import { useState, useRef } from 'react';
 import { useInquiryStore } from '@/stores/cs-store/inquiryStore';
+import { useImageUploadStore } from '@/stores/imageUploadStore';
 
-// 이 컴포넌트가 부모로부터 받을 props의 타입을 정의합니다.
-interface InquiryFormProps {
-  // '목록으로' 돌아가기 기능을 수행할 함수입니다.
-  onBack: () => void;
-}
+export const InquiryForm = () => {
+    const { addInquiry, loading, error, success } = useInquiryStore();
+    const {
+        imgFiles,
+        imgPreviews,
+        uploadedImageUrls,
+        isUploading,
+        showAlert,
+        handleUploadClick,
+        handleFileChange,
+        handleDeleteImage,
+        resetImages,
+        setShowAlert
+    } = useImageUploadStore();
 
-const InquiryForm: React.FC<InquiryFormProps> = ({ onBack }) => {
-  // --- 상태 관리 (State Management) ---
-  // 컴포넌트 내부에서 사용될 상태들을 useState로 관리합니다.
-  const [title, setTitle] = useState(''); // 문의 제목
-  const [description, setDescription] = useState(''); // 문의 내용
-  const [category, setCategory] = useState('상품 문의'); // 문의 유형 (현재는 UI에서 주석 처리됨)
-  const [image, setImage] = useState<File | null>(null); // 첨부된 이미지 파일
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Zustand 스토어에서 addInquiry 액션(함수)만 가져옵니다.
-  const { addInquiry } = useInquiryStore();
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        if (!title.trim() || !description.trim()) {
+            alert('제목과 내용을 모두 입력해주세요.');
+            return;
+        }
 
-  // '문의 등록' 버튼 클릭 시 실행되는 폼 제출 핸들러입니다.
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // 폼 제출 시 페이지가 새로고침되는 기본 동작을 막습니다.
+        try {
+            await addInquiry({
+                title: title.trim(),
+                description: description.trim(),
+                images: uploadedImageUrls.map((url, index) => ({
+                    imageUrl: url,
+                    order: index
+                }))
+            });
 
-    // TODO: 실제 이미지 업로드 로직 구현이 필요한 부분입니다.
-    // 1. 사용자가 선택한 이미지 파일(image)을 S3와 같은 서버에 업로드합니다.
-    // 2. 업로드가 성공하면, 서버로부터 이미지의 고유 URL을 반환받습니다.
-    let imageUrl = '';
-    if (image) {
-      // const uploadedUrl = await uploadImageFunction(image); // 실제 업로드 함수 호출 (예시)
-      imageUrl = 'https://example.com/placeholder.jpg'; // 현재는 임시 URL을 사용합니다.
-    }
+            // 성공 시 폼 초기화
+            setTitle('');
+            setDescription('');
+            resetImages();
+            
+            alert('문의가 성공적으로 등록되었습니다.');
+        } catch (error) {
+            console.error('문의 등록 실패:', error);
+        }
+    };
 
-    // Zustand 스토어의 addInquiry 함수에 전달할 데이터 객체를 생성합니다.
-    // 프론트엔드 내부에서는 일관성을 위해 camelCase를 사용합니다.
-    const inquiryData = {
-      title,
-      description,
-      // 이미지가 있는 경우에만 images 배열에 URL을 담아 전달합니다.
-      images: imageUrl ? [{ imageUrl: imageUrl, order: 1 }] : [],
-    };
+    const handleImageUploadClick = () => {
+        if (handleUploadClick(5)) { // 최대 5개 이미지
+            fileInputRef.current?.click();
+        }
+    };
 
-    // 스토어의 addInquiry 액션을 호출하여 서버에 데이터를 전송합니다.
-    // snake_case로의 변환은 이 addInquiry 함수 내부(스토어)에서 이루어지는 것이 가장 이상적입니다.
-    await addInquiry(inquiryData);
+    const handleImageFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        await handleFileChange(event, 5); // 최대 5개 이미지
+    };
 
-    alert('문의가 접수되었습니다.');
-    // 문의 등록이 완료되면, 부모로부터 받은 onBack 함수를 호출하여 목록 화면으로 돌아갑니다.
-    onBack();
-  };
+    return (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-5">
+            {showAlert && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-xl text-center">
+                        <h3 className="text-lg font-bold mb-4">알림</h3>
+                        <p>이미지는 최대 5개까지 첨부할 수 있습니다.</p>
+                        <button onClick={() => setShowAlert(false)} className="mt-6 bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition">확인</button>
+                    </div>
+                </div>
+            )}
 
-  // 이미지 파일이 선택되었을 때 실행되는 핸들러입니다.
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // 사용자가 선택한 파일이 있는지 확인합니다.
-    if (e.target.files && e.target.files[0]) {
-      // 선택된 첫 번째 파일을 image 상태에 저장합니다.
-      setImage(e.target.files[0]);
-    }
-  };
+            <form onSubmit={handleSubmit} className="space-y-3">
+                {/* 제목 입력 */}
+                <div>
+                    <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                        제목 *
+                    </label>
+                    <input
+                        type="text"
+                        id="title"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="문의 제목을 입력해주세요"
+                        required
+                    />
+                </div>
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* 문의 유형 선택 드롭다운 (현재는 주석 처리됨) */}
-      {/* <div> ... </div> */}
+                {/* 내용 입력 */}
+                <div>
+                    <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                        내용 *
+                    </label>
+                    <textarea
+                        id="description"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        rows={6}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        placeholder="문의 내용을 자세히 입력해주세요"
+                        required
+                    />
+                </div>
 
-      {/* 제목 입력 필드 */}
-      <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-          제목
-        </label>
-        <input
-          type="text"
-          name="title"
-          id="title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required // 필수 입력 항목으로 지정합니다.
-          className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-          placeholder="제목을 입력하세요."
-        />
-      </div>
+                {/* 이미지 업로드 */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        첨부 이미지 (선택사항)
+                    </label>
+                    
+                    {/* 이미지 업로드 버튼 */}
+                    <div className="flex items-center gap-4 mb-4">
+                        <button
+                            type="button"
+                            onClick={handleImageUploadClick}
+                            disabled={isUploading}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                        >
+                            {isUploading ? '업로드 중...' : '이미지 선택'}
+                        </button>
+                        <span className="text-sm text-gray-500">
+                            최대 5개까지 첨부 가능
+                        </span>
+                    </div>
 
-      {/* 문의 내용 입력 필드 */}
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-          문의 내용
-        </label>
-        <textarea
-          id="description"
-          name="description"
-          rows={8}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required // 필수 입력 항목으로 지정합니다.
-          className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-          placeholder="문의하실 내용을 자세하게 적어주세요."
-        />
-      </div>
+                    {/* 숨겨진 파일 입력 */}
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleImageFileChange}
+                        className="hidden"
+                    />
 
-      {/* 이미지 첨부 필드 */}
-      <div>
-        <label htmlFor="image_url" className="block text-sm font-medium text-gray-700">
-          이미지 첨부 (선택)
-        </label>
-        <div className="mt-1 flex items-center">
-          <input
-            type="file"
-            name="image_url"
-            id="image_url"
-            onChange={handleImageChange}
-            accept="image/*" // 이미지 파일만 선택 가능하도록 제한합니다.
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-          />
-        </div>
-        {/* 이미지가 선택되면 파일 이름을 보여줍니다. */}
-        {image && <p className="mt-2 text-sm text-gray-500">선택된 파일: {image.name}</p>}
-      </div>
+                    {/* 파일명 목록 */}
+                    {imgFiles.length > 0 && (
+                        <div className="space-y-2">
+                            {imgFiles.map((file, index) => (
+                                <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+                                    <div className="flex items-center gap-2">
+                                        <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        <span className="text-sm text-gray-700 truncate">{file.name}</span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleDeleteImage(index)}
+                                        className="text-red-500 hover:text-red-700 transition-colors"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
 
-      {/* 버튼 영역 */}
-      <div className="flex justify-end space-x-4">
-        {/* '목록으로' 버튼: 클릭 시 onBack 함수를 호출합니다. */}
-        <button
-          type="button" // 폼 제출을 방지하기 위해 type="button"으로 설정합니다.
-          onClick={onBack}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
-          목록으로
-        </button>
-        {/* '문의 등록' 버튼: 클릭 시 폼을 제출(submit)합니다. */}
-        <button
-          type="submit"
-          className="px-4 py-2 text-sm font-medium text-white bg-black rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
-        >
-          문의 등록
-        </button>
-      </div>
-    </form>
-  );
-};
+                {/* 제출 버튼 */}
+                <div className="flex justify-end">
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                    >
+                        {loading ? '등록 중...' : '문의 등록'}
+                    </button>
+                </div>
+            </form>
 
-export default InquiryForm;
+            {/* 에러 메시지 */}
+            {error && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                    <p className="text-red-600 text-sm">{error}</p>
+                </div>
+            )}
+
+            {/* 성공 메시지 */}
+            {success && (
+                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                    <p className="text-green-600 text-sm">문의가 성공적으로 등록되었습니다.</p>
+                </div>
+            )}
+        </div>
+    );
+}; 

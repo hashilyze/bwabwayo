@@ -109,6 +109,7 @@ export const useReportStore = create<ReportStore>((set, get) => ({
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
+            console.log(data.content);
             // API 응답의 imageUrlList (string[])를 FetchedReportImage[] 형태로 변환합니다.
             const transformedReports = (data.content || []).map((report: RawReportFromServer) => ({
                 ...report,
