@@ -62,6 +62,7 @@ interface ChatRoomStore{
     disconnectStomp: () => void
     appendMessage: (msg: ChatMessage, isMine: boolean) => void
     clearMessages: () => void
+    getMessageHistory: (roomId: number) => Promise<void>
 }
 
 export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
@@ -272,6 +273,19 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         console.log('👤 발신자:', isMine ? '나' : '상대')
         console.log('📋 현재 메시지 개수:', get().messages.length)
         
+        // 더 엄격한 중복 메시지 체크
+        const existingMessage = get().messages.find(existing => 
+            existing.content === msg.content && 
+            existing.senderId === msg.senderId &&
+            existing.roomId === msg.roomId &&
+            Math.abs(new Date(existing.createdAt).getTime() - new Date(msg.createdAt).getTime()) < 2000 // 2초 이내
+        )
+        
+        if (existingMessage) {
+            console.log('⚠️ 중복 메시지 감지, 추가하지 않음:', msg.content)
+            return
+        }
+        
         // 새 메시지를 기존 메시지 배열에 추가
         set(state => ({ 
             messages: [...state.messages, msg] 
@@ -285,4 +299,53 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         console.log('🗑️ 메시지 목록 초기화');
         set({ messages: [] });
     },
+
+    getMessageHistory: async (roomId: number) => {
+        try {
+            console.log(`📚 채팅방 ${roomId} 메시지 히스토리 로드 시작`);
+            const response = await useAuthStore.getState().authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/chatrooms/${roomId}/messages`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            console.log('📥 메시지 히스토리 수신:', data);
+            
+            // 받은 메시지들을 ChatMessage 형식으로 변환
+            const messages = data.map((msg: any) => ({
+                roomId: msg.roomId,
+                senderId: msg.senderId,
+                receiverId: msg.receiverId,
+                content: msg.content,
+                isRead: msg.isRead,
+                createdAt: new Date(msg.createdAt),
+                type: msg.type
+            }));
+            
+            // 토큰에서 사용자 ID 추출하여 내 메시지인지 판단
+            const token = localStorage.getItem('accessToken');
+            let myUserId = null;
+            
+            if (token) {
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    myUserId = payload.sub || payload.userId || payload.id;
+                } catch (error) {
+                    console.error('토큰 파싱 실패:', error);
+                }
+            }
+            
+            // 각 메시지에 대해 내 메시지인지 판단하여 추가
+            messages.forEach((msg: ChatMessage) => {
+                const isMine = myUserId && msg.senderId === myUserId;
+                get().appendMessage(msg, isMine);
+            });
+            
+            console.log(`✅ 채팅방 ${roomId} 메시지 히스토리 로드 완료`);
+        } catch (error) {
+            console.error(`❌ 채팅방 ${roomId} 메시지 히스토리 로드 실패:`, error);
+        }
+    },
+
 }))
