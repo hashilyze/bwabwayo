@@ -1,6 +1,6 @@
 'use client'
 
-import SellerTitle from "@/components/shop/SellerTitle";
+import SellerTitle, { Seller } from "@/components/shop/SellerTitle";
 import { useProductStore } from "@/stores/product/productStore";
 import { useEffect } from "react";
 import { useParams } from "next/navigation";
@@ -9,14 +9,6 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuthStore } from "@/stores/auth/authStore";
 import { useModalStore } from "@/stores/modalStore";
-
-interface Seller {
-  id: number,
-  nickname: string,
-  profileImage: string,
-  rating: number,
-  score: number,
-}
 
 export default function ProductDetailPage() {
   const { product, loading, error, getProductDetail } = useProductStore();
@@ -27,12 +19,15 @@ export default function ProductDetailPage() {
 
   const params = useParams();
   const productId = Number(params.id);
+  // SellerTitle에 전달할 판매자 정보를 가공합니다.
+  // product.seller의 타입에 bio가 없다는 오류를 해결하기 위해 any로 캐스팅합니다.
   const seller: Seller = {
-    id: Number(product?.seller.id) || 0,
+    id: product?.seller.id ? String(product.seller.id) : undefined,
     nickname: product?.seller.nickname || '',
-    profileImage: product?.seller.profileImage || '',
+    profileImage: product?.seller.profileImage || null,
     rating: product?.seller.rating || 0,
     score: product?.seller.score || 0,
+    bio: (product?.seller as { bio?: string })?.bio || '',
   }
 
   useEffect(() => {
