@@ -29,6 +29,7 @@ export default function ProductDetailPage() {
     rating: product?.seller.rating || 0,
     score: product?.seller.score || 0,
     bio: (product?.seller as { bio?: string })?.bio || '',
+    dealcount: product?.seller.dealcount || 0,
   }
 
   useEffect(() => {
@@ -63,6 +64,7 @@ export default function ProductDetailPage() {
     //   openLoginModal();
     //   return;
     // }
+
     try {
       const result = await addChatRoom({
         sellerId: product?.seller.id || '',

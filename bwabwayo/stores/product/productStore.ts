@@ -8,6 +8,7 @@ interface Seller {
   score: number
   rating: number
   bio?: string
+  dealcount?: number
 }
 
 interface Product {
