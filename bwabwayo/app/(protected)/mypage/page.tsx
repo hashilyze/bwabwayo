@@ -26,7 +26,7 @@ export default function MyPage() {
   }, [getProducts, fetchUserData]);
 
   // 현재 로그인한 사용자의 상품만 필터링합니다.
-  const myProducts = userData ? products.filter(p => p.seller.id === userData.id) : [];
+  const myProducts = userData ? products.filter(p => p.seller.id === userData.userId) : [];
 
   // 상점 후기 총 개수 계산
   const totalReviews = userData?.evaluation.reduce((sum, item) => sum + item.number, 0) ?? 0;

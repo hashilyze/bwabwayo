@@ -14,7 +14,7 @@ export interface Evaluation {
  * 마이페이지에서 사용하는 유저 정보 타입
  */
 export interface UserData {
-  id?: string;
+  userId?: string;
   role?: "USER" | "ADMIN";
   nickname: string;
   email?: string;
