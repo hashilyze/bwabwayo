@@ -135,6 +135,7 @@ export const useProductStore = create<ProductStore>((set) => ({
       set({ hotKeywordProducts: data.result, loading: false })
     } catch (error) {
       console.error(error)
+      set({ hotKeywordProducts: [], loading: false, error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다' })
     }
   },
 
@@ -144,11 +145,13 @@ export const useProductStore = create<ProductStore>((set) => ({
     try {
       const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products`)
       const data = await response.json()
-      const filteredProducts = data.result.filter((item: any) => 
-         item.product.canVideoCall === true
-      )
-      // console.log('화상통화 상품 조회 성공:', filteredProducts)
-      set({ videoCallProducts: filteredProducts, loading: false })
+
+      if(data.result > 0) {
+        const filteredProducts = data.result.filter((item: any) => item.product.canVideoCall === true)
+        set({ videoCallProducts: filteredProducts, loading: false })
+      } else {
+        set({ videoCallProducts: [], loading: false })
+      }
     } catch (error) {
       console.error('화상통화 상품 조회 실패:', error)
       set({ 

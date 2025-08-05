@@ -41,6 +41,15 @@ function ProductSlider({ products, navigationId }: { products: any[], navigation
     swiper?.slideNext()
   }
 
+  // products가 없거나 빈 배열인 경우 처리
+  if (!products || products.length === 0) {
+    return (
+      <div className="flex justify-center items-center py-8">
+        <div className="text-lg text-[#777]">상품이 없습니다.</div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative">
       <Swiper
@@ -133,7 +142,7 @@ export default function Home() {
 
       <div className="mb-20">
         <h1 className="text-2xl font-bold mb-5">최근 판매상품</h1>
-        {products.length > 0 ? (
+        {products && products.length > 0 ? (
           <ProductSlider products={products} navigationId="recent" />
         ) : (
           <div className="flex justify-center items-center py-8">
@@ -147,7 +156,7 @@ export default function Home() {
 
       <div className="mb-20">
         <h1 className="text-2xl font-bold mb-5">요즘 핫한 키워드 <span className="text-blue-500">{hotKeyword}</span></h1>
-        {hotKeywordProducts.length > 0 ? (
+        {hotKeywordProducts && hotKeywordProducts.length > 0 ? (
           <ProductSlider products={hotKeywordProducts} navigationId="hot" />
         ) : (
           <div className="flex justify-center items-center py-8">
@@ -158,7 +167,7 @@ export default function Home() {
 
       <div className="mb-20">
         <h1 className="text-2xl font-bold mb-5">화상통화 가능한 상품👀</h1>
-        {videoCallProducts.length > 0 ? (
+        {videoCallProducts && videoCallProducts.length > 0 ? (
           <ProductSlider products={videoCallProducts} navigationId="video" />
         ) : (
           <div className="flex justify-center items-center py-8">
