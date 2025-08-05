@@ -10,14 +10,24 @@ export interface UserSettingsData {
   bankName: string | null;
   accountHolder: string | null;
 }
+// 타입 정의 추가
+export interface ProfileData {
+  nickname: string;
+  // bio?: string;
+  bankName?: string | null;
+  accountNumber?: string | null;
+  accountHolder?: string | null;
+  profileImage?: string | null;
+}
+
+
 
 interface MyPageSettingStore {
   userData: UserSettingsData | null;
   loading: boolean;
   error: string | null;
   fetchUserData: () => Promise<void>;
-  updateUserProfile: (formData: FormData) => Promise<void>;
-}
+  updateUserProfile: (profileData: ProfileData) => Promise<void>;}
 
 const baseUrl = 'https://i13e202.p.ssafy.io/be/api';
 
@@ -54,28 +64,39 @@ export const useMyPageSettingStore = create<MyPageSettingStore>((set) => ({
     }
   },
 
-  updateUserProfile: async (formData: FormData) => {
-    set({ loading: true, error: null });
-    const requestUrl = `${baseUrl}/users/detail`;
-    console.log(`[설정] 프로필 업데이트 요청: POST ${requestUrl}`);
+  updateUserProfile: async (profileData: {
+  nickname: string;
+  // bio?: string;
+  bankName?: string | null;
+  accountNumber?: string | null;
+  accountHolder?: string | null;
+  profileImage?: string | null;
+}) => {
+  set({ loading: true, error: null });
+  const requestUrl = `${baseUrl}/users/detail`;
+  console.log(`[설정] 프로필 업데이트 요청: POST ${requestUrl}`);
 
-    try {
-      const response = await useAuthStore.getState().authenticatedFetch(requestUrl, {
-        method: 'POST',
-        body: formData,
-      });
+  try {
+    const response = await useAuthStore.getState().authenticatedFetch(requestUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(profileData), // ✅ JSON으로 직렬화
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || '프로필 업데이트에 실패했습니다.');
-      }
-
-      set({ loading: false, error: null });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '프로필 업데이트 중 알 수 없는 오류가 발생했습니다.';
-      console.error('🔥 [설정] 프로필 업데이트 중 예외 발생:', error);
-      set({ error: errorMessage, loading: false });
-      throw error; // 컴포넌트에서 에러를 처리할 수 있도록 다시 던집니다.
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || '프로필 업데이트에 실패했습니다.');
     }
-  },
+
+    set({ loading: false, error: null });
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : '프로필 업데이트 중 알 수 없는 오류가 발생했습니다.';
+    console.error('🔥 [설정] 프로필 업데이트 중 예외 발생:', error);
+    set({ error: errorMessage, loading: false });
+    throw error;
+  }
+},
 }));

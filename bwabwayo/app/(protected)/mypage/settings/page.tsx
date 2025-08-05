@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, ChangeEvent, FormEvent } from 'reac
 import Sidebar from '@/components/shop/Sidebar';
 import { useMyPageSettingStore } from '@/stores/mypage/mypageSettingStore';
 import Image from 'next/image';
+import { profile } from 'console';
 
 export default function SettingsPage() {
     const { userData, fetchUserData, updateUserProfile } = useMyPageSettingStore();
@@ -50,6 +51,8 @@ export default function SettingsPage() {
         // Validation
         if (!nickname.trim()) {
             alert('닉네임을 입력해주세요.');
+            setIsSubmitting(false);
+
             return;
         }
 
@@ -58,30 +61,25 @@ export default function SettingsPage() {
 
         if (accountInfoProvided && !allAccountInfoProvided) {
             alert('계좌 정보를 모두 입력하거나 모두 비워주세요.');
+            setIsSubmitting(false);
+
             return;
         }
 
-        const formData = new FormData();
+        // JSON 형태로 데이터 구성
         const profileUpdateRequest = {
             nickname,
-            bio,
-            bankName: bankName.trim() ? bankName : null,
-            accountNumber: accountNumber.trim() ? accountNumber : null,
-            accountHolder: accountHolder.trim() ? accountHolder : null,
+            // bio,
+            bankName: bankName.trim() || null,
+            accountNumber: accountNumber.trim() || null,
+            accountHolder: accountHolder.trim() || null,
+            profileImage: profileImagePreview || null, // 이미지 URL 또는 base64로 처리 가능
         };
 
-        formData.append(
-            'profileUpdateRequest',
-            new Blob([JSON.stringify(profileUpdateRequest)], { type: 'application/json' })
-        );
-
-        if (profileImage) {
-            formData.append('profileImage', profileImage);
-        }
 
         try {
             // `useMyPageStore`에 `updateUserProfile` 액션이 구현되어 있어야 합니다.
-            await updateUserProfile(formData);
+            await updateUserProfile(profileUpdateRequest);
             alert('프로필이 성공적으로 업데이트되었습니다.');
             fetchUserData(); // 최신 정보 다시 불러오기
         } catch (error) {
