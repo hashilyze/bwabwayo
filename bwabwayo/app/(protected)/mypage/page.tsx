@@ -3,10 +3,11 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Sidebar from "@/components/shop/Sidebar";
-import ProductCard from "@/components/product/ProductCard";
+import ProductCard from "@/components/mypage/MyProductCard";
 import SellerTitle from '@/components/shop/SellerTitle';
 import { useProductStore, ProductWithSeller } from '@/stores/product/productStore';
 import { useMyPageStore, Evaluation } from '@/stores/mypage/myStore';
+import { useMyActivityStore, ActivityProduct } from '@/stores/mypage/myActivityStore';
 
 // 상점 후기 항목 데이터 (실제 item_id에 맞춰야 합니다)
 const reviewItems = [
@@ -19,25 +20,26 @@ const reviewItems = [
 export default function MyPage() {
   const { products, loading: productsLoading, error: productsError, getProducts } = useProductStore();
   const { userData, loading: userLoading, error: userError, fetchUserData } = useMyPageStore();
-
+  const { salesList, loading: salesListLoading, error:salesListError, fetchSales} = useMyActivityStore();
   useEffect(() => {
     getProducts();
     fetchUserData();
-  }, [getProducts, fetchUserData]);
+    fetchSales
+  }, [getProducts, fetchUserData, fetchSales]);
 
   // 현재 로그인한 사용자의 상품만 필터링합니다.
-  const myProducts = userData ? products.filter(p => p.seller.id === userData.userId) : [];
+  const myProducts = userData ? salesList.filter(p => p.seller.id === userData.userId) : [];
 
   // 상점 후기 총 개수 계산
   const totalReviews = userData?.evaluation.reduce((sum, item) => sum + item.number, 0) ?? 0;
 
   // 로딩 및 에러 상태 처리
-  if (userLoading || productsLoading) {
+  if (userLoading || salesListLoading) {
     return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
   }
 
-  if (userError || productsError) {
-    return <div className="flex justify-center items-center h-screen">에러: {userError || productsError}</div>;
+  if (userError || salesListError) {
+    return <div className="flex justify-center items-center h-screen">에러: {userError || salesListError}</div>;
   }
 
   if (!userData) {
@@ -114,7 +116,7 @@ export default function MyPage() {
             <h3 className="text-xl font-bold mb-6">판매 물품</h3>
             {myProducts.length > 0 ? (
               <ul className="grid grid-cols-4 gap-6 gap-y-12">
-                {myProducts.map((item: ProductWithSeller) => (
+                {myProducts.map((item: ActivityProduct) => (
                   <li key={item.product.id}>
                     <ProductCard item={item} />
                   </li>

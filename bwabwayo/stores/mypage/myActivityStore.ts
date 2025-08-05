@@ -56,7 +56,7 @@ interface ActivityProductsResponse {
 }
 
 // Zustand 스토어 상태 및 액션 타입
-interface MyPageActivityStore {
+interface MyActivityStore {
   salesList: ActivityProduct[];
   purchaseList: ActivityProduct[];
   wishList: ActivityProduct[];
@@ -69,7 +69,7 @@ interface MyPageActivityStore {
 
 const baseUrl = 'https://i13e202.p.ssafy.io/be/api';
 
-export const useMyPageActivityStore = create<MyPageActivityStore>((set) => ({
+export const useMyActivityStore = create<MyActivityStore>((set) => ({
   salesList: [],
   purchaseList: [],
   wishList: [],
