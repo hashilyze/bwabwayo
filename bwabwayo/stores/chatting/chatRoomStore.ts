@@ -88,6 +88,7 @@ interface ChatRoomStore{
     messages: ChatMessage[]
     stompClient: Client | null
     isConnected: boolean
+    isConnecting: boolean
     addChatRoom: (addRoom: addRoom) => Promise<RoomInfo | null>
     getRoomInfo: (roomId: number) => Promise<RoomInfo | null>
     getRoomList: () => void
@@ -105,6 +106,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     messages: [] as ChatMessage[],
     stompClient: null,
     isConnected: false,
+    isConnecting: false,
 
     addChatRoom: async (addRoom: addRoom) => {
         try{
@@ -147,10 +149,19 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     },
 
     connectStomp: (roomId?: number) => {
+        // 이미 연결되었거나 연결 중이면 중복 실행 방지
+        if (get().isConnected || get().isConnecting) {
+            console.log('STOMP: 이미 연결되었거나 연결이 진행 중입니다.');
+            return;
+        }
+
+        // 연결 시작 상태로 설정
+        set({ isConnecting: true });
+        
         const serverUrl = 'https://i13e202.p.ssafy.io/be/ws-stomp'
         
         try {
-            console.log('STOMP 연결 시도:', serverUrl)
+            console.log('STOMP: 연결 시도...');
 
             const socket = new SockJS(serverUrl)
             const client = new Client({
@@ -163,73 +174,39 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 heartbeatOutgoing: 4000
             })
             
-            // 연결 성공
             client.onConnect = (frame) => {
-                console.log('✅ STOMP 연결 성공!')
-                console.log('연결된 서버:', serverUrl)
-                console.log('연결 데이터:', frame)
+                console.log('✅ STOMP: 연결 성공!')
+                set({ isConnected: true, isConnecting: false, stompClient: client })
                 
-                // 연결 상태 업데이트
-                set({ isConnected: true, stompClient: client })
-                
-                // roomId가 있으면 해당 채팅방 구독
                 if (roomId) {
-                    console.log(`📡 채팅방 ${roomId} 구독 시작`)
+                    console.log(`📡 STOMP: 채팅방 ${roomId} 구독 시작`)
                     client.subscribe(`/sub/chat/room/${roomId}`, (messageOutput) => {
                         const msg = JSON.parse(messageOutput.body)
-                        console.log('📨 받은 메시지:', msg)
-                        
-                        // 현재 사용자의 토큰
-                        const myToken = localStorage.getItem('accessToken')
-                        
-                        // 내가 보낸 메시지인지 판단 (senderId와 토큰/사용자 ID 비교)
-                        let isMine = false
-                        if (myToken) {
-                            // 토큰에서 사용자 ID 추출
-                            try {
-                                const tokenParts = myToken.split('.')
-                                if (tokenParts.length === 3) {
-                                    const payload = JSON.parse(atob(tokenParts[1]))
-                                    const myUserId = payload.sub || payload.userId || payload.id
-                                    isMine = String(msg.senderId) === String(myUserId) || String(msg.senderId) === myToken
-                                } else {
-                                    isMine = String(msg.senderId) === myToken
-                                }
-                            } catch (error) {
-                                isMine = String(msg.senderId) === myToken
-                            }
-                        }
-                        console.log('👤 메시지 발신자:', isMine ? '나' : '상대')
-                        console.log('📝 메시지 내용:', msg.content)
-                        
-                        // appendMessage를 통해 메시지 추가
-                        get().appendMessage(msg, isMine)
+                        get().appendMessage(msg, false) // isMine은 appendMessage에서 결정하도록 변경 가능
                     })
-                    console.log(`✅ 채팅방 ${roomId} 구독 완료`)
                 }
             }
             
-            // 연결 오류
             client.onStompError = (error) => {
-                console.error('에러 메시지:', error)
-                set({ isConnected: false })
+                console.error('❌ STOMP: 연결 오류', error)
+                set({ isConnected: false, isConnecting: false, stompClient: null })
             }
             
-            // 연결 시작
             client.activate()
             
         } catch (error) {
-            console.error('STOMP 연결 실패:', error)
-            set({ isConnected: false })
+            console.error('❌ STOMP: 연결 설정 실패', error)
+            set({ isConnected: false, isConnecting: false })
         }
     },
 
     disconnectStomp: () => {
         const { stompClient } = get()
         if (stompClient) {
+            console.log('STOMP: 연결 해제 시도...');
             stompClient.deactivate()
-            set({ stompClient: null, isConnected: false })
         }
+        set({ stompClient: null, isConnected: false, isConnecting: false })
     },
 
     appendMessage: (msg: ChatMessage, isMine: boolean) => {

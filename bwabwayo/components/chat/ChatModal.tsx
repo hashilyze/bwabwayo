@@ -5,10 +5,14 @@ import React, { useState } from 'react';
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore';
 import { useParams } from 'next/navigation';
 
-const ChatInputActive: React.FC = () => {
-  const params = useParams()
-  const roomId = Number(params.roomId)
-  const { sendMessage } = useChatRoomStore()
+interface ChatInputActiveProps {
+  onOpenReservationModal: () => void;
+}
+
+const ChatInputActive: React.FC<ChatInputActiveProps> = ({ onOpenReservationModal }) => {
+  const params = useParams();
+  const roomId = Number(params.roomId);
+  const { sendMessage } = useChatRoomStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [messageInput, setMessageInput] = useState('');
 
@@ -29,13 +33,14 @@ const ChatInputActive: React.FC = () => {
       handleSendMessage();
     }
   };
+
   return (
     <div className="w-full">
       {/* 하단 입력창 */}
       <div className="h-[77px] bg-white border-t border-gray-200 flex items-center px-8">
         {/* 첨부 버튼 */}
-        <div 
-          className="w-[26px] h-[26px] border border-gray-500 rounded-full flex items-center justify-center mr-4 cursor-pointer transition-transform duration-200 hover:rotate-90" 
+        <div
+          className="w-[26px] h-[26px] border border-gray-500 rounded-full flex items-center justify-center mr-4 cursor-pointer transition-transform duration-200 hover:rotate-90"
           onClick={toggleMenu}
         >
           <div className="flex items-center justify-center">
@@ -54,7 +59,7 @@ const ChatInputActive: React.FC = () => {
             className="flex-1 bg-transparent text-xs text-gray-500 outline-none placeholder-gray-500"
           />
         </div>
-        
+
         {/* 전송 버튼 */}
         <button
           onClick={handleSendMessage}
@@ -79,15 +84,18 @@ const ChatInputActive: React.FC = () => {
             </div>
             <span className="text-xs text-black">거래시작</span>
           </div>
-          
+
           {/* 화상채팅예약 */}
-          <div className="flex flex-col items-center cursor-pointer">
+          <div
+            className="flex flex-col items-center cursor-pointer"
+            onClick={onOpenReservationModal} // 부모로부터 받은 함수 호출
+          >
             <div className="w-[51px] h-[51px] bg-[#fafafa] border border-[#9b9b9b] rounded-full flex items-center justify-center mb-[7px]">
               <Image src="/icon/video.svg" alt="화상채팅예약" className="w-5 h-5" width={20} height={20} />
             </div>
             <span className="text-xs text-black">화상채팅예약</span>
           </div>
-          
+
           {/* 이미지 첨부 */}
           <div className="flex flex-col items-center cursor-pointer">
             <div className="w-[51px] h-[51px] bg-[#fafafa] border border-[#9b9b9b] rounded-full flex items-center justify-center mb-[7px]">

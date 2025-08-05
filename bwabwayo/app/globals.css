@@ -117,3 +117,7 @@ body {
   transform: scaleX(0);
   transform-origin: right;
 }
+
+
+/* 채팅방 화상예약 달력 */
+.calender-wrap .react-calendar{width: 100%;border: unset;}

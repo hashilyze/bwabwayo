@@ -1,9 +1,10 @@
 'use client'
 
 import ChatModal from '@/components/chat/ChatModal'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react' // useState 추가
 import { useParams, useSearchParams } from 'next/navigation'
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
+import ReservationModal from '@/components/chat/ReservationModal' // ReservationModal 추가
 
 export default function ChatRoomPage() {
   const params = useParams()
@@ -11,8 +12,14 @@ export default function ChatRoomPage() {
   const roomId = Number(params.roomId)
   const sellerId = searchParams.get('sellerId')
   const buyerId = searchParams.get('buyerId')
-  const { messages, getMessageHistory, connectStomp, sendMessage, isConnected } = useChatRoomStore()
+  const { messages, getMessageHistory, connectStomp } = useChatRoomStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // 예약 모달 상태 추가
+  const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
+
+  const openReservationModal = () => setIsReservationModalOpen(true);
+  const closeReservationModal = () => setIsReservationModalOpen(false);
 
   useEffect(() => {
     const initializeChat = async () => {
@@ -28,6 +35,12 @@ export default function ChatRoomPage() {
     }
     
     initializeChat()
+
+    // 컴포넌트가 언마운트될 때 STOMP 연결을 해제합니다.
+    return () => {
+      const { disconnectStomp } = useChatRoomStore.getState()
+      disconnectStomp()
+    }
   }, [roomId, getMessageHistory, connectStomp])
 
   // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동
@@ -35,23 +48,26 @@ export default function ChatRoomPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // 컴포넌트 언마운트 시 소켓 연결 해제
-  useEffect(() => {
-    return () => {
-      const { disconnectStomp } = useChatRoomStore.getState()
-      disconnectStomp()
-    }
-  }, [])
-
   // URL 파라미터에서 현재 사용자 ID 결정
   const getMyUserId = () => {
-    return sellerId // 임시로 sellerId를 현재 사용자로 설정
+    if (typeof window === 'undefined') return null
+
+    const token = localStorage.getItem('accessToken')
+    if (!token) return null
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      return payload.sub || payload.userId || payload.id
+    } catch (error) {
+      console.error('토큰 파싱 실패:', error)
+      return null
+    }
   }
 
   const myUserId = getMyUserId()
 
   return (
-    <div className="h-full flex flex-col justify-between">
+    <div className="h-full flex flex-col justify-between relative">
       {/* 메인 콘텐츠 영역 */}
       <div 
         className="chat-container flex-1 overflow-y-auto p-4 space-y-4"
@@ -106,8 +122,12 @@ export default function ChatRoomPage() {
         {/* 스크롤을 위한 빈 div */}
         <div ref={messagesEndRef} />
       </div>
+      
+      {/* 예약 모달 조건부 렌더링 */}
+      {isReservationModalOpen && <ReservationModal onClose={closeReservationModal} />}
 
-      <ChatModal />
+      {/* + 버튼 */}
+      <ChatModal onOpenReservationModal={openReservationModal} />
     </div>
   )
 } 
