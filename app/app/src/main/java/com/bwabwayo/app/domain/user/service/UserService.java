@@ -30,12 +30,13 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    private final PointRepository pointRepository;
     private final ReviewAggRepository reviewAggRepository;
-    private final ReviewEvaluationCountRepository reviewEvaluationCountRepository;
-    private final AccountRepository accountRepository;
     private final StorageUtil storageUtil;
     private final StorageService storageService;
+    private final AccountService accountService;
+    private final ReviewAggService reviewAggService;
+    private final ReviewEvaluationCountService reviewEvaluationCountService;
+    private final PointService pointService;
 
     @Value("${storage.path.profileImage}")
     private String profilePath;
@@ -51,12 +52,12 @@ public class UserService {
             throw new IllegalArgumentException("프로필 이미지가 존재하지 않습니다.");
         }
 
-        String targetKey;
-        if (URLValidator.isValidURL(request.getProfileImage())) { // 다운로드 후 S3 업로드
-            targetKey = storageService.upload(profileImage, profilePath);
-        } else { // S3의 profile로 이동
-            targetKey = storageUtil.copyToPermanentDirectory(profileImage, profilePath);
-        }
+//        String targetKey;
+//        if (URLValidator.isValidURL(request.getProfileImage())) { // 다운로드 후 S3 업로드
+//            targetKey = storageService.upload(profileImage, profilePath);
+//        } else { // S3의 profile로 이동
+//            targetKey = storageUtil.copyToPermanentDirectory(profileImage, profilePath);
+//        }
 
         User user = User.builder()
                 .id(request.getId())
@@ -64,7 +65,7 @@ public class UserService {
                 .version(null)
                 .email(request.getEmail())
                 .phoneNumber(request.getPhoneNumber())
-                .profileImage(targetKey)
+//                .profileImage(targetKey)
                 .bio(request.getNickname() + "의 상점입니다.")
                 .score(500)
                 .point(PointEventType.SIGNUP_FIRST.getPoint())
@@ -88,14 +89,14 @@ public class UserService {
         String bio = user.getBio();
 
         // 평점 평균
-        float avgRating = reviewAggRepository
-                .findByUserId(user.getId())
-                .map(ReviewAgg::getAvgRating)
-                .orElse(0f);
+        float avgRating = reviewAggService.getAvgRating(user.getId());
+
+        //리뷰 개수
+        int reviewCount = reviewAggService.getReviewCount(user.getId());
 
         // 평가 항목 통계
-        List<UserEvaluationStat> evaluations = reviewEvaluationCountRepository
-                .findEvaluationStatsByUserId(user.getId());
+        List<UserEvaluationStat> evaluations = reviewEvaluationCountService
+                .getEvaluationStats(user.getId());
 
         return UserInfoResponse.builder()
                 .nickname(nickname)
@@ -105,6 +106,7 @@ public class UserService {
                 .createdAt(createdAt)
                 .bio(bio)
                 .rating(avgRating)
+                .reviewCount(reviewCount)
                 .evaluation(evaluations)
                 .build();
     }
@@ -116,7 +118,7 @@ public class UserService {
     }
 
     public UserDetailResponse getUserDetail(User user){
-        Account account = accountRepository.findByUserId(user.getId());
+        Account account = accountService.getAccount(user.getId());
         return UserDetailResponse.builder()
                 .nickname(user.getNickname())
                 .profileImage(user.getProfileImage())
@@ -139,7 +141,7 @@ public class UserService {
                 request.getAccountHolder() != null;
 
         if (hasAllAccountFields) {
-            Account account = accountRepository.findByUserId(user.getId());
+            Account account = accountService.getAccount(user.getId());
 
             if (account != null) {
                 // 기존 계좌 수정
@@ -156,7 +158,7 @@ public class UserService {
                         .build();
             }
 
-            accountRepository.save(account);
+            accountService.saveAccount(account);
         }
     }
 
@@ -178,7 +180,7 @@ public class UserService {
                 .type(type)
                 .point(type.isDynamic() ? pointValue : type.getPoint())
                 .build();
-        pointRepository.save(point);
+        pointService.savePoint(point);
 
         user.setPoint(currentPoint + pointValue);
         userRepository.save(user); // OptimisticLock 충돌 시 여기서 예외 발생
