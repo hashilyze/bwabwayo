@@ -213,10 +213,13 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         console.log('👤 발신자:', isMine ? '나' : '상대')
         console.log('📋 현재 메시지 개수:', get().messages.length)
         
-        // 새 메시지를 기존 메시지 배열에 추가
-        set(state => ({ 
-            messages: [...state.messages, msg] 
-        }))
+        // 새 메시지를 기존 메시지 배열에 추가 (안전한 처리)
+        set(state => {
+            const currentMessages = Array.isArray(state.messages) ? state.messages : []
+            return { 
+                messages: [...currentMessages, msg] 
+            }
+        })
         
         console.log('✅ 메시지 추가 완료. 총 메시지 개수:', get().messages.length)
         console.log('📋 현재 모든 메시지:', get().messages)
@@ -224,7 +227,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
 
     clearMessages: () => {
         console.log('🗑️ 메시지 목록 초기화');
-        set({ messages: [] });
+        set({ messages: [] as ChatMessage[] });
     },
 
     getMessageHistory: async (roomId: number) => {
@@ -269,6 +272,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 messagesArray = [];
             }
             
+            console.log('📋 최종 처리된 메시지 배열:', messagesArray);
             set({ messages: messagesArray })
         } catch (error) {
             console.error(`❌ 채팅방 ${roomId} 메시지 히스토리 로드 실패:`, error);
