@@ -22,7 +22,7 @@ export default function ChatRoomPage({
 }) {
   const params = useParams()
   const roomId = Number(params.roomId)
-  const { messages, stompClient, isConnected, connectStomp, disconnectStomp, appendMessage, roomInfo, clearMessages, getMessageHistory, getRoomList } = useChatRoomStore()
+  const { messages, stompClient, connectStomp, disconnectStomp, appendMessage, roomInfo, clearMessages, getMessageHistory, getRoomList } = useChatRoomStore()
   const chatBodyRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -67,7 +67,7 @@ export default function ChatRoomPage({
   }, [messages])
 
   const handleSendMessage = async (content: string) => {
-    if (!content.trim() || !isConnected) return
+    if (!content.trim()) return
 
     // 토큰에서 사용자 ID 추출
     const token = localStorage.getItem('accessToken')
@@ -196,7 +196,7 @@ export default function ChatRoomPage({
         )}
       </div>
 
-      <ChatModal onSendMessage={handleSendMessage} isConnected={isConnected} />
+      <ChatModal onSendMessage={handleSendMessage} />
     </div>
   )
 } 
