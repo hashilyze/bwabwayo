@@ -8,8 +8,8 @@ import Sidebar from "@/components/shop/Sidebar"; // Sidebar 컴포넌트를 impo
 // --- 타입 정의 (Type Definition) ---
 // 찜 목록 상품 데이터의 타입을 정의합니다.
 type WishedProduct = {
-  id: number;
-  seller_id: number;
+  id: string | number; // 상품 ID
+  seller_id: string | number; // 판매자 ID
   title: string;
   thumbnail: string;
   price: number;

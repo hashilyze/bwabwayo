@@ -1,7 +1,6 @@
 'use client'
 
-import SellerTitle from "@/components/shop/SellerTitle";
-import type { Seller } from "@/components/shop/SellerTitle";
+import SellerTitle, { type Seller } from "@/components/shop/SellerTitle";
 import { useProductStore } from "@/stores/product/productStore";
 import { useEffect } from "react";
 import { useParams } from "next/navigation";
@@ -22,6 +21,7 @@ export default function ProductDetailPage() {
   const productId = Number(params.id);
   // SellerTitle에 전달할 판매자 정보를 가공합니다.
   // product.seller의 타입에 bio가 없다는 오류를 해결하기 위해 any로 캐스팅합니다.
+  // 실제로는 Seller 타입에 bio가 정의되어 있어야 합니다.
   const seller: Seller = {
     id: product?.seller.id ? String(product.seller.id) : undefined,
     nickname: product?.seller.nickname || '',

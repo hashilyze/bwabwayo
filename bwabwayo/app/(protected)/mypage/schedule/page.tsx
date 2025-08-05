@@ -38,7 +38,6 @@ const trades: Trade[] = [
 ];
 
 // --- 페이지 컴포넌트 (Page Component) ---
-// 동적 경로([id])의 값을 params를 통해 받아옵니다.
 export default function MyPageVideoTrade() {
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">

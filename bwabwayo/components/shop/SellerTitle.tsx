@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-interface Seller {
+export interface Seller {
   id?: string;
   nickname: string;
   profileImage: string | null;

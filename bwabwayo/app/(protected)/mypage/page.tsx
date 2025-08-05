@@ -44,6 +44,17 @@ export default function MyPage() {
     return <div className="flex justify-center items-center h-screen">사용자 정보를 불러올 수 없습니다.</div>;
   }
 
+  // SellerTitle 컴포넌트에 전달할 props를 userData로부터 명시적으로 매핑합니다.
+  // 이렇게 하면 타입 안정성이 높아지고, SellerTitle은 필요한 데이터만 받게 됩니다.
+  const sellerDataForTitle = {
+    id: userData.userId,
+    nickname: userData.nickname,
+    profileImage: userData.profileImage,
+    rating: userData.rating,
+    score: userData.score,
+    bio: userData.bio || '상점 소개가 없습니다.',
+  };
+
   return (
     <div>
       <div className="flex gap-10">
@@ -52,7 +63,7 @@ export default function MyPage() {
 
         <main>
           <div className="grid grid-cols-2 gap-6">
-            <SellerTitle seller={userData} />
+            <SellerTitle seller={sellerDataForTitle} />
 
             <div className="flex-1 max-w-[544px]">
               {/* 상품 등록 섹션 */}
