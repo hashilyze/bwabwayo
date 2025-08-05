@@ -7,6 +7,7 @@ export interface Seller {
   rating: number;
   score: number;
   bio: string;
+  dealcount: number;
 }
 
 interface SellerTitleProps {
@@ -20,6 +21,7 @@ export default function SellerTitle({ seller }: SellerTitleProps) {
     const sellerRating = seller?.rating || 0;
     const sellerImage = seller?.profileImage || "/image/sample.png";
     const bio = seller?.bio || "상점에 대한 설명이 없습니다.";
+    const dealcount = seller?.dealcount || 0;
     return (
         <div className="w-full">
             {/* 상점 프로필 */}
@@ -33,7 +35,7 @@ export default function SellerTitle({ seller }: SellerTitleProps) {
                         <div className="flex items-center gap-1">
                             <span className="text-gray-400 text-base font-light">{sellerRating}</span>
                             <Image src="/icon/star-on.svg" alt="별점" className="w-4 h-4" width={16} height={16} />
-                            <span className="text-gray-400 text-base font-light">(0)</span>
+                            <span className="text-gray-400 text-base font-light">{dealcount}</span>
                         </div>
                     </div>
                 </div>
