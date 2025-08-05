@@ -1,33 +1,58 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link'
+import Link from 'next/link';
 import Sidebar from "@/components/shop/Sidebar";
 import ProductCard from "@/components/product/ProductCard";
 import SellerTitle from '@/components/shop/SellerTitle';
 import { useProductStore, ProductWithSeller } from '@/stores/product/productStore';
-import { useMyPageStore } from '@/stores/mypage/mypageStore';
+import { useMyPageStore, Evaluation } from '@/stores/mypage/mypageStore';
 
-export default function SellerShopInfo({ params }: { params: { id: string } }) {
-  const { products, loading, error, getProducts, clearProducts } = useProductStore();
-    const { fetchUserData } = useMyPageStore(); // fetchUserData 가져오기
+// 상점 후기 항목 데이터 (실제 item_id에 맞춰야 합니다)
+const reviewItems = [
+  { id: 1, text: '구매확정이 빨라요.' },
+  { id: 2, text: '친절하고 배려가 넘쳐요.' },
+  { id: 3, text: '답장이 빨라요.' },
+  { id: 4, text: '약속시간을 잘 지켜요.' },
+];
+
+export default function MyPage() {
+  const { products, loading: productsLoading, error: productsError, getProducts } = useProductStore();
+  const { userData, loading: userLoading, error: userError, fetchUserData } = useMyPageStore();
 
   useEffect(() => {
-    // 특정 판매자의 상품만 조회 (실제로는 seller_id로 필터링)
     getProducts();
-    fetchUserData(); // 페이지 진입 시 유저 데이터 패치
+    fetchUserData();
   }, [getProducts, fetchUserData]);
 
+  // 현재 로그인한 사용자의 상품만 필터링합니다.
+  const myProducts = userData ? products.filter(p => p.seller.id === userData.id) : [];
 
-  
+  // 상점 후기 총 개수 계산
+  const totalReviews = userData?.evaluation.reduce((sum, item) => sum + item.number, 0) ?? 0;
+
+  // 로딩 및 에러 상태 처리
+  if (userLoading || productsLoading) {
+    return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
+  }
+
+  if (userError || productsError) {
+    return <div className="flex justify-center items-center h-screen">에러: {userError || productsError}</div>;
+  }
+
+  if (!userData) {
+    return <div className="flex justify-center items-center h-screen">사용자 정보를 불러올 수 없습니다.</div>;
+  }
+
   return (
     <div>
       <div className="flex gap-10">
-        <Sidebar userId={params.id} />
+        {/* userId를 전달하지 않으면 '마이페이지'용 사이드바가 렌더링됩니다. */}
+        <Sidebar />
 
         <main>
           <div className="grid grid-cols-2 gap-6">
-            <SellerTitle />
+            <SellerTitle seller={userData} />
 
             <div className="flex-1 max-w-[544px]">
               {/* 상품 등록 섹션 */}
@@ -37,7 +62,7 @@ export default function SellerShopInfo({ params }: { params: { id: string } }) {
                     <h3 className="text-lg font-bold text-black mb-1">상품 설명이 자동!</h3>
                     <p className="text-gray-500 text-sm">카테고리를 선택하면 자동으로 상품 설명을 채워줘요</p>
                   </div>
-                  <Link href="" className="bg-gray-600 text-white rounded-full px-4 py-2 text-sm font-normal hover:bg-gray-700 transition">
+                  <Link href="/product/new" className="bg-gray-600 text-white rounded-full px-4 py-2 text-sm font-normal hover:bg-gray-700 transition">
                     상품 등록
                   </Link>
                 </div>
@@ -48,25 +73,25 @@ export default function SellerShopInfo({ params }: { params: { id: string } }) {
                  {/* 판매상품 */}
                  <li className="p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
                    <div className="text-gray-500 text-sm mb-2">판매상품</div>
-                   <div className="text-black text-xl font-normal">4</div>
+                   <div className="text-black text-xl font-normal">{myProducts.length}</div>
                  </li>
                  
                  {/* 거래후기 */}
                  <li className="p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
                    <div className="text-gray-500 text-sm mb-2">거래후기</div>
-                   <div className="text-black text-xl font-normal">5</div>
+                   <div className="text-black text-xl font-normal">{userData.dealCount ?? 0}</div>
                  </li>
                  
                  {/* 화상거래 */}
                  <li className="p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
                    <div className="text-gray-500 text-sm mb-2">화상거래</div>
-                   <div className="text-black text-xl font-normal">1</div>
+                   <div className="text-black text-xl font-normal">0</div>
                  </li>
                  
                  {/* 포인트 */}
                  <li className="p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
                    <div className="text-gray-500 text-sm mb-2">포인트</div>
-                   <div className="text-black text-xl font-normal">1,600 P</div>
+                   <div className="text-black text-xl font-normal">{userData.point.toLocaleString()} P</div>
                  </li>
               </ul>
             </div>
@@ -75,42 +100,39 @@ export default function SellerShopInfo({ params }: { params: { id: string } }) {
           {/* 판매 물품 섹션 */}
           <section className="mt-12">
             <h3 className="text-xl font-bold mb-6">판매 물품</h3>
-            <ul className="grid grid-cols-4 gap-6 gap-y-12">
-              {products.map((item: ProductWithSeller) => (
-            <li key={item.product.id}>
-              <ProductCard item={item} />
-            </li>
-          ))}
-        </ul>
+            {myProducts.length > 0 ? (
+              <ul className="grid grid-cols-4 gap-6 gap-y-12">
+                {myProducts.map((item: ProductWithSeller) => (
+                  <li key={item.product.id}>
+                    <ProductCard item={item} />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="text-center text-gray-500 py-12">판매중인 상품이 없습니다.</div>
+            )}
           </section>
 
           {/* 상점 후기 섹션 */}
-          <section className="mt-12">
-            <h3 className="text-xl font-bold mb-4">상점 후기</h3>
-            <div className="flex items-center gap-2 text-lg font-bold mb-6">
-              <span>4.5</span>
-              <span className="text-gray-500 text-base font-normal">총 후기</span>
-              <span>5</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-white rounded-lg shadow p-4 flex justify-between items-center">
-                <span className="text-gray-600">구매확정이 빨라요.</span>
-                <span className="font-bold text-blue-600">3</span>
-              </div>
-              <div className="bg-white rounded-lg shadow p-4 flex justify-between items-center">
-                <span className="text-gray-600">친절하고 배려가 넘쳐요.</span>
-                <span className="font-bold text-blue-600">5</span>
-              </div>
-              <div className="bg-white rounded-lg shadow p-4 flex justify-between items-center">
-                <span className="text-gray-600">답장이 빨라요.</span>
-                <span className="font-bold text-blue-600">3</span>
-              </div>
-              <div className="bg-white rounded-lg shadow p-4 flex justify-between items-center">
-                <span className="text-gray-600">약속시간을 잘 지켜요.</span>
-                <span className="font-bold text-blue-600">3</span>
-              </div>
-            </div>
-          </section>
+         <section className="mt-12">
+  <h3 className="text-xl font-bold mb-4">상점 후기</h3>
+  <div className="flex items-center gap-2 text-lg font-bold mb-6">
+    <span>{userData.rating.toFixed(1)}</span>
+    <span className="text-gray-500 text-base font-normal">총 후기</span>
+    <span>{totalReviews}</span>
+  </div>
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    {reviewItems.map((review) => {
+      const count = userData.evaluation.find((e) => e.item_id === review.id)?.number ?? 0;
+      return (
+        <div key={review.id} className="bg-white rounded-lg shadow p-4 flex justify-between items-center">
+          <span className="text-gray-600">{review.text}</span>
+          <span className="font-bold text-blue-600">{count}</span>
+        </div>
+      );
+    })}
+  </div>
+</section>
         </main>
       </div>
     </div>
