@@ -53,6 +53,7 @@ export default function MyPage() {
     rating: userData.rating,
     score: userData.score,
     bio: userData.bio || '상점 소개가 없습니다.',
+    dealcount: userData.dealCount || 0,
   };
 
   return (

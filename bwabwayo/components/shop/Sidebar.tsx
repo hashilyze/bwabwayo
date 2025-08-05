@@ -20,6 +20,7 @@ export default function Sidebar() {
     ],
     "내 정보": [
       { name: "내 정보 수정", href: `${basePath}/settings` },
+      { name: "주소록", href: `${basePath}/address` },
       { name: "회원탈퇴", href: `${basePath}/withdrawal` },
     ]
   };
