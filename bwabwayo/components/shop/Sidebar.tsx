@@ -1,28 +1,26 @@
 // 파일 경로: components/shop/Sidebar.tsx
-'use client'; // Link와 상호작용하려면 클라이언트 컴포넌트가 되어야 합니다.
+'use client';
 
 import React from "react";
 import Link from 'next/link';
-import { usePathname } from 'next/navigation'; // 현재 경로를 알기 위해 usePathname을 사용합니다.
+import { usePathname } from 'next/navigation';
 
-// userId를 props로 받아 동적 경로를 생성해야 합니다.
-// 이 컴포넌트를 사용하는 부모 페이지(예: layout.tsx)에서 userId를 전달해줘야 합니다.
-export default function Sidebar({ userId }: { userId: string }) {
-  const pathname = usePathname(); // 현재 URL 경로를 가져옵니다.
+export default function Sidebar() {
+  const pathname = usePathname();
+  const basePath = '/mypage';
 
-  // 메뉴 데이터를 객체로 관리하여 코드의 가독성과 유지보수성을 높입니다.
   const menuItems = {
     "거래정보": [
-      { name: "구매 상품", href: `/shop/${userId}/purchases` },
-      { name: "판매 상품", href: `/shop/${userId}/sales` },
-      { name: "찜 상품", href: `/shop/${userId}/wishlist` },
+      { name: "구매 상품", href: `${basePath}/purchases` },
+      { name: "판매 상품", href: `${basePath}/sales` },
+      { name: "찜 상품", href: `${basePath}/wishlist` },
     ],
     "화상채팅": [
-      { name: "화상 채팅 일정", href: `/shop/${userId}/schedule` },
+      { name: "화상 채팅 일정", href: `${basePath}/schedule` },
     ],
     "내 정보": [
-      { name: "내 정보 수정", href: `/shop/${userId}/settings` },
-      { name: "회원탈퇴", href: `/shop/${userId}/withdrawal` },
+      { name: "내 정보 수정", href: `${basePath}/settings` },
+      { name: "회원탈퇴", href: `${basePath}/withdrawal` },
     ]
   };
 
@@ -37,9 +35,8 @@ export default function Sidebar({ userId }: { userId: string }) {
               <ul className="space-y-2">
                 {items.map(item => (
                   <li key={item.name}>
-                    <Link 
-                      href={item.href} 
-                      // 현재 경로(pathname)와 링크의 경로(item.href)가 일치하면 활성화 스타일을 적용합니다.
+                    <Link
+                      href={item.href}
                       className={`hover:text-blue-600 transition-colors ${pathname === item.href ? 'text-blue-600 font-semibold' : 'text-gray-600'}`}
                     >
                       {item.name}
