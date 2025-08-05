@@ -43,6 +43,9 @@ export const useMyPageSettingStore = create<MyPageSettingStore>((set) => ({
         throw new Error(data.message || '회원 상세 정보 요청에 실패했습니다.');
       }
 
+      // 서버에서 받아온 데이터를 콘솔에 출력합니다.
+      console.log('✅ [설정] 서버에서 받아온 회원 상세 정보:', data);
+
       set({ userData: data, loading: false });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '회원 정보를 불러오는 중 알 수 없는 오류가 발생했습니다.';
@@ -54,11 +57,11 @@ export const useMyPageSettingStore = create<MyPageSettingStore>((set) => ({
   updateUserProfile: async (formData: FormData) => {
     set({ loading: true, error: null });
     const requestUrl = `${baseUrl}/users/detail`;
-    console.log(`[설정] 프로필 업데이트 요청: PUT ${requestUrl}`);
+    console.log(`[설정] 프로필 업데이트 요청: POST ${requestUrl}`);
 
     try {
       const response = await useAuthStore.getState().authenticatedFetch(requestUrl, {
-        method: 'PUT',
+        method: 'POST',
         body: formData,
       });
 
