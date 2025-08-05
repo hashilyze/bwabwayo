@@ -280,8 +280,8 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
             // STOMP 메시지 형식
             const stompMessage = {
                 roomId: roomId,
-                senderId: token,
-                receiverId: '',
+                senderId: null,
+                receiverId: null,
                 content: content.trim(),
                 isRead: false,
                 createdAt: new Date(),
