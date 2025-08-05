@@ -40,7 +40,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     loadRoomList()
   }, [getRoomList]);
 
-  // console.log("layout", roomList)
+  console.log("layout", roomList)
   
   // 채팅방 선택 시
   const handleChatRoomSelect = (chatRoom: ChatRoom) => {

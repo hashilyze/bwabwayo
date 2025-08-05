@@ -276,26 +276,8 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         try {
             // 토큰 가져오기
             const token = localStorage.getItem('accessToken')
-            
-            if (!token) {
-                console.error('❌ 토큰을 찾을 수 없습니다.')
-                return
-            }
 
-            // 토큰에서 사용자 ID 추출 (JWT 디코드)
-            let userId = null
-            try {
-                const tokenParts = token.split('.')
-                if (tokenParts.length === 3) {
-                    const payload = JSON.parse(atob(tokenParts[1]))
-                    userId = payload.sub || payload.userId || payload.id
-                    console.log('🔑 토큰에서 추출한 사용자 ID:', userId)
-                }
-            } catch (error) {
-                console.warn('⚠️ 토큰 디코드 실패:', error)
-            }
-
-            // STOMP 메시지 형식 (사용자 ID 사용)
+            // STOMP 메시지 형식
             const stompMessage = {
                 roomId: roomId,
                 senderId: token,
@@ -308,28 +290,13 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
 
             console.log('📤 STOMP 메시지 전송 시도:', stompMessage)
             
-            // STOMP를 통해 메시지 전송 (예제와 동일한 방식)
+            // STOMP를 통해 메시지 전송
             stompClient.publish({
                 destination: "/pub/chat/message",
                 body: JSON.stringify(stompMessage)
             })
 
-            console.log('✅ STOMP 메시지 전송 완료')
-            
-            // 로컬에서 즉시 메시지 추가 (UI 반응성 향상)
-            const localMessage: ChatMessage = {
-                roomId: roomId,
-                senderId: userId || token, // 사용자 ID가 있으면 사용, 없으면 토큰 사용
-                receiverId: '', // 백엔드에서 설정
-                content: content.trim(),
-                type: 'TEXT',
-                createdAt: new Date().toISOString(),
-                isRead: false
-            }
-            
-            // 내가 보낸 메시지이므로 isMine = true
-            get().appendMessage(localMessage, true)
-            
+            console.log('✅ STOMP 메시지 전송 완료')            
         } catch (error) {
             console.error('❌ 메시지 전송 실패:', error)
         }
