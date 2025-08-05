@@ -27,7 +27,9 @@ export default function Sidebar() {
 
   return (
     <div className="w-64">
-      <h2 className="text-2xl font-bold mb-6">마이페이지</h2>
+      <Link href={basePath} className="hover:text-blue-600 transition-colors">
+        <h2 className="text-2xl font-bold mb-6">마이페이지</h2>
+      </Link>
       <nav>
         <ul className="space-y-5">
           {Object.entries(menuItems).map(([sectionTitle, items], index) => (
