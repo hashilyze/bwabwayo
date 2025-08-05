@@ -299,6 +299,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
             const stompMessage = {
                 roomId: roomId,
                 senderId: token,
+                receiverId: '',
                 content: content.trim(),
                 isRead: false,
                 createdAt: new Date(),
