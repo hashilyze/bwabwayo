@@ -77,7 +77,7 @@ interface ChatRoomStore{
 export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     roomInfo: [],
     roomList: [],
-    messages: [],
+    messages: [] as ChatMessage[],
     stompClient: null,
     isConnected: false,
 
@@ -232,18 +232,34 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
             const response = await useAuthStore.getState().authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/chatrooms/${roomId}?page=0`);
             const data = await response.json();
             console.log('📥 메시지 히스토리 수신:', data);
+            console.log('📋 데이터 타입:', typeof data);
+            console.log('📋 배열 여부:', Array.isArray(data));
+            console.log('📋 데이터 길이:', Array.isArray(data) ? data.length : 'N/A');
             
             // 데이터 구조 확인 및 안전한 처리
             let messagesArray: ChatMessage[] = [];
             
             if (Array.isArray(data)) {
-                messagesArray = data;
+                // 배열인 경우 유효한 메시지 객체만 필터링
+                messagesArray = data.filter((item: any) => 
+                    item && 
+                    typeof item === 'object' && 
+                    item.content !== undefined
+                );
             } else if (data && typeof data === 'object') {
                 // 만약 data가 객체이고 messages 필드가 있다면
                 if (Array.isArray(data.messages)) {
-                    messagesArray = data.messages;
+                    messagesArray = data.messages.filter((item: any) => 
+                        item && 
+                        typeof item === 'object' && 
+                        item.content !== undefined
+                    );
                 } else if (Array.isArray(data.content)) {
-                    messagesArray = data.content;
+                    messagesArray = data.content.filter((item: any) => 
+                        item && 
+                        typeof item === 'object' && 
+                        item.content !== undefined
+                    );
                 } else {
                     console.warn('⚠️ 예상하지 못한 데이터 구조:', data);
                     messagesArray = [];

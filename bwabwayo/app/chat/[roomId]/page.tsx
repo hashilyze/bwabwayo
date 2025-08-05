@@ -50,15 +50,14 @@ export default function ChatRoomPage() {
           <h1 className="text-[28px] font-bold text-black mb-4">채팅방 {roomId}</h1>
         </div>
 
-        {!messages || !Array.isArray(messages) || messages.length === 0 ? (
+        {!messages || !Array.isArray(messages) || messages.length === 0 || !messages.every(msg => msg && typeof msg === 'object') ? (
           <div className="text-center text-gray-500 py-8">
             <p>아직 메시지가 없습니다.</p>
             <p className="text-sm mt-10">첫 번째 메시지를 보내보세요!</p>
           </div>
                  ) : (
            <>
-             {Array.isArray(messages) && messages.map((message, index) => {
-              // 토큰 비교로 내 메시지인지 판단
+             {Array.isArray(messages) && messages.filter(message => message && typeof message === 'object').map((message, index) => {
               const myToken = localStorage.getItem('accessToken')
               const isMine = Boolean(myToken && message.token === myToken)
               return (
