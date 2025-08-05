@@ -58,43 +58,30 @@ export default function ChatRoomPage() {
                  ) : (
            <>
              {Array.isArray(messages) && messages.map((message, index) => {
-               const myToken = localStorage.getItem('accessToken')
-               const isMine = Boolean(myToken && message.senderId === myToken)
-               
-               // 시스템 메시지인지 확인
-               const isSystemMessage = message.type !== 'TEXT' && message.type !== 'TALK'
-               
-               // 시스템 메시지인 경우 다르게 표시
-               if (isSystemMessage) {
-                 return (
-                   <div key={index} className="mb-4 text-center">
-                     <div className="inline-block bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full">
-                       {message.type === 'CREATE_ROOM' ? '채팅방이 생성되었습니다.' : message.content || message.type}
-                     </div>
-                   </div>
-                 )
-               }
-               
-               return (
-                 <div
-                   key={index}
-                   className={`mb-4 flex items-end gap-2 justify-start ${isMine ? 'flex-row-reverse' : ''}`}
-                 >
-                   <div
-                     className={`max-w-xs lg:max-w-md px-4 py-2 rounded-full ${
-                       isMine
-                         ? 'bg-[#0047A5] text-white py-4 px-5'
-                         : 'bg-[#979CA4] text-white py-4 px-5'
-                     }`}
-                   >
-                   <div className="text-sm">{message.content}</div>
-                   </div>
-                     <div className={`text-xs text-[#666666]`}>
-                      {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
-                        hour: 'numeric',
-                        minute: '2-digit',
-                        hour12: true
-                      })}
+              // 토큰 비교로 내 메시지인지 판단
+              const myToken = localStorage.getItem('accessToken')
+              const isMine = Boolean(myToken && message.token === myToken)
+              return (
+                <div
+                  key={index}
+                  className={`mb-4 flex items-end gap-2 justify-start ${isMine ? 'flex-row-reverse' : ''}`}
+                >
+                  <div
+                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-full ${
+                      isMine
+                        ? 'bg-[#0047A5] text-white py-4 px-5'
+                        : 'bg-[#979CA4] text-white py-4 px-5'
+                    }`}
+                  >
+                  <div className="text-sm">{message.content}</div>
+                  </div>
+                    <div className={`text-xs text-[#666666]`}>
+                     {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
+                       hour: 'numeric',
+                       minute: '2-digit',
+                       hour12: true
+                     })}
+
                     </div>
                  </div>
                )
