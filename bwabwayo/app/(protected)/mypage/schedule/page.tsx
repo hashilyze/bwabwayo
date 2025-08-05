@@ -39,13 +39,13 @@ const trades: Trade[] = [
 
 // --- 페이지 컴포넌트 (Page Component) ---
 // 동적 경로([id])의 값을 params를 통해 받아옵니다.
-export default function MyPageVideoTrade({ params }: { params: { id: string } }) {
+export default function MyPageVideoTrade() {
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
         
         {/* Sidebar 컴포넌트를 여기서 사용하고, userId prop을 전달합니다. */}
-        <Sidebar userId={params.id} />
+        <Sidebar />
 
         {/* 메인 컨텐츠 */}
         <main className="flex-1">

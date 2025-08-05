@@ -65,7 +65,7 @@ export default function MyPageSales({ params }: { params: { id: string } }) {
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
         
         {/* Sidebar 컴포넌트를 여기서 사용하고, userId prop을 전달합니다. */}
-        <Sidebar userId={params.id} />
+        <Sidebar  />
 
         {/* 메인 컨텐츠 */}
         <main className="flex-1">

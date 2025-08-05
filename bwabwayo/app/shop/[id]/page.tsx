@@ -18,7 +18,7 @@ export default function SellerShopInfo({ params }: { params: { id: string } }) {
   return (
     <div>
       <div className="flex gap-10">
-        <Sidebar userId={params.id} />
+        <Sidebar />
 
         <main>
           <div className="grid grid-cols-2 gap-6">
