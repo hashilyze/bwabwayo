@@ -2,12 +2,13 @@
 
 import Image from 'next/image';
 import React, { useState } from 'react';
+import { useChatRoomStore } from '@/stores/chatting/chatRoomStore';
+import { useParams } from 'next/navigation';
 
-interface ChatModalProps {
-  onSendMessage: (message: string) => void;
-}
-
-const ChatInputActive: React.FC<ChatModalProps> = ({ onSendMessage }) => {
+const ChatInputActive: React.FC = () => {
+  const params = useParams()
+  const roomId = Number(params.roomId)
+  const { sendMessage } = useChatRoomStore()
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [messageInput, setMessageInput] = useState('');
 
@@ -17,7 +18,7 @@ const ChatInputActive: React.FC<ChatModalProps> = ({ onSendMessage }) => {
 
   const handleSendMessage = () => {
     if (messageInput.trim()) {
-      onSendMessage(messageInput);
+      sendMessage(roomId, messageInput);
       setMessageInput('');
     }
   };

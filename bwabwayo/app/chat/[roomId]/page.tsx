@@ -8,7 +8,7 @@ import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
 export default function ChatRoomPage() {
   const params = useParams()
   const roomId = Number(params.roomId)
-  const { messages, getMessageHistory, connectStomp, sendMessage, isConnected } = useChatRoomStore()
+  const { messages, getMessageHistory, connectStomp, isConnected } = useChatRoomStore()
   
   // messages가 안전한 배열인지 확인
   const safeMessages = Array.isArray(messages) ? messages : []
@@ -95,7 +95,7 @@ export default function ChatRoomPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      <ChatModal onSendMessage={(message) => sendMessage(roomId, message)} />
+      <ChatModal />
     </div>
   )
 } 

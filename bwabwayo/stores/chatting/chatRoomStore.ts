@@ -296,6 +296,11 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         try {
             // 토큰 가져오기
             const token = localStorage.getItem('accessToken')
+            
+            if (!token) {
+                console.error('❌ 토큰을 찾을 수 없습니다.')
+                return
+            }
 
             // STOMP 메시지 형식
             const stompMessage = {
