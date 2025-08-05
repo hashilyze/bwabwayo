@@ -7,6 +7,7 @@ interface Seller {
   profileImage?: string | null
   score: number
   rating: number
+  bio?: string
 }
 
 interface Product {

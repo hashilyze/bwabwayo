@@ -1,29 +1,31 @@
 import Image from "next/image";
 
-interface Seller {
-  id: number;
+export interface Seller {
+  id?: string;
   nickname: string;
-  profileImage: string;
+  profileImage: string | null;
   rating: number;
   score: number;
+  bio: string;
 }
 
 interface SellerTitleProps {
   seller?: Seller;
-}
+}   
 
 export default function SellerTitle({ seller }: SellerTitleProps) {
     const trustScore = seller?.score || 0;
     const trustPercentage = (trustScore / 1000) * 100;
     const sellerName = seller?.nickname || "판매자";
     const sellerRating = seller?.rating || 0;
-
+    const sellerImage = seller?.profileImage || "/image/sample.png";
+    const bio = seller?.bio || "상점에 대한 설명이 없습니다.";
     return (
         <div className="w-full">
             {/* 상점 프로필 */}
             <div className="flex items-center gap-4">
                 <div>
-                    <Image src="/image/sample.png" alt="판매자 프로필 이미지" className="rounded-full border-1 border-[#eee] w-20 h-20 object-cover" width={80} height={80} />
+                    <Image src={sellerImage} alt={`${sellerName} 프로필 이미지`} className="rounded-full border-1 border-[#eee] w-20 h-20 object-cover" width={80} height={80} />
                 </div>
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-col items-start">
@@ -53,7 +55,7 @@ export default function SellerTitle({ seller }: SellerTitleProps) {
                 </div>
             </div>
             {/* 상점 설명 */}
-            <p className="text-gray-500 text-base">깨끗하고 사용감 적은 제품을 판매합니다.</p>
+            <p className="text-gray-500 text-base">{bio}</p>
         </div>
   );
 }

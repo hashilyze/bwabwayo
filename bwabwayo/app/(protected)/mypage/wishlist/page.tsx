@@ -8,8 +8,8 @@ import Sidebar from "@/components/shop/Sidebar"; // Sidebar 컴포넌트를 impo
 // --- 타입 정의 (Type Definition) ---
 // 찜 목록 상품 데이터의 타입을 정의합니다.
 type WishedProduct = {
-  id: number;
-  seller_id: number;
+  id: string | number; // 상품 ID
+  seller_id: string | number; // 판매자 ID
   title: string;
   thumbnail: string;
   price: number;
@@ -89,13 +89,13 @@ function WishlistProductCard({ product }: { product: WishedProduct }) {
 
 
 // --- 페이지 컴포넌트 (Page Component) ---
-export default function MyPageWishlist({ params }: { params: { id: string } }) {
+export default function MyPageWishlist() {
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
         
         {/* Sidebar 컴포넌트를 여기서 사용하고, userId prop을 전달합니다. */}
-        <Sidebar userId={params.id} />
+        <Sidebar />
 
         {/* 메인 컨텐츠 */}
         <main className="flex-1">
