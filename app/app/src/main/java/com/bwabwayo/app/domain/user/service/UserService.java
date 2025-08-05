@@ -156,4 +156,9 @@ public class UserService {
         System.out.println("재시도 3회 실패: " + e.getMessage());
         throw new IllegalStateException("포인트 처리에 실패했습니다. 다시 시도해주세요.");
     }
+
+    public ReviewAgg findReviewAggByUser(String userId) {
+        return reviewAggRepository.findByUserId(userId)
+                .orElse(ReviewAgg.builder().userId(userId).build());
+    }
 }
