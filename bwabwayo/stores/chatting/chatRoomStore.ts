@@ -246,8 +246,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
             // 예제 코드를 참고한 STOMP 메시지 형식
             const stompMessage = {
                 roomId: roomId,
-                senderId: null, // 백엔드에서 토큰으로 추출
-                receiverId: null, // 백엔드에서 roomId로 추출
+                senderId: token,
                 content: content.trim(),
                 isRead: false,
                 createdAt: new Date(),
