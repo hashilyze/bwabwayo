@@ -110,7 +110,7 @@ export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected 
 
   return (
     <div 
-      className={`h-[92px] border-b border-gray-100 flex items-center px-5 cursor-pointer ${
+      className={`h-[92px] flex items-center px-5 cursor-pointer ${
         isSelected 
           ? 'bg-blue-50 border-r-4 border-r-blue-500' 
           : 'bg-white hover:bg-gray-50'
@@ -119,7 +119,7 @@ export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected 
     >
       <div className="w-[60px] h-[60px] bg-gray-200 rounded-full mr-[18px]">
         <Image 
-          src='/image/sample.png'
+          src='/image/no-image.jpg'
           alt={`${layoutRoom?.partnerNickName || layoutRoom?.seller?.nickname || regularRoom?.partnerNickName || regularRoom?.seller?.nickname || chatRoom?.partnerNickName} 프로필`}
           className="w-full h-full rounded-full object-cover"
           width={60}
