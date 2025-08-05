@@ -57,25 +57,9 @@ export default function ChatRoomPage() {
           </div>
                  ) : (
            <>
-             {Array.isArray(messages) && messages.filter(message => message && typeof message === 'object').map((message, index) => {
-               // senderId와 토큰/사용자 ID 비교로 내 메시지인지 판단
+             {Array.isArray(messages) && messages.map((message, index) => {
                const myToken = localStorage.getItem('accessToken')
-               let isMine = false
-               if (myToken) {
-                   // 토큰에서 사용자 ID 추출
-                   try {
-                       const tokenParts = myToken.split('.')
-                       if (tokenParts.length === 3) {
-                           const payload = JSON.parse(atob(tokenParts[1]))
-                           const myUserId = payload.sub || payload.userId || payload.id
-                           isMine = String(message.senderId) === String(myUserId) || String(message.senderId) === myToken
-                       } else {
-                           isMine = String(message.senderId) === myToken
-                       }
-                   } catch (error) {
-                       isMine = String(message.senderId) === myToken
-                   }
-               }
+               const isMine = Boolean(myToken && message.senderId === myToken)
                
                // 시스템 메시지인지 확인
                const isSystemMessage = message.type !== 'TEXT' && message.type !== 'TALK'
