@@ -1,10 +1,13 @@
 // 파일 경로: app/signup/page.tsx
 'use client';
 
-import React, { useRef, ChangeEvent, FormEvent, useEffect } from 'react';
+import React, { useRef, ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation'; // useRouter import
 import { useSignupStore } from '@/stores/signUpStore'; // Zustand 스토어를 import 합니다.
 import Script from 'next/script';
+import {
+    UserCircleIcon, PlusCircleIcon, MinusCircleIcon, XCircleIcon
+} from '@/components/signup/Icons';
 
 // --- 타입 정의 ---
 interface DaumPostcodeData { 
@@ -22,23 +25,6 @@ declare global {
     };
   }
 }
-
-// --- 아이콘 컴포넌트 ---
-const UserCircleIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 text-gray-400">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-);
-const PlusCircleIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-500">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-);
-const MinusCircleIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-500">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-);
 
 const BANK_LIST = [
     '기업은행', '국민은행', '우리은행', 'NH농협은행', '부산은행', 
@@ -60,6 +46,11 @@ export default function SignUpPage() {
         setAgreement, submitSignup, reset, setSocialInfo
     } = useSignupStore();
 
+    // --- 이미지 업로드 관련 로컬 상태 ---
+    const [isUploading, setIsUploading] = useState(false);
+    const [preview, setPreview] = useState<string | null>(null);
+
+
     const fileInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
     
@@ -69,17 +60,88 @@ export default function SignUpPage() {
     // 컴포넌트가 렌더링될 때 useSignupStore() 훅이 최신 상태를 가져와
     // email, profileImage 등의 값을 input에 자동으로 채워줍니다.
 
-    // --- 이벤트 핸들러 ---
-    const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setProfileImage(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
+    // 스토어에 프로필 이미지가 있으면 미리보기에 설정
+    useEffect(() => {
+        if (profileImage) {
+            setPreview(profileImage);
+        }
+    }, [profileImage]);
+
+    // 컴포넌트 언마운트 시 생성된 Object URL 해제 (메모리 누수 방지)
+    useEffect(() => {
+        return () => {
+            if (preview && preview.startsWith('blob:')) {
+                URL.revokeObjectURL(preview);
+            }
+        };
+    }, [preview]);
+
+    // --- 이미지 업로드 관련 핸들러 ---
+
+    // 이미지 업로드 박스 클릭
+    const handleUploadClick = () => {
+        if (isUploading) {
+            alert('이미지 업로드 중입니다. 잠시만 기다려주세요.');
+            return;
+        }
+        fileInputRef.current?.click();
+    };
+
+    // S3 업로드 함수
+    const uploadProfileImage = async (file: File) => {
+        setIsUploading(true);
+        const formData = new FormData();
+        formData.append('files', file);
+
+        try {
+            // 실제 프로젝트의 프로필 업로드 API 엔드포인트로 수정해야 합니다.
+            const response = await fetch('https://i13e202.p.ssafy.io/be/api/storage/upload/product', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) throw new Error('이미지 업로드에 실패했습니다.');
+
+            const data = await response.json();
+            const imageUrl = data.results[0]?.url; // API 응답 구조에 따라 URL 추출
+
+            if (!imageUrl) throw new Error('업로드된 이미지 URL을 받지 못했습니다.');
+
+            setProfileImage(imageUrl); // Zustand 스토어 업데이트
+            setPreview(imageUrl);      // 미리보기를 최종 URL로 업데이트
+
+        } catch (error) {
+            console.error('프로필 이미지 업로드 오류:', error);
+            alert('이미지 업로드 중 오류가 발생했습니다.');
+            setPreview(null); // 오류 발생 시 미리보기 제거
+            setProfileImage(null); // 스토어 상태도 초기화
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    // 파일 선택 시 처리
+    const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // 기존 임시 URL이 있다면 해제
+        if (preview && preview.startsWith('blob:')) URL.revokeObjectURL(preview);
+
+        const tempPreviewUrl = URL.createObjectURL(file);
+        setPreview(tempPreviewUrl); // 임시 URL로 미리보기 먼저 표시
+
+        await uploadProfileImage(file); // S3에 업로드
+
+        if (fileInputRef.current) fileInputRef.current.value = ''; // input 초기화
+    };
+
+    // 이미지 삭제
+    const handleDeleteImage = () => {
+        if (preview && preview.startsWith('blob:')) URL.revokeObjectURL(preview);
+        setPreview(null);
+        setProfileImage(null);
+    };
 
     const handleAddressSearch = () => {
         if (window.daum && window.daum.Postcode) {
@@ -135,19 +197,40 @@ export default function SignUpPage() {
                     <h1 className="text-3xl font-bold text-center mb-10">회원가입</h1>
                     
                     <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-lg space-y-8">
-                        <div className="flex flex-col items-center">
-                            <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageChange} className="hidden" />
-                            <div onClick={() => fileInputRef.current?.click()} className="w-32 h-32 rounded-full bg-gray-100 flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed hover:border-blue-500">
-                                {profileImage ? (
-                                    <img src={profileImage} alt="프로필 미리보기" className="w-full h-full object-cover" />
-                                ) : (
-                                    <UserCircleIcon />
-                                )}
-                            </div>
-                            <p className="text-sm text-gray-500 mt-2">프로필 이미지 등록 (선택)</p>
-                        </div>
+                            <div className="flex flex-col items-center">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    ref={fileInputRef}
+                                    onChange={handleFileChange}
+                                    className="hidden"
+                                />
+                                <div className="relative w-32 h-32">
+                                    <div
+                                        onClick={handleUploadClick}
+                                        className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed hover:border-blue-500 transition-all"
+                                    >
+                                        {preview ? (
+                                            <img src={preview} alt="프로필 미리보기" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <UserCircleIcon />
+                                        )}
+                                        {isUploading && (
+                                            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-full">
+                                                <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full"></div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {preview && !isUploading && (
+                                        <button type="button" onClick={handleDeleteImage} className="absolute -top-1 -right-1 bg-white rounded-full text-gray-500 hover:text-red-500 transition-colors" aria-label="이미지 삭제">
+                                            <XCircleIcon />
+                                        </button>
+                                    )}
+                                </div>
+                                <p className="text-sm text-gray-500 mt-2">프로필 이미지 등록 (선택)</p>
+                            </div>
 
-                        <div>
+                        <div className="w-full">
                             <label className="block text-sm font-medium text-gray-700 mb-1">닉네임</label>
                             <input type="text" value={nickname} onChange={(e) => setNickname(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" required />
                         </div>
