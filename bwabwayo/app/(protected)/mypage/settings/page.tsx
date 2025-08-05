@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, ChangeEvent, FormEvent } from 'react';
 import Sidebar from '@/components/shop/Sidebar';
-import { useMyPageSettingStore } from '@/stores/mypage/mypageSettingStore';
+import { useMyPageSettingStore } from '@/stores/mypage/mySettingStore';
 import Image from 'next/image';
 
 export default function SettingsPage() {
