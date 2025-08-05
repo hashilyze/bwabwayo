@@ -57,10 +57,10 @@ export default function ChatRoomPage() {
           </div>
                  ) : (
            <>
-                           {Array.isArray(messages) && messages.map((message, index) => {
-                // 토큰 비교로 내 메시지인지 판단
-                const myToken = localStorage.getItem('accessToken')
-                const isMine = Boolean(myToken && message.token === myToken)
+            {Array.isArray(messages) && messages.map((message, index) => {
+              // 토큰 비교로 내 메시지인지 판단
+              const myToken = localStorage.getItem('accessToken')
+              const isMine = Boolean(myToken && message.token === myToken)
               return (
                 <div
                   key={index}
@@ -92,7 +92,7 @@ export default function ChatRoomPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      <ChatModal onSendMessage={(message) => sendMessage(roomId, message)} />
+      <ChatModal onSendMessage={async (message) => await sendMessage(roomId, message)} />
     </div>
   )
 } 

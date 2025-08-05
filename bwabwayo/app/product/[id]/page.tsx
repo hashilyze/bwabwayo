@@ -35,6 +35,7 @@ export default function ProductDetailPage() {
   useEffect(() => {
     getProductDetail(productId);
   }, [getProductDetail, productId]);
+  
   // 상대적 시간 계산 함수
   const getRelativeTime = (dateString: string) => {
     if (!dateString) return '';
