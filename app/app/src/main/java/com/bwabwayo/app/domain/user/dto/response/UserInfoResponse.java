@@ -12,10 +12,10 @@ public class UserInfoResponse {
     private int status;
     private String message;
     private String nickname;
-    private String profile_image;
+    private String profileImage;
     private int score;
     private int point;
-    private LocalDate created_at;
+    private LocalDate createdAt;
     private String bio;
     private float rating;
     private List<UserEvaluationStat> evaluation;
@@ -26,10 +26,10 @@ public class UserInfoResponse {
                 .status(200)
                 .message("회원 정보 조회에 성공하였습니다")
                 .nickname(nickname)
-                .profile_image(profileImage)
+                .profileImage(profileImage)
                 .score(score)
                 .point(point)
-                .created_at(createdAt)
+                .createdAt(createdAt)
                 .bio(bio)
                 .rating(rating)
                 .evaluation(evaluation)

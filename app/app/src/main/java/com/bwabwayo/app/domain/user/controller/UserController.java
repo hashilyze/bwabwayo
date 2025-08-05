@@ -2,13 +2,13 @@ package com.bwabwayo.app.domain.user.controller;
 
 import com.bwabwayo.app.domain.auth.annotation.LoginUser;
 import com.bwabwayo.app.domain.user.domain.User;
+import com.bwabwayo.app.domain.user.dto.request.UserDetailRequest;
 import com.bwabwayo.app.domain.user.service.UserService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
@@ -20,5 +20,22 @@ public class UserController {
     @GetMapping
     public ResponseEntity<?> getMyInfo(@LoginUser User user) {
         return ResponseEntity.ok(userService.getUserInfo(user));
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> getUserInfo(@PathVariable("userId") String userId) {
+        return ResponseEntity.ok(userService.getUserInfo(userId));
+    }
+
+    @GetMapping("/detail")
+    public ResponseEntity<?> getUserDetail(@LoginUser User user) {
+        return ResponseEntity.ok(userService.getUserDetail(user));
+    }
+
+    @Transactional
+    @PostMapping("/detail")
+    public ResponseEntity<?> updateUserDetail(@LoginUser User user, @RequestBody UserDetailRequest request) {
+        userService.updateUserDetail(request, user);
+        return ResponseEntity.ok("");
     }
 }
