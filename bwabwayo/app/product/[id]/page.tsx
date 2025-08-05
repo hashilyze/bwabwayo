@@ -1,6 +1,7 @@
 'use client'
 
-import SellerTitle, { Seller } from "@/components/shop/SellerTitle";
+import SellerTitle from "@/components/shop/SellerTitle";
+import type { Seller } from "@/components/shop/SellerTitle";
 import { useProductStore } from "@/stores/product/productStore";
 import { useEffect } from "react";
 import { useParams } from "next/navigation";
