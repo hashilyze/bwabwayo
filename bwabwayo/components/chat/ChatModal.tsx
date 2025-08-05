@@ -4,7 +4,7 @@ import Image from 'next/image';
 import React, { useState } from 'react';
 
 interface ChatModalProps {
-  onSendMessage: (message: string) => Promise<void>;
+  onSendMessage: (message: string) => void;
 }
 
 const ChatInputActive: React.FC<ChatModalProps> = ({ onSendMessage }) => {
@@ -15,9 +15,9 @@ const ChatInputActive: React.FC<ChatModalProps> = ({ onSendMessage }) => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = () => {
     if (messageInput.trim()) {
-      await onSendMessage(messageInput);
+      onSendMessage(messageInput);
       setMessageInput('');
     }
   };

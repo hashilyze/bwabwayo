@@ -221,7 +221,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         }
     },
 
-    sendMessage: async (roomId: number, content: string) => {
+    sendMessage: (roomId: number, content: string) => {
         const { stompClient, isConnected } = get()
         
         if (!stompClient || !isConnected) {
@@ -243,48 +243,26 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 return
             }
 
-            const message = {
+            // 예제 코드를 참고한 STOMP 메시지 형식
+            const stompMessage = {
                 roomId: roomId,
+                senderId: null, // 백엔드에서 토큰으로 추출
+                receiverId: null, // 백엔드에서 roomId로 추출
                 content: content.trim(),
-                type: 'TALK',
-                senderId: null,
-                createdAt: new Date().toISOString()
+                isRead: false,
+                createdAt: new Date(),
+                type: "TEXT"
             }
 
-            console.log('📤 메시지 전송 시도:', message)
+            console.log('📤 STOMP 메시지 전송 시도:', stompMessage)
             
-            // STOMP를 통해 메시지 전송
+            // STOMP를 통해 메시지 전송 (예제와 동일한 방식)
             stompClient.publish({
-                destination: `/pub/chat/message`,
-                body: JSON.stringify(message),
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                destination: "/pub/chat/message",
+                body: JSON.stringify(stompMessage)
             })
 
             console.log('✅ STOMP 메시지 전송 완료')
-            
-            // HTTP API를 통한 메시지 저장 시도
-            try {
-                const response = await useAuthStore.getState().authenticatedFetch(
-                    `https://i13e202.p.ssafy.io/be/api/chatrooms/${roomId}/messages`,
-                    {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            content: content.trim(),
-                            type: 'TALK'
-                        })
-                    }
-                )
-                
-                if (response.ok) {
-                    console.log('✅ HTTP API를 통한 메시지 저장 성공')
-                } else {
-                    console.warn('⚠️ HTTP API를 통한 메시지 저장 실패:', response.status)
-                }
-            } catch (httpError) {
-                console.warn('⚠️ HTTP API를 통한 메시지 저장 중 오류:', httpError)
-            }
             
             // 로컬에서 즉시 메시지 추가 (UI 반응성 향상)
             const localMessage: ChatMessage = {

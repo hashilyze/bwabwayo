@@ -92,7 +92,7 @@ export default function ChatRoomPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      <ChatModal onSendMessage={async (message) => await sendMessage(roomId, message)} />
+      <ChatModal onSendMessage={(message) => sendMessage(roomId, message)} />
     </div>
   )
 } 
