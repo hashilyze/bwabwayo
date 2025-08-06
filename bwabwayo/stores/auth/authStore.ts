@@ -158,15 +158,15 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     const makeRequest = async (requestUrl: string, requestOptions: RequestInit, retry = false): Promise<Response> => {
 
       // 전역 토큰을 우선적으로 사용
-      // let currentToken = get().getGlobalToken()
+      let currentToken = get().getGlobalToken()
       
-      // // 전역 토큰이 없으면 기존 방식 사용
-      // if (!currentToken) {
-      //   currentToken = get().getToken()
-      // }
+      // 전역 토큰이 없으면 기존 방식 사용
+      if (!currentToken) {
+        currentToken = get().getToken()
+      }
       
       // 99년짜리 임시 토큰(실제 사용 시 주석처리)
-      const currentToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI0Mzc1MTI2ODM0Iiwicm9sZSI6IlVTRVIiLCJ0b2tlblR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTQzMjk4OTEsImV4cCI6MzMyNDY3OTM4OTF9.Ri8aEdsV2_37aZ9As4npi_kBvWv0ccQlUzyKweE4B-opos4h-4Ceb7OO4LQUFJp7'
+      // const currentToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI0Mzc1MTI2ODM0Iiwicm9sZSI6IlVTRVIiLCJ0b2tlblR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTQzMjk4OTEsImV4cCI6MzMyNDY3OTM4OTF9.Ri8aEdsV2_37aZ9As4npi_kBvWv0ccQlUzyKweE4B-opos4h-4Ceb7OO4LQUFJp7'
       
       // 헤더에 토큰 자동 추가
       const headers = new Headers(requestOptions.headers)
