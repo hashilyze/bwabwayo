@@ -42,6 +42,7 @@ export default function MyPage() {
     id: userData.userId,
     nickname: userData.nickname,
     sellerImage: userData.profileImage || null, // profileImage를 sellerImage로 매핑
+    profileImage: userData.profileImage || null,
     rating: userData.rating,
     score: userData.score,
     bio: userData.bio || '상점 소개가 없습니다.',
