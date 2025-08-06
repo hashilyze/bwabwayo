@@ -144,7 +144,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         try{
             const response = await useAuthStore.getState().authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/chatrooms`)
             const data = await response.json()
-            console.log(data)
+            // console.log(data)
             set({ roomList: data })
         } catch (error) {
             console.error('Error getting room list:', error)
