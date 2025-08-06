@@ -92,6 +92,7 @@ interface ActivityProductsResponse {
 // Zustand 스토어 상태 및 액션 타입
 interface MyActivityStore {
   salesList: ActivityProduct[];
+  salesTotalElements: number;
   purchaseList: myPurchaseProduct[];
   purchasePage: number;
   purchaseTotalPages: number;
@@ -109,6 +110,7 @@ const baseUrl = 'https://i13e202.p.ssafy.io/be/api';
 
 export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
   salesList: [],
+  salesTotalElements: 0,
   purchaseList: [],
   purchasePage: 0,
   purchaseTotalPages: 1,
@@ -127,10 +129,15 @@ export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
       if (!response.ok) {
         throw new Error((data as ErrorResponse).message || '판매 내역을 가져오는데 실패했습니다.');
       }
-      set({ salesList: (data as ActivityProductsResponse).result, loading: false }); // 성공 시 타입 단언
+      const responseData = data as ActivityProductsResponse;
+      set({
+        salesList: responseData.result,
+        salesTotalElements: responseData.size,
+        loading: false,
+      });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
-      set({ error: errorMessage, loading: false, salesList: [] });
+      set({ error: errorMessage, loading: false, salesList: [], salesTotalElements: 0 });
     }
   },
 
