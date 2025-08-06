@@ -3,21 +3,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLikeProductStore } from '@/stores/product/likeProductStore';
 
-// SVG 아이콘 예시입니다. 실제 프로젝트의 아이콘으로 교체해주세요.
-const HeartIconFilled = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-red-500">
-    <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-1.344-.688 15.247 15.247 0 01-1.344.688l-.022.012-.007.003h-.001ac.001z" />
-    <path fillRule="evenodd" d="M12 21.75l-1.145-.996C4.22 15.825 1.5 12.563 1.5 8.999a5.25 5.25 0 0110.5 0c0 3.564-2.72 6.826-9.355 11.755L12 21.75z" clipRule="evenodd" />
-  </svg>
-);
-
-const HeartIconOutlined = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-400">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-  </svg>
-);
-
-
 interface LikeHeartProps {
   productId: number;
   initialIsLiked?: boolean; // (선택) 부모 컴포넌트에서 초기 상태를 전달하여 깜빡임 방지
@@ -31,7 +16,7 @@ export default function LikeHeart({ productId, initialIsLiked = false }: LikeHea
   const [isLoading, setIsLoading] = useState(false);
 
   // 2. Zustand 스토어에서 필요한 액션과 상태 가져오기
-  const { toggleLike, checkLikeStatus } = useLikeProductStore();
+  const { addLike, removeLike, checkLikeStatus } = useLikeProductStore();
 
   // 3. 컴포넌트가 마운트될 때, 서버의 좋아요 상태를 확인하여 동기화
   useEffect(() => {
@@ -70,9 +55,14 @@ export default function LikeHeart({ productId, initialIsLiked = false }: LikeHea
     setIsLiked(!isLiked);
 
     try {
-      // 스토어의 toggleLike 액션 호출
-      await toggleLike(productId);
-    console.log('좋아요 API 호출 성공');
+      // 이전 상태가 '좋아요'였다면, '좋아요 제거' API 호출
+      if (previousIsLiked) {
+        await removeLike(productId);
+      } else {
+        // 이전 상태가 '좋아요'가 아니었다면, '좋아요 추가' API 호출
+        await addLike(productId);
+      }
+      console.log('좋아요 API 호출 성공');
     } catch (e) {
       // 6. API 요청 실패 시, UI 상태를 원래대로 되돌림
       console.error('좋아요 토글 실패:', e);
@@ -91,7 +81,11 @@ export default function LikeHeart({ productId, initialIsLiked = false }: LikeHea
       aria-label={isLiked ? '좋아요 취소' : '좋아요 추가'}
       className="p-1 rounded-full hover:bg-gray-100 transition-colors"
     >
-      {isLiked ? <HeartIconFilled /> : <HeartIconOutlined />}
+      <img
+        src={isLiked ? "/icon/heart-on.svg" : "/icon/heart-off.svg"}
+        alt={isLiked ? "좋아요 취소" : "좋아요"}
+        className="w-6 h-6"
+      />
     </button>
   );
 }

@@ -58,14 +58,14 @@ export const useLikeProductStore = create<LikeProductStore>((set, get) => ({
       })
 
       if (!response.ok) {
-        throw new Error('좋아요 추가에 실패했습니다')
+        // 실패 시에는 에러 메시지가 JSON으로 올 수 있음
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || '좋아요 추가에 실패했습니다');
       }
 
-      const data = await response.json()
-      console.log('좋아요 추가 성공:', data)
-      console.log('파싱 후 적용할 상태:', data.result || []);
-      
-      set({ loading: false })
+      // 성공 응답에 본문이 없을 수 있으므로 .json()을 호출하지 않음
+      console.log('좋아요 추가 성공');
+      set({ loading: false });
     } catch (error) {
       console.error('좋아요 추가 실패:', error)
       set({ 
@@ -91,13 +91,13 @@ export const useLikeProductStore = create<LikeProductStore>((set, get) => ({
       })
 
       if (!response.ok) {
-        throw new Error('좋아요 제거에 실패했습니다')
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || '좋아요 제거에 실패했습니다');
       }
 
-      const data = await response.json()
-      console.log('좋아요 제거 성공:', data)
-      
-      set({ loading: false })
+      // 성공 응답에 본문이 없을 수 있으므로 .json()을 호출하지 않음
+      console.log('좋아요 제거 성공');
+      set({ loading: false });
     } catch (error) {
       console.error('좋아요 제거 실패:', error)
       set({ 
