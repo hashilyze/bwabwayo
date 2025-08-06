@@ -41,7 +41,7 @@ export default function MyPage() {
   const sellerDataForTitle = {
     id: userData.userId,
     nickname: userData.nickname,
-    profileImage: userData.profileImage,
+    sellerImage: userData.profileImage || null, // profileImage를 sellerImage로 매핑
     rating: userData.rating,
     score: userData.score,
     bio: userData.bio || '상점 소개가 없습니다.',
