@@ -21,9 +21,6 @@ export default function MyPage() {
   // 현재 로그인한 사용자의 상품만 필터링합니다.
   const myProducts = salesList
 
-  // 상점 후기 총 개수 계산
-
-  // 로딩 및 에러 상태 처리
   if (userLoading || salesListLoading) {
     return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
   }
@@ -45,8 +42,8 @@ export default function MyPage() {
     rating: userData.rating,
     score: userData.score,
     bio: userData.bio || '상점 소개가 없습니다.',
-    dealCount: userData.dealCount || 0,
-    reviewCount: userData.reviewCount || 0, // 선택적 속성, 필요에 따라 추
+  dealCount: userData.dealCount || 0, // ← 이름 맞춤!
+  reviewCount: userData.reviewCount || 0, // 선택적 속성, 필요에 따라 추
   };
 
   // 상점 후기 항목 데이터 (실제 item_id에 맞춰야 합니다)
@@ -74,7 +71,7 @@ const formattedEvaluations = userData.evaluation.map((item) => ({
         {/* userId를 전달하지 않으면 '마이페이지'용 사이드바가 렌더링됩니다. */}
         <Sidebar />
 
-        <main>
+        <main className="flex-1 min-w-0">
           <div className="grid grid-cols-2 gap-6">
             {userData && <SellerTitle seller={sellerDataForTitle} />}
 

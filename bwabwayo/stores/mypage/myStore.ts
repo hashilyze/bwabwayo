@@ -62,8 +62,6 @@ fetchUserData: async () => {
     const data = await response.json();
     console.log('📦 [마이페이지] 응답 데이터:', data);
 
-    console.log('🔍 fetchUserData 호출 시 토큰:', useAuthStore.getState().getGlobalToken());
-
     if (!response.ok) throw new Error(data.message || '유저 정보 요청에 실패했습니다.');
 
     // 응답에 맞춰 매핑
