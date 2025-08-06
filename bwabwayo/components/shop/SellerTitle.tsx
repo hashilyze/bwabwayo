@@ -7,6 +7,7 @@ export interface Seller {
   bio: string;
   dealcount: number;
   reviewCount?: number | string; // 선택적 속성, 필요에 따라 추가
+  profileImage: string | null;
 }
 
 interface SellerTitleProps {

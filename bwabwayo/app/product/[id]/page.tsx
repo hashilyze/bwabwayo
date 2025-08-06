@@ -24,6 +24,7 @@ export default function ProductDetailPage() {
   const seller: Seller = {
     id: product?.seller.id ? String(product.seller.id) : undefined,
     nickname: product?.seller.nickname || '',
+    sellerImage: product?.seller.profileImage || null,
     profileImage: product?.seller.profileImage || null,
     rating: product?.seller.rating || 0,
     score: product?.seller.score || 0,
