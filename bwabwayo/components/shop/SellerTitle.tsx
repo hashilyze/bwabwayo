@@ -5,7 +5,7 @@ export interface Seller {
   rating: number;
   score: number;
   bio: string;
-  dealcount: number;
+  dealCount: number;
   reviewCount?: number | string; // 선택적 속성, 필요에 따라 추가
 }
 
@@ -20,7 +20,7 @@ export default function SellerTitle({ seller }: SellerTitleProps) {
     const sellerRating = seller?.rating || 0;
     const sellerImage = seller?.profileImage; // 기본 프로필 이미지 경로
     const bio = seller?.bio || "상점에 대한 설명이 없습니다.";
-    const dealcount = seller?.dealcount || 0;
+    const dealCount = seller?.dealCount || 0;
     const reviewCount = seller?.reviewCount || 0;
     return (
         <div className="w-full">
@@ -35,7 +35,7 @@ export default function SellerTitle({ seller }: SellerTitleProps) {
                         <div className="flex items-center gap-1">
                             <span className="text-gray-400 text-base font-light">{sellerRating}</span>
                             <img src="/fe/icon/star-on.svg" alt="별점" className="w-4 h-4" />
-                            <span className="text-gray-400 text-base font-light">{dealcount}</span>
+                            <span className="text-gray-400 text-base font-light">{dealCount}</span>
                         </div>
                     </div>
                 </div>

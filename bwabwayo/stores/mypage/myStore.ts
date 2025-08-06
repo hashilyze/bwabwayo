@@ -68,21 +68,17 @@ fetchUserData: async () => {
 
     // 응답에 맞춰 매핑
     const userData: UserData = {
+      userId: data.user_id,
       nickname: data.nickname,
       profileImage: data.profile_image,
       bio: data.bio,
       score: data.score,
       point: data.point,
+      dealCount: data.deal_count,
       createdAt: data.created_at,
       rating: data.rating,
       evaluation: data.evaluation,
       reviewCount: data.review_count, // 선택적 속성, 필요에 따라 추가
-      // // 아래 값들은 응답에 없으니 undefined로 처리
-      // id: undefined,
-      // role: undefined,
-      // email: undefined,
-      // phoneNumber: undefined,
-      // dealCount: undefined,
       // penaltyCount: undefined,
       // lastLoginAt: undefined,
       // active: undefined,
