@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { useAuthStore } from '@/stores/auth/authStore';
 
 /**
- * 평가 항목 타입
+ * 평가 항목 타입adsadsadsadsasd
  */
 export interface Evaluation {
   description: string; // description 추가
@@ -49,7 +49,7 @@ const initialState = {
   error: null,
 };
 
-export const useMyPageStore = create<MyPageStore>((set) => ({
+export const useMyStore = create<MyPageStore>((set) => ({
   ...initialState,
 
 fetchUserData: async () => {
@@ -60,6 +60,8 @@ fetchUserData: async () => {
   try {
     const response = await useAuthStore.getState().authenticatedFetch(requestUrl);
     const data = await response.json();
+    console.log('📦 [마이페이지] 응답 데이터:', data);
+
     console.log('🔍 fetchUserData 호출 시 토큰:', useAuthStore.getState().getGlobalToken());
 
     if (!response.ok) throw new Error(data.message || '유저 정보 요청에 실패했습니다.');

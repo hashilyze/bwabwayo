@@ -1,7 +1,7 @@
 export interface Seller {
   id?: string;
   nickname: string;
-  profileImage: string | null;
+  sellerImage: string | null;
   rating: number;
   score: number;
   bio: string;
@@ -18,10 +18,11 @@ export default function SellerTitle({ seller }: SellerTitleProps) {
     const trustPercentage = (trustScore / 1000) * 100;
     const sellerName = seller?.nickname || "판매자";
     const sellerRating = seller?.rating || 0;
-    const sellerImage = seller?.profileImage || "/image/sample.png";
+    const sellerImage = seller?.sellerImage || "/image/sample.png";
     const bio = seller?.bio || "상점에 대한 설명이 없습니다.";
     const dealcount = seller?.dealcount || 0;
     const reviewCount = seller?.reviewCount || 0;
+    console.log(sellerImage, sellerName, sellerRating, trustScore, trustPercentage, bio, dealcount, reviewCount);
     return (
         <div className="w-full">
             {/* 상점 프로필 */}

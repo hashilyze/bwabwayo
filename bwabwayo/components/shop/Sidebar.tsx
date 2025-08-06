@@ -26,7 +26,7 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="w-64">
+    <div className="flex-1">
       <Link href={basePath} className="hover:text-blue-600 transition-colors">
         <h2 className="text-2xl font-bold mb-6">마이페이지</h2>
       </Link>

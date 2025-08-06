@@ -5,13 +5,13 @@ import Link from 'next/link';
 import Sidebar from "@/components/shop/Sidebar";
 import ProductCard from "@/components/mypage/MyProductCard";
 import SellerTitle from '@/components/shop/SellerTitle';
-import { useMyPageStore, Evaluation } from '@/stores/mypage/myStore';
+import { useMyStore, Evaluation } from '@/stores/mypage/myStore';
 import { useMyActivityStore, ActivityProduct } from '@/stores/mypage/myActivityStore';
 
 
 
 export default function MyPage() {
-  const { userData, loading: userLoading, error: userError, fetchUserData } = useMyPageStore();
+  const { userData, loading: userLoading, error: userError, fetchUserData } = useMyStore();
   const { salesList, salesTotalElements, loading: salesListLoading, error:salesListError, fetchSales} = useMyActivityStore();
   useEffect(() => {
     fetchUserData();
@@ -41,7 +41,7 @@ export default function MyPage() {
   const sellerDataForTitle = {
     id: userData.userId,
     nickname: userData.nickname,
-    profileImage: userData.profileImage,
+    sellerImage: userData.profileImage || null, // profileImage를 sellerImage로 매핑
     rating: userData.rating,
     score: userData.score,
     bio: userData.bio || '상점 소개가 없습니다.',
@@ -51,9 +51,9 @@ export default function MyPage() {
 
   // 상점 후기 항목 데이터 (실제 item_id에 맞춰야 합니다)
 const reviewTextMap: Record<string, string> = {
-  1: '구매확정이 빨라요.',
-  2: '친절하고 배려가 넘쳐요.',
-  3: '답장이 빨라요.',
+  1: '응답이 빨라요.',
+  2: '친절해요.',
+  3: '설명이 정확해요.',
   4: '약속시간을 잘 지켜요.',
   5: '좋은 제품이에요.',
   6: '재구매 의사 있어요.',
@@ -74,7 +74,7 @@ const formattedEvaluations = userData.evaluation.map((item) => ({
         {/* userId를 전달하지 않으면 '마이페이지'용 사이드바가 렌더링됩니다. */}
         <Sidebar />
 
-        <main>
+        <main className='flex-4 '>
           <div className="grid grid-cols-2 gap-6">
             <SellerTitle seller={sellerDataForTitle} />
 
@@ -97,7 +97,7 @@ const formattedEvaluations = userData.evaluation.map((item) => ({
                  {/* 판매상품 */}
                  <li className="p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
                    <div className="text-gray-500 text-sm mb-2">판매상품</div>
-                   <div className="text-black text-xl font-normal">{salesTotalElements}</div>
+                   <div className="text-black text-xl font-normal">{myProducts.length}</div>
                  </li>
                  
                  {/* 거래후기 */}
@@ -141,15 +141,15 @@ const formattedEvaluations = userData.evaluation.map((item) => ({
          <section className="mt-12">
   <h3 className="text-xl font-bold mb-4">상점 후기</h3>
   <div className="flex items-center gap-2 text-lg font-bold mb-6">
-    <span>{userData.rating.toFixed(1)}</span>
+    <span>{userData.rating}</span>
     <span className="text-gray-500 text-base font-normal">총 후기</span>
     <span>{userData.reviewCount}</span>
   </div>
   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    {formattedEvaluations.map((review) => (
-  <div key={review.id} className="bg-white rounded-lg shadow p-4 flex justify-between items-center">
-    <span className="text-gray-600">{review.text}</span>
-    <span className="font-bold text-blue-600">{review.count}</span>
+    {formattedEvaluations.map((item) => (
+  <div key={item.id} className="bg-white rounded-lg shadow p-4 flex justify-between items-center">
+    <span className="text-gray-600">{item.text}</span>
+    <span className="font-bold text-blue-600">{item.count}</span>
   </div>
 ))}
   </div>
