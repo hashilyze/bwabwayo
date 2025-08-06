@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
 import ReservationModal from '@/components/chat/ReservationModal'
+import AllModals from '@/components/chat/modals/AllModals'
 
 export default function ChatRoomPage() {
   const router = useRouter()
@@ -138,39 +139,25 @@ export default function ChatRoomPage() {
              {messages && messages.filter(message => message && typeof message === 'object' && message.content && message.content.trim()).map((message, index) => {
                // 내가 보낸 메시지인지 판단 (senderId와 내 사용자 ID 비교)
                const isMine = myUserId ? String(message.senderId) === String(myUserId) : false
-              
-              // 공지글인지 판단 (이모지로 시작하는 메시지)
-              const isNotice = message.content.startsWith('📅') || 
-                              message.content.startsWith('❌') || 
-                              message.content.startsWith('🔄') || 
-                              message.content.startsWith('✅') || 
-                              message.content.startsWith('💬') || 
-                              message.content.startsWith('👋') || 
-                              message.content.startsWith('🔧') || 
-                              message.content.startsWith('🆕');
+
+              // 공지글 타입 구분
+              let noticeType = '';
+              if (message.content.startsWith('화상채팅예약')) {
+                noticeType = 'video'; // 화상 채팅 예약
+              } else if (message.content.startsWith('거래시작')) {
+                noticeType = 'start'; // 거래 시작
+              } else if (message.content.startsWith('입금확인')) {
+                noticeType = 'check'; // 입금 확인
+              } else if (message.content.startsWith('배송지계좌')) {
+                noticeType = 'lotation'; // 배송지계좌
+              } else if (message.content.startsWith('배송조회')) {
+                noticeType = 'delivery'; // 배송 조회
+              }
               
               // 공지글인 경우 특별한 디자인 적용
-              if (isNotice) {
+              if (noticeType) {
                 return (
-                  <div key={index} className="mb-4 flex justify-center">
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg px-6 py-4 max-w-md shadow-sm">
-                      <div className="flex items-center justify-center mb-2">
-                        <div className="w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
-                        <span className="text-xs font-medium text-blue-600 uppercase tracking-wide">시스템 공지</span>
-                        <div className="w-2 h-2 bg-blue-400 rounded-full ml-2"></div>
-                      </div>
-                      <div className="text-sm text-gray-700 text-center whitespace-pre-line leading-relaxed">
-                        {message.content}
-                      </div>
-                      <div className="text-xs text-gray-400 text-center mt-2">
-                        {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
-                          hour: 'numeric',
-                          minute: '2-digit',
-                          hour12: true
-                        })}
-                      </div>
-                    </div>
-                  </div>
+                  <AllModals key={index} message={message} type={noticeType} />
                 )
               }
               
