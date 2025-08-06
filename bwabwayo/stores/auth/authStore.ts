@@ -156,7 +156,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   // ⭐ 핵심: 고급 인증된 fetch 요청 (토큰 갱신, 재시도, 큐 처리 포함)
   authenticatedFetch: async (url: string, options: RequestInit = {}): Promise<Response> => {
     const makeRequest = async (requestUrl: string, requestOptions: RequestInit, retry = false): Promise<Response> => {
-
+      console.log('🧪 요청 시작:', requestUrl);
       // 전역 토큰을 우선적으로 사용
       let currentToken = get().getGlobalToken()
       console.log('🔍 전역 토큰 확인:', currentToken)
@@ -208,6 +208,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       // 401 Unauthorized 처리 (토큰 만료)
       if (response.status === 401 && !retry) {
         // 토큰 갱신이 이미 진행 중인 경우 큐에 대기
+        console.log('🧪 응답 상태:', response.status);
+
         if (isRefreshing) {
           return new Promise((resolve, reject) => {
             failedQueue.push({ resolve, reject, url: requestUrl, options: requestOptions })
@@ -236,6 +238,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
             
             // 원래 요청 재시도
             return makeRequest(requestUrl, requestOptions, true)
+            console.log('🔁 재시도 시 사용되는 토큰:', get().getToken());
           } else {
             // 토큰 갱신 실패
             throw new Error('토큰 갱신 실패')
@@ -260,6 +263,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       }
 
       return response
+      console.log('🧪 응답 상태:', response.status);
+
     }
 
     return makeRequest(url, options)

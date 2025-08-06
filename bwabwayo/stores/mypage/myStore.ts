@@ -30,6 +30,7 @@ export interface UserData {
   active?: boolean;
   rating: number;
   evaluation: Evaluation[];
+  reviewCount?: number; // 선택적 속성, 필요에 따라 추가
 }
 
 interface MyPageStore {
@@ -59,6 +60,7 @@ fetchUserData: async () => {
   try {
     const response = await useAuthStore.getState().authenticatedFetch(requestUrl);
     const data = await response.json();
+    console.log('🔍 fetchUserData 호출 시 토큰:', useAuthStore.getState().getGlobalToken());
 
     if (!response.ok) throw new Error(data.message || '유저 정보 요청에 실패했습니다.');
 
@@ -72,6 +74,7 @@ fetchUserData: async () => {
       createdAt: data.created_at,
       rating: data.rating,
       evaluation: data.evaluation,
+      reviewCount: data.review_count || 0, // 선택적 속성, 필요에 따라 추가
       // // 아래 값들은 응답에 없으니 undefined로 처리
       // id: undefined,
       // role: undefined,
@@ -87,6 +90,7 @@ fetchUserData: async () => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : '마이페이지 정보를 불러오는 중 알 수 없는 오류가 발생했습니다.';
     console.error('🔥 [마이페이지] 유저 정보 요청 중 예외 발생:', error);
+    console.log('🔍 fetchUserData 호출 시 토큰:', useAuthStore.getState().getGlobalToken());
     set({ error: errorMessage, loading: false });
   }
 },
