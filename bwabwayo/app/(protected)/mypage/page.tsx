@@ -8,27 +8,20 @@ import SellerTitle from '@/components/shop/SellerTitle';
 import { useMyPageStore, Evaluation } from '@/stores/mypage/myStore';
 import { useMyActivityStore, ActivityProduct } from '@/stores/mypage/myActivityStore';
 
-// 상점 후기 항목 데이터 (실제 item_id에 맞춰야 합니다)
-const reviewItems = [
-  { id: 1, text: '구매확정이 빨라요.' },
-  { id: 2, text: '친절하고 배려가 넘쳐요.' },
-  { id: 3, text: '답장이 빨라요.' },
-  { id: 4, text: '약속시간을 잘 지켜요.' },
-];
+
 
 export default function MyPage() {
   const { userData, loading: userLoading, error: userError, fetchUserData } = useMyPageStore();
-  const { salesList, loading: salesListLoading, error:salesListError, fetchSales} = useMyActivityStore();
+  const { salesList, salesTotalElements, loading: salesListLoading, error:salesListError, fetchSales} = useMyActivityStore();
   useEffect(() => {
     fetchUserData();
-    fetchSales
-  }, [ fetchUserData, fetchSales]);
+    fetchSales();
+  }, [fetchUserData, fetchSales]);
 
   // 현재 로그인한 사용자의 상품만 필터링합니다.
-  const myProducts = userData ? salesList.filter(p => p.seller.id === userData.userId) : [];
+  const myProducts = salesList
 
   // 상점 후기 총 개수 계산
-  const totalReviews = userData?.evaluation.reduce((sum, item) => sum + item.number, 0) ?? 0;
 
   // 로딩 및 에러 상태 처리
   if (userLoading || salesListLoading) {
@@ -53,7 +46,27 @@ export default function MyPage() {
     score: userData.score,
     bio: userData.bio || '상점 소개가 없습니다.',
     dealcount: userData.dealCount || 0,
+    reviewCount: userData.reviewCount || 0, // 선택적 속성, 필요에 따라 추
   };
+
+  // 상점 후기 항목 데이터 (실제 item_id에 맞춰야 합니다)
+const reviewTextMap: Record<string, string> = {
+  1: '구매확정이 빨라요.',
+  2: '친절하고 배려가 넘쳐요.',
+  3: '답장이 빨라요.',
+  4: '약속시간을 잘 지켜요.',
+  5: '좋은 제품이에요.',
+  6: '재구매 의사 있어요.',
+  7: '포장이 깔끔해요.',
+  8: '거래 장소가 안전했어요.',
+};
+const formattedEvaluations = userData.evaluation.map((item) => ({
+  id: item.item_id,
+  text: reviewTextMap[item.item_id] || item.description,
+  count: item.number,
+}));
+
+
 
   return (
     <div>
@@ -84,7 +97,7 @@ export default function MyPage() {
                  {/* 판매상품 */}
                  <li className="p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
                    <div className="text-gray-500 text-sm mb-2">판매상품</div>
-                   <div className="text-black text-xl font-normal">{myProducts.length}</div>
+                   <div className="text-black text-xl font-normal">{salesTotalElements}</div>
                  </li>
                  
                  {/* 거래후기 */}
@@ -130,18 +143,15 @@ export default function MyPage() {
   <div className="flex items-center gap-2 text-lg font-bold mb-6">
     <span>{userData.rating.toFixed(1)}</span>
     <span className="text-gray-500 text-base font-normal">총 후기</span>
-    <span>{totalReviews}</span>
+    <span>{userData.reviewCount}</span>
   </div>
   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    {reviewItems.map((review) => {
-      const count = userData.evaluation.find((e) => e.item_id === review.id)?.number ?? 0;
-      return (
-        <div key={review.id} className="bg-white rounded-lg shadow p-4 flex justify-between items-center">
-          <span className="text-gray-600">{review.text}</span>
-          <span className="font-bold text-blue-600">{count}</span>
-        </div>
-      );
-    })}
+    {formattedEvaluations.map((review) => (
+  <div key={review.id} className="bg-white rounded-lg shadow p-4 flex justify-between items-center">
+    <span className="text-gray-600">{review.text}</span>
+    <span className="font-bold text-blue-600">{review.count}</span>
+  </div>
+))}
   </div>
 </section>
         </main>
