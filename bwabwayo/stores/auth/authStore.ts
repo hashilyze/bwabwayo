@@ -227,7 +227,11 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
             console.log('🔄 토큰 갱신 응답:', refreshData);
 
             // 새 토큰 저장
-            get().setToken(newAccessToken)
+            get().setToken(newAccessToken);
+            // 만약 전역 토큰이 사용되고 있었다면, 그것이 만료되었을 가능성이 높으므로 함께 갱신합니다.
+            if (get().getGlobalToken()) {
+              get().setGlobalToken(newAccessToken);
+            }
             
             // 큐에 대기 중인 요청들 처리
             processQueue(null, newAccessToken)

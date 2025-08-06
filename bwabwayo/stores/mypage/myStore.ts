@@ -90,7 +90,6 @@ fetchUserData: async () => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : '마이페이지 정보를 불러오는 중 알 수 없는 오류가 발생했습니다.';
     console.error('🔥 [마이페이지] 유저 정보 요청 중 예외 발생:', error);
-    console.log('🔍 fetchUserData 호출 시 토큰:', useAuthStore.getState().getGlobalToken());
     set({ error: errorMessage, loading: false });
   }
 },
