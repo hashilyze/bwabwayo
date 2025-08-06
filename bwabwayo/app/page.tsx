@@ -13,6 +13,15 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
+import { useAuthStore } from '@/stores/auth/authStore';
+
+useEffect(() => {
+  const { getToken } = useAuthStore.getState();
+  const token = getToken();
+  console.log('token', token);
+}, []);
+
+
 // 인증 처리 컴포넌트
 function AuthHandler() {
   const searchParams = useSearchParams();
