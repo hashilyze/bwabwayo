@@ -62,6 +62,27 @@ interface RawPurchaseProduct {
   purchaseConfirmStatus: number;
 }
 
+// API 응답 타입 (구매내역 - 페이지네이션)
+interface PurchaseProductsResponse {
+  content: RawPurchaseProduct[];
+  pageable: object;
+  totalPages: number;
+  totalElements: number;
+  last: boolean;
+  size: number;
+  number: number;
+  sort: object;
+  numberOfElements: number;
+  first: boolean;
+  empty: boolean;
+}
+
+// API 에러 응답 타입
+interface ErrorResponse {
+  message: string;
+  // code?: string; 와 같이 다른 에러 관련 필드가 있다면 추가할 수 있습니다.
+}
+
 // API 응답 타입
 interface ActivityProductsResponse {
   size: number;
@@ -72,19 +93,26 @@ interface ActivityProductsResponse {
 interface MyActivityStore {
   salesList: ActivityProduct[];
   purchaseList: myPurchaseProduct[];
+  purchasePage: number;
+  purchaseTotalPages: number;
+  purchaseHasMore: boolean;
   wishList: ActivityProduct[];
   loading: boolean;
   error: string | null;
   fetchSales: () => Promise<void>;
-  fetchPurchases: () => Promise<void>;
+  fetchPurchases: (page?: number) => Promise<void>;
   fetchWishlist: () => Promise<void>;
+  resetPurchases: () => void;
 }
 
 const baseUrl = 'https://i13e202.p.ssafy.io/be/api';
 
-export const useMyActivityStore = create<MyActivityStore>((set) => ({
+export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
   salesList: [],
   purchaseList: [],
+  purchasePage: 0,
+  purchaseTotalPages: 1,
+  purchaseHasMore: true,
   wishList: [],
   loading: false,
   error: null,
@@ -95,31 +123,34 @@ export const useMyActivityStore = create<MyActivityStore>((set) => ({
     const requestUrl = `${baseUrl}/products/my`; // 판매내역 API
     try {
       const response = await useAuthStore.getState().authenticatedFetch(requestUrl);
-      const data: ActivityProductsResponse = await response.json();
+      const data: ActivityProductsResponse | ErrorResponse = await response.json();
       if (!response.ok) {
-        const errorData  = await response.json();
-        throw new Error(errorData.message || '판매 내역을 가져오는데 실패했습니다.'); 
+        throw new Error((data as ErrorResponse).message || '판매 내역을 가져오는데 실패했습니다.');
       }
-      set({ salesList: data.result, loading: false });
+      set({ salesList: (data as ActivityProductsResponse).result, loading: false }); // 성공 시 타입 단언
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
       set({ error: errorMessage, loading: false, salesList: [] });
     }
   },
 
-  // 내 구매내역 불러오기 (API 확인 필요)
-  fetchPurchases: async () => {
+  // 내 구매내역 불러오기
+  fetchPurchases: async (page = 0) => {
+    // 이미 로딩 중이거나 더 이상 페이지가 없으면 요청하지 않음
+    if (get().loading || (page > 0 && !get().purchaseHasMore)) return;
+
     set({ loading: true, error: null });
-    const requestUrl = `${baseUrl}/users/orders`; // 구매내역 API
+    const requestUrl = `${baseUrl}/users/orders?page=${page}&size=10`; // 페이지와 사이즈 파라미터 추가
     try {
       const response = await useAuthStore.getState().authenticatedFetch(requestUrl);
-      const data = await response.json();
+      const data: PurchaseProductsResponse | ErrorResponse = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || '구매 내역을 가져오는데 실패했습니다.');
+        throw new Error((data as ErrorResponse).message || '구매 내역을 가져오는데 실패했습니다.');
       }
+      const responseData = data as PurchaseProductsResponse;
 
       // API 응답 데이터를 myPurchaseProduct[] 타입으로 변환
-      const formattedPurchases: myPurchaseProduct[] = data.map((item: RawPurchaseProduct) => ({
+      const formattedPurchases: myPurchaseProduct[] = responseData.content.map((item: RawPurchaseProduct) => ({
         id: item.productId, // productId를 id로 매핑
         thumbnail: item.thumbnail,
         title: item.title,
@@ -130,16 +161,29 @@ export const useMyActivityStore = create<MyActivityStore>((set) => ({
         purchaseStatus: item.purchaseConfirmStatus, // purchaseConfirmStatus를 purchaseStatus로 매핑
       }));
 
-      set({ purchaseList: formattedPurchases, loading: false });
+      set(state => ({
+        purchaseList: page === 0 ? formattedPurchases : [...state.purchaseList, ...formattedPurchases],
+        purchasePage: responseData.number,
+        purchaseTotalPages: responseData.totalPages,
+        purchaseHasMore: !responseData.last,
+        loading: false,
+      }));
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
       set({ error: errorMessage, loading: false, purchaseList: [] });
     }
   },
 
+  resetPurchases: () => set({
+    purchaseList: [],
+    purchasePage: 0,
+    purchaseTotalPages: 1,
+    purchaseHasMore: true,
+    error: null,
+  }),
+
   // 내 찜목록 불러오기 (API 확인 필요)
   fetchWishlist: async () => {
     // ... 찜목록 API 호출 로직 ...
   },
 }));
-

@@ -6,13 +6,33 @@ import Sidebar from "@/components/shop/Sidebar"; // Sidebar 컴포넌트를 impo
 import { useMyActivityStore, myPurchaseProduct } from "@/stores/mypage/myActivityStore"; // Zustand 스토어를 import 합니다.
 
 export default function MyPagePurchase() {
-  const {purchaseList, loading: purchaseListLoading, error: purchaseListError, fetchPurchases } = useMyActivityStore();
+  const {
+    purchaseList,
+    purchasePage,
+    purchaseHasMore,
+    loading: purchaseListLoading,
+    error: purchaseListError,
+    fetchPurchases,
+    resetPurchases,
+  } = useMyActivityStore();
 
   useEffect(() => {
-    fetchPurchases();
-  }, [fetchPurchases]);
+    // 첫 페이지 로드
+    fetchPurchases(0);
 
-  
+    // 컴포넌트 언마운트 시 상태 초기화
+    return () => {
+      resetPurchases();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 마운트 시 한 번만 실행
+
+  const handleLoadMore = () => {
+    if (!purchaseListLoading && purchaseHasMore) {
+      fetchPurchases(purchasePage + 1);
+    }
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
@@ -34,7 +54,14 @@ export default function MyPagePurchase() {
           
           {/* 상품 리스트 */}
           <div className="divide-y divide-gray-200 bg-white rounded-b-lg shadow">
-            {purchaseList.map((item) => (
+            {purchaseList.length === 0 && !purchaseListLoading && (
+              <div className="text-center text-gray-500 py-20">
+                구매 내역이 없습니다.
+              </div>
+            )}
+            {purchaseListError && <div className="text-center text-red-500 py-20">에러: {purchaseListError}</div>}
+
+            {purchaseList.map((item: myPurchaseProduct) => (
               <div key={item.id} className="grid grid-cols-12 items-center px-6 py-6">
                 {/* 상품명 및 이미지 */}
                 <div className="col-span-4 flex items-center gap-4">
@@ -49,7 +76,7 @@ export default function MyPagePurchase() {
                 
                 {/* 배송상태 */}
                 <div className="col-span-3 text-center">
-                  <div className="text-base font-medium text-gray-900">{item.deliveryStatus}</div>
+                  <div className="text-base font-medium text-gray-900">{item.deliveryStatus || '직거래'}</div>
                   {item.deliveryStatus && (
                     <div className="text-xs text-gray-500 mt-1">
                       <div>{item.courierName}</div>
@@ -89,6 +116,19 @@ export default function MyPagePurchase() {
               </div>
             ))}
           </div>
+
+          {/* 더보기 버튼 */}
+          {purchaseHasMore && (
+            <div className="mt-8 text-center">
+              <button
+                onClick={handleLoadMore}
+                disabled={purchaseListLoading}
+                className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {purchaseListLoading ? '불러오는 중...' : '더보기'}
+              </button>
+            </div>
+          )}
         </main>
       </div>
     </div>
