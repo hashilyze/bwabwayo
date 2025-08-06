@@ -90,6 +90,9 @@ interface ChatRoomStore{
     isConnected: boolean
     isConnecting: boolean
     currentSelectedRoom: ChatRoom | null
+    // 화상채팅 관련 상태
+    isVideoChatOpen: boolean
+    videoRoomId: number | null
     addChatRoom: (addRoom: addRoom) => Promise<RoomInfo | null>
     getRoomInfo: (roomId: number) => Promise<RoomInfo | null>
     getRoomList: () => void
@@ -98,6 +101,9 @@ interface ChatRoomStore{
     disconnectStomp: () => void
     appendMessage: (msg: ChatMessage, isMine: boolean) => void
     clearMessages: () => void
+    // 화상채팅 관련 액션
+    openVideoChat: (roomId: number) => void
+    closeVideoChat: () => void
     getMessageHistory: (roomId: number) => Promise<void>
     sendMessage: (roomId: number, content: string) => void
 }
@@ -110,6 +116,9 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     isConnected: false,
     isConnecting: false,
     currentSelectedRoom: null,
+    // 화상채팅 관련 상태
+    isVideoChatOpen: false,
+    videoRoomId: null,
 
     addChatRoom: async (addRoom: addRoom) => {
         try{
@@ -299,6 +308,17 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         } catch (error) {
             console.error('❌ 메시지 전송 실패:', error)
         }
+    },
+
+    // 화상채팅 관련 함수들
+    openVideoChat: (roomId: number) => {
+        console.log('📹 화상채팅 열기:', roomId);
+        set({ isVideoChatOpen: true, videoRoomId: roomId });
+    },
+
+    closeVideoChat: () => {
+        console.log('📹 화상채팅 닫기');
+        set({ isVideoChatOpen: false, videoRoomId: null });
     },
 
 }))

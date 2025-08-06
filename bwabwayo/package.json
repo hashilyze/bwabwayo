@@ -15,7 +15,7 @@
     "axios": "^1.11.0",
     "express": "^5.1.0",
     "next": "^14.2.30",
-    "openvidu-browser": "^2.31.0",
+    "openvidu-browser": "^2.29.0",
     "react": "^18.2.0",
     "react-calendar": "^6.0.0",
     "react-date-picker": "^12.0.1",

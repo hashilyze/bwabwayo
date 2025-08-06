@@ -15,7 +15,7 @@ interface VideoConferenceState {
     token?: string;
 }
 
-export default function VideoConference({ videoRoomId }: { videoRoomId: number }) {
+export default function VideoConference({ videoRoomId, onClose }: { videoRoomId: number; onClose?: () => void }) {
     const [state, setState] = useState<VideoConferenceState>({
         mySessionId: '',
         myUserName: 'Participant' + Math.floor(Math.random() * 100),
@@ -214,83 +214,103 @@ export default function VideoConference({ videoRoomId }: { videoRoomId: number }
     const myUserName = state.myUserName;
 
     return (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1280px] z-99 bg-white">
+        <div className="w-full h-full bg-white flex flex-col">
             {state.session === undefined ? (
-                <div id="join">
-                    <div id="img-div">
-                        <img src="./resource/images/openvidu_grey_bg_transp_cropped.png" alt="OpenVidu logo" />
-                    </div>
-                    <div id="join-dialog" className="jumbotron vertical-center">
-                        <h1> Join a video session </h1>
-                        <form className="form-group" onSubmit={joinSession}>
-                            <p>
-                                <label>Participant: </label>
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+                        <div className="text-center mb-6">
+                            <h1 className="text-2xl font-bold text-gray-800 mb-2">화상 채팅 참여</h1>
+                            <p className="text-gray-600">채팅방에 참여하여 화상 통화를 시작하세요</p>
+                        </div>
+                        <form className="space-y-4" onSubmit={joinSession}>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">참여자 이름</label>
                                 <input
-                                    className="form-control"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     type="text"
                                     id="userName"
                                     value={myUserName}
                                     onChange={handleChangeUserName}
                                     required
                                 />
-                            </p>
-                            <p>
-                                <label> Session: </label>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">세션 ID</label>
                                 <input
-                                    className="form-control"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     type="text"
                                     id="sessionId"
                                     value={mySessionId}
                                     onChange={handleChangeSessionId}
                                     required
                                 />
-                            </p>
-                            <p className="text-center">
-                                <input className="btn btn-lg btn-success" name="commit" type="submit" value="JOIN" />
-                            </p>
+                            </div>
+                            <button 
+                                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+                                type="submit"
+                            >
+                                참여하기
+                            </button>
                         </form>
                     </div>
                 </div>
             ) : null}
 
             {state.session !== undefined ? (
-                <div id="session">
-                    <div id="session-header">
-                        <h1 id="session-title">{mySessionId}</h1>
-                        <input
-                            className="btn btn-large btn-danger"
-                            type="button"
-                            id="buttonLeaveSession"
-                            onClick={leaveSession}
-                            value="Leave session"
-                        />
-                        <input
-                            className="btn btn-large btn-success"
-                            type="button"
-                            id="buttonSwitchCamera"
-                            onClick={switchCamera}
-                            value="Switch Camera"
-                        />
+                <div className="flex flex-col h-full">
+                    {/* 헤더 */}
+                    <div className="bg-gray-800 text-white px-6 py-4 flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                            <h1 className="text-xl font-semibold">화상 채팅</h1>
+                            <span className="text-sm text-gray-300">세션: {mySessionId}</span>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                            <button
+                                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
+                                onClick={switchCamera}
+                            >
+                                카메라 전환
+                            </button>
+                            <button
+                                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm"
+                                onClick={leaveSession}
+                            >
+                                나가기
+                            </button>
+                        </div>
                     </div>
 
-                    {state.mainStreamManager !== undefined ? (
-                        <div id="main-video" className="col-md-6">
-                            <UserVideoComponent streamManager={state.mainStreamManager} />
-                        </div>
-                    ) : null}
-                    <div id="video-container" className="col-md-6">
-                        {state.publisher !== undefined ? (
-                            <div className="stream-container col-md-6 col-xs-6" onClick={() => handleMainVideoStream(state.publisher)}>
-                                <UserVideoComponent
-                                    streamManager={state.publisher} />
+                    {/* 비디오 컨테이너 */}
+                    <div className="flex-1 flex p-4 bg-gray-900">
+                        {/* 메인 비디오 (왼쪽) */}
+                        {state.mainStreamManager !== undefined ? (
+                            <div className="flex-1 mr-2">
+                                <div className="bg-gray-800 rounded-lg overflow-hidden h-full">
+                                    <UserVideoComponent streamManager={state.mainStreamManager} />
+                                </div>
                             </div>
                         ) : null}
-                        {state.subscribers.map((sub, i) => (
-                            <div key={sub.id} className="stream-container col-md-6 col-xs-6" onClick={() => handleMainVideoStream(sub)}>
-                                <span>{sub.id}</span>
-                                <UserVideoComponent streamManager={sub} />
-                            </div>
-                        ))}
+                        
+                        {/* 서브 비디오들 (오른쪽) */}
+                        <div className="w-1/3 space-y-2">
+                            {state.publisher !== undefined && (
+                                <div 
+                                    className="bg-gray-800 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                                    onClick={() => handleMainVideoStream(state.publisher)}
+                                >
+                                    <UserVideoComponent streamManager={state.publisher} />
+                                </div>
+                            )}
+                            {state.subscribers.map((sub, i) => (
+                                <div 
+                                    key={sub.id} 
+                                    className="bg-gray-800 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                                    onClick={() => handleMainVideoStream(sub)}
+                                >
+                                    <UserVideoComponent streamManager={sub} />
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             ) : null}
@@ -324,7 +344,7 @@ export default function VideoConference({ videoRoomId }: { videoRoomId: number }
         }, {
             headers: { 'Content-Type': 'application/json', },
         });
-        // console.log('세션발급 성공!:', response.data);
+        console.log('세션발급 성공!:', response.data);
         return response.data; // The sessionId
     }
 
@@ -332,6 +352,7 @@ export default function VideoConference({ videoRoomId }: { videoRoomId: number }
         const response = await axios.post('https://i13e202.p.ssafy.io/be/api/sessions/' + sessionId + '/token', {}, {
             headers: { 'Content-Type': 'application/json', },
         });
+        console.log('토큰발급 성공!:', response.data);
         return response.data; // The token
     }
 }

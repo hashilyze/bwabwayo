@@ -12,7 +12,7 @@ export default function ChatRoomPage() {
   const params = useParams()
   const searchParams = useSearchParams()
   const roomId = Number(params.roomId)
-  const { messages, getMessageHistory, connectStomp, currentSelectedRoom } = useChatRoomStore()
+  const { messages, getMessageHistory, connectStomp, currentSelectedRoom, openVideoChat } = useChatRoomStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
@@ -84,8 +84,12 @@ export default function ChatRoomPage() {
             <span className="text-sm font-semibold text-black">70,000원</span>
           </div>
         </div>
-        <button className='bg-gray-400 py-2 mt-2 cursor-pointer' onClick={() => {
-        }}>화상채팅방 입장</button>
+        <button 
+          className='bg-blue-600 text-white py-2 px-4 mt-2 cursor-pointer rounded-md hover:bg-blue-700 transition-colors' 
+          onClick={() => openVideoChat(roomId)}
+        >
+          화상채팅방 입장
+        </button>
       </div>
 
       {/* 채팅방 헤더 모달 */}

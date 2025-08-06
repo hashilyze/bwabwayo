@@ -27,6 +27,6 @@ export default class OpenViduVideoComponent extends Component<OpenViduVideoCompo
     }
 
     render() {
-        return <video autoPlay={true} ref={this.videoRef} />;
+        return <video autoPlay={true} ref={this.videoRef} className="w-full h-full object-cover" />;
     }
 } 
