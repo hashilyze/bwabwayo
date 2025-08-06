@@ -5,13 +5,13 @@ import Link from 'next/link';
 import Sidebar from "@/components/shop/Sidebar";
 import ProductCard from "@/components/mypage/MyProductCard";
 import SellerTitle from '@/components/shop/SellerTitle';
-import { useMyPageStore, Evaluation } from '@/stores/mypage/myStore';
+import { useMyStore, Evaluation } from '@/stores/mypage/myStore';
 import { useMyActivityStore, ActivityProduct } from '@/stores/mypage/myActivityStore';
 
 
 
 export default function MyPage() {
-  const { userData, loading: userLoading, error: userError, fetchUserData } = useMyPageStore();
+  const { userData, loading: userLoading, error: userError, fetchUserData } = useMyStore();
   const { salesList, salesTotalElements, loading: salesListLoading, error:salesListError, fetchSales} = useMyActivityStore();
   useEffect(() => {
     fetchUserData();

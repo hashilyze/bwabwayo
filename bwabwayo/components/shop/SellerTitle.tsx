@@ -22,6 +22,7 @@ export default function SellerTitle({ seller }: SellerTitleProps) {
     const bio = seller?.bio || "상점에 대한 설명이 없습니다.";
     const dealcount = seller?.dealcount || 0;
     const reviewCount = seller?.reviewCount || 0;
+    console.log(sellerImage, sellerName, sellerRating, trustScore, trustPercentage, bio, dealcount, reviewCount);
     return (
         <div className="w-full">
             {/* 상점 프로필 */}
