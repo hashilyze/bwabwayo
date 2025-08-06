@@ -151,7 +151,8 @@ export default function ChatRoomPage() {
                  messageSenderId: message.senderId,
                  myUserId: myUserId,
                  isMine: isMine,
-                 content: message.content
+                 content: message.content,
+                 배치위치: isMine ? '오른쪽 (내 메시지)' : '왼쪽 (상대방 메시지)'
                });
               
               // 공지글인지 판단 (이모지로 시작하는 메시지)
