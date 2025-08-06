@@ -2,6 +2,7 @@
 'use client'; // 페이지 내 상호작용을 위해 클라이언트 컴포넌트로 선언합니다.
 
 import React, { useEffect } from "react";
+import Link from "next/link";
 import Sidebar from "@/components/shop/Sidebar"; // Sidebar 컴포넌트를 import 합니다.
 import { useMyActivityStore, ActivityProduct } from "@/stores/mypage/myActivityStore"; // Zustand 스토어를 import 합니다.
 
@@ -32,7 +33,7 @@ export default function MyPageSales() {
 
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
+      <div className="max-w-7xl mx-auto flex flex-row gap-8">
         
         {/* Sidebar 컴포넌트를 여기서 사용하고, userId prop을 전달합니다. */}
         <Sidebar  />
@@ -54,11 +55,13 @@ export default function MyPageSales() {
             {sales.map((item) => (
               <div key={item.product.id} className="grid grid-cols-12 items-center px-6 py-6">
                 {/* 상품명 및 이미지 */}
-                <div className="col-span-4 flex items-center gap-4">
-                  <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                    <img src={item.product.thumbnail} alt={item.product.title} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="text-gray-700 whitespace-pre-line text-base">{item.product.title}</div>
+                <div className="col-span-4">
+                  <Link href={`/product/${item.product.id}`} className="flex items-center gap-4 group">
+                    <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                      <img src={item.product.thumbnail} alt={item.product.title} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="text-gray-700 whitespace-pre-line text-base group-hover:underline group-hover:text-blue-600 transition-colors">{item.product.title}</div>
+                  </Link>
                 </div>
                 
                 {/* 가격 */}

@@ -92,7 +92,7 @@ function WishlistProductCard({ product }: { product: WishedProduct }) {
 export default function MyPageWishlist() {
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
+      <div className="max-w-7xl mx-auto flex flex-row gap-8">
         
         {/* Sidebar 컴포넌트를 여기서 사용하고, userId prop을 전달합니다. */}
         <Sidebar />
