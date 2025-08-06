@@ -48,8 +48,11 @@ export const useMyPageSettingStore = create<MyPageSettingStore>((set) => ({
     try {
       const response = await useAuthStore.getState().authenticatedFetch(requestUrl);
       const data = await response.json();
+      console.log('응답 상태:', response.status);
+      console.log('응답 데이터:', data);
 
       if (!response.ok) {
+        console.error('❌ 서버 응답 실패:', response.status, data);
         throw new Error(data.message || '회원 상세 정보 요청에 실패했습니다.');
       }
 

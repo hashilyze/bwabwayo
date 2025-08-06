@@ -224,6 +224,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           if (refreshResponse.ok) {
             const refreshData = await refreshResponse.json()
             const newAccessToken = refreshData.accessToken
+            console.log('🔄 토큰 갱신 응답:', refreshData);
 
             // 새 토큰 저장
             get().setToken(newAccessToken)
@@ -232,8 +233,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
             processQueue(null, newAccessToken)
             
             // 원래 요청 재시도
-            return makeRequest(requestUrl, requestOptions, true)
             console.log('🔁 재시도 시 사용되는 토큰:', get().getToken());
+            return makeRequest(requestUrl, requestOptions, true)
           } else {
             // 토큰 갱신 실패
             throw new Error('토큰 갱신 실패')
