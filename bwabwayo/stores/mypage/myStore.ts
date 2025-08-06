@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { useAuthStore } from '@/stores/auth/authStore';
 
 /**
- * 평가 항목 타입
+ * 평가 항목 타입adsadsadsadsasd
  */
 export interface Evaluation {
   description: string; // description 추가
