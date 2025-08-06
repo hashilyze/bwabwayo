@@ -89,7 +89,7 @@ export default function SettingsPage() {
       <Sidebar />
       <main className="flex-1">
         <h1 className="text-3xl font-bold mb-8">내 정보 수정</h1>
-        <form onSubmit={handleSubmit} className="space-y-8 max-w-2xl bg-white p-8 rounded-xl shadow-sm">
+        <form onSubmit={handleSubmit} className="space-y-8 w-[800px] bg-white p-8 rounded-xl shadow-sm">
           {/* Profile Image Section */}
           <div className="flex items-center gap-6">
             <Image
@@ -148,7 +148,7 @@ export default function SettingsPage() {
           <div className="space-y-4 border-t pt-6">
             <label className="block text-sm font-medium text-gray-700">계좌 정보 (선택)</label>
             <p className="text-xs text-gray-500 -mt-2">계좌 정보를 입력하시려면 은행, 예금주명, 계좌번호를 모두 입력해주세요.</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 grid-cols-2 gap-4">
               <div>
                 <label htmlFor="bankName" className="block text-sm font-medium text-gray-700 mb-1">은행</label>
                 <select

@@ -2,6 +2,7 @@
 'use client'; // '구매확정' 버튼 등 상호작용이 있으므로 클라이언트 컴포넌트로 선언합니다.
 
 import React, { useEffect } from "react";
+import Link from "next/link";
 import Sidebar from "@/components/shop/Sidebar"; // Sidebar 컴포넌트를 import 합니다.
 import { useMyActivityStore, myPurchaseProduct } from "@/stores/mypage/myActivityStore"; // Zustand 스토어를 import 합니다.
 
@@ -64,11 +65,13 @@ export default function MyPagePurchase() {
             {purchaseList.map((item: myPurchaseProduct) => (
               <div key={item.id} className="grid grid-cols-12 items-center px-6 py-6">
                 {/* 상품명 및 이미지 */}
-                <div className="col-span-4 flex items-center gap-4">
-                  <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                    <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="text-gray-700 whitespace-pre-line text-base">{item.title}</div>
+                <div className="col-span-4">
+                  <Link href={`/product/${item.id}`} className="flex items-center gap-4 group">
+                    <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                      <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="text-gray-700 whitespace-pre-line text-base group-hover:underline group-hover:text-blue-600 transition-colors">{item.title}</div>
+                  </Link>
                 </div>
                 
                 {/* 가격 */}
