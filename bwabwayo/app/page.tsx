@@ -15,13 +15,6 @@ import 'swiper/css/pagination';
 
 import { useAuthStore } from '@/stores/auth/authStore';
 
-useEffect(() => {
-  const { getToken } = useAuthStore.getState();
-  const token = getToken();
-  console.log('token', token);
-}, []);
-
-
 // 인증 처리 컴포넌트
 function AuthHandler() {
   const searchParams = useSearchParams();
@@ -43,6 +36,12 @@ function ProductSlider({ products, navigationId }: { products: any[], navigation
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
   
+  useEffect(() => {
+    const { getToken } = useAuthStore.getState();
+    const token = getToken();
+    console.log('token', token);
+  }, []);
+
   const handlePrev = () => {
     swiper?.slidePrev()
   }
