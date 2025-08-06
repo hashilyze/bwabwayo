@@ -169,6 +169,20 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       
       console.log('🔐 최종 사용 토큰:', currentToken)
       console.log('🔐 API URL:', requestUrl)
+      
+      // 토큰 내용 확인 (디버깅용)
+      if (currentToken) {
+        try {
+          const payload = JSON.parse(atob(currentToken.split('.')[1]));
+          console.log('📋 토큰 페이로드:', payload);
+          console.log('📅 토큰 만료시간:', new Date(payload.exp * 1000));
+          console.log('⏰ 현재시간:', new Date());
+          console.log('⏰ 토큰 만료여부:', new Date() > new Date(payload.exp * 1000));
+        } catch (error) {
+          console.error('토큰 디코딩 실패:', error);
+        }
+      }
+      
       // 99년짜리 임시 토큰(실제 사용 시 주석처리)
       // const currentToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI0Mzc1MTI2ODM0Iiwicm9sZSI6IlVTRVIiLCJ0b2tlblR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTQzMjk4OTEsImV4cCI6MzMyNDY3OTM4OTF9.Ri8aEdsV2_37aZ9As4npi_kBvWv0ccQlUzyKweE4B-opos4h-4Ceb7OO4LQUFJp7'
       
@@ -178,8 +192,13 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       
       if (currentToken) {
         headers.set('Authorization', `Bearer ${currentToken}`)
+        console.log('🔐 Authorization 헤더 설정:', `Bearer ${currentToken.substring(0, 50)}...`)
+      } else {
+        console.log('⚠️ 토큰이 없어서 Authorization 헤더를 설정하지 않습니다.');
       }
-
+      
+      console.log('🔐 전체 헤더:', Object.fromEntries(headers.entries()))
+      
       // fetch 요청 실행
       const response = await fetch(requestUrl, {
         ...requestOptions,
