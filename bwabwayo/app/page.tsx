@@ -118,11 +118,16 @@ export default function Home() {
   useEffect(() => {
     // 토큰 초기화 및 전역 토큰 설정
     const initializeToken = () => {
+      console.log('🏠 홈페이지 토큰 초기화 시작');
       initializeAuth();
       const token = getToken();
+      console.log('🏠 기존 토큰:', token);
+      
       if (token) {
         setGlobalToken(token);
         console.log('🔐 전역 토큰 설정 완료:', token);
+      } else {
+        console.log('⚠️ 토큰이 없습니다. 로그인이 필요합니다.');
       }
     };
 
