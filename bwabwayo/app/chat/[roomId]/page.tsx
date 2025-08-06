@@ -2,12 +2,12 @@
 
 import ChatModal from '@/components/chat/ChatModal'
 import { useEffect, useRef, useState } from 'react'
-import { useParams, useSearchParams } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
 import ReservationModal from '@/components/chat/ReservationModal'
-import Image from 'next/image'
 
 export default function ChatRoomPage() {
+  const router = useRouter()
   const params = useParams()
   const searchParams = useSearchParams()
   const roomId = Number(params.roomId)
@@ -76,13 +76,15 @@ export default function ChatRoomPage() {
 
         <div className="flex gap-2">
           <div className="w-10 h-10 bg-gray-200 flex items-center justify-center">
-            <Image src="/image/no-image.jpg" alt="상품 이미지" width={40} height={40} />
+            <img src="/image/no-image.jpg" alt="상품 이미지" className="object-cover" />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-xs text-gray-500">팝마트 라부부 코카콜라 시리즈 인형 키링</span>
             <span className="text-sm font-semibold text-black">70,000원</span>
           </div>
         </div>
+        <button className='bg-gray-400 py-2 mt-2 cursor-pointer' onClick={() => {
+        }}>화상채팅방 입장</button>
       </div>
 
       {/* 채팅방 헤더 모달 */}
@@ -111,16 +113,16 @@ export default function ChatRoomPage() {
 
       {/* 메인 콘텐츠 영역 */}
       <div 
-        className="chat-container flex-1 overflow-y-auto p-4 space-y-4 pt-[160px]"
+        className="chat-container overflow-y-auto p-4 pt-[160px]"
       >
         <div className="mb-10 flex flex-col gap-2 items-center">
           <div className="w-[100px] h-[100px] bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-            <Image src="/image/no-image.jpg" alt="판매자 프로필" width={100} height={100} className="object-cover" />
+            <img src="/image/no-image.jpg" alt="판매자 프로필" className="object-cover" />
           </div>
           <h1 className="text-[18px] font-bold text-black">고윤정</h1>
           <div className="flex items-center gap-1 mb-2">
             <p className="text-sm text-gray-500">4.8</p>
-            <Image src="/icon/star-on.svg" className="pb-1" alt="별점" width={18} height={18} />
+            <img src="/icon/star-on.svg" className="pb-1" alt="별점" />
             <p className="text-sm text-gray-500">(100)</p>
           </div>
           <p className="text-sm text-gray-500">지금까지 174개의 상품을 판매했어요</p>

@@ -6,7 +6,6 @@ import { useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useChatRoomStore } from "@/stores/chatting/chatRoomStore";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useAuthStore } from "@/stores/auth/authStore";
 import { useModalStore } from "@/stores/modalStore";
 
@@ -86,25 +85,19 @@ export default function ProductDetailPage() {
           <div className="sticky top-40 z-8">
             <div className="flex flex-col gap-4">
               <div className="rounded-2xl overflow-hidden border border-gray-200 relative aspect-square">
-                  <Image
+                  <img
                     src={product?.imageUrls?.[0] || '/image/no-image.jpg'}
-                    width={400}
-                    height={400} 
                     alt="상품 대표 이미지" 
                     className="object-cover w-full h-full"
-                    unoptimized
                   />
               </div>
                 <ul className="grid grid-cols-4 gap-4">
                  {product?.imageUrls?.slice(1, 5).map((imageUrl, index) => (
                    <li key={index} className="relative aspect-square">
-                      <Image 
+                      <img 
                         src={imageUrl || `/image/no-image.jpg`} 
                         alt={`상품 썸네일${index + 1}`} 
                         className="rounded-xl border border-[#eeeeee] object-cover w-full h-full"
-                        width={100}
-                        height={100}
-                        unoptimized
                       />
                    </li>
                  ))}
@@ -185,10 +178,10 @@ export default function ProductDetailPage() {
             <h3 className="text-lg font-bold mb-4">{product?.seller?.nickname || '판매자'}님의 다른 상품</h3>
             <ul className="flex flex-col gap-4">
               {[1,2,3,4].map(num => (
-                                 <li key={num} className="flex flex-row items-center gap-4">
+                <li key={num} className="flex flex-row items-center gap-4">
                    <div>
                      <img 
-                       src={product?.imageUrls?.[0] || "/image/sample.png"} 
+                       src={product?.imageUrls?.[0] || "/image/no-image.jpg"} 
                        alt="" 
                        className="border border-[#eee] rounded-lg w-24 h-24 object-cover"
                        onError={(e) => {

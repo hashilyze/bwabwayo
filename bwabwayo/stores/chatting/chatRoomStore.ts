@@ -158,7 +158,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     connectStomp: (roomId?: number) => {
         // 이미 연결되었거나 연결 중이면 중복 실행 방지
         if (get().isConnected || get().isConnecting) {
-            console.log('STOMP: 이미 연결되었거나 연결이 진행 중입니다.');
+            // console.log('STOMP: 이미 연결되었거나 연결이 진행 중입니다.');
             return;
         }
 
@@ -168,25 +168,20 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         const serverUrl = 'https://i13e202.p.ssafy.io/be/ws-stomp'
         
         try {
-            console.log('STOMP: 연결 시도...');
-
             const socket = new SockJS(serverUrl)
             const client = new Client({
                 webSocketFactory: () => socket,
-                debug: (str) => {
-                    console.log('STOMP Debug:', str)
-                },
                 reconnectDelay: 0,
                 heartbeatIncoming: 4000,
                 heartbeatOutgoing: 4000
             })
             
             client.onConnect = (frame) => {
-                console.log('✅ STOMP: 연결 성공!')
+                // console.log('✅ STOMP: 연결 성공!')
                 set({ isConnected: true, isConnecting: false, stompClient: client })
                 
                 if (roomId) {
-                    console.log(`📡 STOMP: 채팅방 ${roomId} 구독 시작`)
+                    // console.log(`📡 STOMP: 채팅방 ${roomId} 구독 시작`)
                     client.subscribe(`/sub/chat/room/${roomId}`, (messageOutput) => {
                         const msg = JSON.parse(messageOutput.body)
                         get().appendMessage(msg, false) // isMine은 appendMessage에서 결정하도록 변경 가능
@@ -210,27 +205,18 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     disconnectStomp: () => {
         const { stompClient } = get()
         if (stompClient) {
-            console.log('STOMP: 연결 해제 시도...');
             stompClient.deactivate()
         }
         set({ stompClient: null, isConnected: false, isConnecting: false })
     },
 
-    appendMessage: (msg: ChatMessage, isMine: boolean) => {
-        console.log('📨 새 메시지 추가 시도:', msg)
-        console.log('👤 발신자:', isMine ? '나' : '상대')
-        console.log('📋 현재 메시지 개수:', get().messages.length)
-        
-        // 새 메시지를 기존 메시지 배열에 추가 (안전한 처리)
+    appendMessage: (msg: ChatMessage, isMine: boolean) => {        
         set(state => {
             const currentMessages = Array.isArray(state.messages) ? state.messages : []
             return { 
                 messages: [...currentMessages, msg] 
             }
         })
-        
-        console.log('✅ 메시지 추가 완료. 총 메시지 개수:', get().messages.length)
-        console.log('📋 현재 모든 메시지:', get().messages)
     },
 
     clearMessages: () => {
@@ -242,7 +228,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         try {
             const response = await useAuthStore.getState().authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/chatrooms/${roomId}?page=0`);
             const data = await response.json();
-            console.log('📥 메시지 히스토리 수신:', data);
+            // console.log('📥 메시지 히스토리 수신:', data);
             set({ messages: data })
         } catch (error) {
             console.error(`❌ 채팅방 ${roomId} 메시지 히스토리 로드 실패:`, error);

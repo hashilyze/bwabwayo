@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from "react"
-import MyVideo from "@/components/chat/MyVideo"
 import ChatInput from "@/components/chat/ChatInput"
 
 export default function WebTest(){
@@ -71,7 +70,6 @@ export default function WebTest(){
                       bg-white rounded-xl overflow-hidden shadow-lg
                     `}
                 >
-                    <MyVideo ref={videoRef} />
                     <div className="flex flex-col flex-wrap">
                       {/* chat-title */}
                       <div className="chat-title flex flex-col gap-2 border-b-1 border-[#eee] p-4">

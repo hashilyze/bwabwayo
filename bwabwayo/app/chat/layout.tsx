@@ -4,6 +4,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import ChatRoomItem from '@/components/chat/ChatRoomItem'
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore';
+import VideoConference from '@/components/openvidu/VideoConference';
 
 interface Buyer{
   id: number
@@ -143,8 +144,13 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     }
   }
 
+  // openvidu 임시 세션 ID
+  const videoRoomId = 17;
   return (
     <div className="flex h-[600px] bg-white">
+      {/* 화상채팅 모달 openVidu */}
+      <VideoConference videoRoomId={videoRoomId} />
+
       {/* 좌측 채팅 목록 */}
       <div className="w-[640px] border-r border-gray-200 overflow-y-auto">
         {/* 헤더 */}

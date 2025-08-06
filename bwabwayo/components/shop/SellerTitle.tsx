@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 export interface Seller {
   id?: string;
   nickname: string;
@@ -27,14 +25,14 @@ export default function SellerTitle({ seller }: SellerTitleProps) {
             {/* 상점 프로필 */}
             <div className="flex items-center gap-4">
                 <div>
-                    <Image src={sellerImage} alt={`${sellerName} 프로필 이미지`} className="rounded-full border-1 border-[#eee] w-20 h-20 object-cover" width={80} height={80} />
+                    <img src={sellerImage} alt={`${sellerName} 프로필 이미지`} className="rounded-full border-1 border-[#eee] w-20 h-20 object-cover" />
                 </div>
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-col items-start">
                         <h3 className="text-lg font-bold">{sellerName}님의 상점</h3>
                         <div className="flex items-center gap-1">
                             <span className="text-gray-400 text-base font-light">{sellerRating}</span>
-                            <Image src="/icon/star-on.svg" alt="별점" className="w-4 h-4" width={16} height={16} />
+                            <img src="/icon/star-on.svg" alt="별점" className="w-4 h-4" width={16} height={16} />
                             <span className="text-gray-400 text-base font-light">{dealcount}</span>
                         </div>
                     </div>
