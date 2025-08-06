@@ -79,6 +79,37 @@ export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected 
     await onSelect?.(roomData as ChatRoom || chatRoom as ChatRoom);
   };
 
+  // 현재 사용자와 상대방을 구분하는 함수
+  const getPartnerName = () => {
+    const layoutRoom = isLayoutChatRoom(roomData) ? roomData : null;
+    const regularRoom = !isLayoutChatRoom(roomData) ? roomData : null;
+    
+    if (layoutRoom) {
+      // 현재 사용자가 판매자인 경우 구매자 이름을, 구매자인 경우 판매자 이름을 반환
+      const currentUserId = layoutRoom.userId;
+      const sellerId = layoutRoom.seller.id;
+      const buyerId = layoutRoom.buyer.id;
+      
+      if (currentUserId === sellerId) {
+        return layoutRoom.buyer.nickname; // 구매자 이름
+      } else if (currentUserId === buyerId) {
+        return layoutRoom.seller.nickname; // 판매자 이름
+      } else {
+        return layoutRoom.partnerNickName; // fallback
+      }
+    }
+    
+    if (regularRoom) {
+      return regularRoom.partnerNickName;
+    }
+    
+    if (chatRoom) {
+      return chatRoom.partnerNickName;
+    }
+    
+    return '알 수 없음';
+  };
+
   // 시간 포맷팅 함수
   const formatTime = (timeString?: string) => {
     if (!timeString) return '';
@@ -117,21 +148,21 @@ export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected 
       }`}
       onClick={handleClick}
     >
-      <div className="w-[60px] h-[60px] bg-gray-200 rounded-full mr-[18px]">
-        <Image 
-          src='/image/no-image.jpg'
-          alt={`${layoutRoom?.partnerNickName || layoutRoom?.seller?.nickname || regularRoom?.partnerNickName || regularRoom?.seller?.nickname || chatRoom?.partnerNickName} 프로필`}
-          className="w-full h-full rounded-full object-cover"
-          width={60}
-          height={60}
-        />
-      </div>
-      
-      <div className="flex-1">
-        <div className="flex items-center mb-1">
-          <span className="text-base font-bold text-black mr-2">
-            {layoutRoom?.partnerNickName || layoutRoom?.seller?.nickname || regularRoom?.partnerNickName || regularRoom?.seller?.nickname || chatRoom?.partnerNickName}
-          </span>
+             <div className="w-[60px] h-[60px] bg-gray-200 rounded-full mr-[18px]">
+         <Image 
+           src='/image/no-image.jpg'
+           alt={`${getPartnerName()} 프로필`}
+           className="w-full h-full rounded-full object-cover"
+           width={60}
+           height={60}
+         />
+       </div>
+       
+       <div className="flex-1">
+         <div className="flex items-center mb-1">
+           <span className="text-base font-bold text-black mr-2">
+             {getPartnerName()}
+           </span>
           <div className="w-[2px] h-[2px] bg-gray-500 rounded-full mr-2"></div>
           <span className="text-xs text-gray-500">
             {formatTime(layoutRoom?.lastMessage?.createdAt || regularRoom?.lastChatmessageDto?.createdAt || regularRoom?.lastMessageTime || chatRoom?.lastMessage?.createdAt)}

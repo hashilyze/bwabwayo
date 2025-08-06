@@ -89,7 +89,47 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     loadRoomList()
   }, [getRoomList]);
 
-  console.log("layout", roomList)
+  // 페이지 포커스 시에만 채팅방 목록 업데이트 (서버 부하 최소화)
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+
+    const handleFocus = () => {
+      // 페이지에 포커스가 있을 때만 업데이트
+      interval = setInterval(async () => {
+        try {
+          await getRoomList()
+        } catch (error) {
+          console.log("채팅방 목록 업데이트 실패:", error)
+        }
+      })
+    };
+
+    const handleBlur = () => {
+      // 페이지에서 포커스가 벗어나면 업데이트 중지
+      if (interval) {
+        clearInterval(interval)
+        interval = null
+        console.log("📱 페이지 포커스 해제 - 업데이트 중지")
+      }
+    };
+
+    // 초기 포커스 설정
+    handleFocus();
+
+    // 이벤트 리스너 등록
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('blur', handleBlur);
+
+    return () => {
+      if (interval) {
+        clearInterval(interval)
+      }
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('blur', handleBlur);
+    }
+  }, [getRoomList])
+
+  // console.log("layout", roomList)
   
   // 채팅방 선택 시
   const handleChatRoomSelect = async (chatRoom: ChatRoom) => {
@@ -97,19 +137,10 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
       // 선택된 채팅방 정보를 store에 저장
       setCurrentSelectedRoom(chatRoom);
       
-      const result = await addChatRoom({
-        sellerId: chatRoom.seller.id.toString(),
-        productId: chatRoom.product.id
-      })
-      // console.log('채팅방 생성 결과:', result)
-      
-      if (result) {
-        router.push(`/chat/${result.roomId}?productId=${result.productId}`)
-      } else {
-        console.error('채팅방 생성 실패: 결과가 null입니다.')
-      }
+      // 기존 채팅방이므로 바로 해당 방으로 이동
+      router.push(`/chat/${chatRoom.roomId}?productId=${chatRoom.product.id}`)
     } catch (error) {
-      console.error('채팅방 생성 중 오류:', error);
+      console.error('채팅방 입장 중 오류:', error);
     }
   }
 

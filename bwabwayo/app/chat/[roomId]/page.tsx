@@ -138,7 +138,7 @@ export default function ChatRoomPage() {
           </div>
                  ) : (
            <>
-             {messages && messages.filter(message => message && typeof message === 'object').map((message, index) => {
+             {messages && messages.filter(message => message && typeof message === 'object' && message.content && message.content.trim()).map((message, index) => {
                // 내가 보낸 메시지인지 판단 (senderId와 내 사용자 ID 비교)
                const isMine = myUserId ? String(message.senderId) === String(myUserId) : false
               
