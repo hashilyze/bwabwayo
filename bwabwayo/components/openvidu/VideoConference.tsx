@@ -4,8 +4,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import './UserVideo.css';
 import UserVideoComponent from './UserVideoComponent';
 
-// const APPLICATION_SERVER_URL = process.env.NODE_ENV === 'production' ? '' : 'https://demos.openvidu.io/';
-
 interface VideoConferenceState {
     mySessionId: string;
     myUserName: string;
@@ -18,9 +16,6 @@ interface VideoConferenceState {
 }
 
 export default function VideoConference({ videoRoomId }: { videoRoomId: number }) {
-    const [sessionId, setSessionId] = useState<string>('');
-    const [token, setToken] = useState<string>('');
-    
     const [state, setState] = useState<VideoConferenceState>({
         mySessionId: '',
         myUserName: 'Participant' + Math.floor(Math.random() * 100),
@@ -31,61 +26,6 @@ export default function VideoConference({ videoRoomId }: { videoRoomId: number }
     });
 
     const OVRef = useRef<OpenVidu | null>(null);
-
-
-    // 컴포넌트 열리면 실행
-    useEffect(() => {
-        const initializeSession = async () => {
-            try {
-                // 1. 세션 발급하기
-                const requestSession = async (videoRoomId: number): Promise<string> => {
-                    const response = await fetch(`https://i13e202.p.ssafy.io/be/api/sessions`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', },
-                        body: JSON.stringify({ videoRoomId: videoRoomId }),
-                    });
-                    const data = await response.json();
-                    console.log('세션발급 성공!:', data);
-                    return data;
-                };  
-                
-                const sessionIdResult = await requestSession(videoRoomId);
-                
-                // sessionId를 별도 상태에 저장
-                setSessionId(sessionIdResult);
-                setState(prev => ({
-                    ...prev,
-                    mySessionId: sessionIdResult
-                }));
-
-                // 2. 토큰 발급하기
-                const requestToken = async (sessionId: number): Promise<string> => {
-                    const response = await fetch(`https://i13e202.p.ssafy.io/be/api/sessions/${sessionId}/token`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', },
-                    });
-                    const data = await response.json();
-                    console.log('Token response:', data);
-                    return data.token;
-                };
-
-                const tokenResult = await requestToken(Number(sessionIdResult));
-                
-                // 토큰을 별도 상태에 저장
-                setToken(tokenResult);
-                setState(prev => ({
-                    ...prev,
-                    token: tokenResult
-                }));
-
-            } catch (error) {
-                console.error('Error initializing session:', error);
-            }
-        };
-
-        initializeSession();
-    }, [videoRoomId]);
-
     
     useEffect(() => {
         const handleBeforeUnload = () => {
@@ -373,25 +313,23 @@ export default function VideoConference({ videoRoomId }: { videoRoomId: number }
      * more about the integration of OpenVidu in your application server.
      */
     async function getToken() {
-        // 이미 저장된 토큰이 있으면 반환
-        if (token) {
-            return token;
-        }
-        
         // 토큰이 없으면 새로 요청
         const sessionId = await createSession(state.mySessionId);
         return await createToken(sessionId);
     }
 
     async function createSession(sessionId: string) {
-        const response = await axios.post('https://demos.openvidu.io/api/sessions', { customSessionId: sessionId }, {
+        const response = await axios.post('https://i13e202.p.ssafy.io/be/api/sessions', { 
+            videoRoomId: videoRoomId
+        }, {
             headers: { 'Content-Type': 'application/json', },
         });
+        // console.log('세션발급 성공!:', response.data);
         return response.data; // The sessionId
     }
 
     async function createToken(sessionId: string) {
-        const response = await axios.post('https://demos.openvidu.io/api/sessions/' + sessionId + '/token', {}, {
+        const response = await axios.post('https://i13e202.p.ssafy.io/be/api/sessions/' + sessionId + '/token', {}, {
             headers: { 'Content-Type': 'application/json', },
         });
         return response.data; // The token
