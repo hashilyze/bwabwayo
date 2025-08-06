@@ -12,14 +12,14 @@ import { useMyActivityStore, ActivityProduct } from '@/stores/mypage/myActivityS
 
 export default function MyPage() {
   const { userData, loading: userLoading, error: userError, fetchUserData } = useMyPageStore();
-  const { salesList, loading: salesListLoading, error:salesListError, fetchSales} = useMyActivityStore();
+  const { salesList, salesTotalElements, loading: salesListLoading, error:salesListError, fetchSales} = useMyActivityStore();
   useEffect(() => {
     fetchUserData();
-    fetchSales
-  }, [ fetchUserData, fetchSales]);
+    fetchSales();
+  }, [fetchUserData, fetchSales]);
 
   // 현재 로그인한 사용자의 상품만 필터링합니다.
-  const myProducts = userData ? salesList.filter(p => p.seller.id === userData.userId) : [];
+  const myProducts = salesList
 
   // 상점 후기 총 개수 계산
 
@@ -97,7 +97,7 @@ const formattedEvaluations = userData.evaluation.map((item) => ({
                  {/* 판매상품 */}
                  <li className="p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
                    <div className="text-gray-500 text-sm mb-2">판매상품</div>
-                   <div className="text-black text-xl font-normal">{myProducts.length}</div>
+                   <div className="text-black text-xl font-normal">{salesTotalElements}</div>
                  </li>
                  
                  {/* 거래후기 */}
