@@ -34,13 +34,9 @@ export default function SellerTitle({ seller }: SellerTitleProps) {
                         <h3 className="text-lg font-bold">{sellerName}님의 상점</h3>
                         <div className="flex items-center gap-1">
                             <span className="text-gray-400 text-base font-light">{sellerRating}</span>
-<<<<<<< HEAD
                             <img src="/icon/star-on.svg" alt="별점" className="w-4 h-4" width={16} height={16} />
-                            <span className="text-gray-400 text-base font-light">{dealcount}</span>
-=======
-                            <Image src="/icon/star-on.svg" alt="별점" className="w-4 h-4" width={16} height={16} />
                             <span className="text-gray-400 text-base font-light">({reviewCount})</span>
->>>>>>> 2d9d6174d78399a30d4c827e599fbadd460fe4e5
+
                         </div>
                     </div>
                 </div>

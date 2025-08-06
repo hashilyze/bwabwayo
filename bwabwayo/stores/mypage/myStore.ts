@@ -74,7 +74,7 @@ fetchUserData: async () => {
       createdAt: data.created_at,
       rating: data.rating,
       evaluation: data.evaluation,
-      reviewCount: data.review_count || 0, // 선택적 속성, 필요에 따라 추가
+      reviewCount: data.review_count, // 선택적 속성, 필요에 따라 추가
       // // 아래 값들은 응답에 없으니 undefined로 처리
       // id: undefined,
       // role: undefined,
