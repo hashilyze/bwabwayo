@@ -63,6 +63,7 @@ export const useLikeProductStore = create<LikeProductStore>((set, get) => ({
 
       const data = await response.json()
       console.log('좋아요 추가 성공:', data)
+      console.log('파싱 후 적용할 상태:', data.result || []);
       
       set({ loading: false })
     } catch (error) {
@@ -115,7 +116,7 @@ export const useLikeProductStore = create<LikeProductStore>((set, get) => ({
       
       // 현재 좋아요 상태 확인
       const isLiked = get().likeProducts.some(product => product.id === productId)
-      
+      console.log('현재 로컬 좋아요 상태:', isLiked);
       if (isLiked) {
         // 이미 좋아요가 되어 있으면 제거
         await get().removeLike(productId)
@@ -204,6 +205,7 @@ export const useLikeProductStore = create<LikeProductStore>((set, get) => ({
   addLikeProduct: (product: LikeProduct) => {
     set((state) => ({ 
       likeProducts: [...state.likeProducts, product] 
+      
     }))
   },
 
@@ -214,6 +216,7 @@ export const useLikeProductStore = create<LikeProductStore>((set, get) => ({
   },
 
   clearError: () => {
+    console.log('에러 상태 초기화 호출됨');
     set({ error: null })
   }
 }))
