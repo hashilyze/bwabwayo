@@ -9,6 +9,8 @@ import {
     UserCircleIcon, PlusCircleIcon, MinusCircleIcon, XCircleIcon
 } from '@/components/signup/Icons';
 
+
+
 // --- 타입 정의 ---
 interface DaumPostcodeData { 
     address: string;
@@ -95,7 +97,7 @@ export default function SignUpPage() {
 
         try {
             // 실제 프로젝트의 프로필 업로드 API 엔드포인트로 수정해야 합니다.
-            const response = await fetch('https://i13e202.p.ssafy.io/be/api/storage/upload/product', {
+            const response = await fetch('https://i13e202.p.ssafy.io/be/api/storage/upload/profile', {
                 method: 'POST',
                 body: formData,
             });
@@ -180,7 +182,12 @@ export default function SignUpPage() {
 
     useEffect(() => {
         if (isSuccess) {
-            alert('회원가입에 성공했습니다!');
+            alert(
+            '회원가입이 완료되었습니다!\n' +
+            '환영합니다! 첫 가입 축하로 3,000포인트가 적립되었어요.\n' +
+            '또한 로그인 보너스로 100포인트도 함께 지급되었습니다.'
+            );
+
             reset();
             router.replace('/');
         }
@@ -252,7 +259,7 @@ export default function SignUpPage() {
                                     <div className="space-y-4 border-t pt-6">
                                         <label className="block text-sm font-medium text-gray-700">계좌 정보 (선택)</label>
                                         <p className="text-xs text-gray-500 -mt-2">계좌 정보를 입력하시려면 은행, 예금주명, 계좌번호를 모두 입력해주세요.</p>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 grid-cols-1 gap-4">
                                             <div>
                                                 <label htmlFor="bankName" className="block text-sm font-medium text-gray-700 mb-1">은행</label>
                                                 <select id="bankName" value={bankName} onChange={(e) => setBankName(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white">
@@ -280,7 +287,7 @@ export default function SignUpPage() {
 
                                     <div className="space-y-2">
                                         <label className="block text-sm font-medium text-gray-700">배송지 정보 (선택)</label>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 grid-cols-1 gap-4">
                                             <div>
                                                 <label htmlFor="recipientName" className="block text-sm font-medium text-gray-700 mb-1">배송지 이름</label>
                                                 <input
@@ -308,21 +315,21 @@ export default function SignUpPage() {
                                     <div className="mt-4">
                                         <label className="block text-sm font-medium text-gray-700 mb-1">주소 (선택)</label>
                                         <div className="flex gap-2 mb-2">
-                                            <input
-                                                type="text"
-                                                value={zipcode}
-                                                readOnly
-                                                placeholder="우편번호"
-                                                className="w-32 px-4 py-2 border border-gray-300 rounded-md bg-gray-100"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={handleAddressSearch}
-                                                className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900"
-                                            >
-                                                주소 검색
-                                            </button>
-                                        </div>
+                                            <input
+                                                type="text"
+                                                value={zipcode}
+                                                readOnly
+                                                placeholder="우편번호"
+                                                className="flex-[3] px-4 py-2 border border-gray-300 rounded-md bg-gray-100"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleAddressSearch}
+                                                className="flex-[1] px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900"
+                                            >
+                                                주소 검색
+                                            </button>
+                                        </div>
                                         <input
                                             type="text"
                                             value={address}
