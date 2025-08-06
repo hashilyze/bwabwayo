@@ -143,8 +143,15 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     getRoomList: async () => {
         try{
             const response = await useAuthStore.getState().authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/chatrooms`)
+            
+            // 응답 상태 확인
+            if (!response.ok) {
+                console.error('❌ 채팅방 목록 요청 실패:', response.status, response.statusText);
+                return;
+            }
+            
             const data = await response.json()
-            console.log(data)
+            console.log('✅ 채팅방 목록 로드 성공:', data)
             set({ roomList: data })
         } catch (error) {
             console.error('Error getting room list:', error)

@@ -175,10 +175,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       if (currentToken) {
         headers.set('Authorization', `Bearer ${currentToken}`)
       }
-
-      console.log('🔐 전체 헤더:', Object.fromEntries(headers.entries()))
-      console.log('📤 요청 메서드:', requestOptions.method || 'GET')
-      console.log('📤 요청 바디:', requestOptions.body)
       
       // fetch 요청 실행
       const response = await fetch(requestUrl, {
@@ -192,12 +188,16 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       // 500 에러 처리
       if (response.status === 500) {
         console.error('❌ 서버 내부 오류 (500)');
+        // 응답 본문을 한 번만 읽기 위해 복사
+        const responseClone = response.clone();
         try {
-          const errorText = await response.text();
+          const errorText = await responseClone.text();
           console.error('❌ 서버 에러 내용:', errorText);
         } catch (error) {
           console.error('❌ 에러 내용 읽기 실패:', error);
         }
+        // 원본 응답을 그대로 반환
+        return response;
       }
 
       // 401 Unauthorized 처리 (토큰 만료)
