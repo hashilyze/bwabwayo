@@ -75,7 +75,7 @@ const formattedEvaluations = userData.evaluation.map((item) => ({
         {/* userId를 전달하지 않으면 '마이페이지'용 사이드바가 렌더링됩니다. */}
         <Sidebar />
 
-        <main className='flex-4 '>
+        <main>
           <div className="grid grid-cols-2 gap-6">
             <SellerTitle seller={sellerDataForTitle} />
 
