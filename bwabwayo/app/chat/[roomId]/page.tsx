@@ -48,7 +48,9 @@ export default function ChatRoomPage() {
 
   // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView()
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ block: 'end' })
+    }
   }, [messages])
 
   // URL 파라미터에서 현재 사용자 ID 결정
@@ -70,9 +72,9 @@ export default function ChatRoomPage() {
   const myUserId = getMyUserId()
 
   return (
-    <div className="h-full flex flex-col justify-between relative">
+    <div className="h-full flex flex-col justify-between relative overflow-hidden">
       {/* 채팅방 헤더 */}
-      <div className="absolute top-0 left-0 right-0 bg-white border-b border-gray-200 z-10 flex flex-col px-5 py-4 gap-2">
+      <div className="absolute top-0 left-0 right-0 bg-white border-b border-gray-200 z-2 flex flex-col px-5 py-4 gap-2">
         {/* 상품 정보 */}
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-semibold text-black">고윤정</h1>

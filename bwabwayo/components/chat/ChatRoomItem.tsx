@@ -139,7 +139,10 @@ export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected 
         </div>
         <div className="flex items-center justify-between">
           <p className="text-xs text-gray-500 truncate flex-1 mr-2">
-            {layoutRoom?.lastMessage?.content || regularRoom?.lastChatmessageDto?.content || regularRoom?.lastMessageContent || chatRoom?.lastMessage?.content || '메시지 없음'}
+            {(() => {
+              const message = layoutRoom?.lastMessage?.content || regularRoom?.lastChatmessageDto?.content || regularRoom?.lastMessageContent || chatRoom?.lastMessage?.content || '메시지 없음';
+              return message.length > 25 ? message.substring(0, 25) + '...' : message;
+            })()}
           </p>
           {(layoutRoom?.unreadCount || regularRoom?.unreadMessagesNum || chatRoom?.unreadCount) && (layoutRoom?.unreadCount || regularRoom?.unreadMessagesNum || chatRoom?.unreadCount || 0) > 0 && (
             <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">

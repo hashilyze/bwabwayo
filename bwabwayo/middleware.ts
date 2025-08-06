@@ -5,6 +5,7 @@ import type { NextRequest } from 'next/server'
 const protectedRoutes = [
   // '/product/new',
   // '/chat',
+  '/signup',
   '/mypage',
   '/shop',
   '/protected'

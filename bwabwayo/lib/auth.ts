@@ -12,17 +12,4 @@ export function getCookie(name: string): string | undefined {
 export function isAuthenticated(): boolean {
   const accessToken = getCookie('accessToken');
   return !!accessToken;
-}
-
-// 보호된 경로인지 확인하는 함수
-export function isProtectedRoute(pathname: string): boolean {
-  const protectedRoutes = [
-    '/product/new',
-    '/chat',
-    '/mypage',
-    '/shop',
-    '/protected'
-  ];
-  
-  return protectedRoutes.some(route => pathname.startsWith(route));
 } 
