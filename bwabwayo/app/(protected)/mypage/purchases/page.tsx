@@ -42,7 +42,7 @@ export default function MyPagePurchase() {
         <Sidebar/>
 
         {/* 메인 컨텐츠 */}
-        <main className="flex-1">
+        <main className="flex-1 min-w-0 overflow-hidden">
           <h1 className="text-3xl font-bold mb-8">구매 상품</h1>
           
           {/* 테이블 헤더 */}

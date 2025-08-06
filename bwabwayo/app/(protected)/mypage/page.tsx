@@ -41,7 +41,6 @@ export default function MyPage() {
   const sellerDataForTitle = {
     id: userData.userId,
     nickname: userData.nickname,
-    sellerImage: userData.profileImage || null, // profileImage를 sellerImage로 매핑
     profileImage: userData.profileImage || null,
     rating: userData.rating,
     score: userData.score,
@@ -77,7 +76,7 @@ const formattedEvaluations = userData.evaluation.map((item) => ({
 
         <main>
           <div className="grid grid-cols-2 gap-6">
-            <SellerTitle seller={sellerDataForTitle} />
+            {userData && <SellerTitle seller={sellerDataForTitle} />}
 
             <div className="flex-1 max-w-[544px]">
               {/* 상품 등록 섹션 */}

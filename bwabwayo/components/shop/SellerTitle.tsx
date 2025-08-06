@@ -1,13 +1,12 @@
 export interface Seller {
   id?: string;
   nickname: string;
-  sellerImage: string | null;
+  profileImage: string | null;
   rating: number;
   score: number;
   bio: string;
   dealcount: number;
   reviewCount?: number | string; // 선택적 속성, 필요에 따라 추가
-  profileImage: string | null;
 }
 
 interface SellerTitleProps {
@@ -19,17 +18,16 @@ export default function SellerTitle({ seller }: SellerTitleProps) {
     const trustPercentage = (trustScore / 1000) * 100;
     const sellerName = seller?.nickname || "판매자";
     const sellerRating = seller?.rating || 0;
-    const sellerImage = seller?.sellerImage || "/image/sample.png";
+    const sellerImage = seller?.profileImage; // 기본 프로필 이미지 경로
     const bio = seller?.bio || "상점에 대한 설명이 없습니다.";
     const dealcount = seller?.dealcount || 0;
     const reviewCount = seller?.reviewCount || 0;
-    console.log(sellerImage, sellerName, sellerRating, trustScore, trustPercentage, bio, dealcount, reviewCount);
     return (
         <div className="w-full">
             {/* 상점 프로필 */}
             <div className="flex items-center gap-4">
                 <div>
-                    <img src={sellerImage} alt={`${sellerName} 프로필 이미지`} className="rounded-full border-1 border-[#eee] w-20 h-20 object-cover" />
+                    <img src={sellerImage ?? "/default-profile.png"} alt={`${sellerName} 프로필 이미지`} className="rounded-full border-1 border-[#eee] w-20 h-20 object-cover" />
                 </div>
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-col items-start">
