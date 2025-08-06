@@ -7,14 +7,18 @@ import { useParams } from 'next/navigation';
 
 interface ChatInputActiveProps {
   onOpenReservationModal: () => void;
+  myUserId?: string | null;
 }
 
-const ChatInputActive: React.FC<ChatInputActiveProps> = ({ onOpenReservationModal }) => {
+const ChatInputActive: React.FC<ChatInputActiveProps> = ({ onOpenReservationModal, myUserId }) => {
   const params = useParams();
   const roomId = Number(params.roomId);
   const { sendMessage } = useChatRoomStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [messageInput, setMessageInput] = useState('');
+
+  // 디버깅을 위한 로그
+  console.log('ChatModal - myUserId:', myUserId);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);

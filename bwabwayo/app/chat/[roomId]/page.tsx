@@ -11,9 +11,7 @@ export default function ChatRoomPage() {
   const params = useParams()
   const searchParams = useSearchParams()
   const roomId = Number(params.roomId)
-  const sellerId = searchParams.get('sellerId')
-  const buyerId = searchParams.get('buyerId')
-  const { messages, getMessageHistory, connectStomp } = useChatRoomStore()
+  const { messages, getMessageHistory, connectStomp, currentSelectedRoom } = useChatRoomStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
@@ -55,21 +53,16 @@ export default function ChatRoomPage() {
 
   // URL 파라미터에서 현재 사용자 ID 결정
   const getMyUserId = () => {
-    if (typeof window === 'undefined') return null
-
-    const token = localStorage.getItem('accessToken')
-    if (!token) return null
-
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]))
-      return payload.sub || payload.userId || payload.id
-    } catch (error) {
-      console.error('토큰 파싱 실패:', error)
-      return null
-    }
+    return currentSelectedRoom?.userId.toString() || null;
   }
 
   const myUserId = getMyUserId()
+
+  // 디버깅을 위한 로그
+  useEffect(() => {
+    console.log('현재 선택된 채팅방:', currentSelectedRoom);
+    console.log('내 사용자 ID:', myUserId);
+  }, [currentSelectedRoom, myUserId]);
 
   return (
     <div className="h-full flex flex-col justify-between relative overflow-hidden">
@@ -136,11 +129,10 @@ export default function ChatRoomPage() {
             <p className="text-sm text-gray-500">(100)</p>
           </div>
           <p className="text-sm text-gray-500">지금까지 174개의 상품을 판매했어요</p>
-          {sellerId && buyerId && (
-            <p className="text-sm text-gray-500">
+          {/* sellerId와 buyerId 관련 코드를 제거하고, 디버깅 로그를 추가하여 myUserId와 메시지 표시 로직을 확인할 수 있도록 수정합니다. */}
+          {/* <p className="text-sm text-gray-500">
               판매자: {sellerId} | 구매자: {buyerId}
-            </p>
-          )}
+            </p> */}
         </div>
 
         {!messages || !Array.isArray(messages) || messages.length === 0 || !messages.every(msg => msg && typeof msg === 'object') ? (
@@ -151,8 +143,16 @@ export default function ChatRoomPage() {
                  ) : (
            <>
              {Array.isArray(messages) && messages.filter(message => message && typeof message === 'object').map((message, index) => {
-              // 내가 보낸 메시지인지 판단 (senderId와 내 사용자 ID 비교)
-              const isMine = myUserId ? String(message.senderId) === String(myUserId) : false
+               // 내가 보낸 메시지인지 판단 (senderId와 내 사용자 ID 비교)
+               const isMine = myUserId ? String(message.senderId) === String(myUserId) : false
+               
+               // 디버깅을 위한 로그
+               console.log(`메시지 ${index}:`, {
+                 messageSenderId: message.senderId,
+                 myUserId: myUserId,
+                 isMine: isMine,
+                 content: message.content
+               });
               
               // 공지글인지 판단 (이모지로 시작하는 메시지)
               const isNotice = message.content.startsWith('📅') || 
@@ -226,7 +226,7 @@ export default function ChatRoomPage() {
       {isReservationModalOpen && <ReservationModal onClose={closeReservationModal} chatRoomId={roomId} />}
 
       {/* + 버튼 */}
-      <ChatModal onOpenReservationModal={openReservationModal} />
+      <ChatModal onOpenReservationModal={openReservationModal} myUserId={myUserId} />
     </div>
   )
 } 

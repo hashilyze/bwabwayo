@@ -114,7 +114,6 @@ export const useProductStore = create<ProductStore>((set) => ({
           return price >= minPrice && price <= maxPrice;
         });
       }
-
       set({ products: filteredProducts, loading: false })
     } catch (error) {
       console.error('상품 조회 실패:', error)

@@ -89,9 +89,11 @@ interface ChatRoomStore{
     stompClient: Client | null
     isConnected: boolean
     isConnecting: boolean
+    currentSelectedRoom: ChatRoom | null
     addChatRoom: (addRoom: addRoom) => Promise<RoomInfo | null>
     getRoomInfo: (roomId: number) => Promise<RoomInfo | null>
     getRoomList: () => void
+    setCurrentSelectedRoom: (room: ChatRoom | null) => void
     connectStomp: (roomId?: number) => void
     disconnectStomp: () => void
     appendMessage: (msg: ChatMessage, isMine: boolean) => void
@@ -107,6 +109,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     stompClient: null,
     isConnected: false,
     isConnecting: false,
+    currentSelectedRoom: null,
 
     addChatRoom: async (addRoom: addRoom) => {
         try{
@@ -146,6 +149,10 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         } catch (error) {
             console.error('Error getting room list:', error)
         }
+    },
+
+    setCurrentSelectedRoom: (room: ChatRoom | null) => {
+        set({ currentSelectedRoom: room });
     },
 
     connectStomp: (roomId?: number) => {
@@ -300,27 +307,53 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         }
 
         try {
-            // URL 파라미터에서 sellerId와 buyerId 가져오기
-            const urlParams = new URLSearchParams(window.location.search)
-            const sellerId = urlParams.get('sellerId')
-            const buyerId = urlParams.get('buyerId')
-            
-            if (!sellerId || !buyerId) {
-                console.error('❌ URL 파라미터에서 sellerId 또는 buyerId를 찾을 수 없습니다.')
+            const { currentSelectedRoom } = get();
+            const currentUserId = currentSelectedRoom?.userId.toString();
+
+            if (!currentUserId) {
+                console.error('❌ 현재 사용자 ID를 찾을 수 없습니다.')
                 return
             }
 
-            // URL 파라미터에서 senderId와 receiverId 결정
-            // 현재 사용자가 판매자인지 구매자인지 판단
-            const currentUserId = sellerId // 임시로 sellerId를 현재 사용자로 설정
-            const isSeller = currentUserId === sellerId
-            const senderId = currentUserId
-            const receiverId = isSeller ? buyerId : sellerId
+            // receiverId 결정: 현재 사용자가 판매자인지 구매자인지 판단
+            let receiverId = null;
+            if (currentSelectedRoom) {
+                const sellerId = currentSelectedRoom.seller.id.toString();
+                const buyerId = currentSelectedRoom.buyer.id.toString();
+                
+                console.log('🔍 receiverId 결정 과정:', {
+                    currentUserId,
+                    sellerId,
+                    buyerId,
+                    currentSelectedRoom: currentSelectedRoom
+                });
+                
+                // 현재 사용자가 판매자인 경우 구매자에게 전송
+                if (currentUserId === sellerId) {
+                    receiverId = buyerId;
+                    console.log('✅ 현재 사용자는 판매자입니다. 구매자에게 전송:', receiverId);
+                }
+                // 현재 사용자가 구매자인 경우 판매자에게 전송
+                else if (currentUserId === buyerId) {
+                    receiverId = sellerId;
+                    console.log('✅ 현재 사용자는 구매자입니다. 판매자에게 전송:', receiverId);
+                }
+                // 그 외의 경우 (예상치 못한 상황)
+                else {
+                    console.warn('⚠️ 현재 사용자가 판매자도 구매자도 아닙니다. 판매자에게 전송합니다.');
+                    receiverId = sellerId;
+                }
+            }
+
+            if (!receiverId) {
+                console.error('❌ receiverId를 결정할 수 없습니다.')
+                return
+            }
 
             // STOMP 메시지 형식
             const stompMessage = {
                 roomId: roomId,
-                senderId: senderId,
+                senderId: currentUserId, // myUserId를 senderId로 사용
                 receiverId: receiverId,
                 content: content.trim(),
                 isRead: false,

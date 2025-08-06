@@ -176,11 +176,12 @@ export default function Navbar() {
                  </button>
                  <button 
                      onClick={() => {
-                         if (isLoggedIn) {
-                             router.push('/chat');
-                         } else {
-                             openLoginModal();
-                         }
+                         router.push('/chat');
+                        //  if (isLoggedIn) {
+                        //      router.push('/chat');
+                        //  } else {
+                        //      openLoginModal();
+                        //  }
                      }}
                      className="text-[#2B6CEE] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BFDBFE]"
                  >
@@ -192,7 +193,7 @@ export default function Navbar() {
                     className="relative"
                     ref={myPageMenuRef}
                 >
-                                         <button 
+                     <button 
                          onClick={() => {
                              if (isLoggedIn) {
                                  // 로그인된 상태: 마이페이지 메뉴 토글

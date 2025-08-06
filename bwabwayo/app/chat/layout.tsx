@@ -57,12 +57,22 @@ interface ChatRoom {
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const params = useParams();
-  const { roomList, getRoomList, addChatRoom } = useChatRoomStore();
+  const { roomList, getRoomList, addChatRoom, setCurrentSelectedRoom } = useChatRoomStore();
   const [isLoading, setIsLoading] = useState(true);
   
   // URL에서 현재 선택된 roomId 가져오기 
   const currentRoomId = params?.roomId ? Number(params.roomId) : null;
   
+  // 현재 선택된 채팅방 정보를 store에 설정
+  useEffect(() => {
+    if (currentRoomId && roomList.length > 0) {
+      const selectedRoom = roomList.find(room => room.roomId === currentRoomId);
+      if (selectedRoom) {
+        setCurrentSelectedRoom(selectedRoom);
+      }
+    }
+  }, [currentRoomId, roomList, setCurrentSelectedRoom]);
+
   // 채팅방 목록 업데이트 로깅
   useEffect(() => {
     const loadRoomList = async () => {
@@ -83,20 +93,18 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   
   // 채팅방 선택 시
   const handleChatRoomSelect = async (chatRoom: ChatRoom) => {
-    // if (!isLoggedIn) {
-    //   openLoginModal();
-    //   return;
-    // }
-
     try {
+      // 선택된 채팅방 정보를 store에 저장
+      setCurrentSelectedRoom(chatRoom);
+      
       const result = await addChatRoom({
         sellerId: chatRoom.seller.id.toString(),
         productId: chatRoom.product.id
       })
-      console.log('채팅방 생성 결과:', result)
+      // console.log('채팅방 생성 결과:', result)
       
       if (result) {
-        router.push(`/chat/${result.roomId}?productId=${result.productId}&sellerId=${result.sellerId}&buyerId=${result.buyerId}`)
+        router.push(`/chat/${result.roomId}?productId=${result.productId}`)
       } else {
         console.error('채팅방 생성 실패: 결과가 null입니다.')
       }
