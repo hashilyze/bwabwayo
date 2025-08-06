@@ -9,7 +9,7 @@ import { Swiper, SwiperClass, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-import LikeHeart from './LikeHeart';
+import LikeHeart from '@/components/product/wishHeart';
 
 interface Seller {
   id: number
@@ -125,7 +125,9 @@ export default function ProductCard({ products, navigationId = 'default' }: Prop
                 {/* 상품 이미지 */}
                 <div className="aspect-square overflow-hidden rounded-lg">
                   <div className="absolute top-4 right-4 z-10">
-                    <LikeHeart isLiked={product.is_like} />
+                    <LikeHeart productId={product.id}
+                     initialIsLiked={product.is_like || false} 
+                     />
                   </div>
                   <img
                     className="w-full h-full object-cover"

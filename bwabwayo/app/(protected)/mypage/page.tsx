@@ -83,9 +83,12 @@ const formattedEvaluations = userData.evaluation.map((item) => ({
                     <h3 className="text-lg font-bold text-black mb-1">상품 설명이 자동!</h3>
                     <p className="text-gray-500 text-sm">카테고리를 선택하면 자동으로 상품 설명을 채워줘요</p>
                   </div>
-                  <Link href="/product/new" className="bg-gray-600 text-white rounded-full px-4 py-2 text-sm font-normal hover:bg-gray-700 transition">
-                    상품 등록
-                  </Link>
+                  <Link
+                  href="/product/new"
+                  className="bg-gray-600 text-white rounded-full px-4 py-2 text-sm font-normal hover:bg-gray-700 transition whitespace-nowrap min-w-[100px]"
+                  >
+                  상품등록
+                </Link>
                 </div>
               </div>
 

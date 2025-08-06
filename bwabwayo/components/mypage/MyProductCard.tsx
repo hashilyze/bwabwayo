@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { MouseEvent } from 'react'
-import LikeHeart from '@/components/product/LikeHeart';
+import LikeHeart from '@/components/product/wishHeart';
 import { ActivityProduct } from '@/stores/mypage/myActivityStore';
 
 type Props = {
@@ -55,7 +55,10 @@ export default function ProductCard({ item }: Props) {
       {/* 상품 이미지 */}
       <div className="aspect-square overflow-hidden rounded-lg relative">
         <div className="absolute top-4 right-4 z-10">
-          <LikeHeart isLiked={product.isLike || false} />
+          <LikeHeart 
+          productId={product.id}
+          initialIsLiked={product.isLike || false}
+/>
         </div>
         <img
           className="w-full h-full object-cover"

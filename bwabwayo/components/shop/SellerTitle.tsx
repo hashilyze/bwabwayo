@@ -37,7 +37,7 @@ export default function SellerTitle({ seller }: SellerTitleProps) {
                         <div className="flex items-center gap-1">
                             <span className="text-gray-400 text-base font-light">{sellerRating}</span>
                             <img src="/fe/icon/star-on.svg" alt="별점" className="w-4 h-4" />
-                            <span className="text-gray-400 text-base font-light">{dealCount}</span>
+                            <span className="text-gray-400 text-base font-light">{reviewCount}</span>
                         </div>
                     </div>
                 </div>
