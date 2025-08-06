@@ -6,14 +6,13 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useProductStore } from '@/stores/product/productStore';
 import { useSearchParams } from 'next/navigation';
 import { useModalStore } from '@/stores/modalStore';
+import { useAuthStore } from '@/stores/auth/authStore';
 // swiper
 import { Navigation, Pagination } from 'swiper/modules';
 import { Swiper, SwiperClass, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-
-import { useAuthStore } from '@/stores/auth/authStore';
 
 // 인증 처리 컴포넌트
 function AuthHandler() {
@@ -35,12 +34,6 @@ function ProductSlider({ products, navigationId }: { products: any[], navigation
   const [swiper, setSwiper] = useState<SwiperClass>();
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
-  
-  useEffect(() => {
-    const { getToken } = useAuthStore.getState();
-    const token = getToken();
-    console.log('token', token);
-  }, []);
 
   const handlePrev = () => {
     swiper?.slidePrev()
@@ -119,7 +112,22 @@ function ProductSlider({ products, navigationId }: { products: any[], navigation
 
 export default function Home() {
   const { products, hotKeywordProducts, videoCallProducts, loading, error, getProducts, getHotKewordProducts, getVideoCallProducts } = useProductStore();
+  const { initializeAuth, setGlobalToken, getToken } = useAuthStore();
   const hotKeyword = '라부부';
+
+  useEffect(() => {
+    // 토큰 초기화 및 전역 토큰 설정
+    const initializeToken = () => {
+      initializeAuth();
+      const token = getToken();
+      if (token) {
+        setGlobalToken(token);
+        console.log('🔐 전역 토큰 설정 완료:', token);
+      }
+    };
+
+    initializeToken();
+  }, [initializeAuth, setGlobalToken, getToken]);
 
   useEffect(() => {
     const fetchData = async () => {

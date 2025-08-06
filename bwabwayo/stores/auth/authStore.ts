@@ -10,11 +10,16 @@ interface FailedRequest {
 interface AuthStore {
   token: string | null
   isLoggedIn: boolean
+  globalToken: string | null  // 전역 토큰 변수 추가
   
   // 토큰 관리
   setToken: (token: string | null) => void
   getToken: () => string | null
   logout: () => void
+  
+  // 전역 토큰 관리
+  setGlobalToken: (token: string | null) => void
+  getGlobalToken: () => string | null
   
   // 자동 토큰 초기화
   initializeAuth: () => void
@@ -55,6 +60,7 @@ const processQueue = (error: Error | null, token: string | null = null) => {
 export const useAuthStore = create<AuthStore>((set, get) => ({
   token: null,
   isLoggedIn: false,
+  globalToken: null, // 전역 토큰 초기화
 
   // 토큰 설정
   setToken: (token: string | null) => {
@@ -93,16 +99,45 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     return null
   },
 
-  // 토큰 삭제 (로그아웃)
+  // 로그아웃
   logout: () => {
     set({ 
-      token: null,
-      isLoggedIn: false 
+      token: null, 
+      isLoggedIn: false,
+      globalToken: null  // 전역 토큰도 정리
     })
-    
     if (typeof window !== 'undefined') {
       localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      localStorage.removeItem('globalToken')  // 전역 토큰도 정리
     }
+  },
+
+  // 전역 토큰 설정
+  setGlobalToken: (token: string | null) => {
+    set({ globalToken: token })
+    if (typeof window !== 'undefined') {
+      if (token) {
+        localStorage.setItem('globalToken', token)
+      } else {
+        localStorage.removeItem('globalToken')
+      }
+    }
+  },
+
+  // 전역 토큰 가져오기
+  getGlobalToken: () => {
+    const { globalToken } = get()
+    if (globalToken) return globalToken
+
+    if (typeof window !== 'undefined') {
+      const globalAccessToken = localStorage.getItem('globalToken')
+      if (globalAccessToken) {
+        set({ globalToken: globalAccessToken })
+        return globalAccessToken
+      }
+    }
+    return null
   },
 
   // 앱 시작 시 토큰 초기화
@@ -122,8 +157,15 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   authenticatedFetch: async (url: string, options: RequestInit = {}): Promise<Response> => {
     const makeRequest = async (requestUrl: string, requestOptions: RequestInit, retry = false): Promise<Response> => {
 
-      const currentToken = get().getToken()
-      console.log('currentToken', currentToken)
+      // 전역 토큰을 우선적으로 사용
+      let currentToken = get().getGlobalToken()
+      
+      // 전역 토큰이 없으면 기존 방식 사용
+      if (!currentToken) {
+        currentToken = get().getToken()
+      }
+      
+      // console.log('currentToken', currentToken)
       // 99년짜리 임시 토큰(실제 사용 시 주석처리)
       // const currentToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI0Mzc1MTI2ODM0Iiwicm9sZSI6IlVTRVIiLCJ0b2tlblR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTQzMjk4OTEsImV4cCI6MzMyNDY3OTM4OTF9.Ri8aEdsV2_37aZ9As4npi_kBvWv0ccQlUzyKweE4B-opos4h-4Ceb7OO4LQUFJp7'
       
