@@ -159,28 +159,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
       // 전역 토큰을 우선적으로 사용
       let currentToken = get().getGlobalToken()
-      console.log('🔍 전역 토큰 확인:', currentToken)
       
       // 전역 토큰이 없으면 기존 방식 사용
       if (!currentToken) {
         currentToken = get().getToken()
-        console.log('🔍 기존 토큰 확인:', currentToken)
-      }
-      
-      console.log('🔐 최종 사용 토큰:', currentToken)
-      console.log('🔐 API URL:', requestUrl)
-      
-      // 토큰 내용 확인 (디버깅용)
-      if (currentToken) {
-        try {
-          const payload = JSON.parse(atob(currentToken.split('.')[1]));
-          console.log('📋 토큰 페이로드:', payload);
-          console.log('📅 토큰 만료시간:', new Date(payload.exp * 1000));
-          console.log('⏰ 현재시간:', new Date());
-          console.log('⏰ 토큰 만료여부:', new Date() > new Date(payload.exp * 1000));
-        } catch (error) {
-          console.error('토큰 디코딩 실패:', error);
-        }
       }
       
       // 99년짜리 임시 토큰(실제 사용 시 주석처리)
@@ -192,18 +174,31 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       
       if (currentToken) {
         headers.set('Authorization', `Bearer ${currentToken}`)
-        console.log('🔐 Authorization 헤더 설정:', `Bearer ${currentToken.substring(0, 50)}...`)
-      } else {
-        console.log('⚠️ 토큰이 없어서 Authorization 헤더를 설정하지 않습니다.');
       }
-      
+
       console.log('🔐 전체 헤더:', Object.fromEntries(headers.entries()))
+      console.log('📤 요청 메서드:', requestOptions.method || 'GET')
+      console.log('📤 요청 바디:', requestOptions.body)
       
       // fetch 요청 실행
       const response = await fetch(requestUrl, {
         ...requestOptions,
         headers,
       })
+
+      console.log('📡 API 응답 상태:', response.status, response.statusText)
+      console.log('📡 API 응답 URL:', response.url)
+
+      // 500 에러 처리
+      if (response.status === 500) {
+        console.error('❌ 서버 내부 오류 (500)');
+        try {
+          const errorText = await response.text();
+          console.error('❌ 서버 에러 내용:', errorText);
+        } catch (error) {
+          console.error('❌ 에러 내용 읽기 실패:', error);
+        }
+      }
 
       // 401 Unauthorized 처리 (토큰 만료)
       if (response.status === 401 && !retry) {
