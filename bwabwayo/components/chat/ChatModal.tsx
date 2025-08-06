@@ -17,9 +17,6 @@ const ChatInputActive: React.FC<ChatInputActiveProps> = ({ onOpenReservationModa
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [messageInput, setMessageInput] = useState('');
 
-  // 디버깅을 위한 로그
-  console.log('ChatModal - myUserId:', myUserId);
-
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };

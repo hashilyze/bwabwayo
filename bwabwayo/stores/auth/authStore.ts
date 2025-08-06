@@ -182,8 +182,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         headers,
       })
 
-      console.log('📡 API 응답 상태:', response.status, response.statusText)
-      console.log('📡 API 응답 URL:', response.url)
+      // console.log('📡 API 응답 상태:', response.status, response.statusText)
+      // console.log('📡 API 응답 URL:', response.url)
 
       // 500 에러 처리
       if (response.status === 500) {
@@ -245,7 +245,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           // 필요시 로그인 페이지로 리다이렉트
           if (typeof window !== 'undefined') {
             console.warn('토큰 갱신에 실패했습니다. 다시 로그인해주세요.')
-            // window.location.href = '/login'
+            window.location.href = '/login'
           }
           
           throw refreshError

@@ -79,7 +79,6 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
       try {
         setIsLoading(true)
         await getRoomList()
-        console.log("채팅방 목록 로드 완료:", roomList)
       } catch (error) {
         console.error("채팅방 목록 로드 실패:", error)
       } finally {
@@ -101,7 +100,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
         } catch (error) {
           console.log("채팅방 목록 업데이트 실패:", error)
         }
-      })
+      }, 15000)
     };
 
     const handleBlur = () => {
@@ -109,7 +108,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
       if (interval) {
         clearInterval(interval)
         interval = null
-        console.log("📱 페이지 포커스 해제 - 업데이트 중지")
+        // console.log("📱 페이지 포커스 해제 - 업데이트 중지")
       }
     };
 
