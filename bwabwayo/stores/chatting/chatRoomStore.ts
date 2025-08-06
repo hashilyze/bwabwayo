@@ -243,50 +243,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
             const response = await useAuthStore.getState().authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/chatrooms/${roomId}?page=0`);
             const data = await response.json();
             console.log('📥 메시지 히스토리 수신:', data);
-            
-            // 데이터 구조 확인 및 안전한 처리
-            let messagesArray: ChatMessage[] = [];
-            
-            if (Array.isArray(data)) {
-                // 배열인 경우 유효한 메시지 객체만 필터링
-                messagesArray = data.filter((item: any) => 
-                    item && 
-                    typeof item === 'object' && 
-                    item.content !== undefined
-                );
-            } else if (data && typeof data === 'object') {
-                // 객체인 경우 다양한 필드명 시도
-                const possibleMessageFields = ['messages', 'content', 'data', 'items', 'chatMessages', 'messageList'];
-                
-                for (const field of possibleMessageFields) {
-                    if (Array.isArray(data[field])) {
-                        console.log(`✅ 메시지 배열을 찾았습니다: ${field}`);
-                        messagesArray = data[field].filter((item: any) => 
-                            item && 
-                            typeof item === 'object' && 
-                            item.content !== undefined
-                        );
-                        break;
-                    }
-                }
-                
-                // 만약 배열 필드를 찾지 못했다면, 객체 자체가 메시지일 수 있음
-                if (messagesArray.length === 0 && data.content !== undefined) {
-                    console.log('✅ 단일 메시지 객체로 처리');
-                    messagesArray = [data as ChatMessage];
-                }
-                
-                if (messagesArray.length === 0) {
-                    console.warn('⚠️ 예상하지 못한 데이터 구조:', data);
-                    messagesArray = [];
-                }
-            } else {
-                console.warn('⚠️ 메시지 데이터가 배열이 아닙니다:', data);
-                messagesArray = [];
-            }
-            
-            console.log('📋 최종 처리된 메시지 배열:', messagesArray);
-            set({ messages: messagesArray })
+            set({ messages: data })
         } catch (error) {
             console.error(`❌ 채팅방 ${roomId} 메시지 히스토리 로드 실패:`, error);
             set({ messages: [] });
@@ -310,39 +267,22 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
             const { currentSelectedRoom } = get();
             const currentUserId = currentSelectedRoom?.userId.toString();
 
-            if (!currentUserId) {
-                console.error('❌ 현재 사용자 ID를 찾을 수 없습니다.')
-                return
-            }
-
             // receiverId 결정: 현재 사용자가 판매자인지 구매자인지 판단
             let receiverId = null;
-            if (currentSelectedRoom) {
-                const sellerId = currentSelectedRoom.seller.id.toString();
-                const buyerId = currentSelectedRoom.buyer.id.toString();
-                
-                console.log('🔍 receiverId 결정 과정:', {
-                    currentUserId,
-                    sellerId,
-                    buyerId,
-                    currentSelectedRoom: currentSelectedRoom
-                });
-                
-                // 현재 사용자가 판매자인 경우 구매자에게 전송
-                if (currentUserId === sellerId) {
-                    receiverId = buyerId;
-                    console.log('✅ 현재 사용자는 판매자입니다. 구매자에게 전송:', receiverId);
-                }
-                // 현재 사용자가 구매자인 경우 판매자에게 전송
-                else if (currentUserId === buyerId) {
-                    receiverId = sellerId;
-                    console.log('✅ 현재 사용자는 구매자입니다. 판매자에게 전송:', receiverId);
-                }
-                // 그 외의 경우 (예상치 못한 상황)
-                else {
-                    console.warn('⚠️ 현재 사용자가 판매자도 구매자도 아닙니다. 판매자에게 전송합니다.');
-                    receiverId = sellerId;
-                }
+            const sellerId = currentSelectedRoom?.seller.id.toString();
+            const buyerId = currentSelectedRoom?.buyer.id.toString();
+            
+            // 현재 사용자가 판매자인 경우 구매자에게 전송
+            if (currentUserId === sellerId) {
+                receiverId = buyerId;
+            }
+            // 현재 사용자가 구매자인 경우 판매자에게 전송
+            else if (currentUserId === buyerId) {
+                receiverId = sellerId;
+            }
+            // 그 외의 경우 (예상치 못한 상황)
+            else {
+                receiverId = sellerId;
             }
 
             if (!receiverId) {

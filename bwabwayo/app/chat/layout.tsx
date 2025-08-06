@@ -124,14 +124,14 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
         
         {/* 채팅 목록 */}
         <div className="flex-1 overflow-y-auto">
-          {isLoading ? (
+          {isLoading || !roomList ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
                 <p className="text-sm text-gray-500">채팅방 목록을 불러오는 중...</p>
               </div>
             </div>
-          ) : roomList.length === 0 ? (
+          ) : !Array.isArray(roomList) || roomList.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
                 <p className="text-gray-500 mb-2">아직 채팅방이 없습니다</p>

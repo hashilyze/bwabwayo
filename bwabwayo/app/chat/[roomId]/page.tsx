@@ -129,31 +129,18 @@ export default function ChatRoomPage() {
             <p className="text-sm text-gray-500">(100)</p>
           </div>
           <p className="text-sm text-gray-500">지금까지 174개의 상품을 판매했어요</p>
-          {/* sellerId와 buyerId 관련 코드를 제거하고, 디버깅 로그를 추가하여 myUserId와 메시지 표시 로직을 확인할 수 있도록 수정합니다. */}
-          {/* <p className="text-sm text-gray-500">
-              판매자: {sellerId} | 구매자: {buyerId}
-            </p> */}
         </div>
 
-        {!messages || !Array.isArray(messages) || messages.length === 0 || !messages.every(msg => msg && typeof msg === 'object') ? (
+        {!messages || messages.length === 0 || !messages.every(msg => msg && typeof msg === 'object') ? (
           <div className="text-center text-gray-500 py-8">
             <p>아직 메시지가 없습니다.</p>
             <p className="text-sm mt-10">첫 번째 메시지를 보내보세요!</p>
           </div>
                  ) : (
            <>
-             {Array.isArray(messages) && messages.filter(message => message && typeof message === 'object').map((message, index) => {
+             {messages && messages.filter(message => message && typeof message === 'object').map((message, index) => {
                // 내가 보낸 메시지인지 판단 (senderId와 내 사용자 ID 비교)
                const isMine = myUserId ? String(message.senderId) === String(myUserId) : false
-               
-               // 디버깅을 위한 로그
-               console.log(`메시지 ${index}:`, {
-                 messageSenderId: message.senderId,
-                 myUserId: myUserId,
-                 isMine: isMine,
-                 content: message.content,
-                 배치위치: isMine ? '오른쪽 (내 메시지)' : '왼쪽 (상대방 메시지)'
-               });
               
               // 공지글인지 판단 (이모지로 시작하는 메시지)
               const isNotice = message.content.startsWith('📅') || 
