@@ -5,11 +5,11 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 
-import Category from '@/components/Category';
 import { useCategoryStore } from '@/stores/categoryStore';
 import { useAuthStore } from '@/stores/auth/authStore';
 import { useModalStore } from '@/stores/modalStore';
 
+// 새로운 카테고리
 export default function Navbar() {
     const [title, setTitle] = useState('')
     const [showCategory, setShowCategory] = useState(false);
@@ -82,7 +82,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className={`bg-white border-b-1 border-[#eee] fixed top-0 left-0 right-0 z-98 transition-shadow duration-200 ${isScrolled ? 'shadow' : ''}`}>
+    <nav className={`bg-white border-b border-[#eee] fixed top-0 left-0 right-0 z-98 transition-shadow duration-200 ${isScrolled ? 'shadow' : ''}`}>
          <header>
                 {/* 유틸리티 바 */}
                 <div className="bg-white">
@@ -168,7 +168,7 @@ export default function Navbar() {
                           }}
                           className="cursor-pointer"
                         >
-                          <Image src="/icon/people-white.svg" alt="채팅" width={32} height={32} />
+                          <Image src="/icon/chat.svg" alt="채팅" width={32} height={32} />
                         </button>
                         <button
                           onClick={() => {
@@ -192,7 +192,7 @@ export default function Navbar() {
                           }}
                           className="cursor-pointer"
                         >
-                          <Image src="/icon/chat.svg" alt="프로필" width={32} height={32} />
+                          <Image src="/icon/people-white.svg" alt="프로필" width={32} height={32} />
                         </button>
                       </div>
                     </div>
