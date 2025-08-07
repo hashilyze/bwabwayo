@@ -3,8 +3,6 @@
 import { useRouter } from 'next/navigation'
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
-
 import { useCategoryStore } from '@/stores/categoryStore';
 import { useAuthStore } from '@/stores/auth/authStore';
 import { useModalStore } from '@/stores/modalStore';
@@ -139,7 +137,7 @@ export default function Navbar() {
                       채팅하기
                     </button>
                     {/* <Link href="/mypage/wishlist" className="cursor-pointer flex gap-2 text-xl items-end" >
-                      <div className="relative w-6 h-6"><Image src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-off.svg`} alt="찜" fill /></div>
+                      <div className="relative w-6 h-6"><img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-off.svg`} alt="찜" /></div>
                       찜 목록
                     </Link> */}
                      <button 

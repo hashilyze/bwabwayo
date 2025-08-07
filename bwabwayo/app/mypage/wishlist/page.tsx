@@ -3,7 +3,6 @@
 import React, { MouseEvent } from "react";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import Sidebar from "@/components/shop/Sidebar"; // Sidebar 컴포넌트를 import 합니다.
 
 // --- 타입 정의 (Type Definition) ---
@@ -49,11 +48,10 @@ function WishlistProductCard({ product }: { product: WishedProduct }) {
     >
       <div className='relative'>
         <div className="h-[290px] overflow-hidden relative">
-          <Image
+          <img
             className="object-cover transform transition-transform duration-300 group-hover:scale-105"
             src={product.thumbnail}
-            alt={product.title}
-            fill
+            alt={product.title} 
           />
         </div>
         {product.status === '판매완료' && (
@@ -65,7 +63,7 @@ function WishlistProductCard({ product }: { product: WishedProduct }) {
         {/* 깨진 SVG 코드 대신, 다른 컴포넌트와 동일하게 <img> 태그를 사용합니다. */}
         {/* public/icon/heart-on.svg 파일이 존재해야 합니다. */}
         <div className="absolute top-4 right-4 w-7 h-7">
-            <Image src="/icon/heart-on.svg" alt="찜한 상품" fill />
+            <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-on.svg`} alt="찜한 상품" />
         </div>
       </div>
       <div className="p-4 flex flex-col flex-grow">

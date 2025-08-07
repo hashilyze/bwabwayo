@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation'
 import { MouseEvent } from 'react'
 import LikeHeart from '@/components/product/wishHeart';
 import { ProductWithSeller } from '@/stores/product/productStore';
-import Image from 'next/image';
 import { useAuthStore } from '@/stores/auth/authStore';
 
 type Props = {
@@ -68,7 +67,7 @@ export default function ProductCard({ item }: Props) {
         </div>
         <img
           className="w-full h-full object-cover"
-          src={product.thumbnail || '/image/no-image.jpg'}
+          src={product.thumbnail || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`}
           alt={product.title}
         />
       </div>

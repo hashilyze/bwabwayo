@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef, ChangeEvent, FormEvent } from 'react';
 import Sidebar from '@/components/shop/Sidebar';
 import { useMySettingStore } from '@/stores/mypage/mySettingStore';
-import Image from 'next/image';
 
 // 회원가입 페이지와 동일한 UI/UX를 위한 아이콘 컴포넌트
 const UserCircleIcon = () => (
@@ -191,7 +190,7 @@ export default function SettingsPage() {
                 className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed hover:border-blue-500 transition-all"
               >
                 {profileImagePreview ? (
-                  <Image src={profileImagePreview} alt="프로필 미리보기" fill className="object-cover" />
+                  <img src={profileImagePreview} alt="프로필 미리보기" className="object-cover" />
                 ) : (
                   <UserCircleIcon />
                 )}

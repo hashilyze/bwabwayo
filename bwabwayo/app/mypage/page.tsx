@@ -8,8 +8,6 @@ import SellerTitle from '@/components/shop/SellerTitle';
 import { useMyStore, Evaluation } from '@/stores/mypage/myStore';
 import { useMyActivityStore, ActivityProduct } from '@/stores/mypage/myActivityStore';
 
-
-
 export default function MyPage() {
   const { userData, loading: userLoading, error: userError, fetchUserData } = useMyStore();
   const { salesList, salesTotalElements, loading: salesListLoading, error:salesListError, fetchSales} = useMyActivityStore();

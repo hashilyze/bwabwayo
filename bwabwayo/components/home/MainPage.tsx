@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 
 interface ProductCard {
   id: number;
@@ -81,17 +80,17 @@ const MainPage: React.FC = () => {
     <div className="bg-white border border-gray-200 rounded-[20px] overflow-hidden">
       <div className="relative">
         <div className="w-full h-[290px] bg-gray-200 relative">
-          <Image src={product.image} alt={product.title} fill className="object-cover" />
+          <img src={product.image} alt={product.title} className="object-cover" />
           <div className="absolute top-4 right-4 w-6 h-6 bg-white/50 rounded-full flex items-center justify-center">
             <div className="relative w-4 h-4">
-              <Image src="/icon/heart-off.svg" alt="찜" fill />
+              <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-off.svg`} alt="찜" />
             </div>
           </div>
         </div>
         {product.hasVideoTrade && (
           <div className="absolute bottom-4 left-4 bg-[#ffe9ba] rounded-lg px-2 py-1 flex items-center gap-1">
             <div className="relative w-4 h-4">
-              <Image src="/icon/video.svg" alt="화상거래" fill />
+              <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/video.svg`} alt="화상거래" />
             </div>
             <span className="text-[#ffae00] text-xs">화상거래</span>
           </div>
@@ -127,7 +126,7 @@ const MainPage: React.FC = () => {
           <div className="flex items-center justify-between h-15">
             <div className="flex items-center gap-8">
               <div className="relative h-[58px] w-[150px]">
-                <Image src="/logo.png" alt="봐봐요" fill style={{ objectFit: 'contain' }}/>
+                <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/logo.png`} alt="봐봐요" style={{ objectFit: 'contain' }}/>
               </div>
             </div>
             <div className="flex items-center gap-8">
@@ -138,18 +137,18 @@ const MainPage: React.FC = () => {
                   className="w-80 h-14 bg-gray-100 rounded-[18px] px-6 text-lg font-semibold placeholder-gray-400"
                 />
                 <div className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5">
-                  <Image src="/icon/search.svg" alt="검색" fill />
+                  <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/search.svg`} alt="검색" />
                 </div>
               </div>
               <div className="flex items-center gap-6">
                 <div className="relative w-6 h-6">
-                  <Image src="/icon/people-white.svg" alt="프로필" fill />
+                  <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/people-white.svg`} alt="프로필" />
                 </div>
                 <div className="relative w-6 h-6">
-                  <Image src="/icon/heart-off.svg" alt="찜" fill />
+                  <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-off.svg`} alt="찜" />
                 </div>
                 <div className="relative w-6 h-6">
-                  <Image src="/icon/chat.svg" alt="채팅" fill />
+                  <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/chat.svg`} alt="채팅" />
                 </div>
               </div>
             </div>
@@ -208,7 +207,7 @@ const MainPage: React.FC = () => {
             {categories.map((category) => (
               <div key={category.id} className="flex flex-col items-center gap-4">
                 <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center relative">
-                  <Image
+                  <img
                     src={category.icon}
                     alt={category.name}
                     width={80}

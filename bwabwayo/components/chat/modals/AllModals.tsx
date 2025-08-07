@@ -2,8 +2,6 @@
 
 import React, {useState} from "react";
 
-import Image from 'next/image';
-
 interface ChatMessage {
     content: string;
     createdAt: string;
@@ -22,11 +20,10 @@ const CreateRoomModal = ({ message }: { message: ChatMessage }) => {
     <article className="w-[400px] h-[242px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
       <div className="flex flex-col w-[371px] h-[193px] items-center justify-between relative top-7 left-[15px]">
         <header className="inline-flex itmes-start justify-center gap-3 relative flex-[0_0_auto]">
-          <Image
+          <img
             className="relative w-[60px] h-[60px] object-cover rounded-[10px]"
             alt="videoChatCat"
-            src="/nintendo.jpg"
-            fill
+            src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/nintendo.jpg`}
           />
           <p className="relative w-[291px] mt-[-1.00px] font-medium text-black text-sm tracking-[0] leading-[18px]">
             고윤정 님과 팝마트 라부부 코카콜라 시리즈 인형 키링에 대한 이야기를 시작해보세요.
@@ -79,11 +76,10 @@ const ReserveVideoCallModal = ({ message }: { message: ChatMessage }) => {
     <div className="w-[400px] h-[169px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
       <div className="flex flex-col w-[371px] h-[123px] items-center justify-between relative top-7 left-3.5">
         <div className="flex w-[301px] items-center justify-between relative flex-[0_0_auto]">
-          <Image
+          <img
             className="relative w-[70px] h-[70px] aspect-[1] object-cover"
             alt="Calendar appointment icon"
             src="/reservation-icon.png"
-            fill
           />
 
           <div className="flex w-[223px] items-start justify-center gap-3 relative">
@@ -144,11 +140,10 @@ const CancelVideoCallModal = ({ message }: { message: ChatMessage }) => {
         <div className="w-[400px] h-[114px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
                 <div className="flex flex-col w-[371px] h-[81px] items-center justify-around gap-3 relative top-4 left-3">
                     <div className="flex w-[317px] items-center gap-[10px] relative flex-[0_0_auto]">
-                        <Image
+                        <img
                         className="relative w-[65px] h-[58px] aspect-[1.12]"
                         alt="Sad cat icon"
-                        src="/sadCat-icon.png"
-                        fill
+                        src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/sadCat-icon.png`}
                         />
 
                         <div className="flex w-[223px] items-start justify-center gap-3 relative">
@@ -184,11 +179,10 @@ const StartVideoCallModal = ({ message }: { message: ChatMessage }) => {
     <div className="w-[400px] h-[169px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
       <div className="flex flex-col w-[371px] h-[123px] items-center justify-between relative top-7 left-[15px]">
         <div className="flex w-[371px] items-center justify-center gap-3 relative flex-[0_0_auto]">
-          <Image
+          <img
             className="relative w-[78px] h-[70px] aspect-[1.11] object-cover"
             alt="videoChatCat"
-            src="/videoChatCat-icon.png"
-            fill
+            src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/videoChatCat-icon.png`}
           />
 
           
@@ -235,11 +229,10 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
     <div className="w-[400px] h-[169px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
       <div className="flex flex-col w-[371px] h-[123px] items-center justify-between relative top-7 left-2.5">
         <div className="flex w-[281px] items-center justify-between relative flex-[0_0_auto]">
-          <Image
+          <img
             className="relative w-[75px] h-[75px] aspect-[1] object-cover"
             alt="Image removebg"
-            src="/money-icon.png"
-            fill
+            src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/money-icon.png`}
           />
 
           <div className="flex w-[201px] items-start justify-center gap-3 relative">
@@ -284,11 +277,10 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
     <div className="w-[400px] h-[169px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
       <div className="flex flex-col w-[371px] h-[102px] items-center justify-between relative top-[49px] left-3.5">
         <div className="flex w-[281px] items-center justify-between gap-1 relative flex-[0_0_auto]">
-          <Image
+          <img
             className="relative w-[97px] h-[37px] aspect-[2.62]"
             alt="Toss icon"
-            src="/toss-icon.png"
-            fill
+            src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/toss-icon.png`}
           />
           <p className="relative w-[169px] mt-[-0.50px] font-medium leading-[18px] text-black text-sm tracking-[0]">
                 최종 거래 가격이 설정되었어요
@@ -331,11 +323,10 @@ const InputDeliveryAddressModal = ({ message }: { message: ChatMessage }) => {
     <div className="w-[400px] h-[169px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
       <div className="flex flex-col w-[371px] h-[123px] items-center justify-between relative top-7 left-3.5">
         <div className="flex w-[323px] items-center justify-center gap-[18px] relative flex-[0_0_auto]">
-          <Image
+          <img
             className="relative w-[85px] h-[66px] aspect-[1.29]"
             alt="Money cat icon"
-            src="/moneyCat-icon.png"
-            fill
+            src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/moneyCat-icon.png`}
           />
           <div className="relative w-[158px] font-medium leading-[18px] text-black text-sm tracking-[0]">
                 입금이 완료되었어요.
@@ -376,11 +367,10 @@ const InputTrackingAddressModal = ({ message }: { message: ChatMessage }) => {
     <div className="w-[400px] h-[169px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
       <div className="flex flex-col w-[371px] h-[123px] items-center justify-between relative top-7 left-3.5">
         <div className="flex w-[281px] items-center justify-center gap-[18px] relative flex-[0_0_auto]">
-          <Image
+          <img
             className="relative w-[75px] h-[75px] ml-[-14.00px] aspect-[1] object-cover"
             alt="Box icon"
-            src="/box-icon.png"
-            fill
+            src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/box-icon.png`}
           />
           <p className="relative w-fit mr-[-14.00px] font-medium leading-[18px] text-black text-sm tracking-[0]">
                 배송지가 입력 되었어요.
@@ -413,11 +403,10 @@ const StartDeliveryModal = ({ message }: { message: ChatMessage }) => {
         <div className="w-[400px] h-[107px] top-0 left-0 bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
                 <div className="flex flex-col w-[356px] h-[76px] items-center justify-around gap-3 relative top-4 left-3">
                     <div className="w-[317px] items-center gap-[19px] relative flex-[0_0_auto] flex">
-                        <Image
+                        <img
                         className="relative w-[55px] h-[70px] aspect-[0.79]"
                         alt="Delivery cat icon"
-                        src="/deliveryCat-icon.png"
-                        fill
+                        src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/deliveryCat-icon.png`}
                         />
                          <div className="inline-flex flex-col items-start jusify-center relative flex-[0_0_auto]">
                             <p className="mt-[-1.00px] font-medium text-black text-sm realative w-[232px] tracking-[0] leading-[18px]">
@@ -449,11 +438,10 @@ const ConfirmPurchaseModal = ({ message }: { message: ChatMessage }) => {
     <div className="w-[400px] h-[169px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
       <div className="flex flex-col w-[371px] h-[123px] items-center justify-between relative top-7 left-[15px]">
         <div className="flex w-[325px] items-center justify-between relative flex-[0_0_auto]">
-          <Image
+          <img
             className="relative w-[750x] h-16 aspect-[1.09]"
             alt="Box cat icon"
-            src="/boxCat-icon.png"
-            fill
+            src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/boxCat-icon.png`}
           />
 
           <div className="flex flex-col w-[231px] items-start relative">
@@ -490,11 +478,10 @@ const EndTradeModal = ({ message }: { message: ChatMessage }) => {
         <div className="w-[400px] h-[107px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
                 <div className="flex flex-col w-[371px] h-[76px] items-center justify-around gap-3 relative top-3.5 left-3">
                     <div className="flex w-[317px] items-center gap-[19px] relative flex-[0_0_auto]">
-                        <Image
+                        <img
                         className="relative w-[67px] h-[67px] aspect-[1] object-cover"
                         alt="point icon"
-                        src="/point-icon.png"
-                        fill
+                        src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/point-icon.png`}
                         />
 
                         

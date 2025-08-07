@@ -1,5 +1,3 @@
-// components/product/LikeHeart.tsx
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLikeProductStore } from '@/stores/product/likeProductStore';
 
@@ -82,7 +80,7 @@ export default function LikeHeart({ productId, initialIsLiked = false }: LikeHea
       className="p-1 rounded-full hover:bg-gray-100 transition-colors"
     >
       <img
-        src={isLiked ? "/icon/heart-on.svg" : "/icon/heart-off.svg"}
+        src={isLiked ? `${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-on.svg` : `${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-off.svg`}
         alt={isLiked ? "좋아요 취소" : "좋아요"}
         className="w-6 h-6"
       />

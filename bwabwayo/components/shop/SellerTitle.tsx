@@ -29,14 +29,14 @@ export default function SellerTitle({ seller }: SellerTitleProps) {
             {/* 상점 프로필 */}
             <div className="flex items-center gap-4">
                 <div>
-                    <img src={sellerImage ?? "/default-profile.png"} alt={`${sellerName} 프로필 이미지`} className="rounded-full border-1 border-[#eee] w-20 h-20 object-cover" />
+                    <img src={sellerImage ?? `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/default-profile.png`} alt={`${sellerName} 프로필 이미지`} className="rounded-full border-1 border-[#eee] w-20 h-20 object-cover" />
                 </div>
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-col items-start">
                         <h3 className="text-lg font-bold">{sellerName}님의 상점</h3>
                         <div className="flex items-center gap-1">
                             <span className="text-gray-400 text-base font-light">{sellerRating}</span>
-                            <img src="/fe/icon/star-on.svg" alt="별점" className="w-4 h-4" />
+                            <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/star-on.svg`} alt="별점" className="w-4 h-4" />
                             <span className="text-gray-400 text-base font-light">{reviewCount}</span>
                         </div>
                     </div>

@@ -8,9 +8,6 @@ import Script from 'next/script';
 import {
     UserCircleIcon, PlusCircleIcon, MinusCircleIcon, XCircleIcon
 } from '@/components/signup/Icons';
-import Image from 'next/image';
-
-
 
 // --- 타입 정의 ---
 interface DaumPostcodeData { 
@@ -219,7 +216,7 @@ export default function SignUpPage() {
                                         className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed hover:border-blue-500 transition-all"
                                     >
                                         {preview ? (
-                                            <Image src={preview} alt="프로필 미리보기" fill className="object-cover" />
+                                            <img src={preview} alt="프로필 미리보기" className="object-cover" />
                                         ) : (
                                             <UserCircleIcon />
                                         )}
