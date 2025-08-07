@@ -148,7 +148,7 @@ const CancelVideoCallModal = ({ message }: { message: ChatMessage }) => {
                         <div className="flex w-[223px] items-start justify-center gap-3 relative">
                             <div className="inline-flex flex-col items-start gap-1.5 relative flex-[0_0_auto] ml-[-6.50px] mr-[-6.50px]">
                                 <p className="mt-[-1.00px] font-medium text-black text-sm realative w-fit tracking-[0] leading-[18px] whitespace-nowrap">
-                                    OO 님과 화상 거래 예약이 최소되었어요!
+                                    OO 님과 화상 거래 예약이 취소되었어요!
                                 </p>
 
                                 <div className="text-[#7c7c7c] text-xs relative w-fit font-medium tracking-[0] leading-[18px] whitespace-nowrap">

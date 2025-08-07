@@ -140,7 +140,7 @@ export default function ChatRoomPage() {
           </div>
                  ) : (
            <>
-             {messages && messages.filter(message => message && typeof message === 'object' && message.content && message.content.trim()).map((message, index) => {
+             {messages && messages.filter(message => message && typeof message === 'object').map((message, index) => {
                // 내가 보낸 메시지인지 판단 (senderId와 내 사용자 ID 비교)
                const isMine = myUserId ? String(message.senderId) === String(myUserId) : false
 
@@ -157,12 +157,55 @@ export default function ChatRoomPage() {
               } else if (message.content.startsWith('배송조회')) {
                 noticeType = 'delivery'; // 배송 조회
               }
+
+              if(message.type === "CREATE_ROOM"){
+                console.log("방생성이요~~!!");
+              }
+              else if(message.type === "RESERVE_VIDEOCALL"){
+
+              }
+              else if(message.type === "CANCEL_VIDEOCALL"){
+
+              }
+              else if(message.type === "START_VIDEOCALL"){
+
+              }
+              else if(message.type === "START_TRADE"){
+
+              }
+              else if(message.type === "REQUEST_DEPOSIT"){
+
+              }
+              else if(message.type === "INPUT_DELIVERY_ADDRESS"){
+
+              }
+              else if(message.type === "INPUT_TRACKING_NUMBER"){
+
+              }
+              else if(message.type === "START_DELIVERY"){
+
+              }
+              else if(message.type === "CONFIRM_PURCHASE"){
+
+              }
+              else if(message.type === "END_TRADE"){
+
+              }
+              
+              
               
               // 공지글인 경우 특별한 디자인 적용
-              if (noticeType) {
+              if (message.type != "TEXT") {
+                console.log(message.content);
+                console.log(message.type);
                 return (
-                  <AllModals key={index} message={message} type={noticeType} />
-                )
+                  <div
+                    key={index}
+                    className="w-full flex justify-center my-6"  // ← 가운데 정렬, 위아래 마진
+                  >
+                    <AllModals message={message} type={message.type} />
+                  </div>
+                );
               }
               
               // 일반 메시지
