@@ -93,9 +93,9 @@ public class OpenViduController {
 
             // 🔐 세션이 살아있고, 참여자가 1명 이상일 때만 종료
             if (active != null && !active.getConnections().isEmpty()) {
-                openVidu.stopRecording(sessionId);
                 active.close();
             }
+
             // 다시보기 녹화 url
             String url = String.format(
                     "https://i13e202.p.ssafy.io:8443/openvidu/recordings/%s/%s.mp4",
