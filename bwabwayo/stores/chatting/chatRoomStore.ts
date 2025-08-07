@@ -106,6 +106,7 @@ interface ChatRoomStore{
     closeVideoChat: () => void
     getMessageHistory: (roomId: number) => Promise<void>
     sendMessage: (roomId: number, content: string) => void
+    setVideoSessionId: (id: number | null) => void
 }
 
 export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
@@ -119,6 +120,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     // 화상채팅 관련 상태
     isVideoChatOpen: false,
     videoRoomId: null,
+    setVideoSessionId: (id: number | null) => set({ videoRoomId: id }),
 
     addChatRoom: async (addRoom: addRoom) => {
         try{
