@@ -20,9 +20,6 @@ interface LikeProductStore {
   // 좋아요 제거
   removeLike: (productId: number) => Promise<void>
   
-  // 좋아요 상태 토글
-  toggleLike: (productId: number) => Promise<void>
-  
   // 좋아요 목록 조회
   getLikeProducts: () => Promise<void>
   
@@ -103,37 +100,6 @@ export const useLikeProductStore = create<LikeProductStore>((set, get) => ({
       set({ 
         loading: false, 
         error: error instanceof Error ? error.message : '좋아요 제거 중 오류가 발생했습니다' 
-      })
-      throw error
-    }
-  },
-
-  // 좋아요 상태 토글
-  toggleLike: async (productId: number) => {
-    set({ loading: true, error: null })
-    try {
-      console.log(`좋아요 토글 시도: 상품 ID ${productId}`)
-      
-      // 현재 좋아요 상태 확인
-      const isLiked = get().likeProducts.some(product => product.id === productId)
-      console.log('현재 로컬 좋아요 상태:', isLiked);
-      if (isLiked) {
-        // 이미 좋아요가 되어 있으면 제거
-        await get().removeLike(productId)
-        get().removeLikeProduct(productId)
-      } else {
-        // 좋아요가 되어 있지 않으면 추가
-        await get().addLike(productId)
-        // 상품 정보를 가져와서 로컬 상태에 추가
-        // 실제로는 상품 정보를 매개변수로 받거나 별도로 조회해야 함
-      }
-      
-      set({ loading: false })
-    } catch (error) {
-      console.error('좋아요 토글 실패:', error)
-      set({ 
-        loading: false, 
-        error: error instanceof Error ? error.message : '좋아요 토글 중 오류가 발생했습니다' 
       })
       throw error
     }
