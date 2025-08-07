@@ -1,6 +1,6 @@
 // next.config.js
 const nextConfig = {
-    basePath: '',
+    basePath: '/fe',
     images: {
       domains: ['bwabwayo-general-bucket.s3.ap-northeast-2.amazonaws.com', 'localhost'],
       remotePatterns: [
@@ -11,9 +11,6 @@ const nextConfig = {
           pathname: '/**',
         },
       ],
-    },
-    env: {
-      NEXT_PUBLIC_PUBLIC_URL: process.env.PUBLIC_URL || '/fe', // 로컬은 '', 배포는 '/fe'
     },
     async rewrites() {
       return [
