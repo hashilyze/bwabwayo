@@ -102,7 +102,7 @@ export default function Navbar() {
             <nav className="bg-white ">
               <div className="flex items-center justify-between h-15">
                 <div className="flex items-center gap-8 -ml-2">
-                    <Link href="/"><img className="h-[58px]" src="/logo.png" alt="봐봐요" /></Link>
+                    <Link href="/"><img className="h-[58px]" src={process.env.PUBLIC_URL + "/logo.png"} alt="봐봐요" /></Link>
                 </div>
                 <div className="flex items-center gap-8">
                   <form className="flex bg-[#fafafa] border-2 border-black rounded-[16px] px-6 items-center justify-between w-[450px]" onSubmit={handleSubmit}>
