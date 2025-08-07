@@ -105,7 +105,7 @@ export default function Navbar() {
                 <div className="flex items-center gap-8 -ml-2">
                     <Link href="/">
                       <div className="relative h-[58px] w-[150px]">
-                        <img src={`${process.env.PUBLIC_URL}/logo.png`} alt="봐봐요" style={{objectFit: 'contain'}} />
+                        <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/logo.png`} alt="봐봐요" style={{objectFit: 'contain'}} />
                       </div>
                     </Link>
                 </div>
@@ -119,7 +119,7 @@ export default function Navbar() {
                       className="w-full text-md font-semibold text-gray-900 py-4 focus:outline-none"
                     />
                     <button type="submit" className="relative w-5 h-5">
-                      <img src={`${process.env.PUBLIC_URL}/icon/search.svg`} alt="검색" />
+                      <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/search.svg`} alt="검색" />
                     </button>
                   </form>
                   <div className="flex items-center gap-6">
@@ -134,7 +134,7 @@ export default function Navbar() {
                       className="cursor-pointer flex gap-3 text-xl items-end"
                     >
                        <div className="relative w-6 h-6">
-                        <img src={`${process.env.PUBLIC_URL}/icon/chat.svg`} alt="채팅" />
+                        <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/chat.svg`} alt="채팅" />
                         </div>
                       채팅하기
                     </button>
@@ -152,7 +152,7 @@ export default function Navbar() {
                        }}
                        className="cursor-pointer flex gap-2 text-xl items-end"
                      >
-                       <div className="relative w-6 h-6"><img src={`${process.env.PUBLIC_URL}/icon/people-white.svg`} alt="프로필" /></div>
+                       <div className="relative w-6 h-6"><img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/people-white.svg`} alt="프로필" /></div>
                        마이페이지
                      </button>
                   </div>
