@@ -105,7 +105,7 @@ export default function Navbar() {
                     <Link href="/"><img className="h-[58px]" src="/logo.png" alt="봐봐요" /></Link>
                 </div>
                 <div className="flex items-center gap-8">
-                  <form className="flex bg-[#f3f3f3] rounded-[16px] px-6 items-center justify-between w-[350px]" onSubmit={handleSubmit}>
+                  <form className="flex bg-[#fafafa] border-2 border-black rounded-[16px] px-6 items-center justify-between w-[450px]" onSubmit={handleSubmit}>
                     <input
                       type="text"
                       placeholder="검색어를 입력하세요"
@@ -118,20 +118,14 @@ export default function Navbar() {
                     </button>
                   </form>
                   <div className="flex items-center gap-6">
-                    <button
-                      onClick={() => router.push('/chat')}
-                      className="cursor-pointer flex gap-3 text-xl items-end"
-                    >
+                    <Link href="/chat" className="cursor-pointer flex gap-3 text-xl items-end" >
                       <img src="/icon/chat.svg" alt="채팅" />
                       채팅하기
-                    </button>
-                    {/* <button
-                      onClick={() => router.push('/mypage/wishlist')}
-                      className="cursor-pointer flex gap-2 text-xl items-end"
-                    >
+                    </Link>
+                    {/* <Link href="/mypage/wishlist" className="cursor-pointer flex gap-2 text-xl items-end" >
                       <img src="/icon/heart-off.svg" alt="찜" />
                       찜 목록
-                    </button> */}
+                    </Link> */}
                     <Link href="/mypage" className="cursor-pointer flex gap-2 text-xl items-end">
                       <img src="/icon/people-white.svg" alt="프로필" />
                       마이페이지
