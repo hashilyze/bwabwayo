@@ -29,29 +29,28 @@ public class DeliveryScheduler {
 
     // 1일에 1번 (매일 자정)
     @Scheduled(cron = "0 0 0 * * *")
-    public void runDaily() { updateDeliveryStatus(DeliveryStatus.PREPARING);}
+    public void runDaily() { }
 
     // 12시간마다 (자정과 정오)
     @Scheduled(cron = "0 0 0,12 * * *")
-    public void runEvery12Hours() {
-        updateDeliveryStatus(DeliveryStatus.COLLECTED);
-    }
+    public void runEvery12Hours() { }
 
     // 6시간마다 (자정, 6시, 12시, 18시)
     @Scheduled(cron = "0 0 0,6,12,18 * * *")
-    public void runEvery6Hours() {
-        updateDeliveryStatus(DeliveryStatus.IN_TRANSIT);
-    }
+    public void runEvery6Hours() { }
 
     // 3시간마다 (자정, 3시, 6시, 9시, 12시, 15시, 18시, 21시)
     @Scheduled(cron = "0 0 0,3,6,9,12,15,18,21 * * *")
     public void runEvery3Hours() {
-        updateDeliveryStatus(DeliveryStatus.ARRIVED_AT_BRANCH);
+        updateDeliveryStatus(DeliveryStatus.PREPARING);
+        updateDeliveryStatus(DeliveryStatus.COLLECTED);
+        updateDeliveryStatus(DeliveryStatus.IN_TRANSIT);
     }
 
     // 1시간마다 (매시 0분 0초)
     @Scheduled(cron = "0 0 * * * *")
     public void runEveryHour() {
+        updateDeliveryStatus(DeliveryStatus.ARRIVED_AT_BRANCH);
         updateDeliveryStatus(DeliveryStatus.OUT_FOR_DELIVERY);
     }
 
