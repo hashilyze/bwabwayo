@@ -1,5 +1,8 @@
 const nextConfig = {
-  basePath: process.env.NODE_ENV === 'production' ? '/fe' : '',
+  basePath: '',
+  env: {
+    PUBLIC_URL: process.env.PUBLIC_URL,
+  },
   images: {
     remotePatterns: [
       {

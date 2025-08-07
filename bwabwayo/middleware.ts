@@ -28,7 +28,7 @@ export function middleware(request: NextRequest) {
     // 쿠키에서 accessToken 확인
     const accessToken = request.cookies.get('accessToken')?.value
     
-    // 토큰이 없으면 홈페이지로 리다이렉트하고 로그인 모달을 띄우도록 함
+    // 토큰이 없으면 홈페이지로 리다이렉트
     if (!accessToken) {
       const url = request.nextUrl.clone()
       const basePath = getBasePath();
