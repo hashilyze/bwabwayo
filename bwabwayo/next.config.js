@@ -1,7 +1,8 @@
 // next.config.js
 const nextConfig = {
-    // 프로덕션 환경에서만 basePath 적용
-    basePath: process.env.NODE_ENV === 'production' ? '/fe' : '',
+    // basePath 설정
+    // 배포 시 /fe 추가
+    basePath: '',
     images: {
       domains: ['bwabwayo-general-bucket.s3.ap-northeast-2.amazonaws.com', 'localhost'],
       remotePatterns: [

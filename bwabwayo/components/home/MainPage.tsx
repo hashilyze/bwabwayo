@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 
 interface ProductCard {
   id: number;
@@ -81,19 +80,14 @@ const MainPage: React.FC = () => {
     <div className="bg-white border border-gray-200 rounded-[20px] overflow-hidden">
       <div className="relative">
         <div className="w-full h-[290px] bg-gray-200 relative">
-          <Image
-            src={product.image}
-            alt={product.title}
-            fill
-            className="object-cover"
-          />
+          <img src={product.image} alt={product.title} className="object-cover w-full h-full" />
           <div className="absolute top-4 right-4 w-6 h-6 bg-white/50 rounded-full flex items-center justify-center">
-            <Image src="/icon/heart-off.svg" alt="찜" width={16} height={16} />
+            <img src="/icon/heart-off.svg" alt="찜" />
           </div>
         </div>
         {product.hasVideoTrade && (
           <div className="absolute bottom-4 left-4 bg-[#ffe9ba] rounded-lg px-2 py-1 flex items-center gap-1">
-            <Image src="/icon/video.svg" alt="화상거래" width={11} height={11} />
+            <img src="/icon/video.svg" alt="화상거래" />
             <span className="text-[#ffae00] text-xs">화상거래</span>
           </div>
         )}
@@ -127,7 +121,7 @@ const MainPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-15">
             <div className="flex items-center gap-8">
-              <Image src="/logo.png" alt="봐봐요" width={169} height={57} />
+              <img src="/logo.png" alt="봐봐요" />
             </div>
             <div className="flex items-center gap-8">
               <div className="relative">
@@ -136,18 +130,12 @@ const MainPage: React.FC = () => {
                   placeholder="검색어를 입력하세요"
                   className="w-80 h-14 bg-gray-100 rounded-[18px] px-6 text-lg font-semibold placeholder-gray-400"
                 />
-                <Image
-                  src="/icon/search.svg"
-                  alt="검색"
-                  width={30}
-                  height={30}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2"
-                />
+                <img src="/icon/search.svg" alt="검색" className="absolute right-4 top-1/2 transform -translate-y-1/2" />
               </div>
               <div className="flex items-center gap-6">
-                <Image src="/icon/people-white.svg" alt="프로필" width={32} height={32} />
-                <Image src="/icon/heart-off.svg" alt="찜" width={32} height={32} />
-                <Image src="/icon/chat.svg" alt="채팅" width={32} height={32} />
+                <img src="/icon/people-white.svg" alt="프로필" />
+                <img src="/icon/heart-off.svg" alt="찜" />
+                <img src="/icon/chat.svg" alt="채팅" />
               </div>
             </div>
           </div>
@@ -205,7 +193,7 @@ const MainPage: React.FC = () => {
             {categories.map((category) => (
               <div key={category.id} className="flex flex-col items-center gap-4">
                 <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center">
-                  <Image
+                  <img
                     src={category.icon}
                     alt={category.name}
                     width={80}

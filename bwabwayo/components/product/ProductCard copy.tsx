@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation'
 import { MouseEvent } from 'react'
-import Image from 'next/image'
 import LikeHeart from '@/components/product/wishHeart'
 import { ProductWithSeller } from '@/stores/product/productStore'
 
@@ -48,11 +47,10 @@ export default function ProductCard({ item }: Props) {
       <div className="bg-white rounded-2xl overflow-hidden transition-shadow hover:shadow-md">
         {/* 이미지 영역 */}
         <div className="relative w-full h-[240px] overflow-hidden rounded-t-2xl">
-          <Image
+          <img
             src={product.thumbnail || '/image/no-image.jpg'}
             alt={product.title}
-            fill
-            className="object-cover"
+            className="object-cover w-full h-full"
           />
           <div className="absolute top-3 right-3 z-10">
             {typeof product.id === 'number' && (
@@ -78,7 +76,7 @@ export default function ProductCard({ item }: Props) {
             </span>
             {product.canVideoCall && (
               <div className="bg-[#f4f6f7] rounded-sm px-1.5 py-0.5 flex items-center gap-1 border border-[#ecf1f4]">
-                <Image src="/icon/video.svg" alt="화상거래" width={10} height={10} />
+                <img src="/icon/video.svg" alt="화상거래" />
                 <span className="text-[#ffae00] text-[10px] font-semibold">화상거래</span>
               </div>
             )}

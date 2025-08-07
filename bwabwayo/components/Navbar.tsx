@@ -3,21 +3,20 @@
 import { useRouter } from 'next/navigation'
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 
 import { useCategoryStore } from '@/stores/categoryStore';
 import { useAuthStore } from '@/stores/auth/authStore';
 import { useModalStore } from '@/stores/modalStore';
+import Category from '@/components/Category';
 
 // 새로운 카테고리
 export default function Navbar() {
     const [title, setTitle] = useState('')
-    const [showCategory, setShowCategory] = useState(false);
     const [showMyPageMenu, setShowMyPageMenu] = useState(false); // 내상점 메뉴 상태
+    const [showCategory, setShowCategory] = useState(false); // 카테고리 표시 상태
     const { isLoggedIn, logout, initializeAuth, authenticatedFetch, getToken } = useAuthStore(); // 새로운 authStore 사용
     const { openLoginModal } = useModalStore();
     const [isScrolled, setIsScrolled] = useState(false) // 스크롤 상태 추가
-    const categoryRef = useRef<HTMLDivElement>(null);
     const myPageMenuRef = useRef<HTMLDivElement>(null); // 내상점 메뉴 참조
     const router = useRouter()
     const { getCategories } = useCategoryStore();
@@ -82,159 +81,120 @@ export default function Navbar() {
   };
 
   return (
-    <nav className={`bg-white border-b border-[#eee] fixed top-0 left-0 right-0 z-98 transition-shadow duration-200 ${isScrolled ? 'shadow' : ''}`}>
-         <header>
-                {/* 유틸리티 바 */}
-                <div className="bg-white">
-                  <div className="max-w-7xl mx-auto px-4 flex justify-end items-center h-10 gap-6">
-                    <span className="text-sm text-gray-700 cursor-pointer hover:text-black">알림</span>
-                    {isLoggedIn ? (
-                      <button onClick={handleLogout} className="text-sm text-gray-700 cursor-pointer hover:text-black">
-                        로그아웃
-                      </button>
-                    ) : (
-                      <button onClick={openLoginModal} className="text-sm text-gray-700 cursor-pointer hover:text-black">로그인/회원가입</button>
-                    )}
-                    <Link
-                href="/cs-center"
-              >
-                    <span className="text-sm text-gray-700 cursor-pointer hover:text-black">고객센터</span>
-
+    <nav className={`bg-white border-b-2 border-black fixed top-0 left-0 right-0 z-98 transition-shadow duration-200 ${isScrolled ? 'shadow' : ''}`}>
+         <header className="w-[1280px] mx-auto">
+            {/* 유틸리티 바 */}
+            <div className="py-4 flex justify-end items-center gap-6">
+              <span className="text-md text-gray-700 cursor-pointer hover:text-black">알림</span>
+              {isLoggedIn ? (
+                <button onClick={handleLogout} className="text-md text-gray-700 cursor-pointer hover:text-black">
+                  로그아웃
+                </button>
+              ) : (
+                <button onClick={openLoginModal} className="text-md text-gray-700 cursor-pointer hover:text-black">로그인/회원가입</button>
+              )}
+              <Link href="/cs-center">
+                  <span className="text-md text-gray-700 cursor-pointer hover:text-black">고객센터</span>
               </Link>
-                  </div>
+            </div>
+
+            {/* 네비게이션 바 */}
+            <nav className="bg-white ">
+              <div className="flex items-center justify-between h-15">
+                <div className="flex items-center gap-8 -ml-2">
+                    <Link href="/"><img className="h-[58px]" src="/logo.png" alt="봐봐요" /></Link>
                 </div>
-                {/* 네비게이션 바 */}
-                <nav className="bg-white ">
-                <div className="max-w-7xl mx-auto px-4">
-                  <div className="flex items-center justify-between h-15">
-                    <div className="flex items-center gap-8">
-                         <Link href="/">
-                            <Image src="/logo.png" alt="봐봐요" width={169} height={57} />
-                         
-                         </Link>
-                    </div>
-                    <div className="flex items-center gap-8">
-                      <form className="relative" onSubmit={handleSubmit}>
-                        <input
-                          type="text"
-                          placeholder="검색어를 입력하세요"
-                          value={title}
-                          onChange={(e) => setTitle(e.target.value)}
-                          className="w-80 h-14 bg-gray-100 rounded-[18px] pl-6 pr-24 text-lg font-semibold placeholder-gray-400"
-                        />
-                        {title && (
-                          <button
-                            type="button"
-                            onClick={() => setTitle('')}
-                            className="absolute right-14 top-1/2 transform -translate-y-1/2 flex items-center justify-center w-5 h-5 bg-gray-300 hover:bg-gray-400 rounded-full"
-                          >
-                            <svg
-                              width="10"
-                              height="10"
-                              viewBox="0 0 12 12"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M9 3L3 9M3 3L9 9"
-                                stroke="white"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </button>
-                        )}
-                        <button
-                          type="submit"
-                          className="absolute right-4 top-1/2 transform -translate-y-1/2"
-                        >
-                          <Image
-                            src="/icon/search.svg"
-                            alt="검색"
-                            width={30}
-                            height={30}
-                          />
-                        </button>
-                      </form>
-                      <div className="flex items-center gap-6">
-                        <button
-                          onClick={() => {
-                            if (isLoggedIn) {
-                              router.push('/chat');
-                            } else {
-                              openLoginModal();
-                            }
-                          }}
-                          className="cursor-pointer"
-                        >
-                        {/* fe 임의 추가 */}
-                          <Image src="/fe/icon/chat.svg" alt="채팅" width={32} height={32} />
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (isLoggedIn) {
-                              router.push('/mypage/wishlist');
-                            } else {
-                              openLoginModal();
-                            }
-                          }}
-                          className="cursor-pointer"
-                        >
-                          <Image src="/icon/heart-off.svg" alt="찜" width={32} height={32} />
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (isLoggedIn) {
-                              router.push('/mypage');
-                            } else {
-                              openLoginModal();
-                            }
-                          }}
-                          className="cursor-pointer"
-                        >
-                        {/* fe임의 추가 */}
-                          <Image src="/fe/icon/people-white.svg" alt="프로필" width={32} height={32} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </nav>
-              {/* 하단 메뉴 바 */}
-              <div className="bg-white border-b border-black">
-                <div className="max-w-7xl mx-auto px-4">
-                  <div className="flex items-center gap-8 h-15">
-                    <div className="flex items-center gap-4 cursor-pointer">
-                      <ul className="category-btn flex flex-col justify-between gap-[5px]">
-                            <li className="w-5 h-[2px] bg-black"></li>
-                            <li className="w-5 h-[2px] bg-black"></li>
-                            <li className="w-5 h-[2px] bg-black"></li>
-                        </ul>
-                      <span className="text-2xl font-semibold">전체 카테고리</span>
-                    </div >
-                    <div className="w-px h-6 bg-black" />
-                        <div className="flex items-center gap-4">
-                            <button
-                                onClick={() => {
-                                    if (isLoggedIn) {
-                                        router.push('/product/new');
-                                    } else {
-                                        openLoginModal();
-                                    }
-                                }}
-                                className="text-2xl font-semibold text-[#ffae00] cursor-pointer"
-                            >
-                                판매하기
-                            </button>
-                            <span onClick={() => router.push('/search')} className="text-2xl font-semibold cursor-pointer">판매글 보기</span>
-                        </div>
+                <div className="flex items-center gap-8">
+                  <form className="flex bg-gray-100 rounded-[18px] px-6 items-center justify-between w-[350px]" onSubmit={handleSubmit}>
+                    <input
+                      type="text"
+                      placeholder="검색어를 입력하세요"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="w-full text-md font-semibold text-gray-700 py-4 focus:outline-none"
+                    />
+                    <button type="submit" className="">
+                      <img className="h-5" src="/icon/search.svg" alt="검색" />
+                    </button>
+                  </form>
+                  <div className="flex items-center gap-6">
+                    <button
+                      onClick={() => {
+                        if (isLoggedIn) {
+                          router.push('/chat');
+                        } else {
+                          openLoginModal();
+                        }
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <img src="/icon/chat.svg" alt="채팅" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (isLoggedIn) {
+                          router.push('/mypage/wishlist');
+                        } else {
+                          openLoginModal();
+                        }
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <img src="/icon/heart-off.svg" alt="찜" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (isLoggedIn) {
+                          router.push('/mypage');
+                        } else {
+                          openLoginModal();
+                        }
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <img src="/icon/people-white.svg" alt="프로필" />
+                    </button>
                   </div>
                 </div>
               </div>
-              </header>
+          </nav>
+
+          {/* 하단 메뉴 바 */}
+            <div className="flex items-center gap-8 relative">
+                             <div
+                 className="flex items-center gap-4 cursor-pointer pt-8 pb-4 after:content-[''] after:ml-4 after:w-px after:h-6 after:bg-black"
+                 onMouseEnter={() => setShowCategory(true)}
+                 onMouseLeave={() => setShowCategory(false)}
+               >
+                <ul className="category-btn flex flex-col justify-between gap-[5px]">
+                    <li className="w-5 h-[2px] bg-black"></li>
+                    <li className="w-5 h-[2px] bg-black"></li>
+                    <li className="w-5 h-[2px] bg-black"></li>
+                </ul>
+                <span className="text-xl font-semibold">전체 카테고리</span>
+                {showCategory && (
+                  <div className="absolute top-full left-0 z-50 border-t-2 border-black">
+                    <Category />
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-4 pt-8 pb-4">
+                  <button
+                      onClick={() => {
+                          if (isLoggedIn) {
+                              router.push('/product/new');
+                          } else {
+                              openLoginModal();
+                          }
+                      }}
+                      className="text-xl font-semibold text-[#ffae00] cursor-pointer"
+                  >
+                      판매하기
+                  </button>
+                  <span onClick={() => router.push('/search')} className="text-xl font-semibold cursor-pointer">판매글 보기</span>
+              </div>
+            </div>
+        </header>
     </nav>
-        
-        
   )
 }

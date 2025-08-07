@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 // 레이아웃에서 사용하는 ChatRoom 타입과 동일하게 정의
 interface ChatRoom {
   buyer: {
@@ -149,12 +147,10 @@ export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected 
       onClick={handleClick}
     >
              <div className="w-[60px] h-[60px] bg-gray-200 rounded-full mr-[18px]">
-         <Image 
+         <img 
            src='/image/no-image.jpg'
            alt={`${getPartnerName()} 프로필`}
            className="w-full h-full rounded-full object-cover"
-           width={60}
-           height={60}
          />
        </div>
        
@@ -187,13 +183,10 @@ export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected 
       </div>
       
       <div className="w-[40px] h-[40px] bg-gray-300 rounded ml-2">
-        <Image 
+        <img 
           src={layoutRoom?.product?.imageUrl || regularRoom?.product?.thumnail || chatRoom?.product?.imageUrl || '/image/no-image.jpg'}
           alt="상품 이미지" 
           className="w-full h-full rounded object-cover"
-          width={40}
-          height={40}
-          unoptimized
         />
       </div>
     </div>

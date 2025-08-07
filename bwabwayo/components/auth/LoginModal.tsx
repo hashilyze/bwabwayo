@@ -3,7 +3,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 
 // --- 아이콘 컴포넌트 ---
 const KakaoIcon = () => (
@@ -50,7 +49,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
         {/* 로고 */}
         <div className="flex justify-center mb-6">
      
-            <Image src="/logo.png" alt="봐봐요" width={169} height={57} />
+            <img src="/logo.png" alt="봐봐요" />
                          
 
         </div>
