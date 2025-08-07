@@ -5,11 +5,17 @@ import Footer from '@/components/Footer';
 import Chatbot from "@/components/chat/Chatbot";
 import LoginModalWrapper from '@/components/common/LoginModalWrapper';
 import { Suspense } from "react";
+
+// 환경별 basePath 설정
+const getBasePath = () => {
+  return process.env.NODE_ENV === 'production' ? '/fe' : '';
+};
+
 export const metadata: Metadata = {
   title: "봐봐요",
   description: "화상중고거래 플랫폼, 봐봐요",
   icons: {
-    icon: `/favicon.png`,
+    icon: `${getBasePath()}/favicon.png`,
   },
   other: {
     "Content-Security-Policy": "upgrade-insecure-requests",

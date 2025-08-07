@@ -48,7 +48,7 @@ export default function ProductCard({ item }: Props) {
         {/* 이미지 영역 */}
         <div className="relative w-full h-[240px] overflow-hidden rounded-t-2xl">
           <img
-            src={product.thumbnail || '/image/no-image.jpg'}
+            src={product.thumbnail || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`}
             alt={product.title}
             className="object-cover w-full h-full"
           />
