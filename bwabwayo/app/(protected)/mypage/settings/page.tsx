@@ -6,7 +6,7 @@ import { useMySettingStore } from '@/stores/mypage/mySettingStore';
 import Image from 'next/image';
 
 export default function SettingsPage() {
-  const { userData, fetchUserData, updateUserProfile } = useMySettingStore();
+  const { userData, fetchUserData, updateUserProfile, loading: storeLoading } = useMySettingStore();
 
   const [nickname, setNickname] = useState('');
   const [bio, setBio] = useState('');
@@ -15,6 +15,7 @@ export default function SettingsPage() {
   const [accountHolder, setAccountHolder] = useState('');
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const BANK_LIST = [
@@ -48,8 +49,11 @@ export default function SettingsPage() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    setIsSubmitting(true);
+
     if (!nickname.trim()) {
       alert('닉네임을 입력해주세요.');
+      setIsSubmitting(false);
       return;
     }
 
@@ -58,25 +62,51 @@ export default function SettingsPage() {
 
     if (accountInfoProvided && !allAccountInfoProvided) {
       alert('계좌 정보를 모두 입력하거나 모두 비워주세요.');
+      setIsSubmitting(false);
       return;
     }
 
-    const profileUpdateRequest = {
-      nickname,
-      bio: bio.trim() || '',
-      bankName: bankName.trim() || null,
-      accountNumber: accountNumber.trim() || null,
-      accountHolder: accountHolder.trim() || null,
-      profileImage: profileImagePreview || null,
-    };
-
     try {
+      let uploadedImageUrl = userData?.profileImage || null;
+
+      // 1. 새로운 이미지 파일이 선택되었다면, 먼저 S3에 업로드합니다.
+      if (profileImage) {
+        const formData = new FormData();
+        formData.append('files', profileImage);
+
+        const response = await fetch('https://i13e202.p.ssafy.io/be/api/storage/upload/profile', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) throw new Error('이미지 업로드에 실패했습니다.');
+
+        const data = await response.json();
+        const newUrl = data.results[0]?.url;
+        if (!newUrl) throw new Error('업로드된 이미지 URL을 받지 못했습니다.');
+        uploadedImageUrl = newUrl;
+      }
+
+      // 2. 올바른 이미지 URL로 프로필 업데이트 데이터를 준비합니다.
+      const profileUpdateRequest = {
+        nickname,
+        bio: bio.trim() || '',
+        bankName: bankName.trim() || null,
+        accountNumber: accountNumber.trim() || null,
+        accountHolder: accountHolder.trim() || null,
+        profileImage: uploadedImageUrl,
+      };
+
+      // 3. 스토어 액션을 호출하여 사용자 프로필을 업데이트합니다.
       await updateUserProfile(profileUpdateRequest);
       alert('프로필이 성공적으로 업데이트되었습니다.');
       fetchUserData();
     } catch (error) {
-      console.error('프로필 업데이트 실패:', error);
-      alert('프로필 업데이트에 실패했습니다.');
+      const errorMessage = error instanceof Error ? error.message : '프로필 업데이트에 실패했습니다.';
+      console.error('프로필 업데이트 실패:', errorMessage);
+      alert(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -192,9 +222,10 @@ export default function SettingsPage() {
           <div className="flex justify-end">
             <button
               type="submit"
-              className="px-6 py-3 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition disabled:bg-gray-400"
+              className="px-6 py-3 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+              disabled={isSubmitting || storeLoading}
             >
-              저장하기
+              {isSubmitting || storeLoading ? '저장 중...' : '저장하기'}
             </button>
           </div>
         </form>

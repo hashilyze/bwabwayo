@@ -168,6 +168,7 @@ export default function Navbar() {
                           }}
                           className="cursor-pointer"
                         >
+                        {/* fe 임의 추가 */}
                           <Image src="/fe/icon/chat.svg" alt="채팅" width={32} height={32} />
                         </button>
                         <button
@@ -192,7 +193,8 @@ export default function Navbar() {
                           }}
                           className="cursor-pointer"
                         >
-                          <Image src="fe/icon/people-white.svg" alt="프로필" width={32} height={32} />
+                        {/* fe임의 추가 */}
+                          <Image src="/fe/icon/people-white.svg" alt="프로필" width={32} height={32} />
                         </button>
                       </div>
                     </div>
