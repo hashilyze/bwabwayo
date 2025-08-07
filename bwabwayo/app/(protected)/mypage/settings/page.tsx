@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect, useRef, ChangeEvent, FormEvent } from 'react';
 import Sidebar from '@/components/shop/Sidebar';
-import { useMyPageSettingStore } from '@/stores/mypage/mySettingStore';
+import { useMySettingStore } from '@/stores/mypage/mySettingStore';
 import Image from 'next/image';
 
 export default function SettingsPage() {
-  const { userData, fetchUserData, updateUserProfile } = useMyPageSettingStore();
+  const { userData, fetchUserData, updateUserProfile } = useMySettingStore();
 
   const [nickname, setNickname] = useState('');
   const [bio, setBio] = useState('');
@@ -97,7 +97,7 @@ export default function SettingsPage() {
               alt="프로필 이미지"
               width={100}
               height={100}
-              className="w-24 h-24 rounded-full object-cover border border-gray-200"
+              className="rounded-full object-cover border border-gray-200"
             />
             <div className="flex flex-col gap-2">
               <button

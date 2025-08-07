@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/auth/authStore';
 export interface UserSettingsData {
   nickname: string;
   profileImage: string | null;
-  bio: string;
+  bio: string | null;
   accountNumber: string | null;
   bankName: string | null;
   accountHolder: string | null;
@@ -14,7 +14,7 @@ export interface UserSettingsData {
 export interface ProfileData {
   nickname: string;
   profileImage?: string | null;
-  bio?: string;
+  bio?: string | null;
   accountNumber?: string | null;
   bankName?: string | null;
   accountHolder?: string | null;

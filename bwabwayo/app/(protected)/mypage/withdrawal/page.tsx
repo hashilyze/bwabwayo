@@ -1,4 +1,4 @@
-export function withdrawalPage() {
+export default function withdrawalPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <h1 className="text-2xl font-bold mb-4">회원 탈퇴</h1>
