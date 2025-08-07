@@ -49,7 +49,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
         {/* 로고 */}
         <div className="flex justify-center mb-6">
      
-            <img src="/logo.png" alt="봐봐요" />
+            <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/logo.png`} alt="봐봐요" />
                          
 
         </div>
