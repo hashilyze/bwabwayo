@@ -2,7 +2,7 @@
 
 
 // 원본은 ProductCard.tsx입니다.
-import ProductCard from "@/components/product/ProductCard copy";
+import ProductCard from "@/components/product/ProductCard";
 import WebTest from "@/components/home/WebTest";
 import React, { useEffect, useState, Suspense } from 'react';
 import { useProductStore } from '@/stores/product/productStore';
