@@ -60,7 +60,7 @@ public class AuthService {
             //재가입 유저
 
             //출석체크
-            LocalDateTime lastLoginAt = defaultUser.getLastLoginAt();
+            LocalDateTime lastLoginAt = defaultUser.getLastLoginAt().plusHours(9);
             // 오늘 00:00 (즉, 오늘의 시작 시각)
             ZoneId seoulZone = ZoneId.of("Asia/Seoul");
             LocalDateTime todayStartInSeoul = LocalDate.now(seoulZone).atStartOfDay();
@@ -86,7 +86,7 @@ public class AuthService {
                     request.getZipcode() != null &&
                     request.getAddress() != null &&
                     request.getAddressDetail() != null) {
-                deliveryAddressService.updateAddress(defaultUser, request);
+                deliveryAddressService.updateAddressOnReSignup(defaultUser, request);
             }
 
 
@@ -114,7 +114,7 @@ public class AuthService {
                     request.getZipcode() != null &&
                     request.getAddress() != null &&
                     request.getAddressDetail() != null) {
-                deliveryAddressService.createAddress(user, request);
+                deliveryAddressService.createAddressOnReSignup(user, request);
             }
         }
 
