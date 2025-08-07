@@ -97,7 +97,7 @@ export default function SettingsPage() {
               alt="프로필 이미지"
               width={100}
               height={100}
-              className="rounded-full object-cover border border-gray-200"
+              className="w-24 h-24 rounded-full object-cover border border-gray-200"
             />
             <div className="flex flex-col gap-2">
               <button

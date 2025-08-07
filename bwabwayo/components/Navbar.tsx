@@ -168,7 +168,7 @@ export default function Navbar() {
                           }}
                           className="cursor-pointer"
                         >
-                          <Image src="/icon/chat.svg" alt="채팅" width={32} height={32} />
+                          <Image src="/fe/icon/chat.svg" alt="채팅" width={32} height={32} />
                         </button>
                         <button
                           onClick={() => {
@@ -192,7 +192,7 @@ export default function Navbar() {
                           }}
                           className="cursor-pointer"
                         >
-                          <Image src="/icon/people-white.svg" alt="프로필" width={32} height={32} />
+                          <Image src="fe/icon/people-white.svg" alt="프로필" width={32} height={32} />
                         </button>
                       </div>
                     </div>
