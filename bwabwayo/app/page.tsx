@@ -1,6 +1,5 @@
 'use client'
 
-
 // 원본은 ProductCard.tsx입니다.
 import ProductCard from "@/components/product/ProductCard";
 import WebTest from "@/components/home/WebTest";
@@ -149,13 +148,13 @@ export default function Home() {
   }, [getProducts, getHotKewordProducts, getVideoCallProducts]);
 
   return (
-    <div className="py-12">
+    <div className="">
       {/* 인증 처리 */}
       <Suspense fallback={null}>
         <AuthHandler />
       </Suspense>
       
-      {/* 화상서비스 테스트 */}
+      {/* 화상서비스 광고 */}
       <WebTest />
 
       <div className="mb-20">

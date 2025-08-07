@@ -1,8 +1,9 @@
 // next.config.js
 const nextConfig = {
     // basePath 설정
-    // 배포 시 /fe 추가
-    basePath: '/fe',
+    // 로컬 사용은 ''
+    // 배포 시 '/fe'
+    basePath: '',
     images: {
       domains: ['bwabwayo-general-bucket.s3.ap-northeast-2.amazonaws.com', 'localhost'],
       remotePatterns: [

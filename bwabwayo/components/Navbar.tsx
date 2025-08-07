@@ -105,13 +105,13 @@ export default function Navbar() {
                     <Link href="/"><img className="h-[58px]" src="/logo.png" alt="봐봐요" /></Link>
                 </div>
                 <div className="flex items-center gap-8">
-                  <form className="flex bg-[#f3f3f3] rounded-[18px] px-6 items-center justify-between w-[350px]" onSubmit={handleSubmit}>
+                  <form className="flex bg-[#f3f3f3] rounded-[16px] px-6 items-center justify-between w-[350px]" onSubmit={handleSubmit}>
                     <input
                       type="text"
                       placeholder="검색어를 입력하세요"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
-                      className="w-full text-md font-semibold text-gray-700 py-4 focus:outline-none"
+                      className="w-full text-md font-semibold text-gray-900 py-4 focus:outline-none"
                     />
                     <button type="submit" className="">
                       <img className="h-5" src="/icon/search.svg" alt="검색" />
@@ -119,54 +119,36 @@ export default function Navbar() {
                   </form>
                   <div className="flex items-center gap-6">
                     <button
-                      onClick={() => {
-                        if (isLoggedIn) {
-                          router.push('/chat');
-                        } else {
-                          openLoginModal();
-                        }
-                      }}
-                      className="cursor-pointer"
+                      onClick={() => router.push('/chat')}
+                      className="cursor-pointer flex gap-3 text-xl items-end"
                     >
                       <img src="/icon/chat.svg" alt="채팅" />
+                      채팅하기
                     </button>
-                    <button
-                      onClick={() => {
-                        if (isLoggedIn) {
-                          router.push('/mypage/wishlist');
-                        } else {
-                          openLoginModal();
-                        }
-                      }}
-                      className="cursor-pointer"
+                    {/* <button
+                      onClick={() => router.push('/mypage/wishlist')}
+                      className="cursor-pointer flex gap-2 text-xl items-end"
                     >
                       <img src="/icon/heart-off.svg" alt="찜" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (isLoggedIn) {
-                          router.push('/mypage');
-                        } else {
-                          openLoginModal();
-                        }
-                      }}
-                      className="cursor-pointer"
-                    >
+                      찜 목록
+                    </button> */}
+                    <Link href="/mypage" className="cursor-pointer flex gap-2 text-xl items-end">
                       <img src="/icon/people-white.svg" alt="프로필" />
-                    </button>
+                      마이페이지
+                    </Link>
                   </div>
                 </div>
               </div>
           </nav>
 
           {/* 하단 메뉴 바 */}
-            <div className="flex items-center gap-8 relative">
-                             <div
-                 className="flex items-center gap-4 cursor-pointer pt-8 pb-4 after:content-[''] after:ml-4 after:w-px after:h-6 after:bg-black"
+            <div className="flex items-center relative">
+              <div
+                 className="flex items-center cursor-pointer pt-8 pb-5 after:content-[''] after:mx-8 after:w-px after:h-6 after:bg-black"
                  onMouseEnter={() => setShowCategory(true)}
                  onMouseLeave={() => setShowCategory(false)}
                >
-                <ul className="category-btn flex flex-col justify-between gap-[5px]">
+                <ul className="category-btn flex flex-col justify-between mr-4 gap-[5px]">
                     <li className="w-5 h-[2px] bg-black"></li>
                     <li className="w-5 h-[2px] bg-black"></li>
                     <li className="w-5 h-[2px] bg-black"></li>
@@ -178,15 +160,9 @@ export default function Navbar() {
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-4 pt-8 pb-4">
+              <div className="flex items-center gap-6 pt-8 pb-5">
                   <button
-                      onClick={() => {
-                          if (isLoggedIn) {
-                              router.push('/product/new');
-                          } else {
-                              openLoginModal();
-                          }
-                      }}
+                      onClick={() => router.push('/product/new')}
                       className="text-xl font-semibold text-[#ffae00] cursor-pointer"
                   >
                       판매하기

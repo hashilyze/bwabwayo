@@ -29,9 +29,7 @@ export default function RootLayout({
         </Suspense>
         <Navbar />
         <LoginModalWrapper />
-        {/* Navbar가 fixed이므로, Navbar의 높이(약 162px)만큼 상단 패딩을 주어 콘텐츠가 가려지지 않게 합니다. */}
-        {/* Navbar 높이: 유틸리티(40px) + 메인(60px) + 하단메뉴(60px) + 테두리(2px) = 162px */}
-        <div className="bg-[#FAFDFF] pt-[162px]">
+        <div className="bg-[#FAFDFF] pt-[240px]">
           <div className="w-[1280px] m-auto">
             {children}
           </div>

@@ -26,7 +26,7 @@ export default function LikeHeart({ productId, initialIsLiked = false }: LikeHea
       // initialIsLiked가 전달되지 않은 경우에만 서버에 확인
       if (initialIsLiked === undefined) {
         const status = await checkLikeStatus(productId);
-        console.log('초기 좋아요 상태 확인됨:', status);
+        // console.log('초기 좋아요 상태 확인됨:', status);
         if (isActive) {
           setIsLiked(status);
         }
@@ -36,7 +36,7 @@ export default function LikeHeart({ productId, initialIsLiked = false }: LikeHea
     verifyLikeStatus();
 
     return () => {
-    console.log('LikeHeart 컴포넌트 언마운트됨');
+    // console.log('LikeHeart 컴포넌트 언마운트됨');
       isActive = false;
     };
   }, [productId, checkLikeStatus, initialIsLiked]);
