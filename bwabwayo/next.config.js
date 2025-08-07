@@ -1,6 +1,6 @@
 // next.config.js
 const nextConfig = {
-    basePath: '/fe',
+    basePath: '',
     images: {
       domains: ['bwabwayo-general-bucket.s3.ap-northeast-2.amazonaws.com', 'localhost'],
       remotePatterns: [
