@@ -85,7 +85,8 @@ api.interceptors.response.use(
         // 리프레시 실패 시, 저장된 토큰을 지우고 홈페이지로 리디렉션합니다.
         localStorage.removeItem('accessToken');
         // 필요하다면 로그아웃 관련 상태(e.g., Zustand store)도 여기서 초기화합니다.
-        window.location.href = '/fe/';
+        const basePath = process.env.NODE_ENV === 'production' ? '/fe' : '';
+        window.location.href = `${basePath}/?auth=required`;
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

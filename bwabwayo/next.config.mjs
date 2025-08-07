@@ -1,5 +1,5 @@
 const nextConfig = {
-  basePath: '/fe',
+  basePath: process.env.NODE_ENV === 'production' ? '/fe' : '',
   images: {
     remotePatterns: [
       {

@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+// basePath 동적 가져오기
+const getBasePath = () => {
+  return process.env.NODE_ENV === 'production' ? '/fe' : '';
+};
+
 // 인증이 필요한 경로들
 const protectedRoutes = [
   '/product',
@@ -8,7 +13,7 @@ const protectedRoutes = [
   '/signup',
   '/mypage',
   '/shop',
-  // '/test'
+  '/test'
 ]
 
 // 인증이 필요한 경로인지 확인하는 함수
@@ -24,10 +29,11 @@ export function middleware(request: NextRequest) {
     // 쿠키에서 accessToken 확인
     const accessToken = request.cookies.get('accessToken')?.value
     
-    // 토큰이 없으면 홈페이지로 리다이렉트
+    // 토큰이 없으면 홈페이지로 리다이렉트하고 로그인 모달을 띄우도록 함
     if (!accessToken) {
       const url = request.nextUrl.clone()
-      url.pathname = '/fe/'
+      const basePath = getBasePath();
+      url.pathname = `${basePath}/`
       url.searchParams.set('auth', 'required')
       return NextResponse.redirect(url)
     }
