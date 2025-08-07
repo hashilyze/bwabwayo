@@ -1,4 +1,4 @@
-import AllModals from "@/components/chat/modals/AllModals"
+import MainPage from "@/components/home/MainPage";
 
 export default function TestPage() {
     return (

@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/auth/authStore';
 export interface UserSettingsData {
   nickname: string;
   profileImage: string | null;
-  bio: string;
+  bio: string | null;
   accountNumber: string | null;
   bankName: string | null;
   accountHolder: string | null;
@@ -13,11 +13,11 @@ export interface UserSettingsData {
 // 타입 정의 추가
 export interface ProfileData {
   nickname: string;
-  // bio?: string;
-  bankName?: string | null;
-  accountNumber?: string | null;
-  accountHolder?: string | null;
   profileImage?: string | null;
+  bio?: string | null;
+  accountNumber?: string | null;
+  bankName?: string | null;
+  accountHolder?: string | null;
 }
 
 
@@ -37,7 +37,7 @@ const initialState = {
   error: null,
 };
 
-export const useMyPageSettingStore = create<MyPageSettingStore>((set) => ({
+export const useMySettingStore = create<MyPageSettingStore>((set) => ({
   ...initialState,
 
   fetchUserData: async () => {
@@ -67,17 +67,10 @@ export const useMyPageSettingStore = create<MyPageSettingStore>((set) => ({
     }
   },
 
-  updateUserProfile: async (profileData: {
-  nickname: string;
-  // bio?: string;
-  bankName?: string | null;
-  accountNumber?: string | null;
-  accountHolder?: string | null;
-  profileImage?: string | null;
-}) => {
+  updateUserProfile: async (profileData: ProfileData) => {
   set({ loading: true, error: null });
   const requestUrl = `${baseUrl}/users/detail`;
-  console.log(`[설정] 프로필 업데이트 요청: POST ${requestUrl}`);
+  console.log(`[설정] 프로필 업데이트 요청: PUT ${requestUrl}`, profileData);
 
   try {
     const response = await useAuthStore.getState().authenticatedFetch(requestUrl, {

@@ -3,6 +3,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // --- 아이콘 컴포넌트 ---
 const KakaoIcon = () => (
@@ -31,7 +32,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     // bg-black bg-opacity-50: 반투명한 검은색 배경을 만듭니다.
     // flex items-center justify-center: 내부 콘텐츠를 화면 정중앙에 배치합니다.
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-99">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-2xl">
         
         {/* 닫기 버튼 */}
         <div className="flex justify-end mb-4">
@@ -48,9 +49,10 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
         
         {/* 로고 */}
         <div className="flex justify-center mb-6">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg flex items-center justify-center shadow-md">
-            <span className="text-white font-bold text-2xl">봐</span>
-          </div>
+     
+            <Image src="/logo.png" alt="봐봐요" width={169} height={57} />
+                         
+
         </div>
 
         {/* 제목 및 설명 */}
@@ -78,9 +80,12 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
         <div className="text-center">
           <p className="text-xs text-gray-500">
             도움이 필요하면{' '}
-            <button className="font-semibold text-gray-600 underline hover:text-gray-800">
+            <Link 
+              href="/cs-center" 
+              onClick={onClose} 
+              className="font-semibold text-gray-600 underline hover:text-gray-800">
               고객센터
-            </button>
+            </Link>
             로 문의 부탁드립니다.
           </p>
         </div>
