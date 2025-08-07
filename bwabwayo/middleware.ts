@@ -3,12 +3,12 @@ import type { NextRequest } from 'next/server'
 
 // 인증이 필요한 경로들
 const protectedRoutes = [
-  // '/product/new',
-  // '/chat',
-  // '/signup',
-  // '/mypage',
-  // '/shop',
-  '/test'
+  '/product/new',
+  '/chat',
+  '/signup',
+  '/mypage',
+  '/shop',
+  // '/test'
 ]
 
 // 인증이 필요한 경로인지 확인하는 함수
