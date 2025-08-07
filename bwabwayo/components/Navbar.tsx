@@ -105,7 +105,7 @@ export default function Navbar() {
                 <div className="flex items-center gap-8 -ml-2">
                     <Link href="/">
                       <div className="relative h-[58px] w-[150px]">
-                        <img src={`${process.env.PUBLIC_URL}/logo.png`} alt="봐봐요" style={{objectFit: 'contain'}} />
+                        <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/logo.png`} alt="봐봐요" style={{objectFit: 'contain'}} />
                       </div>
                     </Link>
                 </div>
