@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 import { useCategoryStore } from '@/stores/categoryStore';
 import { useAuthStore } from '@/stores/auth/authStore';
@@ -102,7 +103,11 @@ export default function Navbar() {
             <nav className="bg-white ">
               <div className="flex items-center justify-between h-15">
                 <div className="flex items-center gap-8 -ml-2">
-                    <Link href="/"><img className="h-[58px]" src="/logo.png" alt="봐봐요" /></Link>
+                    <Link href="/">
+                      <div className="relative h-[58px] w-[150px]">
+                        <Image src="/logo.png" alt="봐봐요" fill style={{objectFit: 'contain'}} />
+                      </div>
+                    </Link>
                 </div>
                 <div className="flex items-center gap-8"> 
                   <form className="flex bg-[#fafafa] border-2 border-black rounded-[16px] px-6 items-center justify-between w-[450px]" onSubmit={handleSubmit}>
@@ -113,21 +118,23 @@ export default function Navbar() {
                       onChange={(e) => setTitle(e.target.value)}
                       className="w-full text-md font-semibold text-gray-900 py-4 focus:outline-none"
                     />
-                    <button type="submit" className="">
-                      <img className="h-5" src="/icon/search.svg" alt="검색" />
+                    <button type="submit" className="relative w-5 h-5">
+                      <Image src="/icon/search.svg" alt="검색" fill />
                     </button>
                   </form>
                   <div className="flex items-center gap-6">
                     <Link href="/chat" className="cursor-pointer flex gap-3 text-xl items-end" >
-                       <img src="/icon/chat.svg" alt="채팅" />
+                       <div className="relative w-6 h-6">
+                        <Image src="/icon/chat.svg" alt="채팅" fill />
+                        </div>
                       채팅하기
                     </Link>
                     {/* <Link href="/mypage/wishlist" className="cursor-pointer flex gap-2 text-xl items-end" >
-                      <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-off.svg`} alt="찜" />
+                      <div className="relative w-6 h-6"><Image src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-off.svg`} alt="찜" fill /></div>
                       찜 목록
                     </Link> */}
                      <Link href="/mypage" className="cursor-pointer flex gap-2 text-xl items-end">
-                       <img src="/icon/people-white.svg" alt="프로필" />
+                       <div className="relative w-6 h-6"><Image src="/icon/people-white.svg" alt="프로필" fill /></div>
                        마이페이지
                      </Link>
                   </div>

@@ -1,5 +1,6 @@
 'use client'
 import { useState, useRef, ChangeEvent, useEffect, FormEvent } from 'react';
+import Image from 'next/image';
 
 import { useCategoryStore } from '@/stores/categoryStore';
 import { useAiDescriptionStore } from '@/stores/ai/aiDescriptionStore';
@@ -359,7 +360,7 @@ export default function CreateProductPage() {
             />
             {imgPreviews.map((preview, index) => (
               <div key={preview} className="relative flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden">
-                <img src={preview} alt={`이미지 미리보기 ${index + 1}`} className="w-full h-full object-cover" />
+                <Image src={preview} alt={`이미지 미리보기 ${index + 1}`} fill className="object-cover" />
                 <button
                   type="button"
                   onClick={() => handleDeleteImage(index)}

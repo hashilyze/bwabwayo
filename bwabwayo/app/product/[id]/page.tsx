@@ -8,6 +8,7 @@ import { useChatRoomStore } from "@/stores/chatting/chatRoomStore";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth/authStore";
 import { useModalStore } from "@/stores/modalStore";
+import Image from "next/image";
 
 export default function ProductDetailPage() {
   const { product, loading, error, getProductDetail } = useProductStore();
@@ -86,19 +87,21 @@ export default function ProductDetailPage() {
           <div className="sticky top-40 z-8">
             <div className="flex flex-col gap-4">
               <div className="rounded-2xl overflow-hidden border border-gray-200 relative aspect-square">
-                  <img
+                  <Image
                     src={product?.imageUrls?.[0] || '/image/no-image.jpg'}
                     alt="상품 대표 이미지" 
-                    className="object-cover w-full h-full"
+                    fill
+                    className="object-cover"
                   />
               </div>
                 <ul className="grid grid-cols-4 gap-4">
                  {product?.imageUrls?.slice(1, 5).map((imageUrl, index) => (
                    <li key={index} className="relative aspect-square">
-                      <img 
+                      <Image 
                         src={imageUrl || `/image/no-image.jpg`} 
                         alt={`상품 썸네일${index + 1}`} 
-                        className="rounded-xl border border-[#eeeeee] object-cover w-full h-full"
+                        fill
+                        className="rounded-xl border border-[#eeeeee] object-cover"
                       />
                    </li>
                  ))}
@@ -153,11 +156,13 @@ export default function ProductDetailPage() {
 
             <div className="flex gap-4">
                 <div className="flex-1 py-4 flex items-center justify-center gap-2 border-1 border-[#eee] text-[#777] rounded-lg cursor-pointer">
-                 <img 
-                   src={product?.isWish ? "/icon/heart-on.svg" : "/icon/heart-off.svg"} 
-                   alt="찜하기" 
-                   className="w-4 h-4" 
-                 />
+                 <div className="relative w-4 h-4">
+                   <Image 
+                     src={product?.isWish ? "/icon/heart-on.svg" : "/icon/heart-off.svg"} 
+                     alt="찜하기" 
+                     fill
+                   />
+                 </div>
                  찜하기
                </div>
                 <div
@@ -180,11 +185,12 @@ export default function ProductDetailPage() {
             <ul className="flex flex-col gap-4">
               {[1,2,3,4].map(num => (
                 <li key={num} className="flex flex-row items-center gap-4">
-                   <div>
-                     <img 
+                   <div className="relative w-24 h-24">
+                     <Image 
                        src={product?.imageUrls?.[0] || "/image/no-image.jpg"} 
                        alt="" 
-                       className="border border-[#eee] rounded-lg w-24 h-24 object-cover"
+                       fill
+                       className="border border-[#eee] rounded-lg object-cover"
                        onError={(e) => {
                          const target = e.target as HTMLImageElement;
                          target.src = '/image/no-image.jpg';

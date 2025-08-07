@@ -3,6 +3,7 @@
 
 import React, { useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Sidebar from "@/components/shop/Sidebar"; // Sidebar 컴포넌트를 import 합니다.
 import { useMyActivityStore, myPurchaseProduct } from "@/stores/mypage/myActivityStore"; // Zustand 스토어를 import 합니다.
 
@@ -67,8 +68,8 @@ export default function MyPagePurchase() {
                 {/* 상품명 및 이미지 */}
                 <div className="col-span-4">
                   <Link href={`/product/${item.id}`} className="flex items-center gap-4 group">
-                    <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                      <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover" />
+                    <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 relative">
+                      <Image src={item.thumbnail} alt={item.title} fill className="object-cover" />
                     </div>
                     <div className="text-gray-700 whitespace-pre-line text-base group-hover:underline group-hover:text-blue-600 transition-colors">{item.title}</div>
                   </Link>
