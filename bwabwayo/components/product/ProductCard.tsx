@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation'
 import { MouseEvent } from 'react'
 import LikeHeart from '@/components/product/wishHeart';
 import { ProductWithSeller } from '@/stores/product/productStore';
+import Image from 'next/image';
+import { useAuthStore } from '@/stores/auth/authStore';
 
 type Props = {
   item: ProductWithSeller
@@ -11,6 +13,7 @@ type Props = {
 
 export default function ProductCard({ item }: Props) {
   const router = useRouter();
+  const { isLoggedIn } = useAuthStore();
   const product = item.product;
   // console.log(product)
 
@@ -55,7 +58,7 @@ export default function ProductCard({ item }: Props) {
       {/* 상품 이미지 */}
       <div className="aspect-square overflow-hidden rounded-lg relative">
         <div className="absolute top-4 right-4 z-10">
-          {typeof product.id === 'number' && (
+          {isLoggedIn && typeof product.id === 'number' && (
           <LikeHeart 
           productId={product.id} 
           initialIsLiked={product.isLike || false} 
@@ -63,10 +66,11 @@ export default function ProductCard({ item }: Props) {
 )}
 
         </div>
-        <img
+        <Image
           className="w-full h-full object-cover"
           src={product.thumbnail || '/image/no-image.jpg'}
           alt={product.title}
+          fill
         />
       </div>
       

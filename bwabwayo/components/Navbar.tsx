@@ -123,20 +123,38 @@ export default function Navbar() {
                     </button>
                   </form>
                   <div className="flex items-center gap-6">
-                    <Link href="/chat" className="cursor-pointer flex gap-3 text-xl items-end" >
+                    <button 
+                      onClick={() => {
+                        if (isLoggedIn) {
+                          router.push('/chat')
+                        } else {
+                          openLoginModal()
+                        }
+                      }}
+                      className="cursor-pointer flex gap-3 text-xl items-end"
+                    >
                        <div className="relative w-6 h-6">
                         <Image src="/icon/chat.svg" alt="채팅" fill />
                         </div>
                       채팅하기
-                    </Link>
+                    </button>
                     {/* <Link href="/mypage/wishlist" className="cursor-pointer flex gap-2 text-xl items-end" >
                       <div className="relative w-6 h-6"><Image src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-off.svg`} alt="찜" fill /></div>
                       찜 목록
                     </Link> */}
-                     <Link href="/mypage" className="cursor-pointer flex gap-2 text-xl items-end">
+                     <button 
+                       onClick={() => {
+                         if (isLoggedIn) {
+                           router.push('/mypage')
+                         } else {
+                           openLoginModal()
+                         }
+                       }}
+                       className="cursor-pointer flex gap-2 text-xl items-end"
+                     >
                        <div className="relative w-6 h-6"><Image src="/icon/people-white.svg" alt="프로필" fill /></div>
                        마이페이지
-                     </Link>
+                     </button>
                   </div>
                 </div>
               </div>
@@ -162,9 +180,18 @@ export default function Navbar() {
                 )}
               </div>
               <div className="flex items-center gap-6 pt-8 pb-5">
-                  <Link href="/product/new" className="text-xl font-semibold text-[#ffae00] cursor-pointer" >
-                      판매하기
-                  </Link>
+                  <button 
+                    onClick={() => {
+                      if (isLoggedIn) {
+                        router.push('/product/new')
+                      } else {
+                        openLoginModal()
+                      }
+                    }}
+                    className="text-xl font-semibold text-[#ffae00] cursor-pointer"
+                  >
+                    판매하기
+                  </button>
                   <span onClick={() => router.push('/search')} className="text-xl font-semibold cursor-pointer">판매글 보기</span>
               </div>
             </div>

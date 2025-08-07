@@ -155,7 +155,17 @@ export default function ProductDetailPage() {
             </ul>
 
             <div className="flex gap-4">
-                <div className="flex-1 py-4 flex items-center justify-center gap-2 border-1 border-[#eee] text-[#777] rounded-lg cursor-pointer">
+                <div 
+                  onClick={() => {
+                    if (isLoggedIn) {
+                      // TODO: 찜하기 기능 구현
+                      console.log('찜하기 기능')
+                    } else {
+                      openLoginModal()
+                    }
+                  }}
+                  className="flex-1 py-4 flex items-center justify-center gap-2 border-1 border-[#eee] text-[#777] rounded-lg cursor-pointer"
+                >
                  <div className="relative w-4 h-4">
                    <Image 
                      src={product?.isWish ? "/icon/heart-on.svg" : "/icon/heart-off.svg"} 
@@ -166,7 +176,13 @@ export default function ProductDetailPage() {
                  찜하기
                </div>
                 <div
-                  onClick={makeChatRoom}
+                  onClick={() => {
+                    if (isLoggedIn) {
+                      makeChatRoom()
+                    } else {
+                      openLoginModal()
+                    }
+                  }}
                   className={`flex-1 py-4 flex items-center justify-center gap-2 rounded-lg py-3 font-bold cursor-pointer bg-blue-600 text-white hover:bg-blue-700`}
                 >
                  1:1 채팅하기
