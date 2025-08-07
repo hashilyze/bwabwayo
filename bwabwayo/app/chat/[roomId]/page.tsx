@@ -77,7 +77,7 @@ export default function ChatRoomPage() {
 
         <div className="flex gap-2">
           <div className="w-10 h-10 bg-gray-200 flex items-center justify-center">
-            <img src={`${process.env.PUBLIC_URL}/image/no-image.jpg`} alt="상품 이미지" className="object-cover" />
+            <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`} alt="상품 이미지" className="object-cover" />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-xs text-gray-500">팝마트 라부부 코카콜라 시리즈 인형 키링</span>

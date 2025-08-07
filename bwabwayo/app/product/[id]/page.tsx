@@ -8,7 +8,6 @@ import { useChatRoomStore } from "@/stores/chatting/chatRoomStore";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth/authStore";
 import { useModalStore } from "@/stores/modalStore";
-import Image from "next/image";
 
 export default function ProductDetailPage() {
   const { product, loading, error, getProductDetail } = useProductStore();
@@ -87,20 +86,18 @@ export default function ProductDetailPage() {
           <div className="sticky top-40 z-8">
             <div className="flex flex-col gap-4">
               <div className="rounded-2xl overflow-hidden border border-gray-200 relative aspect-square">
-                  <Image
-                    src={product?.imageUrls?.[0] || '/image/no-image.jpg'}
+                  <img
+                    src={product?.imageUrls?.[0] || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`}
                     alt="상품 대표 이미지" 
-                    fill
                     className="object-cover"
                   />
               </div>
                 <ul className="grid grid-cols-4 gap-4">
                  {product?.imageUrls?.slice(1, 5).map((imageUrl, index) => (
                    <li key={index} className="relative aspect-square">
-                      <Image 
-                        src={imageUrl || `/image/no-image.jpg`} 
+                      <img 
+                        src={imageUrl || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`} 
                         alt={`상품 썸네일${index + 1}`} 
-                        fill
                         className="rounded-xl border border-[#eeeeee] object-cover"
                       />
                    </li>
@@ -201,15 +198,10 @@ export default function ProductDetailPage() {
               {[1,2,3,4].map(num => (
                 <li key={num} className="flex flex-row items-center gap-4">
                    <div className="relative w-24 h-24">
-                     <Image 
-                       src={product?.imageUrls?.[0] || "/image/no-image.jpg"} 
+                     <img
+                       src={product?.imageUrls?.[0] || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`} 
                        alt="" 
-                       fill
                        className="border border-[#eee] rounded-lg object-cover"
-                       onError={(e) => {
-                         const target = e.target as HTMLImageElement;
-                         target.src = '/image/no-image.jpg';
-                       }}
                      />
                    </div>
                    <div className="flex flex-col">
