@@ -23,11 +23,11 @@ interface LikeHeartProps {
   initialIsLiked?: boolean; // (선택) 부모 컴포넌트에서 초기 상태를 전달하여 깜빡임 방지
 }
 
-export default function LikeHeart({ productId, initialIsLiked = false }: LikeHeartProps) {
+export default function LikeHeart({ productId, initialIsLiked }: LikeHeartProps) {
   // 1. 컴포넌트 내부 상태 관리
   // isLiked: 현재 좋아요 상태 (UI 즉시 반응을 위해)
   // isLoading: API 요청 중인지 여부 (중복 클릭 방지)
-  const [isLiked, setIsLiked] = useState(initialIsLiked);
+  const [isLiked, setIsLiked] = useState(initialIsLiked ?? false);
   const [isLoading, setIsLoading] = useState(false);
 
   // 2. Zustand 스토어에서 필요한 액션과 상태 가져오기
