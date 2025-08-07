@@ -84,7 +84,7 @@ export default function Navbar() {
     <nav className={`bg-white border-b-2 border-black fixed top-0 left-0 right-0 z-98 transition-shadow duration-200 ${isScrolled ? 'shadow' : ''}`}>
          <header className="w-[1280px] mx-auto">
             {/* 유틸리티 바 */}
-            <div className="py-4 flex justify-end items-center gap-6">
+            <div className="py-4 flex justify-end items-center gap-4">
               <span className="text-md text-gray-700 cursor-pointer hover:text-black">알림</span>
               {isLoggedIn ? (
                 <button onClick={handleLogout} className="text-md text-gray-700 cursor-pointer hover:text-black">
