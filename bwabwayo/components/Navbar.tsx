@@ -83,28 +83,34 @@ export default function Navbar() {
 
   return (
     <nav className={`bg-white border-b-1 border-[#eee] fixed top-0 left-0 right-0 z-98 transition-shadow duration-200 ${isScrolled ? 'shadow' : ''}`}>
-      {/* top-nav */}
-      {/* <div className="flex flex-col bg-[#fafafa]">
-        <div className="w-[1280px] m-auto py-2 flex justify-end text-sm text-gray-500 gap-4">
-          <div className="flex gap-4">
-            <button onClick={() => setShowLoginModal(true)} className="text-sm text-[#666] cursor-pointer">
-              로그인/회원가입
-            </button>
-            <button className='cursor-pointer' onClick={handleMyPageClick}>내상점</button>
-          </div>
+        {/* top-nav */}
+        <div className="flex flex-col">
+            <div className="w-[1280px] m-auto py-2 flex justify-end text-sm text-gray-500 gap-4">
+                <div className="flex gap-4">
+                    <button className='cursor-pointer'>알림</button>
+                    <button className="text-sm text-[#666] cursor-pointer">로그인/회원가입</button>
+                    <button onClick={handleLogout} className="text-sm text-[#666] cursor-pointer">로그아웃</button>
+                    <Link href="/cs-center" className='cursor-pointer'>고객센터</Link>
+                </div>
+            </div>
         </div>
-      </div> */}
-
 
     {/* center-nav */}
     <div className="center-nav border-t border-[#eee]">
         <div className="w-[1280px] m-auto py-4 pb-2 flex items-center justify-between">
             <div className="logo-wrap flex items-center gap-2 flex-1 mr-16">
                 <div className="logo text-xl font-bold">
-                    
-                    <Link href="/"><Image src="/logo.png" alt="logo" className="h-[40px]" width={97} height={40} /></Link>
+                    <Link href="/"><img src="/logo.png" alt="logo" className="h-[57px]" /></Link>
                 </div>
-                <form className="flex items-center ml-[80px] flex-1 px-2 border-1 border-[#eee] rounded-lg bg-[#fff]" onSubmit={handleSubmit}>
+            </div>
+                <form className="bg-[#F6F6F6] flex items-center ml-[80px] flex-1 px-2 rounded-lg bg-[#fff]" onSubmit={handleSubmit}>
+                    <input
+                        type="text"
+                        placeholder="상품명을 검색해보세요."
+                        value={title}
+                        onChange={(e)=> setTitle(e.target.value)}
+                        className="flex-1 pl-0 pr-3 py-3 text-sm focus:outline-none"
+                    />
                     <div className="flex items-center px-3">
                         <svg 
                             width="16" 
@@ -129,13 +135,6 @@ export default function Navbar() {
                             />
                         </svg>
                     </div>
-                    <input
-                        type="text"
-                        placeholder="상품명을 검색해보세요."
-                        value={title}
-                        onChange={(e)=> setTitle(e.target.value)}
-                        className="flex-1 pl-0 pr-3 py-3 text-sm focus:outline-none"
-                    />
                     {title && (
                         <button 
                             type="button" 
@@ -160,22 +159,18 @@ export default function Navbar() {
                         </button>
                     )}
                 </form>
-            </div>
-                         <div className="nav-btn-wrap flex gap-3">
-                 <button 
-                     onClick={() => {
-                         if (isLoggedIn) {
-                             router.push('/product/new');
-                         } else {
-                             openLoginModal();
-                         }
-                     }}
-                     className="bg-orange-500 text-white text-sm px-4 py-2 rounded hover:bg-orange-600"
-                 >
-                     판매하기
+                <div className="nav-btn-wrap flex gap-10">
+                 <button>
+                     <img src="/icon/navbar/chat-icon.png" alt="chat" className="w-[32px] h-[32px]" />
                  </button>
-                 <button 
-                     onClick={() => {
+                 <button>
+                     <img src="/icon/navbar/wishlist-icon.png" alt="wishlist" className="w-[32px] h-[32px]" />
+                 </button>
+                 <button>
+                     <img src="/icon/navbar/mypage-icon.png" alt="mypage" className="w-[32px] h-[32px]" />
+                 </button>
+                 {/* <button 
+                     onClick={() => { 
                          router.push('/chat');
                         //  if (isLoggedIn) {
                         //      router.push('/chat');
@@ -187,8 +182,8 @@ export default function Navbar() {
                  >
                      채팅목록
                  </button>
-                 <Link href="#" className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]">알림</Link>
-            
+                 <Link href="#" className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]">알림</Link> */}
+                {/*}
                 <div 
                     className="relative"
                     ref={myPageMenuRef}
@@ -208,10 +203,8 @@ export default function Navbar() {
                          <span>내상점</span>
                      </button>
                     
-                    {/* 로그인된 상태일 때만 드롭다운 메뉴 표시 */}
                     {isLoggedIn && showMyPageMenu && (
                         <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-20">
-                            {/* 사용자 정보 헤더 */}
                             <ul className="py-1">
                                 <li>
                                     <Link href="/mypage" className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
@@ -227,6 +220,7 @@ export default function Navbar() {
                         </div>
                     )}
                 </div>
+                */}
             </div>
         </div>
     </div>
@@ -247,8 +241,8 @@ export default function Navbar() {
                 <div className="text-sm">카테고리</div>
             </div>
             <ul className="flex items-center ml-2 text-[15px] font-normal">
-                <li><Link className="nav-link block text-sm text-[#666] p-3 py-4 relative" href="/cs-center">고객센터</Link></li>
-                <li><Link className="nav-link block text-sm text-[#666] p-3 py-4 relative" href="#">전체상품</Link></li>
+                <li><Link className="nav-link block text-sm text-[#666] p-3 py-4 relative" href="/product/new">판매하기</Link></li>
+                <li><Link className="nav-link block text-sm text-[#666] p-3 py-4 relative" href="/mypage/purchases">판매글 보기</Link></li>
             </ul>
             {showCategory && (
             <div 
