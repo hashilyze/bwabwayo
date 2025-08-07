@@ -148,7 +148,7 @@ export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected 
     >
              <div className="w-[60px] h-[60px] bg-gray-200 rounded-full mr-[18px]">
          <img 
-           src='/image/no-image.jpg'
+           src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`}
            alt={`${getPartnerName()} 프로필`}
            className="w-full h-full rounded-full object-cover"
          />
@@ -184,7 +184,7 @@ export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected 
       
       <div className="w-[40px] h-[40px] bg-gray-300 rounded ml-2">
         <img 
-          src={layoutRoom?.product?.imageUrl || regularRoom?.product?.thumnail || chatRoom?.product?.imageUrl || '/image/no-image.jpg'}
+          src={layoutRoom?.product?.imageUrl || regularRoom?.product?.thumnail || chatRoom?.product?.imageUrl || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`}
           alt="상품 이미지" 
           className="w-full h-full rounded object-cover"
         />
