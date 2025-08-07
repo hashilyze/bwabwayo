@@ -21,15 +21,8 @@ const SendIcon = () => (
     </svg>
 );
 const ChatbotIcon = () => (
-    <img
-        src="/icon/chat-bot.png" // public 폴더를 기준으로 파일 경로를 적어줍니다.
-        alt="챗봇 아이콘"
-        className='
-            w-full
-            h-full
-        '
+    <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/chat-bot.png`} alt="챗봇 아이콘" />
 
-    />
 );
 
 // --- 챗봇 창 컴포넌트 ---
