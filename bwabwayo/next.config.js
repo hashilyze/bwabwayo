@@ -2,7 +2,7 @@
 const nextConfig = {
     // basePath 설정
     // 배포 시 /fe 추가
-    basePath: '',
+    basePath: '/fe',
     images: {
       domains: ['bwabwayo-general-bucket.s3.ap-northeast-2.amazonaws.com', 'localhost'],
       remotePatterns: [

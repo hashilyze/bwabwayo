@@ -105,7 +105,7 @@ export default function Navbar() {
                     <Link href="/"><img className="h-[58px]" src="/logo.png" alt="봐봐요" /></Link>
                 </div>
                 <div className="flex items-center gap-8">
-                  <form className="flex bg-gray-100 rounded-[18px] px-6 items-center justify-between w-[350px]" onSubmit={handleSubmit}>
+                  <form className="flex bg-[#f3f3f3] rounded-[18px] px-6 items-center justify-between w-[350px]" onSubmit={handleSubmit}>
                     <input
                       type="text"
                       placeholder="검색어를 입력하세요"
