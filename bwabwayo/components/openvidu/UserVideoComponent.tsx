@@ -1,24 +1,30 @@
 import React, { Component } from 'react';
 import OpenViduVideoComponent from './OvVideo';
+import { useChatRoomStore } from '@/stores/chatting/chatRoomStore';
 import './UserVideo.css';
 
 export default class UserVideoComponent extends Component<{ streamManager: any }> {
-
-    getNicknameTag() {
-        // Gets the nickName of the user
-        return JSON.parse(this.props.streamManager.stream.connection.data).clientData;
+    
+  getNicknameTag() {
+    const { currentSelectedRoom } = useChatRoomStore.getState();
+    if (currentSelectedRoom) {
+      return currentSelectedRoom.userNickname;
     }
+    return JSON.parse(this.props.streamManager.stream.connection.data).clientData;
+  }
 
-    render() {
-        return (
-            <div className="w-full h-full">
-                {this.props.streamManager !== undefined ? (
-                    <div className="streamcomponent w-full h-full">
-                        <OpenViduVideoComponent streamManager={this.props.streamManager} />
-                        <div><p>{this.getNicknameTag()}</p></div>
-                    </div>
-                ) : null}
+  render() {
+    return (
+      <div className="w-full h-full">
+        {this.props.streamManager ? (
+          <div className="streamcomponent w-full h-full">
+            <OpenViduVideoComponent streamManager={this.props.streamManager} />
+            <div>
+              <p>{this.getNicknameTag()}</p>
             </div>
-        );
-    }
+          </div>
+        ) : null}
+      </div>
+    );
+  }
 }
