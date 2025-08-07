@@ -102,7 +102,7 @@ export default function Navbar() {
             <nav className="bg-white ">
               <div className="flex items-center justify-between h-15">
                 <div className="flex items-center gap-8 -ml-2">
-                    <Link href="/"><img className="h-[58px]" src={process.env.PUBLIC_URL + "/logo.png"} alt="봐봐요" /></Link>
+                    <Link href="/"><img className="h-[58px]" src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/logo.png`} alt="봐봐요" /></Link>
                 </div>
                 <div className="flex items-center gap-8">
                   <form className="flex bg-[#fafafa] border-2 border-black rounded-[16px] px-6 items-center justify-between w-[450px]" onSubmit={handleSubmit}>
@@ -114,20 +114,20 @@ export default function Navbar() {
                       className="w-full text-md font-semibold text-gray-900 py-4 focus:outline-none"
                     />
                     <button type="submit" className="">
-                      <img className="h-5" src="/icon/search.svg" alt="검색" />
+                      <img className="h-5" src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/search.svg`} alt="검색" />
                     </button>
                   </form>
                   <div className="flex items-center gap-6">
                     <Link href="/chat" className="cursor-pointer flex gap-3 text-xl items-end" >
-                      <img src="/icon/chat.svg" alt="채팅" />
+                      <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/chat.svg`} alt="채팅" />
                       채팅하기
                     </Link>
                     {/* <Link href="/mypage/wishlist" className="cursor-pointer flex gap-2 text-xl items-end" >
-                      <img src="/icon/heart-off.svg" alt="찜" />
+                      <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-off.svg`} alt="찜" />
                       찜 목록
                     </Link> */}
                     <Link href="/mypage" className="cursor-pointer flex gap-2 text-xl items-end">
-                      <img src="/icon/people-white.svg" alt="프로필" />
+                      <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/people-white.svg`} alt="프로필" />
                       마이페이지
                     </Link>
                   </div>
