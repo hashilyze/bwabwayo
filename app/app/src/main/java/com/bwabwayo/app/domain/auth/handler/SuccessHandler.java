@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 @Component
 @RequiredArgsConstructor
@@ -74,7 +75,8 @@ public class SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
                 loginPoint = PointEventType.ATTENDANCE.getPoint();
             }
             //마지막 로그인 갱신
-            defaultUser.setLastLoginAt(LocalDateTime.now(seoulZone));
+            ZonedDateTime seoulZonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
+            defaultUser.setLastLoginAt(seoulZonedDateTime.toLocalDateTime());
             userService.saveUser(defaultUser);
             String redirectUrl = UriComponentsBuilder
                     .fromUriString("https://i13e202.p.ssafy.io/fe/logincallback")
