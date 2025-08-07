@@ -82,10 +82,10 @@ api.interceptors.response.use(
         // refreshError도 AxiosError일 가능성이 높습니다.
         processQueue(refreshError as AxiosError, null);
         
-        // 리프레시 실패 시, 저장된 토큰을 지우고 로그인 페이지로 리디렉션합니다.
+        // 리프레시 실패 시, 저장된 토큰을 지우고 홈페이지로 리디렉션합니다.
         localStorage.removeItem('accessToken');
         // 필요하다면 로그아웃 관련 상태(e.g., Zustand store)도 여기서 초기화합니다.
-        window.location.href = '/login';
+        window.location.href = '/fe/';
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

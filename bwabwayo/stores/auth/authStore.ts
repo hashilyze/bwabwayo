@@ -251,10 +251,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           // 로그아웃 처리
           get().logout()
           
-          // 필요시 로그인 페이지로 리다이렉트
+          // 필요시 홈페이지로 리다이렉트
           if (typeof window !== 'undefined') {
             console.warn('토큰 갱신에 실패했습니다. 다시 로그인해주세요.')
-            window.location.href = '/login'
+            window.location.href = '/fe/'
           }
           
           throw refreshError
