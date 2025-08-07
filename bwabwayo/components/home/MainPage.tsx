@@ -113,7 +113,66 @@ const MainPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      
+      <header>
+        {/* 유틸리티 바 */}
+        <div className="bg-white">
+          <div className="max-w-7xl mx-auto px-4 flex justify-end items-center h-10 gap-6">
+            <span className="text-sm text-gray-700 cursor-pointer hover:text-black">알림</span>
+            <span className="text-sm text-gray-700 cursor-pointer hover:text-black">로그인/회원가입</span>
+            <span className="text-sm text-gray-700 cursor-pointer hover:text-black">고객센터</span>
+          </div>
+        </div>
+        {/* 네비게이션 바 */}
+        <nav className="bg-white ">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between h-15">
+            <div className="flex items-center gap-8">
+              <Image src="/logo.png" alt="봐봐요" width={169} height={57} />
+            </div>
+            <div className="flex items-center gap-8">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="검색어를 입력하세요"
+                  className="w-80 h-14 bg-gray-100 rounded-[18px] px-6 text-lg font-semibold placeholder-gray-400"
+                />
+                <Image
+                  src="/icon/search.svg"
+                  alt="검색"
+                  width={30}
+                  height={30}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2"
+                />
+              </div>
+              <div className="flex items-center gap-6">
+                <Image src="/icon/people-white.svg" alt="프로필" width={32} height={32} />
+                <Image src="/icon/heart-off.svg" alt="찜" width={32} height={32} />
+                <Image src="/icon/chat.svg" alt="채팅" width={32} height={32} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+      {/* 하단 메뉴 바 */}
+      <div className="bg-white border-b border-black">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center gap-8 h-15">
+            <div className="flex items-center gap-8 cursor-pointer">
+              <ul className="category-btn flex flex-col justify-between gap-[5px]">
+                    <li className="w-5 h-[2px] bg-black"></li>
+                    <li className="w-5 h-[2px] bg-black"></li>
+                    <li className="w-5 h-[2px] bg-black"></li>
+                </ul>
+              <span className="text-2xl font-semibold pr-4 border-r-2 border-black-300">전체 카테고리</span>
+            </div>
+            <div className="flex items-center gap-8">
+              <span className="text-2xl font-semibold text-[#ffae00] cursor-pointer">판매하기</span>
+              <span className="text-2xl font-semibold cursor-pointer">판매글 보기</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      </header>
 
       {/* 광고 배너 */}
       <section className="bg-[#e8f4e9] py-16">

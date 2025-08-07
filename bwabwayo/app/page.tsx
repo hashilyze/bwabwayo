@@ -1,6 +1,8 @@
 'use client'
 
-import ProductCard from "@/components/product/ProductCard";
+
+// 원본은 ProductCard.tsx입니다.
+import ProductCard from "@/components/product/ProductCard copy";
 import WebTest from "@/components/home/WebTest";
 import React, { useEffect, useState, Suspense } from 'react';
 import { useProductStore } from '@/stores/product/productStore';
@@ -56,7 +58,7 @@ function ProductSlider({ products, navigationId }: { products: any[], navigation
       <Swiper
         modules={[Pagination, Navigation]}
         spaceBetween={20}
-        slidesPerView={6}
+        slidesPerView={4}
         slidesPerGroup={3}
         pagination={{ clickable: true }}
         navigation={{
