@@ -6,7 +6,6 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
 import ReservationModal from '@/components/chat/ReservationModal'
 import AllModals from '@/components/chat/modals/AllModals'
-import Image from 'next/image'
 
 export default function ChatRoomPage() {
   const router = useRouter()
@@ -78,7 +77,7 @@ export default function ChatRoomPage() {
 
         <div className="flex gap-2">
           <div className="w-10 h-10 bg-gray-200 flex items-center justify-center">
-            <Image src="/image/no-image.jpg" alt="상품 이미지" className="object-cover" fill />
+            <img src={`${process.env.PUBLIC_URL}/image/no-image.jpg`} alt="상품 이미지" className="object-cover" />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-xs text-gray-500">팝마트 라부부 코카콜라 시리즈 인형 키링</span>
@@ -123,12 +122,12 @@ export default function ChatRoomPage() {
       >
         <div className="mb-10 flex flex-col gap-2 items-center">
           <div className="w-[100px] h-[100px] bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-            <Image src="/image/no-image.jpg" alt="판매자 프로필" className="object-cover" fill />
+            <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`} alt="판매자 프로필" className="object-cover" />
           </div>
           <h1 className="text-[18px] font-bold text-black">고윤정</h1>
           <div className="flex items-center gap-1 mb-2">
             <p className="text-sm text-gray-500">4.8</p>
-            <Image src="/icon/star-on.svg" className="pb-1" alt="별점" fill />
+            <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/star-on.svg`} className="pb-1" alt="별점" />
             <p className="text-sm text-gray-500">(100)</p>
           </div>
           <p className="text-sm text-gray-500">지금까지 174개의 상품을 판매했어요</p>

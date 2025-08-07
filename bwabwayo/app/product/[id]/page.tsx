@@ -167,10 +167,9 @@ export default function ProductDetailPage() {
                   className="flex-1 py-4 flex items-center justify-center gap-2 border-1 border-[#eee] text-[#777] rounded-lg cursor-pointer"
                 >
                  <div className="relative w-4 h-4">
-                   <Image 
-                     src={product?.isWish ? "/icon/heart-on.svg" : "/icon/heart-off.svg"} 
+                   <img 
+                     src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/${product?.isWish ? 'heart-on.svg' : 'heart-off.svg'}`} 
                      alt="찜하기" 
-                     fill
                    />
                  </div>
                  찜하기
