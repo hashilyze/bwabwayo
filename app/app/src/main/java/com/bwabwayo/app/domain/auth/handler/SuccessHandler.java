@@ -62,7 +62,8 @@ public class SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
             response.sendRedirect(redirectUrl);
         }else { //AT 토큰 발행 후 전달, RT를 여기서 발급하면 kakao쪽으로 응답이 가버림
             User defaultUser = userService.findById(user.getId());
-            LocalDateTime lastLoginAt = defaultUser.getLastLoginAt();
+            LocalDateTime lastLoginAt = defaultUser.getLastLoginAt().plusHours(9);
+            log.info(lastLoginAt.toString());
             // 오늘 00:00 (즉, 오늘의 시작 시각)
             ZoneId seoulZone = ZoneId.of("Asia/Seoul");
             LocalDateTime todayStartInSeoul = LocalDate.now(seoulZone).atStartOfDay();
@@ -75,8 +76,7 @@ public class SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
                 loginPoint = PointEventType.ATTENDANCE.getPoint();
             }
             //마지막 로그인 갱신
-            LocalDateTime now = LocalDateTime.now().plusHours(9);
-            defaultUser.setLastLoginAt(now);
+            defaultUser.setLastLoginAt(LocalDateTime.now(seoulZone));
             userService.saveUser(defaultUser);
             String redirectUrl = UriComponentsBuilder
                     .fromUriString("https://i13e202.p.ssafy.io/fe/logincallback")
