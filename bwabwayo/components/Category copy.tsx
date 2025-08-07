@@ -1,102 +1,94 @@
-'use client'
+// 파일 경로: components/CategoryModal.tsx
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useCategoryStore } from "@/stores/categoryStore";
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useCategoryStore } from '@/stores/categoryStore';
 
-export default function Category(){
-    const router = useRouter();
-    const { categories, loading, error, getCategories } = useCategoryStore();
-    const [majorCategory, setMajorCategory] = useState<string>('');
-    const [minorCategories, setMinorCategories] = useState<{categoryId: number, categoryName: string}[]>([]);
-    const [selectedMinor, setSelectedMinor] = useState<{categoryId: number, categoryName: string} | null>(null);
-    const [isHovered, setIsHovered] = useState<string>('');
-    
-    useEffect(() => {
-        getCategories();
-    }, [getCategories]);
-    console.log(categories)
-    
-    // 대분류 클릭 시
-    const magorCate = (catName: string) => {
-        setMajorCategory(catName);
-        if (categories && categories.length > 0) {
-            const found = categories.find(cat => cat.categoryName === catName);
-            setMinorCategories(found ? found.subCategories || [] : []);
-        } else {
-            setMinorCategories([]);
-        }
-        setSelectedMinor(null);
-    };
+// --- Props 타입 정의 ---
+interface CategoryModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
 
-    // 카테고리 클릭 시 검색 페이지로 이동
-    const handleCategoryClick = (id: number) => {
-        const currentUrl = new URL(window.location.href);
-        const searchParams = new URLSearchParams(currentUrl.search);
-        
-        // 기존 쿼리 파라미터 유지
-        const title = searchParams.get('title');
-        
-        // 새로운 URL 생성
-        const newUrl = new URL('/search', window.location.origin);
-        if (title) newUrl.searchParams.set('title', title);
-        newUrl.searchParams.set('category', id.toString());
-        
-        router.push(newUrl.pathname + newUrl.search);
-    };
+// --- 카테고리 모달 컴포넌트 ---
+export default function CategoryModal({ isOpen, onClose }: CategoryModalProps) {
+  // Zustand 스토어에서 카테고리 목록과 로딩 상태를 가져옵니다.
+  const { categories, loading } = useCategoryStore();
+  // 현재 마우스를 올린(선택한) 대분류의 상태를 관리합니다.
+  const [selectedMajorCategory, setSelectedMajorCategory] = useState(categories[0] || null);
+  const router = useRouter();
 
-    return(
-        <div className={`flex items-start border border-gray-200 ${isHovered ? 'w-[460px]' : 'w-[230px]'}`}>
-            <div className="h-80 overflow-y-auto flex-1 py-3 bg-white" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-              <style jsx>{`
-                div::-webkit-scrollbar {
-                  display: none;
-                }
-              `}</style>
-              <ul>
-                {categories && categories.length > 0 ? categories.map(cat => (
-                  <li 
-                    key={cat.categoryName} 
-                    onClick={() => handleCategoryClick(cat.categoryId)} 
-                    onMouseEnter={() => {
-                      setIsHovered(cat.categoryName);
-                      magorCate(cat.categoryName);
-                    }}
-                    onMouseLeave={() => setIsHovered('')}
-                    className={`px-6 py-3 text-sm cursor-pointer hover:bg-blue-50 hover:text-blue-600 ${
-                      isHovered === cat.categoryName ? 'bg-blue-50 text-blue-600 font-medium' : ''
+  // 소분류 클릭 시, 해당 카테고리 검색 페이지로 이동하고 모달을 닫습니다.
+  const handleSubCategoryClick = (categoryId: number) => {
+    router.push(`/search?category=${categoryId}`);
+    onClose();
+  };
+
+  // 모달이 열려있지 않으면 아무것도 렌더링하지 않습니다.
+  if (!isOpen) return null;
+
+  return (
+    // 모달 배경 (Overlay)
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" onClick={onClose}>
+      {/* 모달 컨텐츠 (이벤트 버블링을 막아, 배경 클릭 시에만 닫히도록 함) */}
+      <div 
+        className="bg-white rounded-2xl shadow-xl w-full max-w-4xl h-[70vh] flex overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* 좌측: 대분류 목록 */}
+        <nav className="w-1/4 bg-gray-50 border-r border-gray-200 overflow-y-auto">
+          <ul>
+            {loading ? (
+              <li className="p-4 text-center text-gray-500">로딩 중...</li>
+            ) : (
+              categories.map((majorCat) => (
+                <li key={majorCat.categoryId}>
+                  <button
+                    onMouseEnter={() => setSelectedMajorCategory(majorCat)}
+                    className={`w-full text-left px-6 py-3 text-sm transition-colors ${
+                      selectedMajorCategory?.categoryId === majorCat.categoryId
+                        ? 'bg-white font-bold text-blue-600'
+                        : 'text-gray-700 hover:bg-gray-100'
                     }`}
                   >
-                    {cat.categoryName}
-                  </li>
-                )) : (
-                  <li className="px-6 py-3 text-sm text-gray-400">
-                    {loading ? '카테고리를 불러오는 중...' : '카테고리가 없습니다.'}
-                  </li>
-                )}
-              </ul>
-            </div>
-            <div 
-              className={`minor-cate py-3 flex-1 h-80 overflow-y-auto border-l-1 border-gray-200 bg-white ${isHovered ? 'block' : 'hidden'}`}
-              onMouseEnter={() => setIsHovered(isHovered)}
-              onMouseLeave={() => setIsHovered('')}
-            >
-              <ul>
-                {minorCategories && minorCategories.length > 0 ? (
-                  minorCategories.map(subCat => (
-                    <li
-                      key={subCat.categoryId}
-                      onClick={() => handleCategoryClick(subCat.categoryId)}
-                      className={`px-4 py-3 text-sm cursor-pointer hover:bg-gray-100`}
-                    >
-                      {subCat.categoryName}
+                    {majorCat.categoryName}
+                  </button>
+                </li>
+              ))
+            )}
+          </ul>
+        </nav>
+
+        {/* 우측: 소분류 목록 */}
+        <main className="w-3/4 p-8 overflow-y-auto">
+          {selectedMajorCategory ? (
+            <div>
+              <h2 className="text-xl font-bold mb-6">{selectedMajorCategory.categoryName}</h2>
+              {selectedMajorCategory.subCategories.length > 0 ? (
+                <ul className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4">
+                  {selectedMajorCategory.subCategories.map((subCat) => (
+                    <li key={subCat.categoryId}>
+                      <button
+                        onClick={() => handleSubCategoryClick(subCat.categoryId)}
+                        className="text-gray-600 hover:text-blue-600 hover:underline text-sm"
+                      >
+                        {subCat.categoryName}
+                      </button>
                     </li>
-                  ))
-                ) : (
-                  <li className="px-4 py-3 text-sm text-gray-400">소분류가 없습니다.</li>
-                )}
-              </ul>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-500 text-sm">이 카테고리에는 하위 항목이 없습니다.</p>
+              )}
             </div>
-        </div>
-    )
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-gray-500">왼쪽에서 카테고리를 선택해주세요.</p>
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
+  );
 }
