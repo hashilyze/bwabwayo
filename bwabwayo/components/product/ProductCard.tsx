@@ -66,11 +66,10 @@ export default function ProductCard({ item }: Props) {
 )}
 
         </div>
-        <Image
+        <img
           className="w-full h-full object-cover"
           src={product.thumbnail || '/image/no-image.jpg'}
           alt={product.title}
-          fill
         />
       </div>
       
