@@ -1,83 +1,78 @@
-import { create } from "zustand";
-import { useAuthStore } from "@/stores/auth/authStore";
+import { create } from 'zustand'
+import { useAuthStore } from '@/stores/auth/authStore'
 
 interface Seller {
-  id: string;
-  nickname: string;
-  profileImage?: string | null;
-  score: number;
-  rating: number;
-  bio?: string;
-  dealcount?: number;
+  id: string
+  nickname: string
+  profileImage?: string | null
+  score: number
+  rating: number
+  bio?: string
+  dealcount?: number
 }
 
 interface Product {
-  id?: number;
-  categoryId: number;
-  thumbnail?: string;
-  title: string;
-  price: number;
-  viewCount?: string;
-  wishCount?: string;
-  isLike?: boolean;
-  canDirect: boolean;
-  canDelivery: boolean;
-  shippingFee: number;
-  saleStatus?: number;
-  canVideoCall: boolean;
-  createdAt?: string;
-  canNegotiate: boolean;
-  description: string;
-  images: string[];
+  id?: number
+  categoryId: number
+  thumbnail?: string
+  title: string
+  price: number
+  viewCount?: string
+  wishCount?: string
+  isLike?: boolean
+  canDirect: boolean
+  canDelivery: boolean
+  shippingFee: number
+  saleStatus?: number
+  canVideoCall: boolean
+  createdAt?: string
+  canNegotiate: boolean
+  description: string
+  images: string[]
 }
 
 interface ProductDetail {
-  title: string;
-  description: string;
-  price: number;
-  saleStatus: number;
-  shippingFee: number | null;
-  canDelivery: boolean;
-  canDirect: boolean;
-  canNegotiate: boolean;
-  canVideoCall: boolean;
-  categories: { id: number; name: string }[];
-  chatCount: number;
-  createdAt: string;
-  imageKeys: string[];
-  imageUrls: string[];
-  isWish: boolean;
-  seller: Seller;
-  viewCount: number;
-  wishCount: number;
+  title: string
+  description: string
+  price: number
+  saleStatus: number
+  shippingFee: number | null
+  canDelivery: boolean
+  canDirect: boolean
+  canNegotiate: boolean
+  canVideoCall: boolean
+  categories: any[]
+  chatCount: number
+  createdAt: string
+  imageKeys: string[]
+  imageUrls: string[]
+  isWish: boolean
+  seller: Seller
+  viewCount: number
+  wishCount: number
 }
 
 export interface ProductWithSeller {
-  product: Product;
-  seller: Seller;
+  product: Product
+  seller: Seller
 }
 
 interface ProductStore {
-  product: ProductDetail | null;
-  products: ProductWithSeller[];
-  hotKeywordProducts: ProductWithSeller[];
-  videoCallProducts: ProductWithSeller[];
-  loading: boolean;
-  error: string | null;
-  getProducts: (options?: {
-    title?: string;
-    category_id?: number;
-    minPrice?: number;
-    maxPrice?: number;
-  }) => Promise<void>;
-  addProduct: (product: ProductDetail | Product) => Promise<void>;
-  getHotKewordProducts: (title: string) => Promise<void>;
-  getVideoCallProducts: () => Promise<void>;
-  getProductDetail: (id: number) => Promise<void>;
-  clearProducts: () => void;
+  product: ProductDetail | null
+  products: ProductWithSeller[]
+  hotKeywordProducts: ProductWithSeller[]
+  videoCallProducts: ProductWithSeller[]
+  loading: boolean
+  error: string | null
+  getProducts: (options?: { title?: string; category_id?: number; minPrice?: number; maxPrice?: number }) => Promise<void>
+  addProduct: (product: ProductDetail | Product) => Promise<void>
+  getHotKewordProducts: (title: string) => Promise<void>
+  getVideoCallProducts: () => Promise<void>
+  getProductDetail: (id: number) => Promise<void>
+  clearProducts: () => void
 }
 
-const baseUrl = "https://i13e202.p.ssafy.io/be/api";
+const baseUrl = 'https://i13e202.p.ssafy.io/be/api'
 
 export const useProductStore = create<ProductStore>((set) => ({
   product: null,
@@ -88,118 +83,117 @@ export const useProductStore = create<ProductStore>((set) => ({
   error: null,
 
   getProducts: async (options = {}) => {
-    set({ loading: true, error: null });
+    set({ loading: true, error: null })
     try {
       // 쿼리 파라미터 구성
       const queryParams = new URLSearchParams();
-
+      
       if (options.title) {
-        queryParams.append("keyword", options.title);
+        queryParams.append('keyword', options.title);
       }
-
+      
       if (options.category_id) {
-        queryParams.append("categoryId", options.category_id.toString());
+        queryParams.append('categoryId', options.category_id.toString());
       }
-
+      
       // API URL 구성
-      const url = queryParams.toString() ? `${baseUrl}/products?${queryParams.toString()}` : `${baseUrl}/products`;
-
-      const response = await useAuthStore.getState().authenticatedFetch(url);
-      const data = await response.json();
+      const url = queryParams.toString() 
+        ? `${baseUrl}/products?${queryParams.toString()}`
+        : `${baseUrl}/products`;
+      
+      const response = await useAuthStore.getState().authenticatedFetch(url)
+      const data = await response.json()
       let filteredProducts = data.result;
 
       // 가격 필터링
       if (options.minPrice || options.maxPrice) {
-        filteredProducts = filteredProducts.filter((item: ProductWithSeller) => {
-          const price = parseInt(item.product.price.toString());
+        filteredProducts = filteredProducts.filter((item: any) => {
+          const price = parseInt(item.product.price);
           const minPrice = options.minPrice || 0;
           const maxPrice = options.maxPrice || Infinity;
           return price >= minPrice && price <= maxPrice;
         });
       }
-      set({ products: filteredProducts, loading: false });
+      set({ products: filteredProducts, loading: false })
     } catch (error) {
-      console.error("상품 조회 실패:", error);
-      set({
-        products: [],
-        loading: false,
-        error: error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다",
-      });
+      console.error('상품 조회 실패:', error)
+      set({ 
+        products: [], 
+        loading: false, 
+        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다' 
+      })
     }
   },
 
   // 핫 키워드 상품 조회
   getHotKewordProducts: async (title: string) => {
-    set({ loading: true, error: null });
+    set({ loading: true, error: null })
     try {
-      const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products?keyword=${title}`);
-
-      const data = await response.json();
+      const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products?keyword=${title}`)
+      
+      const data = await response.json()
       // console.log('핫 키워드 상품 조회 성공:', data.result)
-      set({ hotKeywordProducts: data.result, loading: false });
+      set({ hotKeywordProducts: data.result, loading: false })
     } catch (error) {
-      console.error(error);
-      set({
-        hotKeywordProducts: [],
-        loading: false,
-        error: error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다",
-      });
+      console.error(error)
+      set({ hotKeywordProducts: [], loading: false, error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다' })
     }
   },
 
   // 화상통화 가능한 상품 조회
   getVideoCallProducts: async () => {
-    set({ loading: true, error: null });
+    set({ loading: true, error: null })
     try {
-      const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products?canVideoCall=true`);
-      const data = await response.json();
+      const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products`)
+      const data = await response.json()
 
-      if (data.result && data.result.length > 0) {
-        set({ videoCallProducts: data.result, loading: false });
+      if(data.result > 0) {
+        const filteredProducts = data.result.filter((item: any) => item.product.canVideoCall === true)
+        set({ videoCallProducts: filteredProducts, loading: false })
       } else {
-        set({ videoCallProducts: [], loading: false });
+        set({ videoCallProducts: [], loading: false })
       }
     } catch (error) {
-      console.error("화상통화 상품 조회 실패:", error);
-      set({
-        videoCallProducts: [],
-        loading: false,
-        error: error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다",
-      });
+      console.error('화상통화 상품 조회 실패:', error)
+      set({ 
+        videoCallProducts: [], 
+        loading: false, 
+        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다' 
+      })
     }
   },
 
   getProductDetail: async (id: number) => {
-    set({ loading: true, error: null });
-
+    set({ loading: true, error: null })
+    
     try {
-      const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products/${id}`);
-      const data = await response.json();
+      const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products/${id}`)
+      const data = await response.json()
       // console.log('상품 상세 조회:', data)
-      set({ product: data, loading: false });
+      set({ product: data, loading: false })
     } catch (error) {
-      console.error("상품 상세 조회 실패:", error);
+      console.error('상품 상세 조회 실패:', error)
     }
   },
 
   addProduct: async (product: ProductDetail | Product) => {
     const { authenticatedFetch } = useAuthStore.getState();
-    set({ loading: true, error: null });
+    set({ loading: true, error: null })
     try {
       const response = await authenticatedFetch(`${baseUrl}/products`, {
-        method: "POST",
-        body: JSON.stringify(product),
-      });
-
-      const data = await response.json();
-      console.log("상품 등록 성공:", data);
-      set({ loading: false });
+        method: 'POST',
+        body: JSON.stringify(product)
+      })
+      
+      const data = await response.json()
+      console.log('상품 등록 성공:', data)
+      set({ loading: false })
     } catch (error) {
-      console.error(error);
+      console.error(error)
     }
   },
 
   clearProducts: () => {
-    set({ products: [], loading: false, error: null });
-  },
-}));
+    set({ products: [], loading: false, error: null })
+  }
+})) 
