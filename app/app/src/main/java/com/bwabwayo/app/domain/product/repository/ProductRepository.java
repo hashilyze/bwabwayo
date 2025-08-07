@@ -25,5 +25,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, Product
 
     List<Product> findAllByDeliveryStatus(DeliveryStatus deliveryStatus);
 
-    List<Product> findAllByInvoiceNumberIsEmptyAndDeliveryStatus(DeliveryStatus deliveryStatus);
+    @Query("SELECT p FROM Product p WHERE p.invoiceNumber = '' AND p.deliveryStatus = :deliveryStatus")
+    List<Product> findAllByEmptyInvoiceNumberAndDeliveryStatus(@Param("deliveryStatus") DeliveryStatus deliveryStatus);
+
 }

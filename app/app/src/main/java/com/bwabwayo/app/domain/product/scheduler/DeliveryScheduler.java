@@ -42,6 +42,13 @@ public class DeliveryScheduler {
     // 3시간마다 (자정, 3시, 6시, 9시, 12시, 15시, 18시, 21시)
     @Scheduled(cron = "0 0 0,3,6,9,12,15,18,21 * * *")
     public void runEvery3Hours() {
+        List<Product> products = productService.getWillDeliveryProducts();
+        for (Product product : products){
+            Courier courier = product.getCourier();
+            DeliveryStatus maxStatus = DeliveryStatus.fromLevel(getMaxLevel(courier.getCode(), product.getInvoiceNumber()));
+            product.setDeliveryStatus(maxStatus);
+        }
+
         updateDeliveryStatus(DeliveryStatus.PREPARING);
         updateDeliveryStatus(DeliveryStatus.COLLECTED);
         updateDeliveryStatus(DeliveryStatus.IN_TRANSIT);

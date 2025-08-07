@@ -17,7 +17,6 @@ import com.bwabwayo.app.domain.product.repository.ProductRepository;
 import com.bwabwayo.app.domain.product.util.CategoryUtil;
 import com.bwabwayo.app.domain.user.domain.User;
 import com.bwabwayo.app.domain.user.service.ReviewAggService;
-import com.bwabwayo.app.domain.user.service.UserService;
 import com.bwabwayo.app.domain.wish.service.WishService;
 import com.bwabwayo.app.global.page.PageResponseDTO;
 import com.bwabwayo.app.global.storage.util.StorageUtil;
@@ -48,7 +47,6 @@ public class ProductService {
     private final WishService wishService;
     private final CourierRepository courierRepository;
     private final ViewCountService viewCountService;
-    private final UserService userService;
     private final ProductSimilarityService productSimilarityService;
     private final ReviewAggService reviewAggService;
 
@@ -377,10 +375,10 @@ public class ProductService {
     }
 
     public List<Product> getDeliveringProductsByDeliveryStatus(DeliveryStatus status){
-        return productRepository.findAllByDeliveryStatus(DeliveryStatus.PREPARING);
+        return productRepository.findAllByDeliveryStatus(status);
     }
 
     public List<Product> getWillDeliveryProducts(){
-        return productRepository.findAllByInvoiceNumberIsEmptyAndDeliveryStatus(DeliveryStatus.PREPARING);
+        return productRepository.findAllByEmptyInvoiceNumberAndDeliveryStatus(DeliveryStatus.PREPARING);
     }
 }
