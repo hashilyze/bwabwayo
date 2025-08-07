@@ -21,9 +21,15 @@ const SendIcon = () => (
     </svg>
 );
 const ChatbotIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-white">
-      <path fillRule="evenodd" d="M4.848 2.771A49.144 49.144 0 0112 2.25c2.43 0 4.817.178 7.152.52 1.978.292 3.348 2.024 3.348 3.97v6.02c0 1.946-1.37 3.678-3.348 3.97a48.901 48.901 0 01-3.476.383.39.39 0 00-.297.17l-2.755 4.133a.75.75 0 01-1.248 0l-2.755-4.133a.39.39 0 00-.297-.17 48.9 48.9 0 01-3.476-.384c-1.978-.29-3.348-2.024-3.348-3.97V6.741c0-1.946 1.37-3.68 3.348-3.97zM6.75 8.25a.75.75 0 01.75-.75h9a.75.75 0 010 1.5h-9a.75.75 0 01-.75-.75zm.75 2.25a.75.75 0 000 1.5H12a.75.75 0 000-1.5H7.5z" clipRule="evenodd" />
-    </svg>
+    <img
+        src="/icon/chat-bot.png" // public 폴더를 기준으로 파일 경로를 적어줍니다.
+        alt="챗봇 아이콘"
+        className='
+            w-full
+            h-full
+        '
+
+    />
 );
 
 // --- 챗봇 창 컴포넌트 ---
@@ -58,18 +64,26 @@ function ChatbotWindow({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
         // 서버 응답이 { products: [...] } 형태이므로, chatBot.products로 접근해야 합니다.
         if (!loading && !error && chatBot && Array.isArray(chatBot.products) && chatBot.products.length > 0) {
             
+            // 마지막 사용자 메시지를 찾아 응답에 활용합니다.
+            const lastUserMessage = [...messages].reverse().find(msg => msg.type === 'user');
+            const userQuery = lastUserMessage ? lastUserMessage.text : '요청하신';
+
+            // "추천해줘" 같은 불필요한 말을 제거하여 핵심 키워드만 남깁니다.
+            // 사용자가 "추천해줘"만 입력한 경우를 대비해 기본값("요청하신 상품")을 설정합니다.
+            const cleanedQuery = userQuery.replace(/(추천해줘|알려줘|찾아줘|추천해 줘|추천|알려|찾아|보여줘|골라줘|검색해줘)/g, '').trim() || '요청하신 상품';
+
             const items = chatBot.products;
 
             // 1. 첫 번째 안내 메시지 객체를 만듭니다.
             const summaryMessage: DisplayMessage = {
                 type: 'bot',
-                text: `총 ${items.length}개의 추천 상품이 있습니다.`
+                text: `${cleanedQuery} 추천해드릴게요!`
             };
 
             // 2. 각 상품 정보를 별개의 메시지 객체로 만듭니다.
             const detailMessages: DisplayMessage[] = items.map((product, index) => ({
                 type: 'bot',
-                text: `(응답 ${index + 1})\n상품명 : ${product.name}\n특징 : ${product.feature}\n가격 : ${product.priceRange}\n장점 : ${product.advantage}`
+                text: `${index + 1}번째\n제품명 : ${product.name}\n ${product.feature}\n가격대 : ${product.priceRange}\n장점 : ${product.advantage}`
             }));
 
             // 3. 안내 메시지와 상품 메시지들을 하나의 배열로 합칩니다.
@@ -143,8 +157,8 @@ const handleQuickAction = (actionText: string) => {
     return (
         <div ref={chatbotWindowRef} className={`fixed z-98 bottom-24 right-4 sm:right-8 w-[391px] h-[564px] bg-white rounded-[40px] shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5 pointer-events-none'}`}>
             <header className="flex items-center px-6 pt-4 pb-2 flex-shrink-0">
-                <span className="text-xl font-bold text-[#3369ff]">AI 챗봇</span>
-                <button onClick={onClose} className="ml-auto p-1 rounded-full hover:bg-gray-100">
+                <span className="text-xl font-bold text-green-600">AI 챗봇</span>
+                <button onClick={onClose} className="ml-auto p-1 rounded-full hover:bg-gray-200">
                     <CloseIcon />
                 </button>
             </header>
@@ -156,7 +170,7 @@ const handleQuickAction = (actionText: string) => {
                         return <div key={index} className="flex justify-center"><div className="text-gray-800 text-xs font-bold">{msg.text}</div></div>;
                     }
                     if (msg.type === 'user') {
-                        return <div key={index} className="flex justify-end"><div className="bg-[#3369ff] text-white rounded-2xl rounded-br-lg px-4 py-3 max-w-[80%] text-sm font-medium whitespace-pre-wrap">{msg.text}</div></div>;
+                        return <div key={index} className="flex justify-end"><div className="bg-green-600 text-white rounded-2xl rounded-br-lg px-4 py-3 max-w-[80%] text-sm font-medium whitespace-pre-wrap">{msg.text}</div></div>;
                     }
                     if (msg.type === 'bot') {
                         // 첫 번째 bot 메시지에만 버튼을 붙임
@@ -169,7 +183,7 @@ const handleQuickAction = (actionText: string) => {
                                         <div className="mt-3 flex">
                                             <button
                                                 onClick={() => handleQuickAction('AI 상품 추천')}
-                                                className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold rounded-full px-6 py-2 shadow-md hover:scale-105 hover:from-blue-600 hover:to-blue-800 transition-all text-sm"
+                                                className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-700 text-white font-bold rounded-full px-6 py-2 shadow-md hover:scale-105 hover:from-green-600 hover:to-green-700 transition-all text-sm"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -221,7 +235,7 @@ const handleQuickAction = (actionText: string) => {
                     <button
                         type="submit"
                         className={`w-10 h-10 ml-3 rounded-full flex items-center justify-center flex-shrink-0
-                            ${inputActive && !loading ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400'}
+                            ${inputActive && !loading ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400'}
                             transition-colors`}
                         disabled={!inputActive || loading}
                     >
@@ -241,7 +255,7 @@ export default function Chatbot() {
         <>
             <button 
                 onClick={() => setIsChatbotOpen(prev => !prev)}
-                className="fixed bottom-4 right-4 sm:right-8 w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full shadow-xl flex items-center justify-center text-white transform hover:scale-110 transition-transform z-50"
+                className="fixed bottom-4 right-4 sm:right-8 w-16 h-16 bg-gradient-to-br from-green-500 to-green-700 rounded-full shadow-xl flex items-center justify-center text-white transform hover:scale-110 transition-transform z-50"
                 aria-label="챗봇 열기/닫기"
             >
                 {isChatbotOpen ? <CloseIcon /> : <ChatbotIcon />}

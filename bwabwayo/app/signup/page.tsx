@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { useSignupStore } from '@/stores/signUpStore';
 import Script from 'next/script';
 
-import Image from 'next/image';
 import { UserCircleIcon, XCircleIcon } from '@/components/signup/Icons'; // 아이콘 컴포넌트 경로가 맞는지 확인해주세요.
 
 // --- 타입 정의 ---
@@ -186,13 +185,13 @@ export default function SignUpPage() {
             strategy="afterInteractive"
         />
         <div className="min-h-screen bg-gray-50 flex justify-center py-12 px-4">
-        <div className="w-full max-w-xl">
+        <div className="w-full max-w-4xl">
             <h1 className="text-3xl font-bold mb-8 text-left">회원가입</h1>
             <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-md space-y-8">
                 {/* 프로필 사진 업로드 */}
-                 <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+                 <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
                      <label className="font-bold text-lg">프로필 사진</label>
-                     <div className="md:col-span-2 flex items-center gap-4">
+                     <div className="md:col-span-2 flex items-center gap-4 justify-start">
                          <input
                              type="file"
                              accept="image/*"
@@ -206,7 +205,7 @@ export default function SignUpPage() {
                                  className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed hover:border-yellow-400 transition-all"
                              >
                                  {preview ? (
-                                     <Image src={preview} alt="프로필 미리보기" fill className="object-cover" />
+                                     <img src={preview} alt="프로필 미리보기" className="w-full h-full object-cover" />
                                  ) : (
                                      <UserCircleIcon />
                                  )}
@@ -232,21 +231,21 @@ export default function SignUpPage() {
                  </div>
 
                 {/* 닉네임, 휴대폰 번호, 이메일 */}
-                <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
                     <label className="font-bold text-lg">닉네임 <span className="text-red-500">*</span></label>
-                    <div className="md:col-span-2">
+                    <div className="md:col-span-2 max-w-xs">
                         <input type="text" value={nickname} onChange={(e) => setNickname(e.target.value)} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" required />
                     </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
                     <label className="font-bold text-lg">휴대폰 번호</label>
-                    <div className="md:col-span-2">
+                    <div className="md:col-span-2 max-w-xs">
                         <input type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" />
                     </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
                     <label className="font-bold text-lg">이메일</label>
-                    <div className="md:col-span-2">
+                    <div className="md:col-span-2 max-w-xs">
                         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" />
                     </div>
                 </div>
@@ -256,24 +255,24 @@ export default function SignUpPage() {
                 {/* 계좌 정보 */}
                 <div className="space-y-6">
                     <h2 className="text-xl font-bold">계좌 정보</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
                         <label className="font-bold text-lg">예금주</label>
-                        <div className="md:col-span-2">
+                        <div className="md:col-span-2 max-w-xs">
                             <input type="text" value={accountHolder} onChange={(e) => setAccountHolder(e.target.value)} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" />
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
                         <label className="font-bold text-lg">은행</label>
-                        <div className="md:col-span-2">
+                        <div className="md:col-span-2 max-w-xs">
                             <select value={bankName} onChange={(e) => setBankName(e.target.value)} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300 bg-white">
                                 <option value="">은행선택</option>
                                 {BANK_LIST.map((bank) => (<option key={bank} value={bank}>{bank}</option>))}
                             </select>
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
                         <label className="font-bold text-lg">계좌번호</label>
-                        <div className="md:col-span-2">
+                        <div className="md:col-span-2 max-w-xs">
                             <input type="text" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" placeholder="'-' 없이 숫자만 입력" />
                         </div>
                     </div>
@@ -284,23 +283,23 @@ export default function SignUpPage() {
                 {/* 배송지 정보 */}
                 <div className="space-y-6">
                     <h2 className="text-xl font-bold">배송지 정보</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
                         <label className="font-bold text-lg">받는 사람</label>
-                        <div className="md:col-span-2">
+                        <div className="md:col-span-2 max-w-xs">
                             <input type="text" value={recipientName} onChange={(e) => setRecipientName(e.target.value)} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" />
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
                         <label className="font-bold text-lg">배송지 전화번호</label>
-                        <div className="md:col-span-2">
+                        <div className="md:col-span-2 max-w-xs">
                             <input type="tel" value={recipientPhoneNumber} onChange={(e) => setRecipientPhoneNumber(e.target.value)} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" />
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 justify-start">
                         <label className="font-bold text-lg pt-2">주소</label>
-                        <div className="md:col-span-2 space-y-2">
-                            <div className="flex gap-2">
-                                <input type="text" value={zipcode} className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-gray-50" placeholder="우편번호" readOnly />
+                        <div className="md:col-span-2 space-y-2 max-w-xs">
+                            <div className="flex gap-4 justify-start">
+                                <input type="text" value={zipcode} className="w-32 border border-gray-300 rounded-xl px-4 py-2 bg-gray-50" placeholder="우편번호" readOnly />
                                 <button type="button" onClick={handleAddressSearch} className="px-4 bg-yellow-300 border border-black rounded-full font-bold text-sm hover:bg-yellow-200 flex-shrink-0">주소 검색</button>
 
                             </div>
