@@ -151,16 +151,6 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     <div className="flex h-[600px] bg-white">
       {/* 좌측 채팅 목록 */}
       <div className="w-[640px] border-r border-gray-200 relative">
-        {/* 화상채팅 모달 openVidu */}
-        {isVideoChatOpen && (
-          <div className="absolute inset-0 z-50">
-            <VideoConference 
-              videoRoomId={videoRoomId || defaultVideoRoomId} 
-              onClose={closeVideoChat}
-            />
-          </div>
-        )}
-
         {/* 채팅 목록 컨테이너 */}
         <div className="h-full overflow-y-auto">
           {/* 헤더 */}

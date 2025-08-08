@@ -3,6 +3,7 @@ import axios from 'axios';
 import React, { useState, useEffect, useRef } from 'react';
 import './UserVideo.css';
 import UserVideoComponent from './UserVideoComponent';
+import { useChatRoomStore } from '@/stores/chatting/chatRoomStore';
 
 interface VideoConferenceState {
     mySessionId: string;
@@ -16,9 +17,26 @@ interface VideoConferenceState {
 }
 
 export default function VideoConference({ videoRoomId, onClose }: { videoRoomId: number; onClose?: () => void }) {
+    const currentSelectedRoom = useChatRoomStore(state => state.currentSelectedRoom);
+    const closeVideoChat = useChatRoomStore(state => state.closeVideoChat);
+    const videoSessionId = useChatRoomStore(state => state.videoSessionId);  // 저장된 세션ID 가져오기
+    
+    // 현재 사용자 정보 가져오기 (채팅방 정보에서)
+    const getCurrentUserInfo = () => {
+        if (!currentSelectedRoom) return null;
+        
+        const { userId, userNickname } = currentSelectedRoom;
+        return {
+            userId: userId.toString(),
+            nickname: userNickname || `User_${userId}`
+        };
+    };
+
+    const userInfo = getCurrentUserInfo();
+
     const [state, setState] = useState<VideoConferenceState>({
-        mySessionId: '',
-        myUserName: 'Participant' + Math.floor(Math.random() * 100),
+        mySessionId: videoSessionId || videoRoomId.toString(), // 저장된 세션ID 우선 사용
+        myUserName: userInfo?.nickname || 'Participant' + Math.floor(Math.random() * 100),
         session: undefined,
         mainStreamManager: undefined,
         publisher: undefined,
@@ -28,6 +46,9 @@ export default function VideoConference({ videoRoomId, onClose }: { videoRoomId:
     const OVRef = useRef<OpenVidu | null>(null);
     
     useEffect(() => {
+        // 컴포넌트가 마운트되면 자동으로 세션 참가
+        joinSession();
+        
         const handleBeforeUnload = () => {
             leaveSession();
         };
@@ -35,22 +56,9 @@ export default function VideoConference({ videoRoomId, onClose }: { videoRoomId:
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => {
             window.removeEventListener('beforeunload', handleBeforeUnload);
+            leaveSession();
         };
     }, []);
-
-    const handleChangeSessionId = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setState(prev => ({
-            ...prev,
-            mySessionId: e.target.value,
-        }));
-    };
-
-    const handleChangeUserName = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setState(prev => ({
-            ...prev,
-            myUserName: e.target.value,
-        }));
-    };
 
     const handleMainVideoStream = (stream: any) => {
         if (state.mainStreamManager !== stream) {
@@ -73,13 +81,11 @@ export default function VideoConference({ videoRoomId, onClose }: { videoRoomId:
         }
     };
 
-    const joinSession = async (e?: React.FormEvent) => {
-        if (e) e.preventDefault();
-
-        // --- 1) Get an OpenVidu object ---
+    const joinSession = async () => {
+        // 객체 생성
         OVRef.current = new OpenVidu();
 
-        // --- 2) Init a session ---
+        // 세션 초기화
         const session = OVRef.current.initSession();
         
         setState(prev => ({
@@ -87,12 +93,8 @@ export default function VideoConference({ videoRoomId, onClose }: { videoRoomId:
             session: session,
         }));
 
-        // --- 3) Specify the actions when events take place in the session ---
-
-        // On every new Stream received...
+        // (1) streamCreated: 다른 사용자가 퍼블리시한 스트림이 들어올 때
         session.on('streamCreated', (event: any) => {
-            // Subscribe to the Stream to receive it. Second parameter is undefined
-            // so OpenVidu doesn't create an HTML video by its own
             var subscriber = session.subscribe(event.stream, undefined);
             setState(prev => ({
                 ...prev,
@@ -100,30 +102,23 @@ export default function VideoConference({ videoRoomId, onClose }: { videoRoomId:
             }));
         });
 
-        // On every Stream destroyed...
+        // (2) streamDestroyed: 누군가 세션을 떠나 스트림이 종료될 때
         session.on('streamDestroyed', (event: any) => {
-            // Remove the stream from 'subscribers' array
             deleteSubscriber(event.stream.streamManager);
         });
 
-        // On every asynchronous exception...
+        // (3) exception: OpenVidu 내부 오류나 네트워크 예외 발생 시
         session.on('exception', (exception: any) => {
             console.warn(exception);
         });
-
+        
         // --- 4) Connect to the session with a valid user token ---
-
-        // Get a token from the OpenVidu deployment
         try {
             const token = await getToken();
-            // First param is the token got from the OpenVidu deployment. Second param can be retrieved by every user on event
-            // 'streamCreated' (property Stream.connection.data), and will be appended to DOM as the user's nickname
+            // 토큰과 사용자 정보로 세션에 연결
             await session.connect(token, { clientData: state.myUserName });
 
             // --- 5) Get your own camera stream ---
-
-            // Init a publisher passing undefined as targetElement (we don't want OpenVidu to insert a video
-            // element: we will manage it on our own) and with the desired properties
             let publisher = await OVRef.current!.initPublisherAsync(undefined, {
                 audioSource: undefined, // The source of audio. If undefined default microphone
                 videoSource: undefined, // The source of video. If undefined default webcam
@@ -167,13 +162,19 @@ export default function VideoConference({ videoRoomId, onClose }: { videoRoomId:
         // Empty all properties...
         OVRef.current = null;
         setState({
-            mySessionId: 'SessionA',
-            myUserName: 'Participant' + Math.floor(Math.random() * 100),
+            mySessionId: videoSessionId || videoRoomId.toString(),
+            myUserName: userInfo?.nickname || 'Participant' + Math.floor(Math.random() * 100),
             session: undefined,
             subscribers: [],
             mainStreamManager: undefined,
             publisher: undefined
         });
+
+        // 화상채팅 닫기
+        closeVideoChat();
+        if (onClose) {
+            onClose();
+        }
     };
 
     const switchCamera = async () => {
@@ -215,54 +216,15 @@ export default function VideoConference({ videoRoomId, onClose }: { videoRoomId:
 
     return (
         <div className="w-full h-full bg-white flex flex-col">
-            {state.session === undefined ? (
-                <div className="flex-1 flex items-center justify-center">
-                    <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
-                        <div className="text-center mb-6">
-                            <h1 className="text-2xl font-bold text-gray-800 mb-2">화상 채팅 참여</h1>
-                            <p className="text-gray-600">채팅방에 참여하여 화상 통화를 시작하세요</p>
-                        </div>
-                        <form className="space-y-4" onSubmit={joinSession}>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">참여자 이름</label>
-                                <input
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    type="text"
-                                    id="userName"
-                                    value={myUserName}
-                                    onChange={handleChangeUserName}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">세션 ID</label>
-                                <input
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    type="text"
-                                    id="sessionId"
-                                    value={mySessionId}
-                                    onChange={handleChangeSessionId}
-                                    required
-                                />
-                            </div>
-                            <button 
-                                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-                                type="submit"
-                            >
-                                참여하기
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            ) : null}
-
             {state.session !== undefined ? (
                 <div className="flex flex-col h-full">
                     {/* 헤더 */}
                     <div className="bg-gray-800 text-white px-6 py-4 flex items-center justify-between">
                         <div className="flex items-center space-x-4">
                             <h1 className="text-xl font-semibold">화상 채팅</h1>
-                            <span className="text-sm text-gray-300">세션: {mySessionId}</span>
+                            <span className="text-sm text-gray-300">
+                                {currentSelectedRoom?.product?.title || `세션: ${mySessionId}`}
+                            </span>
                         </div>
                         <div className="flex items-center space-x-3">
                             <button
@@ -313,7 +275,14 @@ export default function VideoConference({ videoRoomId, onClose }: { videoRoomId:
                         </div>
                     </div>
                 </div>
-            ) : null}
+            ) : (
+                <div className="flex items-center justify-center h-full bg-gray-900 text-white">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+                        <p>화상채팅을 시작하는 중...</p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 
@@ -339,6 +308,13 @@ export default function VideoConference({ videoRoomId, onClose }: { videoRoomId:
     }
 
     async function createSession(sessionId: string) {
+        // 저장된 세션ID가 있으면 새로 생성하지 않고 기존 세션 사용
+        if (videoSessionId) {
+            console.log('기존 세션ID 사용:', videoSessionId);
+            return videoSessionId;
+        }
+        
+        // 새 세션 생성
         const response = await axios.post('https://i13e202.p.ssafy.io/be/api/sessions', { 
             videoRoomId: videoRoomId
         }, {

@@ -28,6 +28,7 @@ export default function SettingsPage() {
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [imageKey, setImageKey] = useState<string | null>(null); // 이미지 키 상태 추가
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const BANK_LIST = [
@@ -75,17 +76,19 @@ export default function SettingsPage() {
 
       const data = await response.json();
       const imageUrl = data.results[0]?.url;
-
+      const newImageKey = data.results[0]?.key;
       if (!imageUrl) throw new Error('업로드된 이미지 URL을 받지 못했습니다.');
 
       // 미리보기를 최종 S3 URL로 업데이트
       setProfileImagePreview(imageUrl);
+      setImageKey(newImageKey);
 
     } catch (error) {
       console.error('프로필 이미지 업로드 오류:', error);
       alert('이미지 업로드 중 오류가 발생했습니다.');
       // 오류 발생 시, 원래 서버에 저장되어 있던 이미지로 되돌립니다.
       setProfileImagePreview(userData?.profileImage || null);
+      setImageKey(null);
     } finally {
       setIsUploading(false);
     }
@@ -119,6 +122,7 @@ export default function SettingsPage() {
     }
     // 선택을 취소하고 원래 이미지로 되돌립니다.
     setProfileImagePreview(userData?.profileImage || null);
+    setImageKey(null);
   };
 
 
@@ -145,13 +149,14 @@ export default function SettingsPage() {
     try {
       // 이미지는 '변경하기' 클릭 시점에 미리 업로드되었으므로,
       // 현재 profileImagePreview 상태에 있는 최종 URL을 사용합니다.
+      const imageChanged = profileImagePreview !== userData?.profileImage;
       const profileUpdateRequest = {
         nickname,
         bio: bio.trim() || '',
         bankName: bankName.trim() || null,
         accountNumber: accountNumber.trim() || null,
         accountHolder: accountHolder.trim() || null,
-        profileImage: profileImagePreview,
+        profileImage: imageChanged ? imageKey : null,
       };
 
       await updateUserProfile(profileUpdateRequest);
@@ -176,37 +181,46 @@ export default function SettingsPage() {
       <main className="flex-1">
         <h1 className="text-3xl font-bold mb-8">내 정보 수정</h1>
         <form onSubmit={handleSubmit} className="space-y-8 w-[800px] bg-white p-8 rounded-xl shadow-sm">
-          <div className="flex flex-col items-center">
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              onChange={handleImageChange}
-              className="hidden"
-            />
-            <div className="relative w-32 h-32">
-              <div
-                onClick={handleUploadClick}
-                className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed hover:border-blue-500 transition-all"
-              >
-                {profileImagePreview ? (
-                  <img src={profileImagePreview} alt="프로필 미리보기" className="object-cover" />
-                ) : (
-                  <UserCircleIcon />
-                )}
-                {isUploading && (
-                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-full">
-                    <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full"></div>
-                  </div>
+          {/* --- 수정된 부분: Profile Image Section --- */}
+          <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+            <label className="font-bold text-lg">프로필 사진</label>
+            <div className="md:col-span-2 flex items-center gap-4">
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+                className="hidden"
+              />
+              <div className="relative w-24 h-24">
+                <div
+                  onClick={handleUploadClick}
+                  className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed hover:border-yellow-400 transition-all"
+                >
+                  {profileImagePreview ? (
+                    <img src={profileImagePreview} alt="프로필 미리보기" width={96} height={96} className="w-full h-full object-cover" />
+                  ) : (
+                    <UserCircleIcon />
+                  )}
+                  {isUploading && (
+                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-full">
+                      <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full"></div>
+                    </div>
+                  )}
+                </div>
+                {profileImagePreview && !isUploading && (
+                  <button type="button" onClick={handleDeleteImage} className="absolute -top-1 -right-1 bg-white rounded-full text-gray-500 hover:text-red-500 transition-colors" aria-label="이미지 삭제">
+                    <XCircleIcon />
+                  </button>
                 )}
               </div>
-              {profileImagePreview && !isUploading && (
-                <button type="button" onClick={handleDeleteImage} className="absolute -top-1 -right-1 bg-white rounded-full text-gray-500 hover:text-red-500 transition-colors" aria-label="이미지 삭제">
-                  <XCircleIcon />
+              <div>
+                <button type="button" className="px-6 py-2 bg-yellow-300 border border-black rounded-full font-bold text-base hover:bg-yellow-200" onClick={handleUploadClick} disabled={isUploading}>
+                  {isUploading ? '업로드 중...' : '이미지 변경'}
                 </button>
-              )}
+                <p className="text-sm text-gray-500 mt-2">최대 10MB의 JPG, PNG, GIF파일</p>
+              </div>
             </div>
-            <p className="text-sm text-gray-500 mt-2">프로필 이미지 등록 (선택)</p>
           </div>
 
           {/* Nickname */}

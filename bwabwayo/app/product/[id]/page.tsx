@@ -140,7 +140,9 @@ export default function ProductDetailPage() {
               </li>
               <li className="flex flex-1 flex-col gap-1 items-center">
                 <p className="text-xs text-black/50">거래방식</p>
-                <p className="text-base font-semibold">{product?.canDirect ? '직거래' : ''} {product?.canDelivery ? ', 택배' : ''}</p>
+                <p className="text-base font-semibold">
+                  {product?.canDirect ? '직거래' : ''} {product?.canDirect && product?.canDelivery ? ', ' : ''} {product?.canDelivery ? '택배' : ''}
+                </p>
               </li>
               <li className="flex-0.5 flex items-center justify-center">
                 <div className="block w-[1px] h-7 bg-gray-200"></div>
@@ -195,19 +197,19 @@ export default function ProductDetailPage() {
           <div className="mt-8">
             <h3 className="text-lg font-bold mb-4">{product?.seller?.nickname || '판매자'}님의 다른 상품</h3>
             <ul className="flex flex-col gap-4">
-              {[1,2,3,4].map(num => (
-                <li key={num} className="flex flex-row items-center gap-4">
+              {product?.seller?.otherProducts?.map((otherProduct : any) => (
+                <li key={otherProduct.id} className="flex flex-row items-center gap-4">
                    <div className="relative w-24 h-24">
                      <img
-                       src={product?.imageUrls?.[0] || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`} 
+                       src={otherProduct?.thumbnail || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`} 
                        alt="" 
                        className="border border-[#eee] rounded-lg object-cover"
                      />
                    </div>
                    <div className="flex flex-col">
-                     <p className="text-sm">{product?.title || '상품명'}</p>
-                     <p className="text-lg font-semibold mb-1">{product?.price || 0}원</p>
-                     <p className="text-xs font-light text-gray-400">찜 {product?.wishCount || 0} · 조회 {product?.viewCount || 0}</p>
+                     <p className="text-sm">{otherProduct?.title || '상품명'}</p>
+                     <p className="text-lg font-semibold mb-1">{otherProduct?.price || 0}원</p>
+                     <p className="text-xs font-light text-gray-400">찜 {otherProduct?.wishCount || 0} · 조회 {otherProduct?.viewCount || 0}</p>
                    </div>
                  </li>
               ))}
