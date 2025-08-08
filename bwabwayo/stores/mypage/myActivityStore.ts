@@ -1,17 +1,18 @@
 import { create } from 'zustand';
 import { useAuthStore } from '@/stores/auth/authStore';
 
-// 상품 요약 정보 타입 (판매, 구매, 찜 목록에서 공통으로 사용)
+// 상품 요약 정보 타입 
 interface ProductSummary {
   id: number;
   categoryId: number;
+  categoryName?: string;
   thumbnail: string;
   title: string;
   price: number;
   viewCount: number;
   wishCount: number;
   chatCount: number;
-  isLike: boolean;
+  isLike?: boolean;
   canVideoCall: boolean;
   saleStatusCode: number;
   saleStatus: string;
@@ -27,14 +28,6 @@ export interface myPurchaseProduct {
   courierName: string | null; // 택배사 이름
   trackingNumber: string | null; // 운송장 번호
   purchaseStatus: number; // 구매 진행 상태 (0, 거래중, 1 구매확정 클리가능, 2 구매확정 완료)
-}
-export interface mySaleProduct {
-  id: number;
-  thumbnail: string;
-  title: string;
-  price: number;
-  delivery_status: string;
-  saleStatus: number;
 }
 
 // 판매자 정보 타입
@@ -77,6 +70,19 @@ interface PurchaseProductsResponse {
   empty: boolean;
 }
 
+// 찜 목록 받을 데이터
+export interface WishlistApiResponse {
+  size: number;
+  result: ProductSummary[]; // result는 ProductSummary 객체들의 배열입니다.
+  currentPage: number;
+  startPage: number;
+  lastPage: number;
+  totalPages: number;
+  totalItems: number;
+  hasPrev: boolean;
+  hasNext: boolean;
+}
+
 // API 에러 응답 타입
 interface ErrorResponse {
   message: string;
@@ -97,7 +103,7 @@ interface MyActivityStore {
   purchasePage: number;
   purchaseTotalPages: number;
   purchaseHasMore: boolean;
-  wishList: ActivityProduct[];
+  wishList: ActivityProduct[] | null;
   loading: boolean;
   error: string | null;
   fetchSales: () => Promise<void>;
@@ -115,7 +121,7 @@ export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
   purchasePage: 0,
   purchaseTotalPages: 1,
   purchaseHasMore: true,
-  wishList: [],
+  wishList: null,
   loading: false,
   error: null,
 
@@ -191,6 +197,37 @@ export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
 
   // 내 찜목록 불러오기 (API 확인 필요)
   fetchWishlist: async () => {
-    // ... 찜목록 API 호출 로직 ...
+    set({ loading: true, error: null });
+    const requestUrl = `${baseUrl}/products/wishes`;
+    try {
+      const response = await useAuthStore.getState().authenticatedFetch(requestUrl);
+      
+      if (!response.ok) {
+        const errorData: ErrorResponse = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || '찜 목록을 가져오는데 실패했습니다.');
+      }
+      const data: WishlistApiResponse = await response.json();
+
+      console.log('📦 API 응답 데이터:', data);
+
+      // API 응답(ProductSummary[])을 ActivityProduct[] 타입으로 변환
+      const formattedWishlist: ActivityProduct[] = data.result.map((item: ProductSummary) => ({
+        product: {
+          ...item,
+          isLike: true, // 찜 목록 아이템이므로 isLike는 항상 true
+        },
+        seller: { // 찜 목록 API는 판매자 정보를 제공하지 않으므로 기본값 설정
+          id: '',
+          nickname: '',
+        },
+      }));
+      console.log('🧩 변환된 formattedWishlist:', formattedWishlist);
+
+      set({ wishList: formattedWishlist, loading: false });
+      console.log("wishList:", formattedWishlist);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
+      set({ error: errorMessage, loading: false, wishList: [] });
+    }
   },
 }));
