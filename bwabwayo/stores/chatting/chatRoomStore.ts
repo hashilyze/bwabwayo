@@ -202,7 +202,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                         console.log('메세지' +  msg.type);
                         console.log('내용 ' + msg.content);
                         // RESERVATION_VIDEOCALL 타입 메시지인 경우 세션ID 저장
-                        if (msg.type === 'RESERVE_VIDEOCALL' && msg.content) {
+                        if (msg.type === 'START_VIDEOCALL' && msg.content) {
                             console.log('📹 화상채팅 세션ID 저장:', msg.content);
                             set({ videoSessionId: msg.content });
                         }
