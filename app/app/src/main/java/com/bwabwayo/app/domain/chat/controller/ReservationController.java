@@ -1,6 +1,7 @@
 package com.bwabwayo.app.domain.chat.controller;
 
 import com.bwabwayo.app.domain.auth.annotation.LoginUser;
+import com.bwabwayo.app.domain.chat.domain.VideocallReservation;
 import com.bwabwayo.app.domain.chat.dto.request.ReservationRequest;
 import com.bwabwayo.app.domain.chat.service.ReservationService;
 import com.bwabwayo.app.domain.user.domain.User;
@@ -19,9 +20,16 @@ public class ReservationController {
     public ResponseEntity<?> makeReservation(
             @PathVariable Long roomId,
             @LoginUser User user,
-            @RequestBody ReservationRequest reservationRequest) throws IllegalAccessException {
-        return ResponseEntity.ok(
-                reservationService.makeReservation(user, reservationRequest, roomId));
+            @RequestBody ReservationRequest reservationRequest){
+
+        try{
+            VideocallReservation reservation = reservationService.makeReservation(user, reservationRequest, roomId);
+            return ResponseEntity.ok(reservation);
+        } catch (IllegalAccessException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+
+
     }
 
     @DeleteMapping("/{scheduleId}")

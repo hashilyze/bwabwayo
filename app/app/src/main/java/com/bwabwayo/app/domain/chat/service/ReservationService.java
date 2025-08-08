@@ -49,7 +49,7 @@ public class ReservationService {
         ChatRoom chatRoom = chatRoomRepository.findByRoomId(roomId).orElseThrow(() -> new IllegalArgumentException("해당 채팅방이 존재하지 않습니다."));
 
         if(!chatRoom.getBuyerId().equals(user.getId()))
-            throw new IllegalAccessException("접근할 수 없는 채팅방입니다");
+            throw new IllegalAccessException("상품의 구매자만 화상채팅 예약을 할 수 있습니다");
 
         // 포인트 소비
         userService.calcPoint(PointEventType.VIDEO_CALL, -1 * RESERVATION_POINT, user);
