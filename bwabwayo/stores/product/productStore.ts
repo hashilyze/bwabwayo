@@ -9,6 +9,7 @@ interface Seller {
   rating: number
   bio?: string
   dealcount?: number
+  otherProducts?: Product[]
 }
 
 interface Product {
