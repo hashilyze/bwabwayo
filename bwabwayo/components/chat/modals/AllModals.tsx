@@ -171,7 +171,7 @@ const StartVideoCallModal = ({ message }: { message: ChatMessage }) => {
     const [isButtonHovered, setIsButtonHovered] = useState(false);
     const openVideoChat = useChatRoomStore(state => state.openVideoChat);
     const currentSelectedRoom = useChatRoomStore(state => state.currentSelectedRoom);
-    const videoSessionId = useChatRoomStore(state => state.videoSessionId);
+    const videoSessionId = message.content;
 
     const handleStart = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -206,7 +206,7 @@ const StartVideoCallModal = ({ message }: { message: ChatMessage }) => {
           <img
             className="relative w-[78px] h-[70px] aspect-[1.11] object-cover"
             alt="videoChatCat"
-            src="/videoChatCat-icon.png"
+            src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/videoChatCat-icon.png`}
           />
 
           
