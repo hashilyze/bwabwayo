@@ -33,12 +33,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private OAuth2User processOAuth2User(org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest userRequest, OAuth2User oAuth2User) {
         OAuth2UserInfo oAuth2UserInfo = null;
         if (userRequest.getClientRegistration().getRegistrationId().equals("kakao")) {
+            log.info("카카오 정보 가져오기");
             oAuth2UserInfo = new KakaoUserInfo(oAuth2User.getAttributes());
         }
 
         User userEntity =
                 userService.findById(oAuth2UserInfo.getProviderId());
         OAuth2UserRequest user;
+        log.info(userEntity.toString());
         //null이면 새가입자, isActive가 false면 재가입자
         if (userEntity == null || !userEntity.isActive()) {
             log.info("새가입자 혹은 재가입자");
