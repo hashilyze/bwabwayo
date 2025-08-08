@@ -53,7 +53,7 @@ export default function ProductCard({ item }: Props) {
       onClick={(e) => handleCardClick(e, product.id || 0)}
     >
       {/* 상품 이미지 */}
-       <div className="relative border-b border-[#eee] flex-shrink-0">
+       <div className="relative border-b border-[#eee] flex-shrink-0 overflow-hidden">
          <div className="absolute top-4 right-4 z-10">
            {typeof product.id === 'number' && (
             <LikeHeart 
@@ -63,7 +63,7 @@ export default function ProductCard({ item }: Props) {
             )}
          </div>
          <img
-           className="w-full h-full object-cover"
+           className="w-full h-full object-cover hover:scale-105 transition-all duration-300"
            src={product.thumbnail || '/image/no-image.jpg'}
            alt={product.title}
            style={{ height: '300px' }}
@@ -77,7 +77,7 @@ export default function ProductCard({ item }: Props) {
          </h3>
         <div className=''>
           {product.canVideoCall && (
-            <div className="-ml-1 mb-2 text-[14px] text-[#FFAE00] bg-[#FFE9BA] w-fit rounded-xl py-0.2 px-2">화상통화</div>
+            <div className="-ml-1 mb-2 text-[14px] text-[#d77c00] bg-[#FFE9BA] w-fit rounded-xl py-0.2 px-2">화상거래</div>
           )}
           <p className="text-xl font-bold text-black mb-1">{formatPrice(product.price.toString())}원</p>
           <div className="text-sm font-light text-[#999999] flex justify-between mt-2">

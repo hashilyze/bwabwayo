@@ -57,7 +57,7 @@ function ProductSlider({ products, navigationId }: { products: any[], navigation
     <div className="relative px-[70px]">
       <Swiper
         modules={[Pagination, Navigation]}
-        spaceBetween={40}
+        spaceBetween={32}
         slidesPerView={4}
         slidesPerGroup={3}
         pagination={{ clickable: true }}
@@ -172,7 +172,7 @@ export default function Home() {
         <div className="container-wide m-auto">
           <div className="relative">
             <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/title-deco-1.png`} alt="최근 판매상품"
-              className="absolute -top-3 -left-[30px] w-[320px] opacity-50"
+              className="absolute -top-3 -left-[30px] w-[320px] opacity-30"
             />
             <h1 className="text-[40px] font-bold mb-5 relative z-1 ml-[70px]">NEW ITEMS</h1>
           </div>
@@ -192,11 +192,11 @@ export default function Home() {
       </div>
       
       {/* hot items */}
-      <div className="bg-[#F6F8F9] py-30 pb-20">
+      <div className="bg-[#F6F8F9] py-30 pb-40">
         <div className="container-wide m-auto">
           <div className="relative">
             <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/title-deco-2.png`} alt="핫한상품"
-              className="absolute -top-3 -left-[30px] w-[320px] opacity-20"
+              className="absolute -top-3 -left-[30px] w-[320px] opacity-15"
             />
             <h1 className="flex items-center gap-2 text-[40px] font-bold mb-5 relative z-1 ml-[70px]">HOT ITEMS
               <span className="text-blue-500 font-bold">`{hotKeyword}`</span>
@@ -219,9 +219,9 @@ export default function Home() {
               <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/video-icon.png`} alt="화상거래 가능한 상품" className="h-[50px]" />
             </h1>
           </div>
-          {hotKeywordProducts && hotKeywordProducts.length > 0 ? (
-          <ProductSlider products={hotKeywordProducts} navigationId="hot" />
-        ) : (
+          {videoCallProducts && videoCallProducts.length > 0 ? (
+            <ProductSlider products={videoCallProducts} navigationId="hot" />
+          ) : (
           <div className="flex justify-center items-center py-8">
             <div className="text-lg text-[#777]">해당 키워드의 제품이 없습니다.</div>
           </div>

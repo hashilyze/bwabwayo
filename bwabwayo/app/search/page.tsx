@@ -196,18 +196,18 @@ export default function SearchPage({
   return(
     <div className="py-12 container-default m-auto">
       <div className='flex items-center gap-2 mb-4'>
-        <h1 className='text-2xl font-bold text-black'>
+        <h1 className='text-3xl font-bold text-black'>
           {searchParams.title ? `'${searchParams.title}'` : ''}검색결과
         </h1>
-        <span className='text-sm text-[#5a5a5a]'>총 {products.length}개</span>
+        <span className='text-md text-[#5a5a5a]'>총 {products.length}개</span>
       </div>
       <div className="search-category w-full bg-white">
         <table className="w-full">
           <tbody>
             {/* 카테고리 헤더 행 */}
             <tr className="border-t-2 border-t-[#000000] border-b border-b-[#dadee5]">
-              <td className="flex justify-between items-center w-36 bg-gray-50 px-4 py-4 text-left">
-                <div className="text-base text-black">카테고리</div>
+              <td className="flex justify-between items-center w-36 bg-gray-50 px-4 py-5 text-left">
+                <div className="text-lg text-black">카테고리</div>
                 <div
                   onClick={handleShowMajorCategories}
                   className="ml-2 text-lg font-light text-gray-500 hover:text-black cursor-pointer"
@@ -215,10 +215,10 @@ export default function SearchPage({
                   {(showMajorCategories || showMinorCategories) ? '-' : '+'}
                 </div>
               </td>
-              <td className="px-6 py-4 text-left">
-                <div className="flex items-center">
+              <td className="px-6 py-5 text-left">
+                <div className="flex items-center text-lg">
                   {selectedCategoryPath === '전체' ? (
-                    <span className="">{selectedCategoryPath}</span>
+                    <span className="text-lg">{selectedCategoryPath}</span>
                   ) : (
                     <ul className="flex items-center gap-2">
                       <li>
@@ -229,14 +229,14 @@ export default function SearchPage({
                           전체
                         </Link>
                       </li>
-                      <li className="text-sm leading-5 text-[#9ca3af]">&gt;</li>
+                      <li className="text-lg leading-5 text-[#9ca3af]">&gt;</li>
                       <li>
                         {(() => {
                           const majorCat = categories.find(cat => cat.categoryId === selectedMajorCategoryId);
                           return (
                             <Link 
                               href={majorCat ? createSearchUrl(majorCat.categoryId) : createSearchUrl()}
-                              className="cursor-pointer hover:text-[#155dfc]"
+                              className="text-lg cursor-pointer hover:text-[#155dfc]"
                             >
                               {majorCat?.categoryName || ''}
                             </Link>
@@ -254,7 +254,7 @@ export default function SearchPage({
                               return (
                                 <Link 
                                   href={searchParams.category ? createSearchUrl(parseInt(searchParams.category)) : createSearchUrl()}
-                                  className="cursor-pointer hover:text-[#155dfc]"
+                                  className="text-lg cursor-pointer hover:text-[#155dfc]"
                                 >
                                   {minorCat?.categoryName || ''}
                                 </Link>
@@ -271,14 +271,14 @@ export default function SearchPage({
             {/* 대분류 선택 행 */}
             {showMajorCategories && (
             <tr className="category border-b border-[#dadee5]">
-              <td className="w-36 bg-gray-50 p-4">대분류 선택</td>
+              <td className="w-36 bg-gray-50 p-4 text-lg">대분류 선택</td>
               <td className="p-4">
-                <ul className="grid grid-cols-8 gap-2">
+                <ul className="grid grid-cols-7 gap-2">
                   {categories.map((category) => (
                     <li key={category.categoryId}>
                       <Link 
                         href={createSearchUrl(category.categoryId)}
-                        className="text-sm text-[#5a5a5a] px-3 py-2 hover:text-[#155dfc] cursor-pointer block"
+                        className="text-md text-[#5a5a5a] px-3 py-2 hover:text-[#155dfc] cursor-pointer block"
                       >
                         {category.categoryName}
                       </Link>
@@ -292,14 +292,14 @@ export default function SearchPage({
             {/* 소분류 선택 행 */}
             {showMinorCategories && selectedMajorCategoryId && (
             <tr className="category border-b border-[#dadee5]">
-              <td className="w-36 bg-gray-50 p-4">소분류 선택</td>
+              <td className="w-36 bg-gray-50 p-4 text-lg">소분류 선택</td>
               <td className="p-4">
-                <ul className="grid grid-cols-8 gap-2">
+                <ul className="grid grid-cols-7 gap-2">
                   {categories.find(cat => cat.categoryId === selectedMajorCategoryId)?.subCategories.map((subCategory) => (
                     <li key={subCategory.categoryId}>
                       <Link 
                         href={createSearchUrl(subCategory.categoryId)}
-                        className="text-sm text-[#5a5a5a] px-3 py-2 hover:text-[#155dfc] cursor-pointer block"
+                        className="text-md text-[#5a5a5a] px-3 py-2 hover:text-[#155dfc] cursor-pointer block"
                       >
                         {subCategory.categoryName}
                       </Link>
@@ -313,7 +313,7 @@ export default function SearchPage({
           {/* 가격 필터 행 */}
           <tr className="border-b border-[#dadee5]">
             <td className="w-36 bg-gray-50 p-4">
-              <h3 className="text-base font-normal text-black">가격</h3>
+              <h3 className="text-lg font-normal text-black">가격</h3>
             </td>
             <td className="p-4 flex gap-2 items-center">
               <div className="flex items-center gap-2">
@@ -330,7 +330,7 @@ export default function SearchPage({
                       }
                     }}
                     onWheel={(e) => (e.target as HTMLInputElement).blur()}
-                    className="w-36 px-3 py-2 border border-gray-200 rounded-sm text-sm text-black focus:outline-none focus:border-[#000000] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-36 px-3 py-2 border border-gray-200 rounded-sm text-md text-black focus:outline-none focus:border-[#000000] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
                 {/* 구분선 */}
@@ -348,14 +348,14 @@ export default function SearchPage({
                       }
                     }}
                     onWheel={(e) => (e.target as HTMLInputElement).blur()}
-                    className="w-36 px-3 py-2 border border-gray-200 rounded-sm text-sm text-black focus:outline-none focus:border-[#000000] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-36 px-3 py-2 border border-gray-200 rounded-sm text-md text-black focus:outline-none focus:border-[#000000] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
 
                 {/* 적용 버튼 */}
                 <button
                   onClick={handlePriceApply}
-                  className="w-14 h-9 bg-black text-white text-sm font-normal rounded-sm cursor-pointer"
+                  className="w-15 h-10 bg-black text-white text-md font-normal rounded-sm cursor-pointer"
                 >
                   적용
                 </button>
@@ -363,9 +363,7 @@ export default function SearchPage({
               <div>
                 {(appliedMinPrice || appliedMaxPrice) && (
                   <div className="inline-flex items-center bg-gray-100 px-3 py-1 rounded-full text-sm">
-                    <span>
-                      {appliedMinPrice || '0'} ~ {appliedMaxPrice || ''}
-                    </span>
+                    <span>{appliedMinPrice || '0'} ~ {appliedMaxPrice || ''}</span>
                     <button
                       onClick={() => {
                         setMinPrice('');
@@ -398,7 +396,9 @@ export default function SearchPage({
         </tbody>
       </table>
     </div>
-    <div className='mt-10'>
+
+    {/* 제품 warp */}
+    <div className='mt-15'>
       {loading ? (
         <div className="flex justify-center items-center py-8">
           <div className="text-lg">로딩 중...</div>
@@ -408,7 +408,7 @@ export default function SearchPage({
           <div className="text-lg text-red-500">{error}</div>
         </div>
       ) : products.length > 0 ? (
-        <ul className="grid grid-cols-6 gap-6 gap-y-12">
+        <ul className="grid grid-cols-4 gap-8 gap-y-12 items-stretch">
           {products.map((item: ProductWithSeller) => (
             <li key={item.product.id}>
               <ProductCard item={item} />
