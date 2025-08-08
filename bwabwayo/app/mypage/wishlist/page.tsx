@@ -37,7 +37,7 @@ export default function MyPageWishlist() {
           {/* 한 줄에 4개의 상품을 표시하는 grid 레이아웃을 사용합니다. */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
   {wishList?.map((item: ActivityProduct) => (
-    <ul key={item.product.id}>
+    <ul key={item.product.productId}>
       <li>
         <ProductCard item={item} />
       </li>

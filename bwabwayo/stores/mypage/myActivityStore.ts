@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/auth/authStore';
 // 상품 요약 정보 타입 
 interface ProductSummary {
   id: number;
+  productId: number;
   categoryId: number;
   categoryName?: string;
   thumbnail: string;

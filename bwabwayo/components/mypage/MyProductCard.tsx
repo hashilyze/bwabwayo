@@ -12,9 +12,13 @@ type Props = {
 export default function ProductCard({ item }: Props) {
   const router = useRouter();
   const product = item.product;
+  const productId =product.productId || 0; // product.id가 없을 경우를 대비하여 기본값 설정
   // console.log(product)
 
-  const handleCardClick = (e: MouseEvent<HTMLDivElement>, productId: number) => {
+const handleCardClick = (
+  e: React.MouseEvent<HTMLDivElement>,
+  productId: number
+) => {
     const target = e.target as HTMLElement; 
     if (target.closest('a')) return; // Link 내부 클릭시 무시
     router.push(`/product/${productId}`);
@@ -50,7 +54,7 @@ export default function ProductCard({ item }: Props) {
   return (
     <div
       className="cursor-pointer"
-      onClick={(e) => handleCardClick(e, product.id || 0)}
+      onClick={(e) => handleCardClick(e, product.productId || 0)}
     >
       {/* 상품 이미지 */}
       <div className="aspect-square overflow-hidden rounded-lg relative">
