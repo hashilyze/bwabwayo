@@ -93,6 +93,7 @@ interface ChatRoomStore{
     // 화상채팅 관련 상태
     isVideoChatOpen: boolean
     videoRoomId: number | null
+    videoSessionId: string | null  // 세션ID 저장용
     addChatRoom: (addRoom: addRoom) => Promise<RoomInfo | null>
     getRoomInfo: (roomId: number) => Promise<RoomInfo | null>
     getRoomList: () => void
@@ -106,7 +107,9 @@ interface ChatRoomStore{
     closeVideoChat: () => void
     getMessageHistory: (roomId: number) => Promise<void>
     sendMessage: (roomId: number, content: string) => void
-    setVideoSessionId: (id: number | null) => void
+    setVideoSessionId: (id: string | null) => void
+    // 화상채팅 세션 생성 함수 추가
+    createVideoSession: (roomId: number) => Promise<string | null>
 }
 
 export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
@@ -120,7 +123,8 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     // 화상채팅 관련 상태
     isVideoChatOpen: false,
     videoRoomId: null,
-    setVideoSessionId: (id: number | null) => set({ videoRoomId: id }),
+    videoSessionId: null,  // 세션ID 저장용
+    setVideoSessionId: (id: string | null) => set({ videoSessionId: id }),
 
     addChatRoom: async (addRoom: addRoom) => {
         try{
@@ -192,10 +196,21 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 set({ isConnected: true, isConnecting: false, stompClient: client })
                 
                 if (roomId) {
-                    // console.log(`📡 STOMP: 채팅방 ${roomId} 구독 시작`)
+                    console.log(`📡 STOMP: 채팅방 ${roomId} 구독 시작`)
                     client.subscribe(`/sub/chat/room/${roomId}`, (messageOutput) => {
                         const msg = JSON.parse(messageOutput.body)
+                        console.log('메세지' +  msg.type);
+                        console.log('내용 ' + msg.content);
+                        // RESERVATION_VIDEOCALL 타입 메시지인 경우 세션ID 저장
+                        if (msg.type === 'RESERVE_VIDEOCALL' && msg.content) {
+                            console.log('📹 화상채팅 세션ID 저장:', msg.content);
+                            set({ videoSessionId: msg.content });
+                        }
+                        
                         get().appendMessage(msg, false) // isMine은 appendMessage에서 결정하도록 변경 가능
+                        
+                
+
                     })
                 }
             }
@@ -224,6 +239,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     appendMessage: (msg: ChatMessage, isMine: boolean) => {        
         set(state => {
             const currentMessages = Array.isArray(state.messages) ? state.messages : []
+
             return { 
                 messages: [...currentMessages, msg] 
             }
@@ -321,6 +337,29 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     closeVideoChat: () => {
         console.log('📹 화상채팅 닫기');
         set({ isVideoChatOpen: false, videoRoomId: null });
+        // 세션ID는 유지 (재사용 가능)
+    },
+
+    // 화상채팅 세션 생성 함수 추가
+    createVideoSession: async (roomId: number) => {
+        try {
+            const response = await useAuthStore.getState().authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/sessions`, {
+                method: 'POST',
+                body: JSON.stringify({ videoRoomId: roomId }),
+            });
+            
+            if (response.ok) {
+                const sessionId = await response.text();
+                console.log('✅ 화상채팅 세션 생성 성공:', sessionId);
+                return sessionId;
+            } else {
+                console.error('❌ 화상채팅 세션 생성 실패');
+                return null;
+            }
+        } catch (error) {
+            console.error('❌ 화상채팅 세션 생성 오류:', error);
+            return null;
+        }
     },
 
 }))

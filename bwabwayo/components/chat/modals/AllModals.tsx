@@ -1,6 +1,7 @@
 'use client'
 
 import React, {useState} from "react";
+import { useChatRoomStore } from "@/stores/chatting/chatRoomStore"
 
 interface ChatMessage {
     content: string;
@@ -168,10 +169,34 @@ const CancelVideoCallModal = ({ message }: { message: ChatMessage }) => {
 //START_VIDEOCALL,           // 화상거래 시작 후 전송
 const StartVideoCallModal = ({ message }: { message: ChatMessage }) => {
     const [isButtonHovered, setIsButtonHovered] = useState(false);
+    const openVideoChat = useChatRoomStore(state => state.openVideoChat);
+    const currentSelectedRoom = useChatRoomStore(state => state.currentSelectedRoom);
+    const videoSessionId = useChatRoomStore(state => state.videoSessionId);
 
-    const handleStart = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const handleStart = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         console.log('화상채팅 시작');
+        
+        if (!currentSelectedRoom) {
+            console.error('현재 선택된 채팅방 정보가 없습니다.');
+            alert('채팅방 정보를 찾을 수 없습니다.');
+            return;
+        }
+
+        if (!videoSessionId) {
+            console.error('화상채팅 세션ID가 없습니다.');
+            alert('화상채팅 예약이 필요합니다.');
+            return;
+        }
+
+        try {
+            // 채팅방 ID로 화상채팅 열기
+            openVideoChat(currentSelectedRoom.roomId);
+            console.log('화상채팅 시작 - 세션ID:', videoSessionId);
+        } catch (error) {
+            console.error('화상채팅 시작 실패:', error);
+            alert('화상채팅을 시작할 수 없습니다.');
+        }
     }
 
   return (
