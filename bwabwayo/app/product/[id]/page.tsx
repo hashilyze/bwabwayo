@@ -141,7 +141,7 @@ export default function ProductDetailPage() {
               <li className="flex flex-1 flex-col gap-1 items-center">
                 <p className="text-xs text-black/50">거래방식</p>
                 <p className="text-base font-semibold">
-                  {product?.canDirect ? '직거래' : ''} {product?.canDirect && product?.canDelivery ? ', ' : ''} {product?.canDelivery ? ', 택배' : ''}
+                  {product?.canDirect ? '직거래' : ''} {product?.canDirect && product?.canDelivery ? ', ' : ''} {product?.canDelivery ? '택배' : ''}
                 </p>
               </li>
               <li className="flex-0.5 flex items-center justify-center">
