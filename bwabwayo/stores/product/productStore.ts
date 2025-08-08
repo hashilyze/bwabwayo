@@ -144,12 +144,11 @@ export const useProductStore = create<ProductStore>((set) => ({
   getVideoCallProducts: async () => {
     set({ loading: true, error: null })
     try {
-      const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products`)
+      const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products?canVideoCall=true`)
       const data = await response.json()
 
-      if(data.result > 0) {
-        const filteredProducts = data.result.filter((item: any) => item.product.canVideoCall === true)
-        set({ videoCallProducts: filteredProducts, loading: false })
+      if(data.result && data.result.length > 0) {
+        set({ videoCallProducts: data.result, loading: false })
       } else {
         set({ videoCallProducts: [], loading: false })
       }
