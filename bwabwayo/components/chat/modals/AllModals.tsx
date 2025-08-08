@@ -172,7 +172,7 @@ const StartVideoCallModal = ({ message }: { message: ChatMessage }) => {
     const [isButtonHovered, setIsButtonHovered] = useState(false);
     const openVideoChat = useChatRoomStore(state => state.openVideoChat);
     const currentSelectedRoom = useChatRoomStore(state => state.currentSelectedRoom);
-    const videoSessionId = useChatRoomStore(state => state.videoSessionId);
+    const videoSessionId = message.content;
 
     const handleStart = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
