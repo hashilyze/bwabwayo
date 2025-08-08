@@ -189,7 +189,9 @@ export default function Home() {
       </div>
 
       {/* 전광판 */}
-      <Banner />
+      <div className="h-[250px] bg-black flex justify-center items-center overflow-hidden">
+        <Banner />
+      </div>
       
       {/* hot items */}
       <div className="bg-[#F6F8F9] py-30 pb-40">

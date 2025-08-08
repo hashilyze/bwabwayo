@@ -1,16 +1,31 @@
+'use client';
+
+import styles from './Banner.module.css';
+
 export default function Banner() {
+  const bannerImages = [
+    '/image/adv-bar.png',
+    '/image/adv-bar.png',
+    '/image/adv-bar.png',
+    '/image/adv-bar.png',
+    '/image/adv-bar.png'
+  ];
+
+  const duplicatedImages = [...bannerImages, ...bannerImages, ...bannerImages];
+
   return (
-    <div className="bg-black h-[250px] flex justify-center items-center relative overflow-hidden">
-        <div className="flex absolute animate-slider">
-          <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/adv-bar.png`} alt="전광판" className="w-auto h-10 object-cover" />
-          <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/adv-bar.png`} alt="전광판" className="w-auto h-10 object-cover" />
-          <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/adv-bar.png`} alt="전광판" className="w-auto h-10 object-cover" />
-          <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/adv-bar.png`} alt="전광판" className="w-auto h-10 object-cover" />
-          <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/adv-bar.png`} alt="전광판" className="w-auto h-10 object-cover" />
-          <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/adv-bar.png`} alt="전광판" className="w-auto h-10 object-cover" />
-          <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/adv-bar.png`} alt="전광판" className="w-auto h-10 object-cover" />
-          <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/adv-bar.png`} alt="전광판" className="w-auto h-10 object-cover" />
-        </div>
+    <div className={styles.infiniteLoop}>
+      <div className={styles.infiniteLoop__slider}>
+        {duplicatedImages.map((image, index) => (
+          <div key={`banner-${index}`} className={styles.bannerItem}>
+            <img 
+              src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}${image}`}
+              alt="배너 이미지"
+              className={styles.bannerItem__image}
+            />
+          </div>
+        ))}
+      </div>
     </div>
-  )
+  );
 }
