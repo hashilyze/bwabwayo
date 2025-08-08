@@ -49,34 +49,42 @@ export default function ProductCard({ item }: Props) {
 
   return (
     <div
-      className="cursor-pointer"
+      className="cursor-pointer bg-white rounded-xl overflow-hidden shadow-md flex flex-col"
       onClick={(e) => handleCardClick(e, product.id || 0)}
     >
       {/* 상품 이미지 */}
-      <div className="aspect-square overflow-hidden rounded-lg relative">
-        <div className="absolute top-4 right-4 z-10">
-          {typeof product.id === 'number' && (
-          <LikeHeart 
-          productId={product.id} 
-          initialIsLiked={product.isLike || false} 
-  />
-)}
-        </div>
-        <img
-          className="w-full h-full object-cover"
-          src={product.thumbnail || '/image/no-image.jpg'}
-          alt={product.title}
-        />
-      </div>
+       <div className="relative border-b border-[#eee] flex-shrink-0">
+         <div className="absolute top-4 right-4 z-10">
+           {typeof product.id === 'number' && (
+            <LikeHeart 
+              productId={product.id} 
+              initialIsLiked={product.isLike || false} 
+            />
+            )}
+         </div>
+         <img
+           className="w-full h-full object-cover"
+           src={product.thumbnail || '/image/no-image.jpg'}
+           alt={product.title}
+           style={{ height: '300px' }}
+         />
+       </div>
       
       {/* 상품 정보 */}
-      <div className="mt-5">
-        <h3 className="text-lg text-[#5a5a5a] leading-sung h-15 overflow-hidden">{product.title}</h3>
-        <p className="text-xl font-bold text-black mb-1">{formatPrice(product.price.toString())}원</p>
-        <p className="text-sm font-light text-[#999999]">{getRelativeTime(product.createdAt || '')}</p>
-        {product.canVideoCall && (
-          <div className="text-[10px] font-bold text-[#1b8ee4] bg-[#f4f6f7] w-fit rounded-sm mt-1 px-1 border border-[#ecf1f4]">화상통화</div>
-        )}
+      <div className="p-5 flex flex-col justify-between h-full">
+          <h3 className="text-xl leading-sung overflow-hidden mb-4" title={product.title}>
+           {product.title.length > 25 ? `${product.title.slice(0, 25)}...` : product.title}
+         </h3>
+        <div className=''>
+          {product.canVideoCall && (
+            <div className="-ml-1 mb-2 text-[14px] text-[#FFAE00] bg-[#FFE9BA] w-fit rounded-xl py-0.2 px-2">화상통화</div>
+          )}
+          <p className="text-xl font-bold text-black mb-1">{formatPrice(product.price.toString())}원</p>
+          <div className="text-sm font-light text-[#999999] flex justify-between mt-2">
+            <p className="">{getRelativeTime(product.createdAt || '')}</p>
+            <p>찜 {product.wishCount} · 조회 {product.viewCount}</p>
+          </div>
+        </div>
       </div>
     </div>
   );

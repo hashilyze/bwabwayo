@@ -10,7 +10,7 @@ const getBasePath = () => {
 const protectedRoutes = [
   '/product/new',
   '/chat',
-  // '/mypage',
+  '/mypage',
   '/shop',
   '/test'
 ]

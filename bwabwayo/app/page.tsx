@@ -57,7 +57,7 @@ function ProductSlider({ products, navigationId }: { products: any[], navigation
     <div className="relative px-[70px]">
       <Swiper
         modules={[Pagination, Navigation]}
-        spaceBetween={20}
+        spaceBetween={40}
         slidesPerView={4}
         slidesPerGroup={3}
         pagination={{ clickable: true }}
@@ -198,7 +198,10 @@ export default function Home() {
             <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/title-deco-2.png`} alt="핫한상품"
               className="absolute -top-3 -left-[30px] w-[320px] opacity-20"
             />
-            <h1 className="flex items-center gap-2 text-[40px] font-bold mb-5 relative z-1 ml-[70px]">HOT ITEMS<img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/fire-icon.png`} alt="화상거래 가능한 상품" className="h-[40px]" /></h1>
+            <h1 className="flex items-center gap-2 text-[40px] font-bold mb-5 relative z-1 ml-[70px]">HOT ITEMS
+              <span className="text-blue-500 font-bold">`{hotKeyword}`</span>
+              <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/fire-icon.png`} alt="화상거래 가능한 상품" className="h-[40px]" />
+            </h1>
           </div>
           {hotKeywordProducts && hotKeywordProducts.length > 0 ? (
           <ProductSlider products={hotKeywordProducts} navigationId="hot" />

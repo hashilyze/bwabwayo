@@ -83,7 +83,7 @@ export default function ProductDetailPage() {
       <div className="flex flex-row gap-12 relative">
         {/* Product Images */}
         <div className="flex-2 w-full max-w-md">
-          <div className="sticky top-40 z-8">
+          <div className="sticky top-60 z-8">
             <div className="flex flex-col gap-4">
               <div className="rounded-2xl overflow-hidden border border-gray-200 relative aspect-square">
                   <img

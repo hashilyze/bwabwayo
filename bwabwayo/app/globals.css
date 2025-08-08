@@ -150,3 +150,14 @@ body {
   margin-left: auto;
   margin-right: auto;
 }
+
+/* Swiper 슬라이드 높이 동일화 */
+.swiper-slide {
+  height: auto !important;
+  display: flex !important;
+}
+
+.swiper-slide > div {
+  width: 100% !important;
+  height: 100% !important;
+}
