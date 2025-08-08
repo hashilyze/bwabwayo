@@ -6,13 +6,14 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
 import ReservationModal from '@/components/chat/ReservationModal'
 import AllModals from '@/components/chat/modals/AllModals'
+import VideoConference from '@/components/openvidu/VideoConference';
 
 export default function ChatRoomPage() {
   const router = useRouter()
   const params = useParams()
   const searchParams = useSearchParams()
   const roomId = Number(params.roomId)
-  const { messages, getMessageHistory, connectStomp, currentSelectedRoom, openVideoChat } = useChatRoomStore()
+  const { messages, getMessageHistory, connectStomp, currentSelectedRoom } = useChatRoomStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
@@ -22,6 +23,20 @@ export default function ChatRoomPage() {
   const closeReservationModal = () => setIsReservationModalOpen(false);
   const openHeaderModal = () => setIsHeaderModalOpen(true);
   const closeHeaderModal = () => setIsHeaderModalOpen(false);
+
+    const {
+    videoRoomId,
+    openVideoChat,
+    closeVideoChat,
+    isVideoChatOpen,
+  } = useChatRoomStore();
+
+    // 화상 채팅 버튼 클릭 시 openVideoChat 호출
+  const handleVideoButtonClick = () => {
+    // 현재 선택된 방 ID를 가져오거나 기본값 사용
+    const roomId = videoRoomId || 17;
+    openVideoChat(roomId);
+  };
 
   useEffect(() => {
     const initializeChat = async () => {
@@ -84,12 +99,25 @@ export default function ChatRoomPage() {
             <span className="text-sm font-semibold text-black">70,000원</span>
           </div>
         </div>
-        <button 
-          className='bg-blue-600 text-white py-2 px-4 mt-2 cursor-pointer rounded-md hover:bg-blue-700 transition-colors' 
-          onClick={() => openVideoChat(roomId)}
-        >
-          화상채팅방 입장
-        </button>
+            <div>
+      {/* 채팅 UI... */}
+
+      {/* 화상 채팅 시작 버튼 */}
+      <button
+        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        onClick={handleVideoButtonClick}
+      >
+        화상 채팅 시작
+      </button>
+
+      {/* 버튼 클릭하면 바로 VideoConference 컴포넌트 렌더 */}
+      {isVideoChatOpen && (
+        <VideoConference
+          videoRoomId={videoRoomId || 17}
+          onClose={closeVideoChat}
+        />
+      )}
+    </div>
       </div>
 
       {/* 채팅방 헤더 모달 */}
@@ -157,47 +185,11 @@ export default function ChatRoomPage() {
               } else if (message.content.startsWith('배송조회')) {
                 noticeType = 'delivery'; // 배송 조회
               }
-
-              if(message.type === "CREATE_ROOM"){
-                console.log("방생성이요~~!!");
-              }
-              else if(message.type === "RESERVE_VIDEOCALL"){
-
-              }
-              else if(message.type === "CANCEL_VIDEOCALL"){
-
-              }
-              else if(message.type === "START_VIDEOCALL"){
-
-              }
-              else if(message.type === "START_TRADE"){
-
-              }
-              else if(message.type === "REQUEST_DEPOSIT"){
-
-              }
-              else if(message.type === "INPUT_DELIVERY_ADDRESS"){
-
-              }
-              else if(message.type === "INPUT_TRACKING_NUMBER"){
-
-              }
-              else if(message.type === "START_DELIVERY"){
-
-              }
-              else if(message.type === "CONFIRM_PURCHASE"){
-
-              }
-              else if(message.type === "END_TRADE"){
-
-              }
-              
-              
               
               // 공지글인 경우 특별한 디자인 적용
               if (message.type != "TEXT") {
-                console.log(message.content);
-                console.log(message.type);
+                //console.log(message.content);
+                //console.log(message.type);
                 return (
                   <div
                     key={index}
@@ -248,4 +240,4 @@ export default function ChatRoomPage() {
       <ChatModal onOpenReservationModal={openReservationModal} myUserId={myUserId} />
     </div>
   )
-} 
+}
