@@ -147,12 +147,10 @@ export const useProductStore = create<ProductStore>((set) => ({
     try {
       const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products?canVideoCall=true`)
       const data = await response.json()
+      console.log(data.result)
 
-      if(data.result && data.result.length > 0) {
-        set({ videoCallProducts: data.result, loading: false })
-      } else {
-        set({ videoCallProducts: [], loading: false })
-      }
+      const filteredProducts = data.result.filter((item: any) => item.product.canVideoCall)
+      set({ videoCallProducts: filteredProducts, loading: false })
     } catch (error) {
       console.error('화상통화 상품 조회 실패:', error)
       set({ 
