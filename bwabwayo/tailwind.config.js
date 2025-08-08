@@ -22,6 +22,19 @@ export default {
         'container': 'var(--container-width)',
         'container-wide': 'var(--container-width-wide)',
       },
+      keyframes: {
+        slider: {
+          '0%': {
+            transform: 'translateX(0)'
+          },
+          '100%': {
+            transform: 'translateX(-50%)'
+          }
+        },
+      },
+      animation: {
+        slider: 'slider 20s linear infinite'
+      }
     },
   },
   plugins: [],

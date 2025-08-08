@@ -77,7 +77,7 @@ export default function NewCategory({ showCategory }: NewCategoryProps) {
           </div>
 
           {/* 두 번째 컬럼 - 선택된 대분류의 소분류들 */}
-          <div className="flex-1" onClick={handleContainerClick}>
+          <div className="flex-1 flex justify-center items-center" onClick={handleContainerClick}>
             {selectedCategory ? (
               <div onClick={handleContainerClick}>
                 <div className="grid grid-cols-3 gap-x-16 gap-y-6" onClick={handleContainerClick}>

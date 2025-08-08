@@ -167,7 +167,11 @@ export const useProductStore = create<ProductStore>((set) => ({
     try {
       const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products/${id}`)
       const data = await response.json()
-      // console.log('상품 상세 조회:', data)
+      console.log('상품 상세 조회:', data)
+      if (data.status === 500) {
+        set({ error: data.message, loading: false, product: null })
+        return
+      }
       set({ product: data, loading: false })
     } catch (error) {
       console.error('상품 상세 조회 실패:', error)

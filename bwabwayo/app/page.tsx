@@ -8,13 +8,15 @@ import { useProductStore } from '@/stores/product/productStore';
 import { useSearchParams } from 'next/navigation';
 import { useModalStore } from '@/stores/modalStore';
 import { useAuthStore } from '@/stores/auth/authStore';
+import RecommendItems from "@/components/home/RecommendItems";
+import Banner from "@/components/home/Banner";
+
 // swiper
 import { Navigation, Pagination } from 'swiper/modules';
 import { Swiper, SwiperClass, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-import RecommendItems from "@/components/home/RecommendItems";
 
 // 인증 처리 컴포넌트
 function AuthHandler() {
@@ -187,9 +189,7 @@ export default function Home() {
       </div>
 
       {/* 전광판 */}
-      <div className="w-full bg-black h-[250px]">
-
-      </div>
+      <Banner />
       
       {/* hot items */}
       <div className="bg-[#F6F8F9] py-30 pb-40">
