@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import Chatbot from "@/components/chat/Chatbot";
 import LoginModalWrapper from '@/components/common/LoginModalWrapper';
 import { Suspense } from "react";
+import RecommendItems from "@/components/home/RecommendItems";
 
 export const metadata: Metadata = {
   title: "봐봐요",
@@ -30,10 +31,8 @@ export default function RootLayout({
         </Suspense>
         <Navbar />
         <LoginModalWrapper />
-        <div className="bg-[#FAFDFF] pt-[240px]">
-          <div className="w-[1280px] m-auto">
-            {children}
-          </div>
+        <div className="pt-[198px]">
+          {children}
         </div>
         <Chatbot />
         <Footer />

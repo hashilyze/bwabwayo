@@ -31,7 +31,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     // bg-black bg-opacity-50: 반투명한 검은색 배경을 만듭니다.
     // flex items-center justify-center: 내부 콘텐츠를 화면 정중앙에 배치합니다.
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-99">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-2xl">
+      <div className="bg-white rounded-2xl shadow-xl p-8 w-[570px]">
         
         {/* 닫기 버튼 */}
         <div className="flex justify-end mb-4">
@@ -48,10 +48,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
         
         {/* 로고 */}
         <div className="flex justify-center mb-6">
-     
-            <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/logo.png`} alt="봐봐요" />
-                         
-
+            <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/logo.png`}  alt="봐봐요" className='w-[200px]' />
         </div>
 
         {/* 제목 및 설명 */}
@@ -59,16 +56,16 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
           <h2 className="text-2xl font-bold text-gray-800 mb-2">
             봐봐요로 중고거래 시작하기
           </h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-md text-gray-500">
             간편하게 가입하고 상품을 확인하세요
           </p>
         </div>
 
         {/* 소셜 로그인 버튼 */}
         <div className="mb-8">
-          <button onClick={() => window.location.href = kakaoAuthUrl} className="w-full bg-[#FEE500] hover:bg-[#F7E600] text-[#181600] font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2 cursor-pointer">
+          <button onClick={() => window.location.href = kakaoAuthUrl} className="w-full bg-[#FEE500] hover:bg-[#F7E600] text-[#181600] font-medium py-4 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2 cursor-pointer">
             <KakaoIcon />
-            <span>카카오로 시작하기</span>
+            <span className='text-lg'>카카오로 시작하기</span>
           </button>
         </div>
 
@@ -77,7 +74,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
 
         {/* 푸터 */}
         <div className="text-center">
-          <p className="text-xs text-gray-500">
+          <p className="text-sm text-gray-500">
             도움이 필요하면{' '}
             <Link 
               href="/cs-center" 

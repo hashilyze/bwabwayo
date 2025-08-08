@@ -94,19 +94,21 @@ body {
 }
 
 .swiper-pagination-bullet {
-  width: 4px !important;
-  height: 4px !important;
-  background: #d1d5db !important;
+  width: 15px !important;
+  height: 15px !important;
+  background: #ffffff !important;
   opacity: 1 !important;
-  margin: 0 2px !important;
+  margin: 0 4px !important;
+  border: 2px solid black !important;
   transition: all 0.3s ease;
 }
 
 .swiper-pagination-bullet-active {
-  background: #000 !important;
-  width: 28px !important;
-  height: 4px !important;
-  border-radius: 2px !important;
+  background: #FFAE00 !important;
+  border: 2px solid black !important;
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 10px !important;
 }
 
 /* Navigation Link Hover Effect */

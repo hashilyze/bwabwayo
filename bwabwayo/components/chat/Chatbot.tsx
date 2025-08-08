@@ -170,13 +170,13 @@ const handleQuickAction = (actionText: string) => {
                         const isFirstBot = index === messages.findIndex(m => m.type === 'bot');
                         return (
                             <div key={index} className="flex flex-col items-start space-y-2">
-                                <div className="bg-gray-100 text-gray-800 rounded-2xl rounded-bl-lg px-4 py-3 max-w-[80%] text-sm whitespace-pre-wrap">
+                                <div className="bg-gray-100 text-gray-800 rounded-2xl rounded-bl-lg px-4 py-3 max-w-[80%] text-md whitespace-pre-wrap">
                                     {msg.text}
                                     {isFirstBot && !inputActive && (
                                         <div className="mt-3 flex">
                                             <button
                                                 onClick={() => handleQuickAction('AI 상품 추천')}
-                                                className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-700 text-white font-bold rounded-full px-6 py-2 shadow-md hover:scale-105 hover:from-green-600 hover:to-green-700 transition-all text-sm"
+                                                className="flex items-center gap-2 bg-[#6FD962] text-white font-bold rounded-full px-6 py-2 shadow-md hover:scale-105 text-sm"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

@@ -131,7 +131,7 @@ export default function Navbar() {
                       }}
                       className="cursor-pointer flex gap-3 text-xl items-end"
                     >
-                       <div className="relative w-6 h-6">
+                       <div className="relative w-6 h-6 mb-0.5">
                         <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/chat.svg`} alt="채팅" />
                         </div>
                       채팅하기
@@ -150,7 +150,7 @@ export default function Navbar() {
                        }}
                        className="cursor-pointer flex gap-2 text-xl items-end"
                      >
-                       <div className="relative w-6 h-6"><img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/people-white.svg`} alt="프로필" /></div>
+                       <div className="relative w-6 h-6 mb-0.5"><img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/people-white.svg`} alt="프로필" /></div>
                        마이페이지
                      </button>
                   </div>
