@@ -15,6 +15,8 @@ html, body, * {
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --container-width: 1280px;
+  --container-width-wide: 1420px;
 }
 
 @theme inline {
@@ -135,3 +137,16 @@ body {
 
 /* 채팅방 화상예약 달력 */
 .calender-wrap .react-calendar{width: 100%;border: unset;}
+
+/* Container 유틸리티 클래스 */
+.container-default {
+  width: var(--container-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container-wide {
+  width: var(--container-width-wide);
+  margin-left: auto;
+  margin-right: auto;
+}

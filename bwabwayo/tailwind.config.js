@@ -13,6 +13,14 @@ export default {
           700: '#418639',
         },
       },
+      width: {
+        'container': 'var(--container-width)',
+        'container-wide': 'var(--container-width-wide)',
+      },
+      maxWidth: {
+        'container': 'var(--container-width)',
+        'container-wide': 'var(--container-width-wide)',
+      },
     },
   },
   plugins: [],

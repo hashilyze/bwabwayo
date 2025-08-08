@@ -64,7 +64,7 @@ const formattedEvaluations = userData.evaluation.map((item) => ({
 
 
   return (
-    <div>
+    <div className="container-default m-auto">
       <div className="flex gap-10">
         {/* userId를 전달하지 않으면 '마이페이지'용 사이드바가 렌더링됩니다. */}
         <Sidebar />

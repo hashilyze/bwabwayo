@@ -148,7 +148,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   const defaultVideoRoomId = 17;
   
   return (
-    <div className="flex h-[600px] bg-white">
+    <div className="flex h-[600px] bg-white container-default m-auto">
       {/* 좌측 채팅 목록 */}
       <div className="w-[640px] border-r border-gray-200 relative">
         {/* 채팅 목록 컨테이너 */}

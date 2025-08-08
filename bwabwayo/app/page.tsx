@@ -157,19 +157,19 @@ export default function Home() {
 
       {/* 광고 : swiper 들어갈 예정 */}
       <div className="bg-[#E8F4E9] w-full h-[400px]">
-        <div className="w-[1280px] m-auto">
+        <div className="container-default m-auto">
           광고입니다
         </div>
       </div>
 
       {/* 카테고리 추천 */}
-      <div className="w-[1280px] bg-white m-auto">
+      <div className="container-default bg-white m-auto">
         <RecommendItems />
       </div>
 
       {/* 최근 판매 상품 */}
       <div className="bg-[#F6F8F9] py-30 pb-20">
-        <div className="w-[1420px] m-auto">
+        <div className="container-wide m-auto">
           <div className="relative">
             <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/title-deco-1.png`} alt="최근 판매상품"
               className="absolute -top-3 -left-[30px] w-[320px] opacity-50"
@@ -188,12 +188,12 @@ export default function Home() {
 
       {/* 전광판 */}
       <div className="w-full bg-black h-[250px]">
-          
+
       </div>
       
       {/* hot items */}
       <div className="bg-[#F6F8F9] py-30 pb-20">
-        <div className="w-[1420px] m-auto">
+        <div className="container-wide m-auto">
           <div className="relative">
             <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/title-deco-2.png`} alt="핫한상품"
               className="absolute -top-3 -left-[30px] w-[320px] opacity-20"
@@ -210,7 +210,7 @@ export default function Home() {
         </div>
 
         {/* 화상통화 가능 */}
-        <div className="w-[1420px] m-auto mt-[120px]">
+        <div className="container-wide m-auto mt-[120px]">
           <div className="relative">
             <h1 className="flex items-center gap-2 text-[40px] font-bold mb-5 relative z-1 ml-[70px]">화상거래 가능한 상품
               <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/video-icon.png`} alt="화상거래 가능한 상품" className="h-[50px]" />

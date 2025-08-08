@@ -194,7 +194,7 @@ export default function SearchPage({
   };
 
   return(
-    <div className="py-12">
+    <div className="py-12 container-default m-auto">
       <div className='flex items-center gap-2 mb-4'>
         <h1 className='text-2xl font-bold text-black'>
           {searchParams.title ? `'${searchParams.title}'` : ''}검색결과

@@ -79,7 +79,7 @@ export default function ProductDetailPage() {
   }
   
   return (
-    <div className="relative min-h-screen py-10">
+    <div className="relative min-h-screen py-10 container-default m-auto">
       <div className="flex flex-row gap-12 relative">
         {/* Product Images */}
         <div className="flex-2 w-full max-w-md">

@@ -16,7 +16,7 @@ export default function SellerShopInfo({ params }: { params: { id: string } }) {
   }, [getProducts]);
 
   return (
-    <div>
+    <div className="container-default m-auto">
       <div className="flex gap-10">
         <Sidebar />
 
