@@ -4,9 +4,10 @@ import ChatModal from '@/components/chat/ChatModal'
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
-import ReservationModal from '@/components/chat/ReservationModal'
 import AllModals from '@/components/chat/modals/AllModals'
 import VideoConference from '@/components/openvidu/VideoConference';
+import ReservationModal from '@/components/chat/ReservationModal'
+import InputPriceModal from '@/components/chat/modals/InputPriceModal'
 
 export default function ChatRoomPage() {
   const router = useRouter()
@@ -17,10 +18,13 @@ export default function ChatRoomPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
+  const [isInputPriceModalOpen, setIsInputPriceModalOpen] = useState(false);
   const [isHeaderModalOpen, setIsHeaderModalOpen] = useState(false);
 
   const openReservationModal = () => setIsReservationModalOpen(true);
   const closeReservationModal = () => setIsReservationModalOpen(false);
+  const openInputPriceModal = () => setIsInputPriceModalOpen(true);
+  const closeInputPriceModal = () => setIsInputPriceModalOpen(false);
   const openHeaderModal = () => setIsHeaderModalOpen(true);
   const closeHeaderModal = () => setIsHeaderModalOpen(false);
 
@@ -66,6 +70,19 @@ export default function ChatRoomPage() {
       messagesEndRef.current.scrollIntoView({ block: 'end' })
     }
   }, [messages])
+
+  // InputPriceModal 열기 이벤트 감지
+  useEffect(() => {
+    const handleOpenInputPriceModal = () => {
+      openInputPriceModal();
+    };
+
+    window.addEventListener('openInputPriceModal', handleOpenInputPriceModal);
+
+    return () => {
+      window.removeEventListener('openInputPriceModal', handleOpenInputPriceModal);
+    };
+  }, []);
 
   // URL 파라미터에서 현재 사용자 ID 결정
   const getMyUserId = () => {
@@ -235,6 +252,9 @@ export default function ChatRoomPage() {
       
       {/* 예약 모달 조건부 렌더링 */}
       {isReservationModalOpen && <ReservationModal onClose={closeReservationModal} chatRoomId={roomId} />}
+
+      {/* 가격 입력 모달 조건부 렌더링 */}
+      {isInputPriceModalOpen && <InputPriceModal onClose={closeInputPriceModal} roomId={roomId} />}
 
       {/* + 버튼 */}
       <ChatModal onOpenReservationModal={openReservationModal} myUserId={myUserId} />

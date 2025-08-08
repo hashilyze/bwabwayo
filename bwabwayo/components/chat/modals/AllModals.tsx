@@ -244,10 +244,23 @@ const StartVideoCallModal = ({ message }: { message: ChatMessage }) => {
 // START_TRADE,           // 거래 시작 - 거래 시작 버튼 클릭 시 전송
 const StartTradeModal = ({ message }: { message: ChatMessage }) => {
     const [isButtonHovered, setIsButtonHovered] = useState(false);
+    const { currentSelectedRoom } = useChatRoomStore();
+
+    // seller인지 확인
+    const currentUserId = currentSelectedRoom?.userId.toString();
+    const sellerId = currentSelectedRoom?.seller.id.toString();
+    const isSeller = currentUserId === sellerId;
 
     const handleStart = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        console.log('거래 시작');
+        console.log('최종 거래 가격 설정 모달 열기');
+        
+        if (isSeller) {
+            // seller인 경우에만 모달 열기 이벤트 발생
+            // 이벤트를 통해 부모 컴포넌트에 알림
+            const event = new CustomEvent('openInputPriceModal');
+            window.dispatchEvent(event);
+        }
     }
 
   return (
@@ -271,12 +284,15 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
           </div>
         </div>
         <button
-          className={`relative w-40 h-10 bg-[#fce94f] rounded-[20px] border-2 border-solid border-black cursor-pointer transition-all duration-200 ${
-            isButtonHovered ? "transform scale-105 shadow-lg" : ""
+          className={`relative w-40 h-10 rounded-[20px] border-2 border-solid border-black transition-all duration-200 ${
+            isSeller 
+              ? `bg-[#fce94f] cursor-pointer ${isButtonHovered ? "transform scale-105 shadow-lg" : ""}`
+              : "bg-gray-300 cursor-not-allowed"
           }`}
           onClick={(e) => handleStart(e)}
-          onMouseEnter={() => setIsButtonHovered(true)}
+          onMouseEnter={() => isSeller && setIsButtonHovered(true)}
           onMouseLeave={() => setIsButtonHovered(false)}
+          disabled={!isSeller}
           aria-label="최종 거래 가격 설정하기"
         >
           <div className="absolute h-[17px] top-2.5 left-3.5 [font-family:'SUITE-Bold',Helvetica] font-bold text-center leading-[normal] text-black text-sm tracking-[0]">
@@ -332,6 +348,58 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
   );
 };
 
+
+//INPUT_PRICE,        // 최종 거래 가격 입력 - 거래 시작 후 전송
+const InputPriceModal = ({ message }: { message: ChatMessage }) => {
+    const [isButtonHovered, setIsButtonHovered] = useState(false);
+    const [price, setPrice] = useState('');
+
+    const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        console.log('최종 거래 가격 설정:', price);
+        // 여기에 가격 설정 로직 추가
+    }
+
+    return (
+        <div className="w-[400px] h-[200px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
+            <div className="flex flex-col w-[371px] h-[154px] items-center justify-between relative top-7 left-3.5">
+                <div className="flex w-[281px] items-center justify-center gap-[18px] relative flex-[0_0_auto]">
+                    <img
+                        className="relative w-[75px] h-[75px] aspect-[1] object-cover"
+                        alt="Money icon"
+                        src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/money-icon.png`}
+                    />
+                    <div className="relative w-[158px] font-medium leading-[18px] text-black text-sm tracking-[0]">
+                        최종 거래 가격을 입력해주세요!
+                    </div>
+                </div>
+                <div className="flex flex-col items-center gap-3">
+                    <input
+                        type="number"
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                        placeholder="가격을 입력하세요"
+                        className="w-[200px] px-3 py-2 border border-gray-300 rounded-md text-center"
+                    />
+                    <button
+                        className={`relative w-[150px] h-10 bg-[#fce94f] rounded-[20px] border-2 border-solid border-black cursor-pointer transition-all duration-200 ${
+                            isButtonHovered ? "transform scale-105 shadow-lg" : ""
+                        }`}
+                        onClick={(e) => handleSubmit(e)}
+                        onMouseEnter={() => setIsButtonHovered(true)}
+                        onMouseLeave={() => setIsButtonHovered(false)}
+                        disabled={!price.trim()}
+                        aria-label="가격 설정하기"
+                    >
+                        <div className="absolute h-[17px] top-2.5 left-9 [font-family:'SUITE-Bold',Helvetica] font-bold text-center leading-[normal] text-black text-sm tracking-[0]">
+                            가격 설정하기
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 
 
@@ -508,8 +576,6 @@ const EndTradeModal = ({ message }: { message: ChatMessage }) => {
                         alt="point icon"
                         src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/point-icon.png`}
                         />
-
-                        
                             <div className="inline-flex flex-col items-start jusify-center relative flex-[0_0_auto]">
                                 <p className="self-strech mt-[-1.00px] font-medium text-black text-sm realative w-[232px] tracking-[0] leading-[18px]">
                                     팝마트 라부부 코카콜라 시리즈 인형 키링의 구매가 확정 되었어요! 
@@ -533,6 +599,7 @@ export default function AllModals({ message, type }: { message: ChatMessage, typ
             {type === 'START_TRADE' && <StartTradeModal message={message} />}
             {type === 'CANCEL_VIDEOCALL' && <CancelVideoCallModal message={message} />}
             {type === 'START_VIDEOCALL' && <StartVideoCallModal message={message} />}
+            {type === 'INPUT_PRICE' && <InputPriceModal message={message} />}
             {type === 'INPUT_TRACKING_NUMBER' && <InputTrackingAddressModal message={message} />}
             {type === 'INPUT_DELIVERY_ADDRESS' && <InputDeliveryAddressModal message={message} />}
             {type === 'REUEST_DEPOSIT' && <RequestDepositeModal message={message} />}

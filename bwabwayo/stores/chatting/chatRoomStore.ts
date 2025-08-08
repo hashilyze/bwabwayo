@@ -106,7 +106,7 @@ interface ChatRoomStore{
     openVideoChat: (roomId: number) => void
     closeVideoChat: () => void
     getMessageHistory: (roomId: number) => Promise<void>
-    sendMessage: (roomId: number, content: string) => void
+    sendMessage: (roomId: number, content: string, type?: string) => void
     setVideoSessionId: (id: string | null) => void
     // 화상채팅 세션 생성 함수 추가
     createVideoSession: (roomId: number) => Promise<string | null>
@@ -263,7 +263,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         }
     },
 
-    sendMessage: (roomId: number, content: string) => {
+    sendMessage: (roomId: number, content: string, type: string = "TEXT") => {
         const { stompClient, isConnected } = get()
         
         if (!stompClient || !isConnected) {
@@ -311,7 +311,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 content: content.trim(),
                 isRead: false,
                 createdAt: new Date(),
-                type: "TEXT"
+                type: type
             }
 
             console.log('📤 STOMP 메시지 전송 시도:', stompMessage)
