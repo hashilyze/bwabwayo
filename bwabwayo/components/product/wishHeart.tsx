@@ -24,7 +24,6 @@ export default function LikeHeart({ productId, initialIsLiked = false }: LikeHea
       // initialIsLiked가 전달되지 않은 경우에만 서버에 확인
       if (initialIsLiked === undefined) {
         const status = await checkLikeStatus(productId);
-        // console.log('초기 좋아요 상태 확인됨:', status);
         if (isActive) {
           setIsLiked(status);
         }
@@ -34,42 +33,43 @@ export default function LikeHeart({ productId, initialIsLiked = false }: LikeHea
     verifyLikeStatus();
 
     return () => {
-    // console.log('LikeHeart 컴포넌트 언마운트됨');
       isActive = false;
     };
   }, [productId, checkLikeStatus, initialIsLiked]);
 
   // 4. 좋아요 버튼 클릭 핸들러
-  const handleToggleLike = async (e: React.MouseEvent) => {
-    e.preventDefault();  // 부모 요소(예: Link)의 기본 동작 방지
-    e.stopPropagation(); // 이벤트 버블링 방지
-    
-    if (isLoading) return; // 로딩 중 중복 클릭 방지
+  const handleToggleLike = useCallback(
+    async (e: React.MouseEvent) => {
+      e.preventDefault(); // 부모 요소(예: Link)의 기본 동작 방지
+      e.stopPropagation(); // 이벤트 버블링 방지
 
-    setIsLoading(true);
+      if (isLoading) return; // 로딩 중 중복 클릭 방지
 
-    // 5. 낙관적 업데이트 (UI를 먼저 변경)
-    const previousIsLiked = isLiked;
-    setIsLiked(!isLiked);
+      setIsLoading(true);
 
-    try {
-      // 이전 상태가 '좋아요'였다면, '좋아요 제거' API 호출
-      if (previousIsLiked) {
-        await removeLike(productId);
-      } else {
-        // 이전 상태가 '좋아요'가 아니었다면, '좋아요 추가' API 호출
-        await addLike(productId);
+      // 5. 낙관적 업데이트 (UI를 먼저 변경)
+      const previousIsLiked = isLiked;
+      setIsLiked(!isLiked);
+
+      try {
+        // 이전 상태가 '좋아요'였다면, '좋아요 제거' API 호출
+        if (previousIsLiked) {
+          await removeLike(productId);
+        } else {
+          // 이전 상태가 '좋아요'가 아니었다면, '좋아요 추가' API 호출
+          await addLike(productId);
+        }
+      } catch (e) {
+        // 6. API 요청 실패 시, UI 상태를 원래대로 되돌림
+        console.error('좋아요 토글 실패:', e);
+        setIsLiked(previousIsLiked);
+        alert('좋아요 처리에 실패했습니다. 잠시 후 다시 시도해주세요.');
+      } finally {
+        setIsLoading(false);
       }
-      console.log('좋아요 API 호출 성공');
-    } catch (e) {
-      // 6. API 요청 실패 시, UI 상태를 원래대로 되돌림
-      console.error('좋아요 토글 실패:', e);
-      setIsLiked(previousIsLiked);
-      alert('좋아요 처리에 실패했습니다. 잠시 후 다시 시도해주세요.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    [isLoading, isLiked, addLike, removeLike, productId],
+  );
 
   // 7. UI 렌더링
   return (
