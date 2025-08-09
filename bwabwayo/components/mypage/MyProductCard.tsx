@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { MouseEvent } from 'react'
-import LikeHeart from '@/components/product/wishHeart';
+import WishHeart from '@/components/product/wishHeart';
 import { ActivityProduct } from '@/stores/mypage/myActivityStore';
 
 type Props = {
@@ -59,7 +59,7 @@ const handleCardClick = (
       {/* 상품 이미지 */}
       <div className="aspect-square overflow-hidden rounded-lg relative">
         <div className="absolute top-4 right-4 z-10">
-          <LikeHeart 
+          <WishHeart 
           productId={product.id}
           initialIsLiked={product.isLike || false}
 />
