@@ -45,7 +45,7 @@ public class RedisSubscriber {
 
             // 로그인 유저 채팅방 리스트 최신화 -> 내 계정에 보냄
             messagingTemplate.convertAndSendToUser(
-                    userId.toString(), // JwtChannelInterceptor에서 acc.setUser(name=userId)
+                    userId, // JwtChannelInterceptor에서 acc.setUser(name=userId)
                     "/chat/roomlist",
                     chatRoomListGetResponseList
             );
@@ -55,7 +55,7 @@ public class RedisSubscriber {
 
             // 파트너 계정에도 리스트 최신화 보냄.
             messagingTemplate.convertAndSendToUser(
-                    partnerId.toString(),
+                    partnerId,
                     "/chat/roomlist",
                     chatRoomListGetResponseListPartner
             );
