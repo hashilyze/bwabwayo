@@ -58,11 +58,33 @@ interface ChatRoom {
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const params = useParams();
-  const { roomList, getRoomList, addChatRoom, setCurrentSelectedRoom, isVideoChatOpen, videoRoomId, closeVideoChat } = useChatRoomStore();
+  const { 
+    roomList, 
+    getRoomList, 
+    addChatRoom, 
+    setCurrentSelectedRoom, 
+    isVideoChatOpen, 
+    videoRoomId, 
+    closeVideoChat,
+    connectStomp,
+    disconnectStomp,
+    isConnected
+  } = useChatRoomStore();
   const [isLoading, setIsLoading] = useState(true);
   
   // URL에서 현재 선택된 roomId 가져오기 
   const currentRoomId = params?.roomId ? Number(params.roomId) : null;
+  
+  // STOMP 연결 관리 - 레이아웃 마운트 시 연결
+  useEffect(() => {
+    console.log('🔗 ChatLayout: STOMP 연결 시작');
+    connectStomp(); // roomId 없이 연결 (채팅방 목록만 구독)
+    
+    return () => {
+      console.log('🔗 ChatLayout: STOMP 연결 해제');
+      disconnectStomp();
+    };
+  }, []); // 빈 배열로 한 번만 실행
   
   // 현재 선택된 채팅방 정보를 store에 설정
   useEffect(() => {
@@ -74,63 +96,26 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     }
   }, [currentRoomId, roomList, setCurrentSelectedRoom]);
 
-  // 채팅방 목록 업데이트 로깅
+  // 초기 채팅방 목록 로드 (한 번만)
   useEffect(() => {
-    const loadRoomList = async () => {
+    const loadInitialRoomList = async () => {
       try {
         setIsLoading(true)
         await getRoomList()
+        console.log('📋 초기 채팅방 목록 로드 완료');
       } catch (error) {
-        console.error("채팅방 목록 로드 실패:", error)
+        console.error("📋 초기 채팅방 목록 로드 실패:", error)
       } finally {
         setIsLoading(false)
       }
     }
-    loadRoomList()
-  }, [getRoomList]);
+    
+    loadInitialRoomList()
+  }, []); // 빈 배열로 한 번만 실행
 
-  // 페이지 포커스 시에만 채팅방 목록 업데이트 (서버 부하 최소화)
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+  // 실시간 업데이트를 위해 기존 폴링 제거
+  // STOMP 구독으로 실시간 업데이트되므로 더 이상 폴링 불필요
 
-    const handleFocus = () => {
-      // 페이지에 포커스가 있을 때만 업데이트
-      interval = setInterval(async () => {
-        try {
-          await getRoomList()
-        } catch (error) {
-          console.log("채팅방 목록 업데이트 실패:", error)
-        }
-      }, 15000)
-    };
-
-    const handleBlur = () => {
-      // 페이지에서 포커스가 벗어나면 업데이트 중지
-      if (interval) {
-        clearInterval(interval)
-        interval = null
-        // console.log("📱 페이지 포커스 해제 - 업데이트 중지")
-      }
-    };
-
-    // 초기 포커스 설정
-    handleFocus();
-
-    // 이벤트 리스너 등록
-    window.addEventListener('focus', handleFocus);
-    window.addEventListener('blur', handleBlur);
-
-    return () => {
-      if (interval) {
-        clearInterval(interval)
-      }
-      window.removeEventListener('focus', handleFocus);
-      window.removeEventListener('blur', handleBlur);
-    }
-  }, [getRoomList])
-
-  // console.log("layout", roomList)
-  
   // 채팅방 선택 시
   const handleChatRoomSelect = async (chatRoom: ChatRoom) => {
     try {
@@ -144,6 +129,11 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     }
   }
 
+  // roomList 변경 감지 로깅
+  useEffect(() => {
+    console.log('📋 roomList 업데이트됨:', roomList?.length, '개');
+  }, [roomList]);
+
   // openvidu 임시 세션 ID (기본값)
   const defaultVideoRoomId = 17;
   
@@ -151,6 +141,14 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     <div className="flex h-[600px] bg-white container-default m-auto">
       {/* 좌측 채팅 목록 */}
       <div className="w-[640px] border-r border-gray-200 relative">
+        {/* 연결 상태 표시 (개발용) */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="absolute top-2 right-2 z-20">
+            <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} 
+                 title={isConnected ? 'STOMP 연결됨' : 'STOMP 연결 안됨'} />
+          </div>
+        )}
+        
         {/* 채팅 목록 컨테이너 */}
         <div className="h-full overflow-y-auto">
           {/* 헤더 */}
@@ -160,7 +158,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
           
           {/* 채팅 목록 */}
           <div className="flex-1">
-            {isLoading || !roomList ? (
+            {isLoading ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
@@ -177,7 +175,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
             ) : (
               roomList.map((room) => (
                 <ChatRoomItem 
-                  key={room.roomId} 
+                  key={`room-${room.roomId}-${room.lastMessage?.createdAt || 'no-msg'}`} // 키에 lastMessage 시간 포함으로 리렌더링 보장
                   roomData={room}
                   onSelect={handleChatRoomSelect}
                   isSelected={currentRoomId === room.roomId}
@@ -194,4 +192,4 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
       </div>
     </div>
   )
-} 
+}
