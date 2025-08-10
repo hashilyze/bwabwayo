@@ -20,36 +20,39 @@ public class ProductSimilarityService {
     /**
      * 판매글 벡터 저장
      */
-    public void savePoint(Product product) {
+    public void upsert(Product product) {
         // 1. title 추출
         Long id = product.getId();
         String title = product.getTitle();
+        String category = product.getCategory().getName();
 
         // 2. 임베딩 벡터 추출
-        List<Double> vector = openAiClient.getEmbedding(title);
+        List<Double> titleVector = openAiClient.getEmbedding(title);
+        List<Double> categoryVector = openAiClient.getEmbedding(category);
 
         // 3. QdrantPointDto 생성
-        QdrantPointDto qdrantPointDto = QdrantPointDto.from(id, title, vector);
+        QdrantPointDto qdrantPointDto = QdrantPointDto.from(id, title, category, titleVector, categoryVector);
 
-        embeddingService.saveToQdrant(qdrantPointDto);
+        embeddingService.upsertPoint(qdrantPointDto);
     }
 
     /**
      * 유사도 검색
      */
-    public List<Long> searchSimilarTitles(String title, int n) {
+    public List<Long> searchSimilarTitles(String title, String category, int n) {
         // 벡터화
-        List<Double> queryVector = openAiClient.getEmbedding(title);
+        List<Double> titleQueryVector = openAiClient.getEmbedding(title);
+        List<Double> categoryQueryVector = openAiClient.getEmbedding(category);
 
         // 유사도 검색 (Top N)
-        return embeddingService.searchSimilarTitles(queryVector, n)
+        return embeddingService.query(titleQueryVector, categoryQueryVector,  n)
                 .stream().map(SimilarResultResponse::getId).toList();
     }
 
     /**
      * 벡터 삭제
      */
-    public void deletePoint(Long productId) {
-        embeddingService.deleteFromQdrantById(productId);
+    public void deleteById(Long productId) {
+        embeddingService.deleteById(productId);
     }
 }
