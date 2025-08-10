@@ -5,11 +5,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 
 @Component
 @RequiredArgsConstructor
@@ -20,46 +27,52 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        StompHeaderAccessor acc = StompHeaderAccessor.wrap(message);
+        // ✅ wrap() 말고 이걸로 가져와야, 수정 후 새 메시지 만들 수 있음
+        StompHeaderAccessor acc = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+        if (acc == null) return message;
 
         if (StompCommand.CONNECT.equals(acc.getCommand())) {
-            // 1) Authorization 헤더 추출
-            String auth = acc.getFirstNativeHeader("Authorization");
+            log.info("WS CONNECT headers={}", acc.toNativeHeaderMap());
+
+            String auth = firstNonNull(
+                    acc.getFirstNativeHeader("Authorization"),
+                    acc.getFirstNativeHeader("authorization")
+            );
             if (auth == null || !auth.startsWith("Bearer ")) {
-                log.warn("STOMP CONNECT without Authorization header");
-                throw new IllegalArgumentException("Missing Authorization header");
+                throw new MessagingException("Missing Authorization header");
             }
-
-            // 2) 토큰 파싱
             String token = jwtUtils.getTokenFromHeader(auth);
+            if (!jwtUtils.validateToken(token)) throw new MessagingException("Invalid token");
 
-            // 3) 유효성 검사
-            if (!jwtUtils.validateToken(token)) {
-                log.warn("Invalid JWT token on STOMP CONNECT");
-                throw new IllegalArgumentException("Invalid token");
-            }
-
-            // (선택) Access 토큰만 허용
-            String tokenType = jwtUtils.getTokenType(token);
-            if (tokenType == null || !"ACCESS".equalsIgnoreCase(tokenType)) {
-                log.warn("Non-access token on STOMP CONNECT: {}", tokenType);
-                throw new IllegalArgumentException("Access token required");
-            }
-
-            // 4) subject(id) 추출해서 Principal 설정
-            String userId = jwtUtils.getSubject(token); // sub = userId
-            if (userId == null || userId.isBlank()) {
-                log.warn("No subject in JWT token");
-                throw new IllegalArgumentException("No subject in token");
-            }
-
-            UsernamePasswordAuthenticationToken principal =
-                    new UsernamePasswordAuthenticationToken(userId, null, java.util.List.of());
-
-            acc.setUser(principal); // ★ 이후 convertAndSendToUser(userId, ...)에서 이 userId 사용
-            log.debug("STOMP CONNECT authenticated userId={}", userId);
+            String userId = jwtUtils.getSubject(token); // sub
+            var principal = new UsernamePasswordAuthenticationToken(userId, null, List.of());
+            acc.setUser(principal);   // ✅ Principal 세팅
+            // acc.setLeaveMutable(true); // (옵션) 디버깅 시 유용
+            log.info("WS CONNECT userId={}", userId);
         }
 
-        return message;
+        // (옵션) 혹시 CONNECT에서 저장이 누락되면 SUBSCRIBE에서 한 번 더 보정
+        if (StompCommand.SUBSCRIBE.equals(acc.getCommand())) {
+            if (acc.getUser() == null) {
+                String auth = firstNonNull(
+                        acc.getFirstNativeHeader("Authorization"),
+                        acc.getFirstNativeHeader("authorization")
+                );
+                if (auth != null && auth.startsWith("Bearer ")) {
+                    String token = jwtUtils.getTokenFromHeader(auth);
+                    if (jwtUtils.validateToken(token)) {
+                        String userId = jwtUtils.getSubject(token);
+                        acc.setUser(new UsernamePasswordAuthenticationToken(userId, null, List.of()));
+                        log.info("WS SUBSCRIBE (fallback) userId={}", userId);
+                    }
+                }
+            }
+            log.info("WS SUBSCRIBE dest={} user={}",
+                    acc.getDestination(),
+                    acc.getUser() != null ? acc.getUser().getName() : null);
+        }
+
+        // ✅ 핵심: 수정된 헤더로 '새 메시지'를 반환해야 Principal이 세션에 반영됨
+        return MessageBuilder.createMessage(message.getPayload(), acc.getMessageHeaders());
     }
 }
