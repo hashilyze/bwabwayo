@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Sidebar from "@/components/shop/Sidebar";
-import ProductCard from "@/components/mypage/MyProductCard";
+import ProductCard from "@/components/product/ProductCard";
 import SellerTitle from '@/components/shop/SellerTitle';
 import { useMyStore, Evaluation } from '@/stores/mypage/myStore';
 import { useMyActivityStore, ActivityProduct } from '@/stores/mypage/myActivityStore';
@@ -121,12 +121,24 @@ const formattedEvaluations = userData.evaluation.map((item) => ({
 
           {/* 판매 물품 섹션 */}
           <section className="mt-12">
-            <h3 className="text-xl font-bold mb-6">판매 물품</h3>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold">판매 물품</h3>
+              {myProducts.length > 4 && (
+                <Link href="/mypage/sales" className="text-sm font-semibold text-gray-600 hover:text-blue-600 hover:underline">
+                  더보기 &gt;
+                </Link>
+              )}
+            </div>
             {myProducts.length > 0 ? (
               <ul className="grid grid-cols-4 gap-6 gap-y-12">
-                {myProducts.map((item: ActivityProduct) => (
-                  <li key={item.product.id}>
-                    <ProductCard item={item} />
+                {myProducts.slice(0, 4).map((activityItem: ActivityProduct) => (
+                  <li key={activityItem.product.id}>
+                    <ProductCard
+                      item={{
+                        ...activityItem.product,
+                        isLike: activityItem.product.isLike ?? false,
+                      }}
+                    />
                   </li>
                 ))}
               </ul>

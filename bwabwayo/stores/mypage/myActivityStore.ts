@@ -139,6 +139,7 @@ function adaptSummaryToCardData(summary: ProductSummary): ProductCardUIData {
     wishCount: summary.wishCount,
     viewCount: summary.viewCount,
     isLike: true, // 찜 목록이므로 항상 true로 설정
+    createdAt: summary.createdAt, // 생성일 추가
   };
 }
 
