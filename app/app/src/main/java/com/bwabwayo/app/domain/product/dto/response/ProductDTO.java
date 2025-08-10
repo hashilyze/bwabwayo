@@ -4,14 +4,11 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-/**
- * 상품 요약 정보 DTO
- */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProductSimpleDTO {
+public class ProductDTO {
     private Long id; // 상품 ID
     private Long categoryId; // 카테고리 ID
     private String thumbnail; // 썸네일 URL

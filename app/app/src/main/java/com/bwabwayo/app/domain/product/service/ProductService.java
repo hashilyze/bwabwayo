@@ -1,5 +1,7 @@
 package com.bwabwayo.app.domain.product.service;
 
+import com.bwabwayo.app.domain.ai.dto.response.QueryItemDto;
+import com.bwabwayo.app.domain.ai.service.ProductEmbeddingService;
 import com.bwabwayo.app.domain.chat.dto.request.SetInvoiceNumberRequest;
 import com.bwabwayo.app.domain.chat.dto.request.SetPriceRequest;
 import com.bwabwayo.app.domain.chat.dto.request.SetProductStatusRequest;
@@ -7,28 +9,30 @@ import com.bwabwayo.app.domain.product.domain.Category;
 import com.bwabwayo.app.domain.product.domain.Courier;
 import com.bwabwayo.app.domain.product.domain.Product;
 import com.bwabwayo.app.domain.product.domain.ProductImage;
+import com.bwabwayo.app.domain.product.dto.ProductQueryCondition;
 import com.bwabwayo.app.domain.product.dto.request.ProductUpsertRequest;
 import com.bwabwayo.app.domain.product.dto.request.ProductQueryRequest;
 import com.bwabwayo.app.domain.product.dto.response.*;
 import com.bwabwayo.app.domain.product.enums.DeliveryStatus;
+import com.bwabwayo.app.domain.product.enums.ProductSortType;
 import com.bwabwayo.app.domain.product.exception.ProductNotFoundException;
 import com.bwabwayo.app.domain.product.repository.CourierRepository;
 import com.bwabwayo.app.domain.product.repository.ProductImageRepository;
 import com.bwabwayo.app.domain.product.repository.ProductRepository;
-import com.bwabwayo.app.domain.product.util.CategoryUtil;
+import com.bwabwayo.app.domain.product.util.CategoryUtils;
 import com.bwabwayo.app.domain.user.domain.User;
 import com.bwabwayo.app.domain.user.service.ReviewAggService;
 import com.bwabwayo.app.domain.wish.service.WishService;
-import com.bwabwayo.app.global.page.PageResponseDTO;
+import com.bwabwayo.app.global.page.PageResponse;
 import com.bwabwayo.app.global.storage.util.StorageUtil;
 import com.bwabwayo.app.global.storage.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,7 +52,7 @@ public class ProductService {
     private final WishService wishService;
     private final CourierRepository courierRepository;
     private final ViewCountService viewCountService;
-    private final ProductSimilarityService productSimilarityService;
+    private final ProductEmbeddingService productEmbeddingService;
     private final ReviewAggService reviewAggService;
 
     @Value("${storage.path.temp}")
@@ -96,66 +100,72 @@ public class ProductService {
      * 상품 검색
      */
     @Transactional(readOnly = true)
-    public PageResponseDTO<ProductQueryResult> searchProducts(ProductQueryRequest requestDTO, User loginUser) {
+    public PageResponse<ProductQueryResult> query(ProductQueryRequest requestDTO, User loginUser) {
+        // 검색 조건
         String keyword = requestDTO.getKeyword();
         Long categoryId = requestDTO.getCategoryId();
         String sellerId = requestDTO.getSellerId();
+
         Boolean canVideoCall = requestDTO.getCanVideoCall();
         Boolean canNegotiate = requestDTO.getCanNegotiate();
         Boolean canDirect =  requestDTO.getCanDirect();
         Boolean canDelivery = requestDTO.getCanDelivery();
+
         Integer minPrice = requestDTO.getMinPrice();
         Integer maxPrice = requestDTO.getMaxPrice();
+        
+        // 현재 카테고리에 포함되는 모든 카테고리의 모음 생성
+        List<Long> categoryIds = null;
+        if(categoryId != null){
+            Category topCategory = categoryService.findByIdOptional(categoryId).orElse(null);
+            categoryIds = CategoryUtils.getSubCategories(topCategory).stream().map(Category::getId).toList();
 
+            // fallback
+            if(categoryIds.isEmpty()) {
+                categoryIds = List.of(categoryId);
+            }
+        }
+
+        // 페이징 조건
         // 페이지는 1부터 시작
         Integer page = requestDTO.getPage();
         // 각 페이지에는 최소 0개가 할당
         Integer size = requestDTO.getSize();
         // 기본 정렬 속성은 '최신순'
-        String sortBy = requestDTO.getSortBy();
-
-        // 정렬 조건 생성
-        Sort.Order option = switch (sortBy){
-            case "oldest" -> Sort.Order.asc("createdAt");
-            case "views" -> Sort.Order.desc("view_count");
-            case "wishes" -> Sort.Order.desc("wish_count");
-            default -> Sort.Order.desc("createdAt");
-        };
-        Sort sort = Sort.by(option, Sort.Order.asc("id"));
+        ProductSortType sortType = ProductSortType.from(requestDTO.getSortBy());
+        if(sortType == ProductSortType.RELATED && keyword == null){ // 키워드가 없으면 관련 검색 불가
+            log.warn("키워드가 없어 관련성 검색이 불가합니다; 기본 검색으로 대체");
+            sortType = ProductSortType.LATEST;
+        }
 
         // 페이지네이션 생성
-        Pageable pageable = PageRequest.of(page - 1, size, sort);
-        
-        // 현재 카테고리에 포함되는 모든 카테고리의 모음 생성
-        List<Long> categoryIds = new ArrayList<>();
-        if(categoryId != null){
-            if(categoryService.existsById(categoryId)) {
-                Category topCategory = categoryService.findById(categoryId);
-                categoryIds = CategoryUtil.getSubCategories(topCategory).stream().map(Category::getId).toList();
-            } else {
-                categoryIds.add(categoryId);
-            }
-        }
+        Pageable pageable = PageRequest.of(page - 1, size, sortType.getSort());
         
         // DB 조회
-        Page<ProductWithWishDTO> pageData = productRepository.searchByCondition(
-                keyword,
-                categoryIds,
-                pageable,
-                loginUser != null ? loginUser.getId() : null,
-                sellerId,
-                canVideoCall,
-                canNegotiate,
-                canDelivery,
-                canDirect,
-                minPrice,
-                maxPrice
-        );
+        ProductQueryCondition queryCondition = ProductQueryCondition.builder()
+                .viewerId(loginUser != null ? loginUser.getId() : null)
+                .keyword(keyword)
+                .categoryIn(categoryIds)
+                .sellerId(sellerId)
+                .canVideoCall(canVideoCall)
+                .canNegotiate(canNegotiate)
+                .canDirect(canDirect)
+                .canDelivery(canDelivery)
+                .minPrice(minPrice)
+                .maxPrice(maxPrice)
+                .build();
 
-        return PageResponseDTO.fromEntity(pageData, dto -> {
+        Page<ProductWithIsLikeDTO> pageData;
+        if(sortType == ProductSortType.RELATED) {
+            pageData = queryWithRelated(queryCondition, pageable, loginUser);
+        } else{
+            pageData = productRepository.searchByCondition(queryCondition, pageable);
+        }
+
+        return PageResponse.from(pageData, dto -> {
             Product product = dto.getProduct();
 
-            ProductSimpleDTO productDTO = ProductSimpleDTO.builder()
+            ProductDTO productDTO = ProductDTO.builder()
                     .id(product.getId())
                     .categoryId(product.getCategory().getId())
                     .thumbnail(storageService.getUrlFromKey(product.getThumbnail()))
@@ -172,7 +182,7 @@ public class ProductService {
                     .build();
 
             User seller = product.getSeller();
-            UserSimpleDTO sellerDTO = new UserSimpleDTO(seller.getId(), seller.getNickname());
+            SellerDTO sellerDTO = new SellerDTO(seller.getId(), seller.getNickname());
 
             return ProductQueryResult.builder()
                     .product(productDTO)
@@ -181,13 +191,24 @@ public class ProductService {
         });
     }
 
+    private Page<ProductWithIsLikeDTO> queryWithRelated(ProductQueryCondition queryCondition, Pageable pageable, User viewer){
+        List<QueryItemDto> query = productEmbeddingService.query(queryCondition, pageable);
+
+        List<Long> ids = query.stream().map(QueryItemDto::getId).toList();
+        if (ids.isEmpty()) return Page.empty(pageable);
+
+        List<ProductWithIsLikeDTO> products = productRepository.findByIdsInOrder(ids, viewer != null ? viewer.getId() : null);
+
+        return new PageImpl<>(products, pageable, productRepository.getCount(queryCondition));
+    }
+
     /**
      * 상품 상세 정보 조회
      */
     @Transactional(readOnly = true)
     public ProductDetailResponse getProductDetail(Product product, User loginUser) {
         // 상품이 속한 카테고리부터 조상 카테고리까지의 모음
-        List<CategoryDTO> superCategories = CategoryUtil.getSupperCategories(product.getCategory())
+        List<CategoryDTO> superCategories = CategoryUtils.getSupperCategories(product.getCategory())
                 .stream().map(CategoryDTO::from).toList();
 
         // 상품에 포함된 이미지 URL 모음
@@ -204,14 +225,14 @@ public class ProductService {
 
         // 판매자 정보
         User seller = product.getSeller();
-        List<ProductSimpleDTO> others = searchProducts(ProductQueryRequest.builder().sellerId(seller.getId()).size(otherCount + 1).build(), loginUser)
+        List<ProductDTO> others = query(ProductQueryRequest.builder().sellerId(seller.getId()).size(otherCount + 1).build(), loginUser)
                 .getResult().stream()
                 .map(ProductQueryResult::getProduct)
                 .filter(p ->!p.getId().equals(product.getId()))
                 .limit(otherCount)
                 .toList();
 
-        SellerDTO sellerDTO = SellerDTO.builder()
+        SellerDetailDTO sellerDTO = SellerDetailDTO.builder()
                 .id(seller.getId())
                 .nickname(seller.getNickname())
                 .bio(seller.getBio())
@@ -223,31 +244,31 @@ public class ProductService {
                 .build();
 
         // 유사한 상품 목록
-        List<ProductSimpleDTO> productSimpleDTOS = new ArrayList<>();
-        if(false) {
-            List<Long> similarities = productSimilarityService.searchSimilarTitles(product.getTitle(), product.getCategory().getName(), similarityCount + 1);
-            productSimpleDTOS = similarities
-                    .stream()
-                    .filter(id -> !id.equals(product.getId()))
-                    .map(productRepository::getProductById)
-                    .filter(Objects::nonNull)
-                    .map(p -> ProductSimpleDTO.builder()
-                            .id(p.getId())
-                            .categoryId(p.getCategory().getId())
-                            .thumbnail(storageService.getUrlFromKey(p.getThumbnail()))
-                            .title(p.getTitle())
-                            .price(p.getPrice())
-                            .viewCount(viewCountService.getViewCount(p.getId()).intValue())
-                            .wishCount(p.getWishCount())
-                            .chatCount(p.getChatCount())
-                            .isLike(loginUser != null && wishService.existsWish(p, loginUser))
-                            .canVideoCall(p.isCanVideoCall())
-                            .saleStatusCode(p.getSaleStatus().getLevel())
-                            .saleStatus(p.getSaleStatus().getDescription())
-                            .createdAt(p.getCreatedAt())
-                            .build()
-                    ).toList();
-        }
+        List<ProductDTO> productSimpleDTOS = new ArrayList<>();
+//        if(false) {
+//            List<Long> similarities = productSimilarityService.query(product.getTitle(), product.getCategory().getName(), similarityCount + 1);
+//            productSimpleDTOS = similarities
+//                    .stream()
+//                    .filter(id -> !id.equals(product.getId()))
+//                    .map(productRepository::getProductById)
+//                    .filter(Objects::nonNull)
+//                    .map(p -> ProductDTO.builder()
+//                            .id(p.getId())
+//                            .categoryId(p.getCategory().getId())
+//                            .thumbnail(storageService.getUrlFromKey(p.getThumbnail()))
+//                            .title(p.getTitle())
+//                            .price(p.getPrice())
+//                            .viewCount(viewCountService.getViewCount(p.getId()).intValue())
+//                            .wishCount(p.getWishCount())
+//                            .chatCount(p.getChatCount())
+//                            .isLike(loginUser != null && wishService.existsWish(p, loginUser))
+//                            .canVideoCall(p.isCanVideoCall())
+//                            .saleStatusCode(p.getSaleStatus().getLevel())
+//                            .saleStatus(p.getSaleStatus().getDescription())
+//                            .createdAt(p.getCreatedAt())
+//                            .build()
+//                    ).toList();
+//        }
 
         return ProductDetailResponse.builder()
                 .title(product.getTitle())
