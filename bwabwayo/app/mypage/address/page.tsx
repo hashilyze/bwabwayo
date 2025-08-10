@@ -1,20 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import React from 'react';
 import Sidebar from '@/components/shop/Sidebar';
+
+// --- 타입 정의 ---
+interface Address {
+  id: number;
+  recipientName: string;
+  recipientPhoneNumber: string;
+  zipcode: string;
+  address: string;
+  addressDetail: string;
+  isDefault: boolean;
+}
+
 // --- 컴포넌트 ---
 
-
-
 // B. 개별 주소 항목 컴포넌트
-const AddressItem = ({ address, onSetDefault }) => {
+const AddressItem: React.FC<{ address: Address }> = ({ address }) => {
   const isDefault = address.isDefault;
 
   return (
     <div
-      onClick={() => onSetDefault(address.id)}
-      className={`flex cursor-pointer items-center justify-between rounded-lg p-5 transition-all ${
-        isDefault ? 'bg-white shadow-md border border-yellow-400' : 'bg-gray-100 hover:bg-gray-200'
+      className={`flex items-center justify-between rounded-lg p-5 transition-all ${
+        isDefault ? 'bg-white shadow-md border border-yellow-400' : 'bg-gray-100'
       }`}
     >
       <div className="flex items-center space-x-4">
@@ -38,7 +47,7 @@ const AddressItem = ({ address, onSetDefault }) => {
 };
 
 // C. 미리보기용 더미 데이터
-const dummyAddresses = [
+const dummyAddresses: Address[] = [
     {
       id: 1,
       recipientName: '홍길동',
@@ -71,25 +80,14 @@ const dummyAddresses = [
 
 // D. 메인 페이지 컴포넌트
 export default function AddressPage() {
-  // Zustand 스토어 대신 useState로 로컬 상태 관리
-  const [addresses, setAddresses] = useState(dummyAddresses);
-
-  // 로컬 상태를 직접 변경하는 함수
-  const handleSetDefault = (id) => {
-    setAddresses(
-      addresses.map((addr) => ({
-        ...addr,
-        isDefault: addr.id === id,
-      }))
-    );
-  };
-
+  // 상태 관리 로직을 제거하고 더미 데이터를 직접 사용합니다.
+  const addresses = dummyAddresses;
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto flex flex-row gap-10 py-12 px-4">
         {/* 1. 사이드바 */}
         <Sidebar />
-
+    
         {/* 2. 메인 컨텐츠 */}
         <main className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900 mb-8">배송지 관리</h1>
@@ -102,7 +100,6 @@ export default function AddressPage() {
                   <AddressItem
                     key={address.id}
                     address={address}
-                    onSetDefault={handleSetDefault} // 로컬 함수를 전달
                   />
                 ))
               ) : (
