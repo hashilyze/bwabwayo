@@ -7,10 +7,11 @@ import com.bwabwayo.app.domain.product.domain.Category;
 import com.bwabwayo.app.domain.product.domain.Courier;
 import com.bwabwayo.app.domain.product.domain.Product;
 import com.bwabwayo.app.domain.product.domain.ProductImage;
-import com.bwabwayo.app.domain.product.dto.request.ProductCreateAndUpdateRequestDTO;
-import com.bwabwayo.app.domain.product.dto.request.ProductSearchRequestDTO;
+import com.bwabwayo.app.domain.product.dto.request.ProductUpsertRequest;
+import com.bwabwayo.app.domain.product.dto.request.ProductQueryRequest;
 import com.bwabwayo.app.domain.product.dto.response.*;
 import com.bwabwayo.app.domain.product.enums.DeliveryStatus;
+import com.bwabwayo.app.domain.product.exception.ProductNotFoundException;
 import com.bwabwayo.app.domain.product.repository.CourierRepository;
 import com.bwabwayo.app.domain.product.repository.ProductImageRepository;
 import com.bwabwayo.app.domain.product.repository.ProductRepository;
@@ -65,15 +66,37 @@ public class ProductService {
      * 상품 등록
      */
     @Transactional
-    public Product createProduct(ProductCreateAndUpdateRequestDTO requestDTO, User user) {
-        return saveDTO(requestDTO, new Product(), user);
+    public Product createProduct(ProductUpsertRequest requestDTO, User user) {
+        return upsert(requestDTO, new Product(), user);
+    }
+
+    /**
+     * 상품 정보 갱신
+     */
+    @Transactional
+    public void update(Product product, ProductUpsertRequest requestDTO) {
+        upsert(requestDTO, product, product.getSeller());
+    }
+
+    /**
+     * 상품 삭제
+     */
+    @Transactional
+    public void delete(Product product) {
+        // 삭제할 이미지 URL 기록
+        List<ProductImage> productImages = product.getProductImages();
+        List<String> imageKeys = productImages.stream().map(ProductImage::getUrl).toList();
+
+        // Product 삭제
+        productRepository.delete(product);
+        imageKeys.forEach(storageUtil::deleteWithoutException);
     }
 
     /**
      * 상품 검색
      */
     @Transactional(readOnly = true)
-    public PageResponseDTO<ProductSearchResultDTO> searchProducts(ProductSearchRequestDTO requestDTO, User loginUser) {
+    public PageResponseDTO<ProductSearchResultDTO> searchProducts(ProductQueryRequest requestDTO, User loginUser) {
         String keyword = requestDTO.getKeyword();
         Long categoryId = requestDTO.getCategoryId();
         String sellerId = requestDTO.getSellerId();
@@ -106,8 +129,8 @@ public class ProductService {
         // 현재 카테고리에 포함되는 모든 카테고리의 모음 생성
         List<Long> categoryIds = new ArrayList<>();
         if(categoryId != null){
-            if(categoryService.existsCategoryById(categoryId)) {
-                Category topCategory = categoryService.getCategoryById(categoryId);
+            if(categoryService.existsById(categoryId)) {
+                Category topCategory = categoryService.findById(categoryId);
                 categoryIds = CategoryUtil.getSubCategories(topCategory).stream().map(Category::getId).toList();
             } else {
                 categoryIds.add(categoryId);
@@ -181,7 +204,7 @@ public class ProductService {
 
         // 판매자 정보
         User seller = product.getSeller();
-        List<ProductSimpleDTO> others = searchProducts(ProductSearchRequestDTO.builder().sellerId(seller.getId()).size(otherCount + 1).build(), loginUser)
+        List<ProductSimpleDTO> others = searchProducts(ProductQueryRequest.builder().sellerId(seller.getId()).size(otherCount + 1).build(), loginUser)
                 .getResult().stream()
                 .map(ProductSearchResultDTO::getProduct)
                 .filter(p ->!p.getId().equals(product.getId()))
@@ -202,7 +225,7 @@ public class ProductService {
         // 유사한 상품 목록
         List<ProductSimpleDTO> productSimpleDTOS = new ArrayList<>();
         if(false) {
-            List<Long> similarities = productSimilarityService.searchSimilarTitles(product.getTitle(), similarityCount + 1);
+            List<Long> similarities = productSimilarityService.searchSimilarTitles(product.getTitle(), product.getCategory().getName(), similarityCount + 1);
             productSimpleDTOS = similarities
                     .stream()
                     .filter(id -> !id.equals(product.getId()))
@@ -248,28 +271,6 @@ public class ProductService {
                 .build();
     }
 
-    /**
-     * 상품 정보 갱신
-     */
-    @Transactional
-    public void update(Product product, ProductCreateAndUpdateRequestDTO requestDTO) {
-        saveDTO(requestDTO, product, null);
-    }
-
-    /**
-     * 상품 삭제
-     */
-    @Transactional
-    public void delete(Product product) {
-        // 삭제할 이미지 URL 기록
-        List<ProductImage> productImages = product.getProductImages();
-        List<String> imageKeys = productImages.stream().map(ProductImage::getUrl).toList();
-
-        // Product 삭제
-        productRepository.delete(product);
-        imageKeys.forEach(storageUtil::deleteWithoutException);
-    }
-
     @Transactional
     public void setInvoiceNumber(SetInvoiceNumberRequest request, Long productId) {
         Product product = productRepository.getProductById(productId);
@@ -293,27 +294,20 @@ public class ProductService {
     }
 
     public Product findById(Long productId) {
-        return productRepository.findById(productId).orElseThrow(() -> new IllegalArgumentException("해당 상품이 존재하지 않습니다."));
+        return productRepository.findById(productId).orElseThrow(() -> new ProductNotFoundException(productId));
     }
 
-    /**
-     * RequestDTO를 Entity로 변환 후 repository에 저장
-     */
-    private Product saveDTO(ProductCreateAndUpdateRequestDTO dto, Product product, User seller){
-        Category category = categoryService.getCategoryById(dto.getCategoryId());
-        if(category == null){
-            throw new IllegalArgumentException("등록하려는 상품이 속한 카테고리가 존재하지 않습니다.");
-        }
+    private Product upsert(ProductUpsertRequest dto, Product product, User seller){
+        if(seller != null && product.getSeller() == null)  product.setSeller(seller);
 
-        // Product 속성 할당
-        if(seller != null && product.getSeller() == null) {
-            product.setSeller(seller);
-        }
+        Category category = categoryService.findById(dto.getCategoryId());
         product.setCategory(category);
+
         product.setTitle(dto.getTitle());
         product.setDescription(dto.getDescription());
         product.setPrice(dto.getPrice());
         product.setShippingFee(dto.getShippingFee());
+
         product.setCanNegotiate(dto.getCanNegotiate());
         product.setCanDirect(dto.getCanDirect());
         product.setCanDelivery(dto.getCanDelivery());
