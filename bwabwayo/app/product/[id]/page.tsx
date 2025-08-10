@@ -2,18 +2,20 @@
 
 import SellerTitle, { type Seller } from "@/components/shop/SellerTitle";
 import { useProductStore } from "@/stores/product/productStore";
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { useChatRoomStore } from "@/stores/chatting/chatRoomStore";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth/authStore";
 import { useModalStore } from "@/stores/modalStore";
+import { useLikeProductStore } from "@/stores/product/likeProductStore";
 
 export default function ProductDetailPage() {
   const { product, loading, error, getProductDetail } = useProductStore();
   const { roomInfo, addChatRoom } = useChatRoomStore();
   const { isLoggedIn } = useAuthStore();
   const { openLoginModal } = useModalStore();
+  const { addLike, removeLike } = useLikeProductStore();
   const router = useRouter();
 
   const params = useParams();
@@ -22,13 +24,55 @@ export default function ProductDetailPage() {
   const seller: Seller = {
     id: product?.seller.id ? String(product.seller.id) : undefined,
     nickname: product?.seller.nickname || '',
-    // sellerImage: product?.seller.profileImage || null,
     profileImage: product?.seller.profileImage || null,
     rating: product?.seller.rating || 0,
     score: product?.seller.score || 0,
     bio: (product?.seller as { bio?: string })?.bio || '',
     dealCount: product?.seller.dealcount || 0,
   }
+
+  // --- 찜하기 기능 로직 통합 ---
+  const [isWished, setIsWished] = useState(false);
+  const [isLikeLoading, setIsLikeLoading] = useState(false);
+
+  // 상품 정보가 로드되면 초기 찜 상태를 설정합니다.
+  useEffect(() => {
+    if (product) {
+      setIsWished(product.isLike);
+    }
+  }, [product]);
+
+  // 로그인 확인과 찜하기 로직을 합친 통합 핸들러
+  const handleToggleLike = useCallback(async () => {
+    if (isLikeLoading) return; // 중복 클릭 방지
+
+    // 1. 로그인 상태 확인
+    if (!isLoggedIn) {
+      openLoginModal();
+      return;
+    }
+
+    if (!product) return;
+    
+    setIsLikeLoading(true);
+    const previousIsWished = isWished;
+    setIsWished(!previousIsWished); // 2. UI 즉시 변경 (낙관적 업데이트)
+
+    try {
+      // 3. API 호출
+      if (previousIsWished) {
+        await removeLike(productId);
+      } else {
+        await addLike(productId);
+      }
+    } catch (e) {
+      console.error("찜하기 토글 실패:", e);
+      setIsWished(previousIsWished); // 4. 실패 시 UI 롤백
+      alert("요청 처리에 실패했습니다.");
+    } finally {
+      setIsLikeLoading(false);
+    }
+  }, [isLikeLoading, isLoggedIn, product, isWished, addLike, removeLike, productId, openLoginModal]);
 
   useEffect(() => {
     getProductDetail(productId);
@@ -59,17 +103,11 @@ export default function ProductDetailPage() {
   };
 
   const makeChatRoom = async () => {
-    // if (!isLoggedIn) {
-    //   openLoginModal();
-    //   return;
-    // }
-
     try {
       const result = await addChatRoom({
         sellerId: product?.seller.id || '',
         productId: productId || 0
       })
-      // console.log(result)
       router.push(`/chat/${result?.roomId}?productId=${result?.productId}&sellerId=${result?.sellerId}&buyerId=${result?.buyerId}`)
     } catch (error) {
       console.error('채팅방 생성 중 오류:', error);
@@ -154,37 +192,32 @@ export default function ProductDetailPage() {
                 </ul>
 
                 <div className="flex gap-4">
-                    <div 
-                      onClick={() => {
-                        if (isLoggedIn) {
-                          // TODO: 찜하기 기능 구현
-                          console.log('찜하기 기능')
-                        } else {
-                          openLoginModal()
-                        }
-                      }}
-                      className="flex-1 py-4 flex items-center justify-center gap-2 border-1 border-[#eee] text-[#777] rounded-lg cursor-pointer"
-                    >
-                     <div className="relative w-4 h-4">
-                       <img 
-                         src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/${product?.isWish ? 'heart-on.svg' : 'heart-off.svg'}`} 
-                         alt="찜하기" 
-                       />
-                     </div>
-                     찜하기
-                   </div>
-                    <div
-                      onClick={() => {
-                        if (isLoggedIn) {
-                          makeChatRoom()
-                        } else {
-                          openLoginModal()
-                        }
-                      }}
-                      className={`flex-1 py-4 flex items-center justify-center gap-2 rounded-lg py-3 font-bold cursor-pointer bg-blue-600 text-white hover:bg-blue-700`}
-                    >
-                     1:1 채팅하기
-                   </div>
+                  {/* 하나의 버튼으로 통합된 찜하기 기능 */}
+                  <button
+                    onClick={handleToggleLike}
+                    disabled={isLikeLoading}
+                    className="flex-1 py-4 flex items-center justify-center gap-2 border border-[#eee] text-[#777] rounded-lg cursor-pointer hover:bg-gray-50 transition-colors disabled:cursor-not-allowed"
+                  >
+                    <img
+                      src={isWished ? `${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-on.svg` : `${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-off.svg`}
+                      alt="찜하기"
+                      className="w-6 h-6"
+                    />
+                    찜하기
+                  </button>
+
+                  <div
+                    onClick={() => {
+                      if (isLoggedIn) {
+                        makeChatRoom()
+                      } else {
+                        openLoginModal()
+                      }
+                    }}
+                    className={`flex-1 py-4 flex items-center justify-center gap-2 rounded-lg py-3 font-bold cursor-pointer bg-blue-600 text-white hover:bg-blue-700`}
+                  >
+                    1:1 채팅하기
+                  </div>
                 </div>
               </div>
               
