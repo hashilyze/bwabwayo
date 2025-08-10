@@ -10,17 +10,45 @@ import java.util.List;
 @Builder
 public class QdrantPointDto {
     private Long id;
+
     private String title;
-    private String category;
+    private String categoryName;
+
+    private Long categoryId;
+    private Integer price;
+    private Boolean isSale;
 
     private List<Double> titleVector;
     private List<Double> categoryVector;
 
-    public static QdrantPointDto from(Long id, String title, String category,
-                                      List<Double> titleVec, List<Double> categoryVec) {
+    private String preprocessTitle;
+
+
+    public static QdrantPointDto of(Long id, String title, List<Double> titleVector){
+        return QdrantPointDto.of(id, title, titleVector, title, titleVector, null, null, null, null);
+    }
+
+    public static QdrantPointDto of(
+            Long id,
+            String title, List<Double> titleVector,
+            String category, List<Double> categoryVector
+    ){
+        return QdrantPointDto.of(id, title, titleVector, category, categoryVector, null, null, null, null);
+    }
+
+    public static QdrantPointDto of(
+            Long id,
+            String title, List<Double> titleVector,
+            String category, List<Double> categoryVector,
+            Long categoryId, Integer price, Boolean isSale,
+            String preprocessTitle
+    ){
         return QdrantPointDto.builder()
-                .id(id).title(title).category(category)
-                .titleVector(titleVec).categoryVector(categoryVec)
+                .id(id)
+                .title(title).titleVector(titleVector)
+                .categoryName(category).categoryVector(categoryVector)
+                .categoryId(categoryId).price(price).isSale(isSale)
+                .preprocessTitle(preprocessTitle)
                 .build();
     }
 }
