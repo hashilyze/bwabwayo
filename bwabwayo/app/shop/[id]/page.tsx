@@ -6,6 +6,7 @@ import Sidebar from "@/components/shop/Sidebar";
 import ProductCard from "@/components/product/ProductCard";
 import SellerTitle from '@/components/shop/SellerTitle';
 import { useProductStore, ProductWithSeller } from '@/stores/product/productStore';
+import { transformToProductCardData } from '@/lib/dataTransFormers';
 
 export default function SellerShopInfo({ params }: { params: { id: string } }) {
   const { products, loading, error, getProducts, clearProducts } = useProductStore();
@@ -71,12 +72,16 @@ export default function SellerShopInfo({ params }: { params: { id: string } }) {
           <section className="mt-12">
             <h3 className="text-xl font-bold mb-6">판매 물품</h3>
             <ul className="grid grid-cols-4 gap-6 gap-y-12">
-              {products.map((item: ProductWithSeller) => (
-            <li key={item.product.id}>
-              <ProductCard item={item} />
-            </li>
-          ))}
-        </ul>
+              {products.map((item: ProductWithSeller) => {
+                if (!item.product?.id) return null;
+                const cardData = transformToProductCardData(item);
+                return (
+                  <li key={item.product.id}>
+                    <ProductCard item={cardData} />
+                  </li>
+                );
+              })}
+            </ul>
           </section>
 
           {/* 상점 후기 섹션 */}
