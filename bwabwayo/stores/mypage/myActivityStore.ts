@@ -43,6 +43,22 @@ export interface ActivityProduct {
   seller: Seller;
 }
 
+// UI를 위한 상품 카드 데이터 타입
+export interface ProductCardUIData {
+  id: number;
+  thumbnail: string;
+  title: string;
+  price: number;
+  wishCount: number;
+  viewCount: number;
+  isLike: boolean;
+  canVideoCall?: boolean; // 화상통화 가능 여부
+  createdAt?: string; // 생성일
+  // ... 카드 표시에 필요한 다른 필드가 있다면 추가
+}
+
+
+
 // API에서 내려오는 구매 상품 정보 타입
 interface RawPurchaseProduct {
   saleId: number;
@@ -104,7 +120,7 @@ interface MyActivityStore {
   purchasePage: number;
   purchaseTotalPages: number;
   purchaseHasMore: boolean;
-  wishList: ActivityProduct[] | null;
+  wishList: ProductCardUIData[] | null;
   loading: boolean;
   error: string | null;
   fetchSales: () => Promise<void>;
@@ -112,6 +128,20 @@ interface MyActivityStore {
   fetchWishlist: () => Promise<void>;
   resetPurchases: () => void;
 }
+
+// ActivityProduct -> ProductCardUIData 변환 함수
+function adaptSummaryToCardData(summary: ProductSummary): ProductCardUIData {
+  return {
+    id: summary.productId, // 상품의 고유 ID를 사용
+    thumbnail: summary.thumbnail,
+    title: summary.title,
+    price: summary.price,
+    wishCount: summary.wishCount,
+    viewCount: summary.viewCount,
+    isLike: true, // 찜 목록이므로 항상 true로 설정
+  };
+}
+
 
 const baseUrl = 'https://i13e202.p.ssafy.io/be/api';
 
@@ -211,24 +241,14 @@ export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
 
       console.log('📦 API 응답 데이터:', data);
 
-      // API 응답(ProductSummary[])을 ActivityProduct[] 타입으로 변환
-      const formattedWishlist: ActivityProduct[] = data.result.map((item: ProductSummary) => ({
-        product: {
-          ...item,
-          isLike: true, // 찜 목록 아이템이므로 isLike는 항상 true
-        },
-        seller: { // 찜 목록 API는 판매자 정보를 제공하지 않으므로 기본값 설정
-          id: '',
-          nickname: '',
-        },
-      }));
-      console.log('🧩 변환된 formattedWishlist:', formattedWishlist);
+      const uiReadyWishlist: ProductCardUIData[] = data.result.map(adaptSummaryToCardData);
+      console.log('📦 API 응답 원본:', data.result);
+      console.log('🧩 UI용으로 변환된 최종 데이터:', uiReadyWishlist);
 
-      set({ wishList: formattedWishlist, loading: false });
-      console.log("wishList:", formattedWishlist);
+     set({ wishList: uiReadyWishlist, loading: false });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
-      set({ error: errorMessage, loading: false, wishList: [] });
+      set({ error: errorMessage, loading: false, wishList: [] }); // 실패 시 빈 배열로 초기화
     }
   },
 }));

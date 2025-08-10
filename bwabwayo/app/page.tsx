@@ -10,6 +10,9 @@ import { useModalStore } from '@/stores/modalStore';
 import { useAuthStore } from '@/stores/auth/authStore';
 import RecommendItems from "@/components/home/RecommendItems";
 import Banner from "@/components/home/Banner";
+import { ProductWithSeller, ProductCardUIData } from '@/stores/product/productStore';
+
+
 
 // swiper
 import { Navigation, Pagination } from 'swiper/modules';
@@ -33,6 +36,37 @@ function AuthHandler() {
   return null;
 }
 
+
+
+
+export const transformToProductCardData = (item: ProductWithSeller): ProductCardUIData => {
+  // 핵심 데이터는 item.product 안에 있습니다.
+  const { product } = item;
+
+  return {
+    // id가 없는 경우를 대비해 기본값 0을 설정합니다. (React key 오류 방지)
+    id: product.id || 0,
+    
+    // 썸네일이 없을 경우 표시할 기본 이미지 경로를 설정합니다.
+    thumbnail: product.thumbnail || '/image/no-image.jpg',
+    
+    title: product.title,
+    price: product.price,
+
+    // viewCount와 wishCount는 string? 타입이므로, 숫자로 변환하고 기본값을 0으로 설정합니다.
+    // parseInt의 두 번째 인자 10은 10진수로 변환함을 의미합니다.
+    viewCount: parseInt(product.viewCount || '0', 10),
+    wishCount: parseInt(product.wishCount || '0', 10),
+
+    // isLike가 undefined일 경우를 대비해 false를 기본값으로 설정합니다.
+    isLike: product.isLike || false,
+    
+    // 옵셔널(?) 필드는 그대로 전달합니다. 값이 없으면 undefined가 됩니다.
+    canVideoCall: product.canVideoCall,
+    createdAt: product.createdAt,
+  };
+};
+
 // ProductSlider 컴포넌트
 function ProductSlider({ products, navigationId }: { products: any[], navigationId: string }) {
   const [swiper, setSwiper] = useState<SwiperClass>();
@@ -45,6 +79,9 @@ function ProductSlider({ products, navigationId }: { products: any[], navigation
   const handleNext = () => {
     swiper?.slideNext()
   }
+  
+  
+
 
   // products가 없거나 빈 배열인 경우 처리
   if (!products || products.length === 0) {
@@ -54,6 +91,9 @@ function ProductSlider({ products, navigationId }: { products: any[], navigation
       </div>
     );
   }
+
+  
+
 
   return (
     <div className="relative px-[70px]">
@@ -78,11 +118,20 @@ function ProductSlider({ products, navigationId }: { products: any[], navigation
         }}
         className="swiper"
       >
-        {products.map((item) => (
-          <SwiperSlide key={item.product.id}>
-            <ProductCard item={item} />
-          </SwiperSlide>
-        ))}
+         {products.map((item) => {
+          // React key로 사용될 id가 있는지 먼저 확인하는 것이 안전합니다.
+          if (!item.product?.id) return null;
+
+          // ✅ 데이터 변환을 반복문 '안에서' 각 item에 대해 실행합니다.
+          const cardDataForItem = transformToProductCardData(item);
+
+          return (
+            <SwiperSlide key={item.product.id}>
+              {/* ✅ 방금 변환한 개별 데이터를 item 프롭으로 전달합니다. */}
+              <ProductCard item={cardDataForItem} />
+            </SwiperSlide>
+          );
+        })}
       </Swiper>
       <button 
         className={`custom-prev-${navigationId} hover:bg-[#343D48] pl-1 z-1 absolute left-0 top-1/2 -translate-y-1/2 w-14 h-14 flex items-center justify-center rounded transition-all duration-200 ${

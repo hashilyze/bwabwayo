@@ -1,12 +1,17 @@
 import { create } from 'zustand'
 import { useAuthStore } from '@/stores/auth/authStore'
+import { useProductStore } from '@/stores/product/productStore'
 
-interface LikeProduct {
+export interface LikeProduct {
   id: number
+  seller_id: number
   title: string
   price: number
-  thumbnail?: string
-  isLiked: boolean
+  thumbnail: string
+  wishCount: number
+  viewCount: number
+  isLike: boolean
+  status: "판매중" | "판매완료"
 }
 
 // 인터페이스를 더 명확하게 리팩토링합니다.
@@ -54,6 +59,18 @@ export const useLikeProductStore = create<LikeProductStore>((set, get) => ({
       }
 
       // 성공 시, 전체 좋아요 목록을 다시 불러와 상태를 완벽하게 동기화합니다.
+      // [해결책] 다른 스토어의 상태를 직접 업데이트하여 UI 동기화
+      useProductStore.setState(state => ({
+        products: state.products.map(p => 
+          p.product.id === productId ? { ...p, product: { ...p.product, isLike: true, wishCount: String(Number(p.product.wishCount) + 1) } } : p
+        ),
+        hotKeywordProducts: state.hotKeywordProducts.map(p => 
+          p.product.id === productId ? { ...p, product: { ...p.product, isLike: true, wishCount: String(Number(p.product.wishCount) + 1) } } : p
+        ),
+        videoCallProducts: state.videoCallProducts.map(p => 
+          p.product.id === productId ? { ...p, product: { ...p.product, isLike: true, wishCount: String(Number(p.product.wishCount) + 1) } } : p
+        ),
+      }));
       await get().getLikeProducts()
 
     } catch (error) {
@@ -80,6 +97,18 @@ export const useLikeProductStore = create<LikeProductStore>((set, get) => ({
 
       // 성공 시, 전체 좋아요 목록을 다시 불러와 상태를 완벽하게 동기화합니다.
       // 이 방식은 'Unexpected end of JSON input' 에러를 원천적으로 방지합니다.
+      // [해결책] 좋아요 제거 시에도 동일하게 상태 동기화
+      useProductStore.setState(state => ({
+        products: state.products.map(p => 
+          p.product.id === productId ? { ...p, product: { ...p.product, isLike: false, wishCount: String(Number(p.product.wishCount) - 1) } } : p
+        ),
+        hotKeywordProducts: state.hotKeywordProducts.map(p => 
+          p.product.id === productId ? { ...p, product: { ...p.product, isLike: false, wishCount: String(Number(p.product.wishCount) - 1) } } : p
+        ),
+        videoCallProducts: state.videoCallProducts.map(p => 
+          p.product.id === productId ? { ...p, product: { ...p.product, isLike: false, wishCount: String(Number(p.product.wishCount) - 1) } } : p
+        ),
+      }));
       await get().getLikeProducts()
 
     } catch (error) {
@@ -134,7 +163,7 @@ export const useLikeProductStore = create<LikeProductStore>((set, get) => ({
       }
 
       const data = await response.json()
-      return data.isLiked || false
+      return data.result.isLiked || false
     } catch (error) {
       console.error('좋아요 상태 확인 중 예외 발생:', error)
       return false
