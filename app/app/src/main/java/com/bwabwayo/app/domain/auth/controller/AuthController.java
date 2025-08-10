@@ -231,6 +231,8 @@ public class AuthController {
             userService.calcPoint(PointEventType.ATTENDANCE, PointEventType.ATTENDANCE.getPoint(), user);
             loginPoint = PointEventType.ATTENDANCE.getPoint();
         }
+        user.setLastLoginAt(LocalDateTime.now(seoulZone));
+        userService.saveUser(user);
 
         Map<String, Object> responseBody = Map.of(
                 "accessToken", newAccessToken,
