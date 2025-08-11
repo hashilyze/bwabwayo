@@ -78,6 +78,7 @@ interface ProductStore {
   products: ProductWithSeller[]
   hotKeywordProducts: ProductWithSeller[]
   videoCallProducts: ProductWithSeller[]
+  similarProducts: ProductWithSeller[]
   loading: boolean
   error: string | null
   getProducts: (options?: { title?: string; category_id?: number; minPrice?: number; maxPrice?: number }) => Promise<void>
@@ -86,6 +87,7 @@ interface ProductStore {
   getVideoCallProducts: () => Promise<void>
   getProductDetail: (id: number) => Promise<void>
   clearProducts: () => void
+  getSimilarProducts: (title: number) => Promise<void>
 }
 
 const baseUrl = 'https://i13e202.p.ssafy.io/be/api'
@@ -110,6 +112,7 @@ export const useProductStore = create<ProductStore>((set) => ({
   products: [],
   hotKeywordProducts: [],
   videoCallProducts: [],
+  similarProducts: [],
   loading: false,
   error: null,
 
@@ -222,6 +225,19 @@ export const useProductStore = create<ProductStore>((set) => ({
       set({ loading: false })
     } catch (error) {
       console.error(error)
+    }
+  },
+
+  // 유사 상품 조회
+  getSimilarProducts: async (title: number) => {
+    set({ loading: true, error: null })
+    try {
+      const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products?keyword=${title}&sortBy=related`)
+      const data = await response.json()
+      console.log('유사 상품 조회:', data.result)
+      set({ similarProducts: data.result, loading: false })
+    } catch (error) {
+      console.error('유사 상품 조회 실패:', error)
     }
   },
 

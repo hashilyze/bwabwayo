@@ -10,9 +10,10 @@ import { useAuthStore } from "@/stores/auth/authStore";
 import { useModalStore } from "@/stores/modalStore";
 import { useLikeProductStore } from "@/stores/product/likeProductStore";
 import Link from "next/link";
+import ProductCard from "@/components/product/ProductCard";
 
 export default function ProductDetailPage() {
-  const { product, loading, error, getProductDetail } = useProductStore();
+  const { product, loading, error, getProductDetail, similarProducts, getSimilarProducts } = useProductStore();
   const { roomInfo, addChatRoom } = useChatRoomStore();
   const { isLoggedIn } = useAuthStore();
   const { openLoginModal } = useModalStore();
@@ -86,6 +87,13 @@ export default function ProductDetailPage() {
     getProductDetail(productId);
   }, [getProductDetail, productId]);
 
+  // 상품 상세 정보가 로드되면 유사 상품 조회
+  useEffect(() => {
+    if (product?.title) {
+      getSimilarProducts(productId);
+    }
+  }, [product?.title, productId, getSimilarProducts]);
+
   // 상품이 변경되면 선택된 이미지 인덱스를 0으로 리셋
   useEffect(() => {
     setSelectedImageIndex(0);
@@ -129,9 +137,10 @@ export default function ProductDetailPage() {
   }
   
   return (
-    <div className="relative min-h-screen py-10 container-default m-auto">
+    <div className="relative min-h-screen pt-20 pb-40 container-default m-auto">
       {product ? (
         <>
+        <div>
           <div className="flex flex-row gap-12 relative">
             {/* Product Images */}
             <div className="flex-2 w-full max-w-md">
@@ -182,123 +191,157 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            {/* Product Info */}
-            <div className="flex-3 min-h-screen">
-              <div className="bg-white rounded-2xl shadow-sm p-8 mb-6 border-2 border-black">
-                  <p className="text-gray-500 text-md mb-2">
-                   홈 &gt; {product?.categories?.[0]?.name || '대분류'} &gt; {product?.categories?.[1]?.name || '소분류'}
-                 </p>
-                  <div className="flex flex-col mt-6 mb-4 gap-2">
-                   <h1 className="text-2xl">{product?.title || '상품명'}</h1>
-                   <p className="text-4xl text-black font-bold">
-                     {(product?.price || 0).toLocaleString()}원
-                   </p>
-                 </div>
-                  <div className="text-gray-400 text-md mb-[30px]">
-                    {getRelativeTime(product?.createdAt || '')} · 찜 {product?.wishCount || 0} · 조회 {product?.viewCount || 0}
-                  </div>
-                
-                <ul className="flex items-center mb-4 bg-[#F9F9F9] rounded-lg p-6 relative">
-                  <li className="flex flex-1 flex-col gap-1 items-center">
-                    <div className="text-md text-black/50">가격제안</div>
-                    <div className="text-lg font-semibold">{product?.canNegotiate ? '가능' : '불가능'}</div>
-                  </li>
-                  <li className="flex-0.5 flex items-center justify-center">
-                    <div className="block w-[1px] h-7 bg-gray-200"></div>
-                  </li>
-                  <li className="flex flex-1 flex-col gap-1 items-center">
-                    <p className="text-md text-black/50">화상거래</p>
-                    <p className="text-lg font-semibold">{product?.canVideoCall ? '가능' : '불가능'}</p>
-                  </li>
-                  <li className="flex-0.5 flex items-center justify-center">
-                    <div className="block w-[1px] h-7 bg-gray-200"></div>
-                  </li>
-                  <li className="flex flex-1 flex-col gap-1 items-center">
-                    <p className="text-md text-black/50">거래방식</p>
-                    <p className="text-lg font-semibold"> 
-                      {product?.canDirect ? '직거래' : ''} {product?.canDirect && product?.canDelivery ? ', ' : ''} {product?.canDelivery ? '택배' : ''}
+            {/* 상품 타이틀 */}
+            <div className="flex-3 flex flex-col gap-10">
+              {/* Product Info */}
+              <div className="">
+                <div className="bg-white rounded-2xl shadow-sm p-8 mb-6 border-2 border-black">
+                  <p className="text-black text-md mb-2">
+                    홈 &gt; {product?.categories?.[0]?.name || '대분류'} &gt; {product?.categories?.[1]?.name || '소분류'}
+                  </p>
+                    <div className="flex flex-col mt-6 mb-4 gap-2">
+                    <h1 className="text-2xl">{product?.title || '상품명'}</h1>
+                    <p className="text-4xl text-black font-bold">
+                      {(product?.price || 0).toLocaleString()}원
                     </p>
-                  </li>
-                  <li className="flex-0.5 flex items-center justify-center">
-                    <div className="block w-[1px] h-7 bg-gray-200"></div>
-                  </li>
-                  <li className="flex flex-1 flex-col gap-1 items-center">
-                    <div className="text-md text-black/50">배송비</div>
-                    <div className="text-lg font-semibold">{product?.shippingFee || 0}원</div>
-                  </li>
-                </ul>
+                  </div>
+                    <div className="text-gray-400 text-md mb-[30px]">
+                      {getRelativeTime(product?.createdAt || '')} · 찜 {product?.wishCount || 0} · 조회 {product?.viewCount || 0}
+                    </div>
+                  
+                  {/* 상품 옵션 */}
+                  <ul className="flex items-center mb-4 bg-[#F9F9F9] rounded-lg p-6 relative">
+                    <li className="flex flex-1 flex-col gap-1 items-center">
+                      <div className="text-md text-black/50">가격제안</div>
+                      <div className="text-lg font-semibold">{product?.canNegotiate ? '가능' : '불가능'}</div>
+                    </li>
+                    <li className="flex-0.5 flex items-center justify-center">
+                      <div className="block w-[1px] h-7 bg-gray-200"></div>
+                    </li>
+                    <li className="flex flex-1 flex-col gap-1 items-center">
+                      <p className="text-md text-black/50">화상거래</p>
+                      <p className="text-lg font-semibold">{product?.canVideoCall ? '가능' : '불가능'}</p>
+                    </li>
+                    <li className="flex-0.5 flex items-center justify-center">
+                      <div className="block w-[1px] h-7 bg-gray-200"></div>
+                    </li>
+                    <li className="flex flex-1 flex-col gap-1 items-center">
+                      <p className="text-md text-black/50">거래방식</p>
+                      <p className="text-lg font-semibold"> 
+                        {product?.canDirect ? '직거래' : ''} {product?.canDirect && product?.canDelivery ? ', ' : ''} {product?.canDelivery ? '택배' : ''}
+                      </p>
+                    </li>
+                    <li className="flex-0.5 flex items-center justify-center">
+                      <div className="block w-[1px] h-7 bg-gray-200"></div>
+                    </li>
+                    <li className="flex flex-1 flex-col gap-1 items-center">
+                      <div className="text-md text-black/50">배송비</div>
+                      <div className="text-lg font-semibold">{product?.shippingFee || 0}원</div>
+                    </li>
+                  </ul>
+                    
+                  {/* button-wrap */}
+                  <div className="flex gap-4">
+                    {/* 하나의 버튼으로 통합된 찜하기 기능 */}
+                    <button
+                      onClick={handleToggleLike}
+                      disabled={isLikeLoading}
+                      className="flex-1 py-4 flex items-center justify-center gap-2 text-lg border-2 border-block rounded-lg cursor-pointer hover:bg-gray-50 transition-colors disabled:cursor-not-allowed"
+                    >
+                      <img
+                        src={isWished ? `${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-on.svg` : `${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-off.svg`}
+                        alt="찜하기"
+                        className="w-6 h-6"
+                      />
+                      찜하기
+                    </button>
 
-                <div className="flex gap-4">
-                  {/* 하나의 버튼으로 통합된 찜하기 기능 */}
-                  <button
-                    onClick={handleToggleLike}
-                    disabled={isLikeLoading}
-                    className="flex-1 py-4 flex items-center justify-center gap-2 text-lg border-2 border-block rounded-lg cursor-pointer hover:bg-gray-50 transition-colors disabled:cursor-not-allowed"
-                  >
-                    <img
-                      src={isWished ? `${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-on.svg` : `${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-off.svg`}
-                      alt="찜하기"
-                      className="w-6 h-6"
-                    />
-                    찜하기
-                  </button>
-
-                  <div
-                    onClick={() => {
-                      if (isLoggedIn) {
-                        makeChatRoom()
-                      } else {
-                        openLoginModal()
-                      }
-                    }}
-                    className={`flex-1 border-2 border-black py-4 flex items-center justify-center gap-2 rounded-lg py-3 font-bold cursor-pointer bg-[#FFAE00] text-xl`}
-                  >
-                    1:1 채팅하기
+                    <div
+                      onClick={() => {
+                        if (isLoggedIn) {
+                          makeChatRoom()
+                        } else {
+                          openLoginModal()
+                        }
+                      }}
+                      className={`flex-1 border-2 border-black py-4 flex items-center justify-center gap-2 rounded-lg py-3 font-bold cursor-pointer bg-[#FFAE00] text-xl`}
+                    >
+                      1:1 채팅하기
+                    </div>
                   </div>
                 </div>
               </div>
-              
-            {/* 판매자 정보 */}
-            <div className="bg-white rounded-2xl border-2 border-black p-8 flex flex-col items-start gap-4">
-              {/* 판매자 평판 */}
-              <SellerTitle seller={seller} />
 
-              {/* 판매물품 */}
-              <div className="mt-10">
-                <h3 className="text-2xl font-bold mb-4">'{product?.seller?.nickname || '판매자'}'님의 다른 상품</h3>
-                <ul className="flex flex-col gap-4">
-                  {product?.seller?.otherProducts?.map((otherProduct : any) => (
-                    <li key={otherProduct.id}>
-                      <Link href={`/product/${otherProduct.id}`} className="flex flex-row items-center gap-5">
-                       <div className="relative w-30 h-30">
-                         <img
-                           src={otherProduct?.thumbnail || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`} 
-                           alt="" 
-                           className="border border-[#eee] rounded-lg object-cover"
-                         />
-                       </div>
+              {/* 추천 상품 */}
+              <div>
+                <h1 className="text-2xl font-bold mb-4">이 상품과 비슷해요!!</h1>
+                                <ul className="grid grid-cols-4 gap-4">
+                  {similarProducts?.map((similarProduct : any) => (
+                    <li key={similarProduct.product.id} className="">
+                      <Link href={`/product/${similarProduct.product.id}`} className="flex flex-col gap-2"  >
+                      <div className="relative">
+                        <img
+                          src={similarProduct.product?.thumbnail || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`} 
+                          alt="" 
+                          className="border border-[#eee] rounded-lg object-cover aspect-square"
+                        />
+                      </div>
                        <div className="flex flex-col">
-                         <p className="text-lg">{otherProduct?.title || '상품명'}</p>
-                         <p className="text-xl font-bold mb-2">{otherProduct?.price || 0}원</p>
-                         <p className="text-md font-light text-gray-400">찜 {otherProduct?.wishCount || 0} · 조회 {otherProduct?.viewCount || 0}</p>
+                         <p className="text-lg h-14 line-clamp-2">{similarProduct.product?.title || '상품명'}</p>
+                         <p className="text-xl font-bold mb-2">{(similarProduct.product?.price || 0).toLocaleString()}원</p>
                        </div>
-                       </Link>
-                      </li>
+                      </Link>
+                    </li>
                   ))}
                 </ul>
               </div>
             </div>
-            </div>
           </div>
 
-          {/* Product Description */}
-          <div className="bg-white rounded-2xl py-[60px] px-[40px] mt-[40px] border-2 border-black">
-            <h2 className="text-2xl font-bold mb-6">상품 설명</h2>
 
-            <div className="">
-              <p className="text-gray-700">{product?.description || '상품 설명이 없습니다.'}</p>
+          <div className="flex flex-row gap-8 mt-10">
+            {/* Product Description */}
+            <div className="flex-2 rounded-2xl p-8 border border-[#eee]">
+              <h2 className="text-2xl font-bold mb-6">상품 설명</h2>
+
+              <div className="">
+                <p className="text-gray-700">{product?.description || '상품 설명이 없습니다.'}</p>
+              </div>
             </div>
-          </div>
+
+              {/* 판매자 정보 */}
+              <div className="flex-1 rounded-2xl border border-[#eee] p-8 flex flex-col items-start gap-4">
+                {/* 판매자 평판 */}
+                <SellerTitle seller={seller} />
+  
+                {/* 판매물품 */}
+                <div className="mt-10">
+                  <h3 className="text-2xl font-bold mb-4">'{product?.seller?.nickname || '판매자'}'님의 다른 상품</h3>
+                  <ul className="flex flex-col gap-4">
+                    {product?.seller?.otherProducts?.map((otherProduct : any) => (
+                      <li key={otherProduct.id}>
+                        <Link href={`/product/${otherProduct.id}`} className="flex flex-row items-center gap-5">
+                         <div className="relative w-30 h-30">
+                           <img
+                             src={otherProduct?.thumbnail || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`} 
+                             alt="" 
+                             className="border border-[#eee] rounded-lg object-cover"
+                           />
+                         </div>
+                         <div className="flex flex-col">
+                           <p className="text-lg">{otherProduct?.title || '상품명'}</p>
+                           <p className="text-xl font-bold mb-2">{(otherProduct?.price || 0).toLocaleString()}원</p>
+                           <p className="text-md font-light text-gray-400">찜 {otherProduct?.wishCount || 0} · 조회 {otherProduct?.viewCount || 0}</p>
+                         </div>
+                         </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+              </div>
+            </div>
         </>
       ) : (
         <div className="flex justify-center items-center min-h-screen">
