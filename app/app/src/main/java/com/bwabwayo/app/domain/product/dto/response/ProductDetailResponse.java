@@ -14,6 +14,8 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class ProductDetailResponse {
+    private Boolean isMine;
+
     private String title;
     private String description;
     private Integer price;
@@ -45,7 +47,4 @@ public class ProductDetailResponse {
     private List<String> imageKeys = new ArrayList<>();
 
     private SellerDetailDTO seller;
-
-    @Builder.Default
-    private List<ProductDTO> similarities = new ArrayList<>();
 }
