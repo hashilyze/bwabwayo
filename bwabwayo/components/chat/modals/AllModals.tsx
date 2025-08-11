@@ -290,52 +290,67 @@ const StartVideoCallModal = ({ message }: { message: ChatMessage }) => {
 
 // START_TRADE,           // 거래 시작 - 거래 시작 버튼 클릭 시 전송
 const StartTradeModal = ({ message }: { message: ChatMessage }) => {
-  const [isButtonHovered, setIsButtonHovered] = useState(false)
-  const [isFinalPriceModalOpen, setIsFinalPriceModalOpen] = useState(false)
+  const chatInfo = useChatRoomInfo()
+  const isSeller = !!chatInfo?.isCurrentUserSeller
 
-  const openFinalPriceModal = () => setIsFinalPriceModalOpen(true)
-  const closeFinalPriceModal = () => setIsFinalPriceModalOpen(false)
+  const [open, setOpen] = useState(false)
+  const [isButtonHovered, setIsButtonHovered] = useState(false)
+
+  const handleOpen = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    if (!isSeller) return
+    setOpen(true)
+  }
 
   const handleSubmitFinalPrice = ({ finalPrice }: { finalPrice: number }) => {
     console.log('최종 거래 가격:', finalPrice)
-    // TODO: 서버 전송 / STOMP 공지 등
-    closeFinalPriceModal()
+    // TODO: 서버 전송 / STOMP 공지 등 처리
+    setOpen(false)
   }
 
   return (
-    <div className="w-[400px] h-[200px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
-      <div className="flex flex-col w-[371px] h-[154px] items-center justify-between relative top-7 left-3.5">
-        <div className="flex w-[281px] items-center justify-center gap-[18px]">
+    <div className="w-[400px] h-[169px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
+      <div className="flex flex-col w-[371px] h-[123px] items-center justify-between relative top-7 left-2.5">
+        <div className="flex w-[281px] items-center justify-between">
           <img
             className="w-[75px] h-[75px] object-cover"
-            alt="Money icon"
+            alt="Money"
             src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/money-icon.png`}
           />
-          <div className="w-[158px] font-medium leading-[18px] text-black text-sm">
+          <p className="w-[201px] text-sm leading-[18px] text-black font-medium">
+            {chatInfo?.partner.nickname || 'OOO'} 님과 거래가 시작되었어요.
+            <br />
             최종 거래 가격을 입력해주세요!
-          </div>
+          </p>
         </div>
 
-        {/* 버튼만: 모달 오픈 */}
         <button
           type="button"
-          className={`relative w-[150px] h-10 bg-[#fce94f] rounded-[20px] border-2 border-solid border-black cursor-pointer transition-all duration-200 ${
-            isButtonHovered ? 'transform scale-105 shadow-lg' : ''
-          }`}
-          onClick={openFinalPriceModal}
-          onMouseEnter={() => setIsButtonHovered(true)}
+          onClick={handleOpen}
+          onMouseEnter={() => isSeller && setIsButtonHovered(true)}
           onMouseLeave={() => setIsButtonHovered(false)}
-          aria-label="가격 설정하기"
+          disabled={!isSeller}
+          aria-disabled={!isSeller}
+          className={[
+            'relative w-40 h-10 rounded-[20px] border-2 border-black transition-all duration-200',
+            isSeller
+              ? `bg-[#fce94f] ${isButtonHovered ? 'scale-105 shadow-lg' : ''}`
+              : 'bg-gray-300 cursor-not-allowed'
+          ].join(' ')}
+          aria-label="최종 거래 가격 설정하기"
         >
-          <div className="absolute top-2.5 left-9 font-bold text-black text-sm">
-            가격 설정하기
-          </div>
+          <span className="absolute top-2.5 left-3.5 font-bold text-sm text-black">
+            최종 거래 가격 설정하기
+          </span>
         </button>
       </div>
 
-      {/* 오버레이 모달 */}
-      <OverlayPortal open={isFinalPriceModalOpen} onClose={closeFinalPriceModal}>
-        <FinalPriceModal onClose={closeFinalPriceModal} onSubmit={handleSubmitFinalPrice} />
+      {/* 🔽 포탈로 finalPriceForm 띄우기 */}
+      <OverlayPortal open={open} onClose={() => setOpen(false)}>
+        <FinalPriceModal
+          onClose={() => setOpen(false)}
+          onSubmit={handleSubmitFinalPrice}
+        />
       </OverlayPortal>
     </div>
   )
