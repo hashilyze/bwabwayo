@@ -194,11 +194,14 @@ export default function ProductDetailPage() {
             <div className="flex-3 flex flex-col gap-10">
               {/* Product Info */}
               <div className="">
-                <div className="bg-white rounded-2xl shadow-sm p-8 mb-6 border-2 border-black">
+                <div className="bg-white rounded-2xl shadow-sm p-8 mb-6 border-2 border-black relative">
                   <p className="text-black text-md mb-2">
                     홈 &gt; {product?.categories?.[0]?.name || '대분류'} &gt; {product?.categories?.[1]?.name || '소분류'}
                   </p>
-                    <div className="flex flex-col mt-6 mb-4 gap-2">
+
+                  <Link href={`/product/${productId}/edit`} className="block bg-black text-white text-xl p-2  absolute top-10 right-10">수정</Link>
+                  
+                  <div className="flex flex-col mt-6 mb-4 gap-2">
                     <h1 className="text-2xl">{product?.title || '상품명'}</h1>
                     <p className="text-4xl text-black font-bold">
                       {(product?.price || 0).toLocaleString()}원
