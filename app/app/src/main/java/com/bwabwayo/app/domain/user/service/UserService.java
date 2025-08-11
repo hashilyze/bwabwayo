@@ -87,7 +87,7 @@ public class UserService {
                 .profileImage(targetKey)
                 .bio(request.getNickname() + "의 상점입니다.")
                 .score(500)
-                .point(PointEventType.SIGNUP_FIRST.getPoint())
+                .point(0)
                 .dealCount(0)
                 .penaltyCount(0)
                 .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
