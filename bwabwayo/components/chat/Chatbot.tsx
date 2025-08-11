@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useChatBotStore } from "@/stores/chatBotStore";
+import Link from "next/link";
 
 // --- 타입 정의 ---
 type DisplayMessage = {
@@ -23,7 +24,7 @@ type ListingItem = {
   href?: string;
 };
 
-// --- 아이콘 컴포넌트들 ---
+// --- 아이콘 ---
 const CloseIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -40,6 +41,7 @@ const CloseIcon = () => (
     />
   </svg>
 );
+
 const SendIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -50,6 +52,7 @@ const SendIcon = () => (
     <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
   </svg>
 );
+
 const ChatbotIcon = () => (
   <img
     src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/chat-bot.png`}
@@ -57,7 +60,7 @@ const ChatbotIcon = () => (
   />
 );
 
-// --- 챗봇 창 컴포넌트 ---
+// --- 챗봇 창 ---
 function ChatbotWindow({
   isOpen,
   onClose,
@@ -155,15 +158,16 @@ function ChatbotWindow({
       const data = await res.json();
       const list = Array.isArray(data) ? data : [];
 
-      // 절대 URL 그대로 사용
       const items: ListingItem[] = list.slice(0, 5).map((p: any) => ({
         id: p.id,
         title: p.title,
         price: typeof p.price === "number" ? p.price : null,
         imageUrl:
-          Array.isArray(p.imageUrls) && p.imageUrls[0] ? p.imageUrls[0] : null, // ✅ 절대 URL 그대로
+          Array.isArray(p.imageUrls) && p.imageUrls[0]
+            ? p.imageUrls[0]
+            : undefined, // 절대 URL
         categoryName: p.categoryName,
-        href: `/product/${p.id}`, // ✅ /product 단수로 통일
+        href: `/product/${p.id}`,
       }));
 
       setMessages((prev) => {
@@ -229,14 +233,17 @@ function ChatbotWindow({
   return (
     <div
       ref={chatbotWindowRef}
-      className={`fixed z-98 bottom-24 right-4 sm:right-8 w-[391px] h-[564px] bg-white rounded-[40px] shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${
-        isOpen
-          ? "opacity-100 translate-y-0"
-          : "opacity-0 translate-y-5 pointer-events-none"
-      }`}
+      className={`fixed z-98 bottom-24 right-4 sm:right-8
+                  w-[456px] h-[642px]
+                  bg-white rounded-[40px] shadow-2xl flex flex-col overflow-hidden
+                  transition-all duration-300 ease-in-out ${
+                    isOpen
+                      ? "opacity-100 translate-y-0"
+                      : "opacity-0 translate-y-5 pointer-events-none"
+                  }`}
     >
       <header className="flex items-center px-6 pt-4 pb-2 flex-shrink-0">
-        <span className="text-xl font-bold text-green-600">AI 챗봇</span>
+        <span className="text-[22px] font-bold text-green-600">AI 챗봇</span>
         <button
           onClick={onClose}
           className="ml-auto p-1 rounded-full hover:bg-gray-200"
@@ -244,11 +251,12 @@ function ChatbotWindow({
           <CloseIcon />
         </button>
       </header>
+
       <div className="h-px bg-gray-200 w-full" />
 
       <main
         ref={chatAreaRef}
-        className="flex-1 px-6 py-4 overflow-y-auto space-y-4"
+        className="flex-1 px-6 py-5 overflow-y-auto space-y-4"
       >
         {messages.map((msg, index) => {
           if (msg.type === "greeting") {
@@ -264,7 +272,8 @@ function ChatbotWindow({
           if (msg.type === "user") {
             return (
               <div key={index} className="flex justify-end">
-                <div className="bg-green-600 text-white rounded-2xl rounded-br-lg px-4 py-3 max-w-[80%] text-sm font-medium whitespace-pre-wrap">
+                {/* 사용자 말풍선: 폰트 16px, 너비 살짝↑ */}
+                <div className="bg-green-600 text-white rounded-2xl rounded-br-lg px-4 py-3 max-w-[88%] text-[17px] font-medium whitespace-pre-wrap">
                   {msg.text}
                 </div>
               </div>
@@ -278,7 +287,8 @@ function ChatbotWindow({
 
             return (
               <div key={index} className="flex flex-col items-start space-y-2">
-                <div className="bg-gray-100 text-gray-800 rounded-2xl rounded-bl-lg px-4 py-3 max-w-[90%] text-md">
+                {/* 리스트 컨테이너: 폰트 16px, 너비↑ */}
+                <div className="bg-gray-100 text-gray-800 rounded-2xl rounded-bl-lg px-4 py-3 max-w-[94%] text-[17px]">
                   <div className="font-semibold mb-2">{msg.text}</div>
 
                   {items.length === 0 ? (
@@ -287,22 +297,22 @@ function ChatbotWindow({
                     <ul className="space-y-3">
                       {items.map((item) => (
                         <li key={item.id} className="flex gap-3 items-start">
-                          {/* 왼쪽 이미지 */}
+                          {/* 썸네일: 72 → 80 */}
                           <img
-                            className="w-16 h-16 rounded-lg object-cover bg-gray-200 flex-shrink-0"
+                            className="w-[80px] h-[80px] rounded-lg object-cover bg-gray-200 flex-shrink-0"
                             src={item.imageUrl || FALLBACK}
                             alt={item.title}
                             loading="lazy"
                             onError={(e) => {
                               const img = e.currentTarget as HTMLImageElement;
-                              img.onerror = null; // 무한 루프 방지
+                              img.onerror = null;
                               img.src = FALLBACK;
                             }}
                           />
                           {/* 오른쪽 정보 */}
                           <div className="flex-1 min-w-0">
                             <div
-                              className="text-sm font-medium leading-5 whitespace-pre-wrap break-words break-all"
+                              className="text-[17px] font-medium leading-[1.5rem] whitespace-pre-wrap break-words break-all"
                               style={{ hyphens: "auto" }}
                             >
                               {item.title}
@@ -313,20 +323,22 @@ function ChatbotWindow({
                                 {item.categoryName}
                               </div>
                             )}
+
                             <div className="text-sm mt-1">
                               {typeof item.price === "number"
                                 ? `${item.price.toLocaleString()}원`
                                 : "-"}
                             </div>
+
                             <div className="mt-1">
-                              <a
+                              <Link
                                 href={`https://i13e202.p.ssafy.io/fe/product/${item.id}`}
                                 className="text-xs text-green-700 underline hover:text-green-800"
                                 target="_blank"
                                 rel="noopener noreferrer"
                               >
                                 판매글 보기
-                              </a>
+                              </Link>
                             </div>
                           </div>
                         </li>
@@ -344,10 +356,10 @@ function ChatbotWindow({
               index === messages.findIndex((m) => m.type === "bot");
             return (
               <div key={index} className="flex flex-col items-start space-y-2">
-                <div className="bg-gray-100 text-gray-800 rounded-2xl rounded-bl-lg px-4 py-3 max-w-[80%] text-md whitespace-pre-wrap">
+                {/* 챗봇 말풍선: 폰트 16px, 너비↑, 패딩↑ */}
+                <div className="bg-gray-100 text-gray-800 rounded-2xl rounded-bl-lg px-5 py-4 max-w-[90%] text-[17px] whitespace-pre-wrap leading-[1.5rem]">
                   {msg.text}
 
-                  {/* 최초 진입 버튼 */}
                   {isFirstBot && !inputActive && (
                     <div className="mt-3 flex">
                       <button
@@ -373,7 +385,6 @@ function ChatbotWindow({
                     </div>
                   )}
 
-                  {/* 상품별 액션 버튼 */}
                   {msg.actions?.length ? (
                     <div className="mt-3 flex flex-wrap gap-2">
                       {msg.actions.map((a, i) => (
@@ -398,7 +409,7 @@ function ChatbotWindow({
         {/* 로딩 버블 */}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 text-gray-800 rounded-2xl rounded-bl-lg px-4 py-3 max-w-[80%] text-sm">
+            <div className="bg-gray-100 text-gray-800 rounded-2xl rounded-bl-lg px-4 py-3 max-w-[90%] text-[17px]">
               AI가 생각 중입니다...
             </div>
           </div>
@@ -411,7 +422,7 @@ function ChatbotWindow({
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            className={`flex-1 rounded-full px-5 py-3 outline-none text-sm placeholder-gray-500 ${
+            className={`flex-1 rounded-full px-5 py-3 outline-none text-[17px] placeholder-gray-500 ${
               inputActive
                 ? "bg-gray-100 text-gray-800"
                 : "bg-gray-200 text-gray-400 cursor-not-allowed"
@@ -425,7 +436,7 @@ function ChatbotWindow({
           />
           <button
             type="submit"
-            className={`w-10 h-10 ml-3 rounded-full flex items-center justify-center flex-shrink-0 ${
+            className={`w-[42px] h-[42px] ml-3 rounded-full flex items-center justify-center flex-shrink-0 ${
               inputActive && !loading
                 ? "bg-green-600 hover:bg-green-700"
                 : "bg-gray-400"
@@ -440,7 +451,7 @@ function ChatbotWindow({
   );
 }
 
-// --- 최종 챗봇 컴포넌트 ---
+// --- 최종 챗봇 ---
 export default function Chatbot() {
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
