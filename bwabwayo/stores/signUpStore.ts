@@ -148,7 +148,7 @@ export const useSignupStore = create<SignupState>((set, get) => ({
                 nickname,
                 phoneNumber: phoneNumber || null,
                 accountNumber: accountNumber,
-                accountHolder: accountHolder,
+                accountHolder: accountHolder ,
                 bankName: bankName,
                 recipientName: recipientName || null,
                 recipientPhoneNumber: recipientPhoneNumber || null,

@@ -5,6 +5,7 @@ import React, { useRef, ChangeEvent, FormEvent, useEffect, useState } from 'reac
 import { useRouter } from 'next/navigation';
 import { useSignupStore } from '@/stores/signUpStore';
 import Script from 'next/script';
+import SignupSuccessModal from '@/components/signup/SignupSuccessModal'; // 성공 모달 컴포넌트 추가
 
 import { UserCircleIcon, XCircleIcon } from '@/components/signup/Icons'; // 아이콘 컴포넌트 경로가 맞는지 확인해주세요.
 
@@ -45,6 +46,7 @@ export default function SignUpPage() {
     // --- 이미지 업로드 관련 로컬 상태 ---
     const [isUploading, setIsUploading] = useState(false);
     const [preview, setPreview] = useState<string | null>(null);
+    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false); // 성공 모달 상태 추가
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
@@ -156,25 +158,45 @@ export default function SignUpPage() {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+
+        // 약관 동의 확인
         if (!agreements.terms || !agreements.privacy) {
             alert('필수 약관에 동의해주세요.');
             return;
         }
+
+        // 계좌 정보 유효성 검사: 하나라도 입력되면 모두 필수
+        const accountInfoProvided = bankName.trim() || accountNumber.trim() || accountHolder.trim();
+        const allAccountInfoProvided = bankName.trim() && accountNumber.trim() && accountHolder.trim();
+
+        if (accountInfoProvided && !allAccountInfoProvided) {
+            alert('계좌 정보를 모두 입력하거나 모두 비워주세요.');
+            return;
+        }
+
+        // 배송지 정보 유효성 검사: 하나라도 입력되면 모두 필수
+        const addressInfoProvided = recipientName.trim() || recipientPhoneNumber.trim() || zipcode.trim() || address.trim() || addressDetail.trim();
+        const allAddressInfoProvided = recipientName.trim() && recipientPhoneNumber.trim() && zipcode.trim() && address.trim() && addressDetail.trim();
+
+        if (addressInfoProvided && !allAddressInfoProvided) {
+            alert('배송지 정보를 모두 입력하거나 모두 비워주세요.');
+            return;
+        }
+
         await submitSignup();
     };
 
-      useEffect(() => {
-        if (isSuccess) {
-            alert(
-            '회원가입이 완료되었습니다!\n' +
-            '환영합니다! 첫 가입 축하로 3,000포인트가 적립되었어요.\n' +
-            '또한 로그인 보너스로 100포인트도 함께 지급되었습니다.'
-            );
+    useEffect(() => {
+        if (isSuccess) {
+            setIsSuccessModalOpen(true);
+        }
+    }, [isSuccess]);
 
-            reset();
-            router.replace('/');
-        }
-    }, [isSuccess, reset, router]);
+    const handleSuccessConfirm = () => {
+        setIsSuccessModalOpen(false);
+        reset();
+        router.replace('/');
+    };
 
     const allRequiredAgreed = agreements.terms && agreements.privacy;
 
@@ -324,6 +346,7 @@ export default function SignUpPage() {
                 </div>
                 {error && <p className="text-red-500 text-sm text-center mt-2">{error}</p>}
             </form>
+            <SignupSuccessModal isOpen={isSuccessModalOpen} onConfirm={handleSuccessConfirm} />
         </div>
     </div></>
   );
