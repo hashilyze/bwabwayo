@@ -22,7 +22,7 @@ public class ProductImage {
 
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
+    @JoinColumn(name = "product_id")
     private Product product; // 상품
 
     @Column(nullable = false)
