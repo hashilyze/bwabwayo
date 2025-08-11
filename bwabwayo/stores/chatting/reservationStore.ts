@@ -16,14 +16,28 @@ interface ReservationState {
   setSelectedTime: (time: string | null) => void;
   resetReservation: () => void;
   addSchedule: (startAt: Date, chatRoomId: number) => Promise<void>;
+  videoSchedule: any[];
+  getSchedule: () => Promise<void>;
 }
 
 export const useReservationStore = create<ReservationState>((set) => ({
+  videoSchedule: [],
   selectedDate: null,
   selectedTime: null,
   setSelectedDate: (date) => set({ selectedDate: date }),
   setSelectedTime: (time) => set({ selectedTime: time }),
   resetReservation: () => set({ selectedDate: null, selectedTime: null }),
+
+  getSchedule: async () => {
+    try {
+      const response = await authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/users/video`);
+      const data = await response.json();
+      console.log(data);
+      set({ videoSchedule: data });
+    } catch (error) {
+      console.error('Failed to get schedule', error);
+    }
+  },
 
   addSchedule: async (startAt: Date, chatRoomId: number) => {
     try {

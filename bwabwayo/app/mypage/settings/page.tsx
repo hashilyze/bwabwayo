@@ -161,11 +161,11 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-w-0 max-w-[1060px] mx-auto">
+    <div className="flex flex-col gap-10">
       {/* 제목 */}
-      <h1 className="text-3xl font-bold mb-8 text-black">내 정보 수정</h1>
+      <h1 className="text-3xl font-bold text-black">내 정보 수정</h1>
       
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-15">
         {/* 프로필 이미지 섹션 */}
         <div className="flex items-center gap-8">
           {/* 프로필 이미지 */}
@@ -219,11 +219,11 @@ export default function SettingsPage() {
         </div>
 
         {/* 구분선 */}
-        <div className="w-full h-[1px] bg-gray-200"></div>
+        {/* <div className="w-full h-[1px] bg-gray-200"></div> */}
 
-        {/* 닉네임 섹션 */}
-        <div className="flex items-center gap-4">
-          <label className="text-xl font-bold text-black min-w-[80px]">닉네임</label>
+        {/* 닉네임 행 */}
+        <div className="flex items-center">
+          <label className="text-xl font-bold text-black w-[80px] mr-10">닉네임</label>
           <input
             type="text"
             value={nickname}
@@ -233,63 +233,62 @@ export default function SettingsPage() {
           />
         </div>
 
-        {/* 구분선 */}
-        <div className="w-full h-[1px] bg-gray-200"></div>
-
-        {/* 계좌번호 섹션 */}
-        <div className="space-y-4">
-          <h3 className="text-xl font-bold text-black">계좌번호</h3>
-          
-          {/* 등록된 계좌 정보 표시 */}
-          {userData.bankName && userData.accountNumber && (
-            <div className="bg-gray-50 rounded p-4">
-              <p className="text-sm font-bold text-black mb-2">등록된 계좌 번호</p>
-              <div className="bg-gray-50 rounded p-3">
-                <div className="flex gap-4 text-sm">
-                  <span>{userData.bankName}</span>
-                  <span>{userData.accountNumber?.replace(/\d(?=\d{4})/g, '*')}</span>
+        {/* 계좌번호 행 */}
+        <div className="flex items-start">
+          <label className="text-xl font-bold text-black w-[80px] pt-2 mr-10">계좌번호</label>
+        
+          <div className="flex-1 pt-2">
+            {/* 등록된 계좌 정보 표시 */}
+            <p className="text-md font-bold text-black mb-2">등록된 계좌 번호</p>
+            {userData.bankName && userData.accountNumber && (
+              <div className="bg-gray-50 rounded p-4 mb-6">
+                <div className="bg-gray-50 rounded">
+                  <div className="flex gap-4 text-md">
+                    <span>{userData.bankName}</span>
+                    <span>{userData.accountNumber?.replace(/\d(?=\d{4})/g, '*')}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* 새로운 계좌 정보 입력 */}
-          <div className="flex gap-4 max-w-[700px]">
-            <div className="flex-1">
-              <label className="block font-bold text-black mb-2">예금주</label>
-              <input
-                type="text"
-                value={accountHolder}
-                onChange={(e) => setAccountHolder(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500"
-                placeholder="예금주"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block font-bold text-black mb-2">은행</label>
-              <div className="relative">
-                <select
-                  value={bankName}
-                  onChange={(e) => setBankName(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500 bg-white appearance-none pr-8"
-                >
-                  <option value="">은행선택</option>
-                  {BANK_LIST.map(bank => (
-                    <option key={bank} value={bank}>{bank}</option>
-                  ))}
-                </select>
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-2 h-2 border-r-2 border-b-2 border-gray-400 rotate-45"></div>
+            {/* 새로운 계좌 정보 입력 */}
+            <div className="flex gap-4 max-w-[700px]">
+              <div className="flex-1">
+                <label className="block font-bold text-black mb-2">예금주</label>
+                <input
+                  type="text"
+                  value={accountHolder}
+                  onChange={(e) => setAccountHolder(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500"
+                  placeholder="예금주"
+                />
               </div>
-            </div>
-            <div className="flex-2">
-              <label className="block font-bold text-black mb-2">계좌번호</label>
-              <input
-                type="text"
-                value={accountNumber}
-                onChange={(e) => setAccountNumber(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500"
-                placeholder="계좌번호"
-              />
+              <div className="flex-1">
+                <label className="block font-bold text-black mb-2">은행</label>
+                <div className="relative">
+                  <select
+                    value={bankName}
+                    onChange={(e) => setBankName(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500 bg-white appearance-none pr-8"
+                  >
+                    <option value="">은행선택</option>
+                    {BANK_LIST.map(bank => (
+                      <option key={bank} value={bank}>{bank}</option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-2 h-2 border-r-2 border-b-2 border-gray-400 rotate-45"></div>
+                </div>
+              </div>
+              <div className="flex-2">
+                <label className="block font-bold text-black mb-2">계좌번호</label>
+                <input
+                  type="text"
+                  value={accountNumber}
+                  onChange={(e) => setAccountNumber(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500"
+                  placeholder="계좌번호"
+                />
+              </div>
             </div>
           </div>
         </div>
