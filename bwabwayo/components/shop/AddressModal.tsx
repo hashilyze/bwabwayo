@@ -21,14 +21,8 @@ interface DaumPostcodeData {
     zonecode: string;
 }
 
-// window 객체에 daum 속성을 추가하기 위해 global 타입을 확장합니다.
-declare global {
-  interface Window {
-    daum: {
-        Postcode: new (options: { oncomplete: (data: DaumPostcodeData) => void }) => { open: () => void };
-    };
-  }
-}
+
+
 
 // --- 주소 추가 모달 컴포넌트 ---
 const AddressModal: React.FC<AddressModalProps> = ({ isOpen, onClose }) => {
