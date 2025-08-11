@@ -125,13 +125,10 @@ export default function SettingsPage() {
       return;
     }
     
-    // 계좌 정보는 3개 필드가 모두 채워져 있거나, 모두 비어있어야 합니다.
-    const accountInfoProvided = bankName.trim() || accountNumber.trim() || accountHolder.trim();
-    const allAccountInfoProvided = bankName.trim() && accountNumber.trim() && accountHolder.trim();
-
-    if (accountInfoProvided && !allAccountInfoProvided) {
-      alert('계좌 정보를 수정하시려면 은행, 계좌번호, 예금주를 모두 입력해주세요.');
-      setIsSubmitting(false);
+    // 계좌 정보는 필수 항목이므로, 빈 값이면 경고 메시지를 표시합니다.
+    if (!accountHolder.trim() || !bankName.trim() || !accountNumber.trim()) {
+      alert('계좌 정보(예금주, 은행, 계좌번호)는 필수 항목입니다.');
+      setIsSubmitting(false); // 로딩 상태를 되돌리는 것이 좋습니다.
       return;
     }
 
@@ -142,9 +139,9 @@ export default function SettingsPage() {
         nickname: nickname.trim(),
         bio: bio.trim(),
         // 사용자가 입력한 새 정보 또는 기존 정보를 전달
-        bankName: allAccountInfoProvided ? bankName.trim() : userData?.bankName || '',
-        accountNumber: allAccountInfoProvided ? accountNumber.trim() : userData?.accountNumber || '',
-        accountHolder: allAccountInfoProvided ? accountHolder.trim() : userData?.accountHolder || '',
+        bankName: bankName.trim() ,
+        accountNumber: accountNumber.trim() ,
+        accountHolder: accountHolder.trim() ,
         profileImage: imageChanged ? imageKey : null,
       };
 

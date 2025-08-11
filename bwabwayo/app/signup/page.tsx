@@ -34,13 +34,14 @@ const BANK_LIST = [
 export default function SignUpPage() {
     // --- Zustand 스토어에서 상태와 액션을 모두 가져옵니다. ---
     const {
-        showOptionalFields, profileImage, nickname, phoneNumber, email,
-        accountNumber, bankName, accountHolder, address, addressDetail, zipcode,
-        recipientName, recipientPhoneNumber, agreements, loading, error, isSuccess,
-        setShowOptionalFields, setProfileImage, setNickname, setPhoneNumber, setEmail,
-        setAccountNumber, setBankName, setAccountHolder, setAddress,
-        setAddressDetail, setZipcode, setRecipientName, setRecipientPhoneNumber,
-        setAgreement, submitSignup, reset, setSocialInfo
+        showOptionalFields, profileImage, nickname, phoneNumber, email,
+        accountNumber, bankName, accountHolder, address, addressDetail, zipcode,
+        recipientName, recipientPhoneNumber, agreements, loading, error, isSuccess,
+        loginPoint, signUpPoint, // loginPoint와 signUpPoint 추가
+        setShowOptionalFields, setProfileImage, setNickname, setPhoneNumber, setEmail,
+        setAccountNumber, setBankName, setAccountHolder, setAddress,
+        setAddressDetail, setZipcode, setRecipientName, setRecipientPhoneNumber,
+        setAgreement, submitSignup, reset, setSocialInfo
     } = useSignupStore();
 
     // --- 이미지 업로드 관련 로컬 상태 ---
@@ -165,12 +166,13 @@ export default function SignUpPage() {
             return;
         }
 
-        // 계좌 정보 유효성 검사: 하나라도 입력되면 모두 필수
-        const accountInfoProvided = bankName.trim() || accountNumber.trim() || accountHolder.trim();
-        const allAccountInfoProvided = bankName.trim() && accountNumber.trim() && accountHolder.trim();
-
-        if (accountInfoProvided && !allAccountInfoProvided) {
-            alert('은행, 계좌번호, 예금주를 모두 입력해주세요.');
+        // 필수 입력 필드 유효성 검사
+        if (!nickname.trim()) {
+            alert('닉네임을 입력해주세요.');
+            return;
+        }
+        if (!accountHolder.trim() || !bankName.trim() || !accountNumber.trim()) {
+            alert('계좌 정보(예금주, 은행, 계좌번호)는 필수입니다.');
             return;
         }
 
@@ -355,7 +357,12 @@ export default function SignUpPage() {
                 </div>
                 {error && <p className="text-red-500 text-sm text-center mt-2">{error}</p>}
             </form>
-            <SignupSuccessModal isOpen={isSuccessModalOpen} onConfirm={handleSuccessConfirm} />
+            <SignupSuccessModal 
+                isOpen={isSuccessModalOpen} 
+                onConfirm={handleSuccessConfirm}
+                loginPoint={loginPoint}
+                signUpPoint={signUpPoint}
+            />
         </div>
     </div></>
   );
