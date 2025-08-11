@@ -170,7 +170,7 @@ export default function SignUpPage() {
         const allAccountInfoProvided = bankName.trim() && accountNumber.trim() && accountHolder.trim();
 
         if (accountInfoProvided && !allAccountInfoProvided) {
-            alert('계좌 정보를 모두 입력하거나 모두 비워주세요.');
+            alert('은행, 계좌번호, 예금주를 모두 입력해주세요.');
             return;
         }
 
@@ -179,7 +179,7 @@ export default function SignUpPage() {
         const allAddressInfoProvided = recipientName.trim() && recipientPhoneNumber.trim() && zipcode.trim() && address.trim() && addressDetail.trim();
 
         if (addressInfoProvided && !allAddressInfoProvided) {
-            alert('배송지 정보를 모두 입력하거나 모두 비워주세요.');
+            alert('은행, 계좌번호, 예금주를 모두 입력해주세요.');
             return;
         }
 
