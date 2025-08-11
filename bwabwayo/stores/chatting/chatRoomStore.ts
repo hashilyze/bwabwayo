@@ -194,7 +194,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 webSocketFactory: () => socket,
        
                 connectHeaders: {
-                    Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${accessToken}`,
                 },
                 reconnectDelay: 0,
                 heartbeatIncoming: 4000,
