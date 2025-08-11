@@ -55,7 +55,7 @@ public class ProductEmbeddingService {
                 id, title, titleVector,
                 categoryName, categoryVector, categoryId,
                 price, isSale,
-                null
+                preprocessedTitle
         );
         embeddingService.upsertPoint(qdrantPointDto);
     }
