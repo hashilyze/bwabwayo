@@ -6,18 +6,18 @@ export interface UserSettingsData {
   nickname: string;
   profileImage: string | null;
   bio: string | null;
-  accountNumber: string | null;
-  bankName: string | null;
-  accountHolder: string | null;
+  accountNumber: string;
+  bankName: string;
+  accountHolder: string;
 }
 // 타입 정의 추가
 export interface ProfileData {
   nickname: string;
   profileImage?: string | null;
   bio?: string | null;
-  accountNumber?: string | null;
-  bankName?: string | null;
-  accountHolder?: string | null;
+  accountNumber?: string;
+  bankName?: string;
+  accountHolder?: string;
 }
 
 
@@ -71,6 +71,21 @@ export const useMySettingStore = create<MyPageSettingStore>((set) => ({
   set({ loading: true, error: null });
   const requestUrl = `${baseUrl}/users/detail`;
   console.log(`[설정] 프로필 업데이트 요청: PUT ${requestUrl}`, profileData);
+  if (!profileData.bankName?.trim()) {
+    const errorMsg = '은행명을 선택해주세요.';
+    set({ error: errorMsg, loading: false });
+    throw new Error(errorMsg);
+  }
+  if (!profileData.accountNumber?.trim()) {
+    const errorMsg = '계좌번호를 입력해주세요.';
+    set({ error: errorMsg, loading: false });
+    throw new Error(errorMsg);
+  }
+  if (!profileData.accountHolder?.trim()) {
+    const errorMsg = '예금주명을 입력해주세요.';
+    set({ error: errorMsg, loading: false });
+    throw new Error(errorMsg);
+  }
 
   try {
     const response = await useAuthStore.getState().authenticatedFetch(requestUrl, {

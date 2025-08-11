@@ -137,9 +137,9 @@ export const useSignupStore = create<SignupState>((set, get) => ({
                 throw new Error('닉네임을 입력해주세요.');
             }
 
-            if (!bankName.trim()) throw new Error('은행명을 선택해주세요.');
-            if (!accountNumber.trim()) throw new Error('계좌번호를 입력해주세요.');
-            if (!accountHolder.trim()) throw new Error('예금주명을 입력해주세요.');
+            if (!bankName.trim()) throw new Error('계좌 정보를 입력해주세요.');
+            if (!accountNumber.trim()) throw new Error('계좌 정보를 입력해주세요.');
+            if (!accountHolder.trim()) throw new Error('계좌 정보를 입력해주세요.');
 
             const payload = {
                 id: socialId,
@@ -148,7 +148,7 @@ export const useSignupStore = create<SignupState>((set, get) => ({
                 nickname,
                 phoneNumber: phoneNumber || null,
                 accountNumber: accountNumber,
-                accountHolder: accountHolder,
+                accountHolder: accountHolder ,
                 bankName: bankName,
                 recipientName: recipientName || null,
                 recipientPhoneNumber: recipientPhoneNumber || null,

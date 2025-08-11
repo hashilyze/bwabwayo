@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useRef, ChangeEvent, FormEvent } from 'react';
-import { useMySettingStore } from '@/stores/mypage/mySettingStore';
+import { useMySettingStore, ProfileData } from '@/stores/mypage/mySettingStore';
 
-// 회원가입 페이지와 동일한 UI/UX를 위한 아이콘 컴포넌트
+// 아이콘 컴포넌트
 const UserCircleIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-20 h-20 text-gray-400">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-24 h-24 text-gray-400">
     <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
   </svg>
 );
@@ -15,6 +15,7 @@ const XCircleIcon = () => (
     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
   </svg>
 );
+
 
 export default function SettingsPage() {
   const { userData, fetchUserData, updateUserProfile, loading: storeLoading } = useMySettingStore();
@@ -39,23 +40,23 @@ export default function SettingsPage() {
     fetchUserData();
   }, [fetchUserData]);
 
+  // userData가 변경될 때, 수정 폼의 초기값을 설정합니다.
+  // 계좌 정보는 수정 시 새로 입력받으므로 빈 값으로 둡니다.
   useEffect(() => {
     if (userData) {
       setNickname(userData.nickname || '');
       setBio(userData.bio || '');
-      setBankName(userData.bankName || '');
-      setAccountNumber(userData.accountNumber || '');
-      setAccountHolder(userData.accountHolder || '');
       setProfileImagePreview(userData.profileImage);
+      // 수정 필드는 비워둡니다.
+      setBankName('');
+      setAccountNumber('');
+      setAccountHolder('');
     }
   }, [userData]);
 
   // --- 이미지 업로드 관련 핸들러 ---
   const handleUploadClick = () => {
-    if (isUploading) {
-      alert('이미지 업로드 중입니다. 잠시만 기다려주세요.');
-      return;
-    }
+    if (isUploading) return;
     fileInputRef.current?.click();
   };
 
@@ -123,24 +124,27 @@ export default function SettingsPage() {
       setIsSubmitting(false);
       return;
     }
-
+    
+    // 계좌 정보는 3개 필드가 모두 채워져 있거나, 모두 비어있어야 합니다.
     const accountInfoProvided = bankName.trim() || accountNumber.trim() || accountHolder.trim();
     const allAccountInfoProvided = bankName.trim() && accountNumber.trim() && accountHolder.trim();
 
     if (accountInfoProvided && !allAccountInfoProvided) {
-      alert('계좌 정보를 모두 입력하거나 모두 비워주세요.');
+      alert('계좌 정보를 수정하시려면 은행, 계좌번호, 예금주를 모두 입력해주세요.');
       setIsSubmitting(false);
       return;
     }
 
     try {
       const imageChanged = profileImagePreview !== userData?.profileImage;
-      const profileUpdateRequest = {
-        nickname,
-        bio: bio.trim() || '',
-        bankName: bankName.trim() || null,
-        accountNumber: accountNumber.trim() || null,
-        accountHolder: accountHolder.trim() || null,
+      
+      const profileUpdateRequest: ProfileData = {
+        nickname: nickname.trim(),
+        bio: bio.trim(),
+        // 사용자가 입력한 새 정보 또는 기존 정보를 전달
+        bankName: allAccountInfoProvided ? bankName.trim() : userData?.bankName || '',
+        accountNumber: allAccountInfoProvided ? accountNumber.trim() : userData?.accountNumber || '',
+        accountHolder: allAccountInfoProvided ? accountHolder.trim() : userData?.accountHolder || '',
         profileImage: imageChanged ? imageKey : null,
       };
 
@@ -160,6 +164,7 @@ export default function SettingsPage() {
     return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
   }
 
+  // --- JSX (UI) ---
   return (
     <div className="flex flex-col gap-10">
       {/* 제목 */}
