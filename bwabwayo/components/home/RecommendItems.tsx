@@ -49,8 +49,12 @@ export default function RecommendItems() {
       {categoryList.map((category) => (
         <li key={category.id} className="">
             <Link href={`/search?title=${category.name}`} className="flex flex-col items-center justify-center gap-4">
-                <div className="rounded-full p-8 overflow-hidden bg-[#F9F9F9] aspect-square">
-                    <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/${category.image}`} alt={category.name} className="" />
+                <div className="rounded-full p-8 overflow-hidden bg-[#F9F9F9] aspect-square group perspective-1000 transition-transform duration-300 ease-in-out hover:rotate-y-360 transform-style-preserve-3d">
+                    <img 
+                        src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/${category.image}`} 
+                        alt={category.name} 
+                        className="" 
+                    />
                 </div>
                 <p className="text-2xl font-bold">{category.name}</p>
             </Link>

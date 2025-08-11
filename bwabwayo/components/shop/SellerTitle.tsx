@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export interface Seller {
   id?: string;
   nickname: string;
@@ -10,7 +12,7 @@ export interface Seller {
 }
 
 interface SellerTitleProps {
-  seller?: Seller;
+  seller: any;
 }
 
 export default function SellerTitle({ seller }: SellerTitleProps) {
@@ -22,18 +24,18 @@ export default function SellerTitle({ seller }: SellerTitleProps) {
     const bio = seller?.bio || "상점에 대한 설명이 없습니다.";
     const dealCount = seller?.dealCount || 0;
     const reviewCount = seller?.reviewCount || 0;
-    console.log(trustPercentage, trustScore, sellerName, sellerRating, sellerImage, bio, dealCount, reviewCount);
+    // console.log(trustPercentage, trustScore, sellerName, sellerRating, sellerImage, bio, dealCount, reviewCount);
 
     return (
         <div className="w-full flex-4">
             {/* 상점 프로필 */}
             <div className="flex items-center gap-4">
                 <div>
-                    <img src={sellerImage ?? `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/default-profile.png`} alt={`${sellerName} 프로필 이미지`} className="rounded-full border-1 border-[#eee] w-20 h-20 object-cover" />
+                    <img src={sellerImage ?? `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`} alt={`${sellerName} 프로필 이미지`} className="rounded-full border-1 border-[#eee] w-20 h-20 object-cover" />
                 </div>
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-col items-start">
-                        <h3 className="text-xl font-bold">{sellerName}님의 상점</h3>
+                        <Link href={`/shop/${seller?.id}`}><h3 className="text-xl font-bold">{sellerName}님의 상점</h3></Link>
                         <div className="flex items-center gap-1">
                             <span className="text-gray-400 text-base font-light">{sellerRating === 0 ? '0.0' : sellerRating}</span>
                             <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/star-on.svg`} alt="별점" className="w-4 h-4" />

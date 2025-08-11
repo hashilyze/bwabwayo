@@ -22,15 +22,6 @@ export default {
         'container': 'var(--container-width)',
         'container-wide': 'var(--container-width-wide)',
       },
-      animation: {
-        'scroll': 'scroll 30s linear infinite',
-      },
-      keyframes: {
-        scroll: {
-          '0%': { transform: 'translateX(100%)' },
-          '100%': { transform: 'translateX(-100%)' },
-        },
-      },
     },
   },
   plugins: [],

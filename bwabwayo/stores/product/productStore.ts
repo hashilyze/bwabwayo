@@ -234,7 +234,7 @@ export const useProductStore = create<ProductStore>((set) => ({
     try {
       const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products?keyword=${title}&sortBy=related`)
       const data = await response.json()
-      console.log('유사 상품 조회:', data.result)
+      // console.log('유사 상품 조회:', data.result)
       set({ similarProducts: data.result, loading: false })
     } catch (error) {
       console.error('유사 상품 조회 실패:', error)

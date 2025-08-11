@@ -10,11 +10,10 @@ import { useAuthStore } from "@/stores/auth/authStore";
 import { useModalStore } from "@/stores/modalStore";
 import { useLikeProductStore } from "@/stores/product/likeProductStore";
 import Link from "next/link";
-import ProductCard from "@/components/product/ProductCard";
 
 export default function ProductDetailPage() {
   const { product, loading, error, getProductDetail, similarProducts, getSimilarProducts } = useProductStore();
-  const { roomInfo, addChatRoom } = useChatRoomStore();
+  const { addChatRoom } = useChatRoomStore();
   const { isLoggedIn } = useAuthStore();
   const { openLoginModal } = useModalStore();
   const { addLike, removeLike } = useLikeProductStore();
@@ -275,8 +274,8 @@ export default function ProductDetailPage() {
               {/* 추천 상품 */}
               <div>
                 <h1 className="text-2xl font-bold mb-4">이 상품과 비슷해요!!</h1>
-                                <ul className="grid grid-cols-4 gap-4">
-                  {similarProducts?.map((similarProduct : any) => (
+                  <ul className="grid grid-cols-4 gap-4">
+                  {similarProducts?.slice(0, 4).map((similarProduct : any) => (
                     <li key={similarProduct.product.id} className="">
                       <Link href={`/product/${similarProduct.product.id}`} className="flex flex-col gap-2"  >
                       <div className="relative">
@@ -299,13 +298,13 @@ export default function ProductDetailPage() {
           </div>
 
 
-          <div className="flex flex-row gap-8 mt-10">
+          <div className="flex flex-row gap-8 mt-20">
             {/* Product Description */}
             <div className="flex-2 rounded-2xl p-8 border border-[#eee]">
               <h2 className="text-2xl font-bold mb-6">상품 설명</h2>
 
-              <div className="">
-                <p className="text-gray-700">{product?.description || '상품 설명이 없습니다.'}</p>
+              <div className="text-gray-700 whitespace-pre-wrap">
+                {product?.description || '상품 설명이 없습니다.'}
               </div>
             </div>
 
@@ -321,18 +320,18 @@ export default function ProductDetailPage() {
                     {product?.seller?.otherProducts?.map((otherProduct : any) => (
                       <li key={otherProduct.id}>
                         <Link href={`/product/${otherProduct.id}`} className="flex flex-row items-center gap-5">
-                         <div className="relative w-30 h-30">
-                           <img
-                             src={otherProduct?.thumbnail || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`} 
-                             alt="" 
-                             className="border border-[#eee] rounded-lg object-cover"
-                           />
-                         </div>
-                         <div className="flex flex-col">
-                           <p className="text-lg">{otherProduct?.title || '상품명'}</p>
-                           <p className="text-xl font-bold mb-2">{(otherProduct?.price || 0).toLocaleString()}원</p>
-                           <p className="text-md font-light text-gray-400">찜 {otherProduct?.wishCount || 0} · 조회 {otherProduct?.viewCount || 0}</p>
-                         </div>
+                          <div className="relative flex-1">
+                            <img
+                              src={otherProduct?.thumbnail || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`} 
+                              alt="" 
+                              className="border border-[#eee] rounded-lg object-cover w-full h-full"
+                            />
+                          </div>
+                          <div className="flex flex-col flex-2">
+                            <p className="text-lg">{otherProduct?.title?.length > 25 ? `${otherProduct.title.slice(0, 25)}...` : otherProduct?.title || '상품명'}</p>
+                            <p className="text-xl font-bold mb-2">{(otherProduct?.price || 0).toLocaleString()}원</p>
+                            <p className="text-md font-light text-gray-400">찜 {otherProduct?.wishCount || 0} · 조회 {otherProduct?.viewCount || 0}</p>
+                          </div>
                          </Link>
                         </li>
                       ))}

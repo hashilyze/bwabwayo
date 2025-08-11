@@ -11,7 +11,7 @@ const protectedRoutes = [
   '/product/new',
   // '/chat',
   // '/mypage',
-  '/shop',
+  '/signup',
   '/test'
 ]
 
