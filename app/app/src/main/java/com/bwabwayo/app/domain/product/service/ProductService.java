@@ -202,6 +202,14 @@ public class ProductService {
         return new PageImpl<>(products, pageable, productRepository.getCount(queryCondition));
     }
 
+    public List<Product> recommendTopK(String keyword, int k){
+        ProductQueryCondition condition = ProductQueryCondition.builder()
+                .keyword(keyword)
+                .build();
+        Pageable pageable = PageRequest.of(0, k);
+        return queryWithRelated(condition, pageable, null).map(ProductWithIsLikeDTO::getProduct).toList();
+    }
+
     /**
      * 상품 상세 정보 조회
      */
