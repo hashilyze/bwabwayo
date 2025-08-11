@@ -42,7 +42,6 @@ public class SecondhandTextPreprocessingService {
     /**
      * 중고거래 특화 텍스트 전처리
      */
-    @Cacheable(value = "preprocessed-text", key = "#text")
     public String preprocessForSecondhand(String text) {
         if (text == null || text.trim().isEmpty()) {
             return text;

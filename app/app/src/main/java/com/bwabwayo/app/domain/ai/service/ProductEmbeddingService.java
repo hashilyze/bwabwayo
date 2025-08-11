@@ -25,7 +25,7 @@ public class ProductEmbeddingService {
     private final OpenAiClient openAiClient;
     private final EmbeddingService embeddingService;
     private final CategoryService categoryService;
-//    private final SecondhandTextPreprocessingService textPreprocessingService;
+    private final SecondhandTextPreprocessingService textPreprocessingService;
 
     /**
      * 상품 벡터 저장
@@ -40,14 +40,14 @@ public class ProductEmbeddingService {
         Integer price = product.getPrice();
         Boolean isSale = product.getSaleStatus() == SaleStatus.SOLD_OUT;
 
-//        // 텍스트 전처리
-//        String preprocessedTitle = textPreprocessingService.preprocessForSecondhand(title);
-//        if(preprocessedTitle == null || preprocessedTitle.isEmpty()) {
-//            preprocessedTitle = title;
-//        }
+        // 텍스트 전처리
+        String preprocessedTitle = textPreprocessingService.preprocessForSecondhand(title);
+        if(preprocessedTitle == null || preprocessedTitle.isEmpty()) {
+            preprocessedTitle = title;
+        }
 
         // 임베딩 벡터 추출
-        List<Double> titleVector = openAiClient.getEmbedding(title);
+        List<Double> titleVector = openAiClient.getEmbedding(preprocessedTitle);
         List<Double> categoryVector = openAiClient.getEmbedding(categoryName);
 
         // Point DTO 생성
@@ -77,13 +77,13 @@ public class ProductEmbeddingService {
         Category category = categoryId != null ? categoryService.findById(categoryId) : null;
 
         // 전처리
-//        String preprocessedTitle = textPreprocessingService.preprocessForSecondhand(title);
-//        if(preprocessedTitle == null || preprocessedTitle.isEmpty()) {
-//            preprocessedTitle = title;
-//        }
+        String preprocessedTitle = textPreprocessingService.preprocessForSecondhand(title);
+        if(preprocessedTitle == null || preprocessedTitle.isEmpty()) {
+            preprocessedTitle = title;
+        }
 
         // 벡터화
-        List<Double> titleQueryVector = openAiClient.getEmbedding(title);
+        List<Double> titleQueryVector = openAiClient.getEmbedding(preprocessedTitle);
         List<Double> categoryQueryVector = category != null ? openAiClient.getEmbedding(category.getName()) : titleQueryVector;
         
         // 필터 생성
