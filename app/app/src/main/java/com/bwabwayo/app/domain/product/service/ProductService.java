@@ -62,8 +62,6 @@ public class ProductService {
 
     @Value("${product.detail.others}")
     private Integer otherCount;
-    @Value("${product.detail.similarities}")
-    private Integer similarityCount;
 
 
     /**
@@ -251,34 +249,8 @@ public class ProductService {
                 .otherProducts(others)
                 .build();
 
-        // 유사한 상품 목록
-        List<ProductDTO> productSimpleDTOS = new ArrayList<>();
-//        if(false) {
-//            List<Long> similarities = productSimilarityService.query(product.getTitle(), product.getCategory().getName(), similarityCount + 1);
-//            productSimpleDTOS = similarities
-//                    .stream()
-//                    .filter(id -> !id.equals(product.getId()))
-//                    .map(productRepository::getProductById)
-//                    .filter(Objects::nonNull)
-//                    .map(p -> ProductDTO.builder()
-//                            .id(p.getId())
-//                            .categoryId(p.getCategory().getId())
-//                            .thumbnail(storageService.getUrlFromKey(p.getThumbnail()))
-//                            .title(p.getTitle())
-//                            .price(p.getPrice())
-//                            .viewCount(viewCountService.getViewCount(p.getId()).intValue())
-//                            .wishCount(p.getWishCount())
-//                            .chatCount(p.getChatCount())
-//                            .isLike(loginUser != null && wishService.existsWish(p, loginUser))
-//                            .canVideoCall(p.isCanVideoCall())
-//                            .saleStatusCode(p.getSaleStatus().getLevel())
-//                            .saleStatus(p.getSaleStatus().getDescription())
-//                            .createdAt(p.getCreatedAt())
-//                            .build()
-//                    ).toList();
-//        }
-
         return ProductDetailResponse.builder()
+                .isMine(product.getSeller().equals(loginUser))
                 .title(product.getTitle())
                 .description(product.getDescription())
                 .price(product.getPrice())
@@ -296,7 +268,6 @@ public class ProductService {
                 .imageUrls(imageUrls)
                 .imageKeys(imageKeys)
                 .seller(sellerDTO)
-                .similarities(productSimpleDTOS)
                 .build();
     }
 
