@@ -37,6 +37,8 @@ import java.util.List;
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
 public class ProductController {
+    // 상세 조회 API에서 조회수 측정 위임
+    private final boolean DELEGATE_VIEW_COUNT = true;
 
     private final ProductService productService;
     private final ViewCountService viewCountService;
@@ -114,8 +116,7 @@ public class ProductController {
     }
 
     @Operation(summary = "상품 목록 조회")
-    @ApiResponse(
-            responseCode = "200",
+    @ApiResponse(responseCode = "200",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductPageResponse.class))
     )
     @GetMapping
@@ -127,14 +128,15 @@ public class ProductController {
     }
 
     @Operation(summary = "상품 상세 조회")
-    @ApiResponse(responseCode = "200",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDetailResponse.class))
-    )
+    @ApiResponse(responseCode = "200")
     @GetMapping("/{productId}")
-    public ResponseEntity<?> getProductById(
+    public ResponseEntity<ProductDetailResponse> getProductById(
             @PathVariable Long productId,
-            @LoginUser(required = false) User user
+            @LoginUser(required = false) User user,
+            HttpServletRequest request
     ) {
+        if(DELEGATE_VIEW_COUNT) increaseViewCount(productId, user, request);
+
         Product product = productService.findById(productId);
 
         ProductDetailResponse productDetail = productService.getProductDetail(product, user);
@@ -144,14 +146,12 @@ public class ProductController {
 
     /* ================ 조회수 ====================*/
     @Operation(summary = "조회수 증가")
-    @ApiResponse(responseCode = "200",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ViewCountResponse.class))
-    )
+    @ApiResponse(responseCode = "200")
     @GetMapping("{productId}/view")
-    public ResponseEntity<?> increaseViewCount(
+    public ResponseEntity<ViewCountResponse> increaseViewCount(
             @PathVariable Long productId,
-            HttpServletRequest request,
-            @LoginUser(required = false) User loginUser
+            @LoginUser(required = false) User loginUser,
+            HttpServletRequest request
     ){
         // 비로그인 사용자는 IP 기준으로 식별
         String identifier = loginUser != null ? loginUser.getId() : request.getRemoteAddr();
