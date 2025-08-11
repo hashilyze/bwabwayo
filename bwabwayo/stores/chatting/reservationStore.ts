@@ -16,12 +16,13 @@ interface ReservationState {
   setSelectedTime: (time: string | null) => void;
   resetReservation: () => void;
   addSchedule: (startAt: Date, chatRoomId: number) => Promise<void>;
-  videoSchedule: any[];
+  videoSchedules: any[];
   getSchedule: () => Promise<void>;
+  deleteSchedule: (chatRoomId: number, scheduleId: number) => Promise<void>;
 }
 
 export const useReservationStore = create<ReservationState>((set) => ({
-  videoSchedule: [],
+  videoSchedules: [],
   selectedDate: null,
   selectedTime: null,
   setSelectedDate: (date) => set({ selectedDate: date }),
@@ -32,8 +33,8 @@ export const useReservationStore = create<ReservationState>((set) => ({
     try {
       const response = await authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/users/video`);
       const data = await response.json();
-      console.log(data);
-      set({ videoSchedule: data });
+      // console.log(data);
+      set({ videoSchedules: data });
     } catch (error) {
       console.error('Failed to get schedule', error);
     }
@@ -68,6 +69,17 @@ export const useReservationStore = create<ReservationState>((set) => ({
     }
     catch (error) {
       console.error('Failed to add schedule', error)
+    }
+  },
+
+  deleteSchedule: async (chatRoomId: number, scheduleId: number) => {
+    try {
+      const response = await authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/chatrooms/${chatRoomId}/schedule/${scheduleId}`, {
+        method: 'DELETE',
+      });
+      console.log(response);
+    } catch (error) {
+      console.error('Failed to delete schedule', error)
     }
   }
 }));
