@@ -9,12 +9,12 @@ export default function MyPageLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="container-default m-auto pt-10 pb-20">
+    <div className="container-default m-auto pt-20 pb-30">
       <div className="flex gap-10">
         {/* userId를 전달하지 않으면 '마이페이지'용 사이드바가 렌더링됩니다. */}
         <Sidebar />
         
-        <main className="flex-1 min-w-0">
+        <main className="w-full">
           {children}
         </main>
       </div>

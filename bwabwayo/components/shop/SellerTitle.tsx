@@ -25,7 +25,7 @@ export default function SellerTitle({ seller }: SellerTitleProps) {
     console.log(trustPercentage, trustScore, sellerName, sellerRating, sellerImage, bio, dealCount, reviewCount);
 
     return (
-        <div className="w-full flex-2">
+        <div className="w-full flex-4">
             {/* 상점 프로필 */}
             <div className="flex items-center gap-4">
                 <div>
@@ -33,11 +33,11 @@ export default function SellerTitle({ seller }: SellerTitleProps) {
                 </div>
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-col items-start">
-                        <h3 className="text-lg font-bold">{sellerName}님의 상점</h3>
+                        <h3 className="text-xl font-bold">{sellerName}님의 상점</h3>
                         <div className="flex items-center gap-1">
-                            <span className="text-gray-400 text-base font-light">{sellerRating}</span>
+                            <span className="text-gray-400 text-base font-light">{sellerRating === 0 ? '0.0' : sellerRating}</span>
                             <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/star-on.svg`} alt="별점" className="w-4 h-4" />
-                            <span className="text-gray-400 text-base font-light">{reviewCount}</span>
+                            <span className="text-gray-400 text-base font-light">({reviewCount})</span>
                         </div>
                     </div>
                 </div>
@@ -47,7 +47,7 @@ export default function SellerTitle({ seller }: SellerTitleProps) {
             <div className="w-full flex flex-col gap-1 mt-4 mb-6">
                 <div className="flex items-center justify-between">
                     <p className="font-medium text-[#1BA54E]">신뢰지수 <span className="text-lg font-bold">{trustScore}</span></p>
-                    <p className="text-gray-400 text-md font-light">1000</p>
+                    <p className="text-gray-400 text-md font-light">1,000</p>
                 </div>
                 <div className="w-full">
                     <div className="h-2 bg-gray-200 rounded-full overflow-hidden">

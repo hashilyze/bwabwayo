@@ -27,7 +27,7 @@ export default function SettingsPage() {
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [imageKey, setImageKey] = useState<string | null>(null); // 이미지 키 상태 추가
+  const [imageKey, setImageKey] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const BANK_LIST = [
@@ -51,7 +51,6 @@ export default function SettingsPage() {
   }, [userData]);
 
   // --- 이미지 업로드 관련 핸들러 ---
-
   const handleUploadClick = () => {
     if (isUploading) {
       alert('이미지 업로드 중입니다. 잠시만 기다려주세요.');
@@ -78,14 +77,12 @@ export default function SettingsPage() {
       const newImageKey = data.results[0]?.key;
       if (!imageUrl) throw new Error('업로드된 이미지 URL을 받지 못했습니다.');
 
-      // 미리보기를 최종 S3 URL로 업데이트
       setProfileImagePreview(imageUrl);
       setImageKey(newImageKey);
 
     } catch (error) {
       console.error('프로필 이미지 업로드 오류:', error);
       alert('이미지 업로드 중 오류가 발생했습니다.');
-      // 오류 발생 시, 원래 서버에 저장되어 있던 이미지로 되돌립니다.
       setProfileImagePreview(userData?.profileImage || null);
       setImageKey(null);
     } finally {
@@ -97,37 +94,28 @@ export default function SettingsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // 기존 임시 URL이 있다면 메모리에서 해제
     if (profileImagePreview && profileImagePreview.startsWith('blob:')) {
       URL.revokeObjectURL(profileImagePreview);
     }
 
-    // 임시 URL로 즉시 미리보기 표시
     setProfileImagePreview(URL.createObjectURL(file));
-
-    // S3에 업로드 시작
     await uploadProfileImage(file);
 
-    // 다음 선택을 위해 input 값 초기화
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
   const handleDeleteImage = () => {
-    // 임시 URL이 있다면 메모리에서 해제
     if (profileImagePreview && profileImagePreview.startsWith('blob:')) {
       URL.revokeObjectURL(profileImagePreview);
     }
-    // 선택을 취소하고 원래 이미지로 되돌립니다.
     setProfileImagePreview(userData?.profileImage || null);
     setImageKey(null);
   };
 
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     setIsSubmitting(true);
 
     if (!nickname.trim()) {
@@ -146,8 +134,6 @@ export default function SettingsPage() {
     }
 
     try {
-      // 이미지는 '변경하기' 클릭 시점에 미리 업로드되었으므로,
-      // 현재 profileImagePreview 상태에 있는 최종 URL을 사용합니다.
       const imageChanged = profileImagePreview !== userData?.profileImage;
       const profileUpdateRequest = {
         nickname,
@@ -175,132 +161,150 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-w-0">
-        <h1 className="text-3xl font-bold mb-8">내 정보 수정</h1>
-        <form onSubmit={handleSubmit} className="space-y-8 w-[800px] bg-white p-8 rounded-xl shadow-sm">
-          {/* --- 수정된 부분: Profile Image Section --- */}
-          <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
-            <label className="font-bold text-lg">프로필 사진</label>
-            <div className="md:col-span-2 flex items-center gap-4">
-              <input
-                type="file"
-                accept="image/*"
-                ref={fileInputRef}
-                onChange={handleImageChange}
-                className="hidden"
-              />
-              <div className="relative w-24 h-24">
-                <div
-                  onClick={handleUploadClick}
-                  className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed hover:border-yellow-400 transition-all"
-                >
-                  {profileImagePreview ? (
-                    <img src={profileImagePreview} alt="프로필 미리보기" width={96} height={96} className="w-full h-full object-cover" />
-                  ) : (
-                    <UserCircleIcon />
-                  )}
-                  {isUploading && (
-                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-full">
-                      <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full"></div>
-                    </div>
-                  )}
+    <div className="min-w-0 max-w-[1060px] mx-auto">
+      {/* 제목 */}
+      <h1 className="text-3xl font-bold mb-8 text-black">내 정보 수정</h1>
+      
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* 프로필 이미지 섹션 */}
+        <div className="flex items-center gap-8">
+          {/* 프로필 이미지 */}
+          <div className="relative">
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={handleImageChange}
+              className="hidden"
+            />
+            <div
+              onClick={handleUploadClick}
+              className="w-[115px] h-[115px] rounded-full bg-gray-200 flex items-center justify-center cursor-pointer overflow-hidden"
+            >
+              {profileImagePreview ? (
+                <img src={profileImagePreview} alt="프로필 미리보기" className="w-full h-full object-cover" />
+              ) : (
+                <UserCircleIcon />
+              )}
+              {isUploading && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-full">
+                  <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full"></div>
                 </div>
-                {profileImagePreview && !isUploading && (
-                  <button type="button" onClick={handleDeleteImage} className="absolute -top-1 -right-1 bg-white rounded-full text-gray-500 hover:text-red-500 transition-colors" aria-label="이미지 삭제">
-                    <XCircleIcon />
-                  </button>
-                )}
-              </div>
-              <div>
-                <button type="button" className="px-6 py-2 bg-yellow-300 border border-black rounded-full font-bold text-base hover:bg-yellow-200" onClick={handleUploadClick} disabled={isUploading}>
-                  {isUploading ? '업로드 중...' : '이미지 변경'}
-                </button>
-                <p className="text-sm text-gray-500 mt-2">최대 10MB의 JPG, PNG, GIF파일</p>
+              )}
+            </div>
+            {profileImagePreview && !isUploading && (
+              <button 
+                type="button" 
+                onClick={handleDeleteImage} 
+                className="absolute -top-1 -right-1 bg-white rounded-full text-gray-500 hover:text-red-500 transition-colors" 
+                aria-label="이미지 삭제"
+              >
+                <XCircleIcon />
+              </button>
+            )}
+          </div>
+          
+          {/* 이미지 변경 버튼과 설명 */}
+          <div className="flex flex-col gap-2">
+            <button 
+              type="button" 
+              className="px-6 py-3 bg-yellow-300 border border-black rounded-[30px] font-bold text-lg hover:bg-yellow-200 transition-colors" 
+              onClick={handleUploadClick} 
+              disabled={isUploading}
+            >
+              {isUploading ? '업로드 중...' : '이미지 변경'}
+            </button>
+            <p className="text-sm text-gray-500">최대 10MB의 JPG, PNG, GIF파일</p>
+          </div>
+        </div>
+
+        {/* 구분선 */}
+        <div className="w-full h-[1px] bg-gray-200"></div>
+
+        {/* 닉네임 섹션 */}
+        <div className="flex items-center gap-4">
+          <label className="text-xl font-bold text-black min-w-[80px]">닉네임</label>
+          <input
+            type="text"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            className="flex-1 max-w-[258px] px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500"
+            required
+          />
+        </div>
+
+        {/* 구분선 */}
+        <div className="w-full h-[1px] bg-gray-200"></div>
+
+        {/* 계좌번호 섹션 */}
+        <div className="space-y-4">
+          <h3 className="text-xl font-bold text-black">계좌번호</h3>
+          
+          {/* 등록된 계좌 정보 표시 */}
+          {userData.bankName && userData.accountNumber && (
+            <div className="bg-gray-50 rounded p-4">
+              <p className="text-sm font-bold text-black mb-2">등록된 계좌 번호</p>
+              <div className="bg-gray-50 rounded p-3">
+                <div className="flex gap-4 text-sm">
+                  <span>{userData.bankName}</span>
+                  <span>{userData.accountNumber?.replace(/\d(?=\d{4})/g, '*')}</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Nickname */}
-          <div>
-            <label htmlFor="nickname" className="block text-sm font-medium text-gray-700 mb-2">닉네임</label>
-            <input
-              type="text"
-              id="nickname"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
-
-          {/* Bio */}
-          <div>
-            <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-2">상점 소개</label>
-            <textarea
-              id="bio"
-              rows={4}
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              placeholder="상점을 소개해주세요."
-            />
-          </div>
-
-          {/* Account Info */}
-          <div className="space-y-4 border-t pt-6">
-            <label className="block text-sm font-medium text-gray-700">계좌 정보 (선택)</label>
-            <p className="text-xs text-gray-500 -mt-2">계좌 정보를 입력하시려면 은행, 예금주명, 계좌번호를 모두 입력해주세요.</p>
-            <div className="grid grid-cols-1 grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="bankName" className="block text-sm font-medium text-gray-700 mb-1">은행</label>
+          {/* 새로운 계좌 정보 입력 */}
+          <div className="flex gap-4 max-w-[700px]">
+            <div className="flex-1">
+              <label className="block font-bold text-black mb-2">예금주</label>
+              <input
+                type="text"
+                value={accountHolder}
+                onChange={(e) => setAccountHolder(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500"
+                placeholder="예금주"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block font-bold text-black mb-2">은행</label>
+              <div className="relative">
                 <select
-                  id="bankName"
                   value={bankName}
                   onChange={(e) => setBankName(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500 bg-white appearance-none pr-8"
                 >
-                  <option value="">은행 선택</option>
+                  <option value="">은행선택</option>
                   {BANK_LIST.map(bank => (
                     <option key={bank} value={bank}>{bank}</option>
                   ))}
                 </select>
-              </div>
-              <div>
-                <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-700 mb-1">계좌번호</label>
-                <input
-                  type="text"
-                  id="accountNumber"
-                  value={accountNumber}
-                  onChange={(e) => setAccountNumber(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="'-' 없이 숫자만 입력"
-                />
-              </div>
-              <div>
-                <label htmlFor="accountHolder" className="block text-sm font-medium text-gray-700 mb-1">예금주</label>
-                <input
-                  type="text"
-                  id="accountHolder"
-                  value={accountHolder}
-                  onChange={(e) => setAccountHolder(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="예: 홍길동"
-                />
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-2 h-2 border-r-2 border-b-2 border-gray-400 rotate-45"></div>
               </div>
             </div>
+            <div className="flex-2">
+              <label className="block font-bold text-black mb-2">계좌번호</label>
+              <input
+                type="text"
+                value={accountNumber}
+                onChange={(e) => setAccountNumber(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500"
+                placeholder="계좌번호"
+              />
+            </div>
           </div>
+        </div>
 
-          {/* Submit Button */}
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              className="px-6 py-3 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-              disabled={isSubmitting || storeLoading}
-            >
-              {isSubmitting || storeLoading ? '저장 중...' : '저장하기'}
-            </button>
-          </div>
-        </form>
+        {/* 저장하기 버튼 */}
+        <div className="flex justify-center pt-8">
+          <button
+            type="submit"
+            className="px-10 py-2 bg-[#FFAE00] border border-black rounded-[30px] font-semibold text-lg hover:bg-orange-300 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            disabled={isSubmitting || storeLoading}
+          >
+            {isSubmitting || storeLoading ? '저장 중...' : '저장하기'}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
