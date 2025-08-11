@@ -44,7 +44,7 @@ public class StorageUtil {
     public String copyToDirectory(String key, String srcPrefix, String tgtPrefix) {
         if (!storageService.exists(key)) {
             log.info("스토리지에 존재하지 않는 파일: key={}", key);
-            throw new NotFoundException("스토리지에 존재하지 않는 파일: key=" + key);
+            return key;
         }
 
         String tgtKey = key;
