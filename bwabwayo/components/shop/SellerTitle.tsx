@@ -25,7 +25,7 @@ export default function SellerTitle({ seller }: SellerTitleProps) {
     console.log(trustPercentage, trustScore, sellerName, sellerRating, sellerImage, bio, dealCount, reviewCount);
 
     return (
-        <div className="w-full">
+        <div className="w-full flex-2">
             {/* 상점 프로필 */}
             <div className="flex items-center gap-4">
                 <div>

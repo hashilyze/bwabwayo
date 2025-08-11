@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useRef, ChangeEvent, FormEvent } from 'react';
-import Sidebar from '@/components/shop/Sidebar';
 import { useMySettingStore } from '@/stores/mypage/mySettingStore';
 
 // 회원가입 페이지와 동일한 UI/UX를 위한 아이콘 컴포넌트
@@ -176,9 +175,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="flex gap-10">
-      <Sidebar />
-      <main className="flex-1">
+    <div className="min-w-0">
         <h1 className="text-3xl font-bold mb-8">내 정보 수정</h1>
         <form onSubmit={handleSubmit} className="space-y-8 w-[800px] bg-white p-8 rounded-xl shadow-sm">
           {/* --- 수정된 부분: Profile Image Section --- */}
@@ -304,7 +301,6 @@ export default function SettingsPage() {
             </button>
           </div>
         </form>
-      </main>
     </div>
   );
 }

@@ -2,7 +2,6 @@
 'use client'; // 버튼 등 상호작용이 있으므로 클라이언트 컴포넌트로 선언합니다.
 
 import React from "react";
-import Sidebar from "@/components/shop/Sidebar"; // Sidebar 컴포넌트를 import 합니다.
 
 // --- 타입 정의 (Type Definition) ---
 type Trade = {
@@ -40,14 +39,7 @@ const trades: Trade[] = [
 // --- 페이지 컴포넌트 (Page Component) ---
 export default function MyPageVideoTrade() {
   return (
-    <div className="bg-gray-50 min-h-screen py-10 px-4">
-      <div className="max-w-7xl mx-auto flex flex-row gap-8">
-        
-        {/* Sidebar 컴포넌트를 여기서 사용하고, userId prop을 전달합니다. */}
-        <Sidebar />
-
-        {/* 메인 컨텐츠 */}
-        <main className="flex-1">
+    <div className="min-w-0">
           <h1 className="text-3xl font-bold mb-8">화상 거래 내역</h1>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {trades.map((trade) => (
@@ -93,8 +85,6 @@ export default function MyPageVideoTrade() {
               </div>
             ))}
           </div>
-        </main>
-      </div>
     </div>
   );
 }

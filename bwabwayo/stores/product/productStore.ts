@@ -163,7 +163,7 @@ export const useProductStore = create<ProductStore>((set) => ({
       const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products?keyword=${title}`)
       
       const data = await response.json()
-      // console.log('핫 키워드 상품 조회 성공:', data.result)
+      console.log('핫 키워드 상품 조회 성공:', data.result)
       set({ hotKeywordProducts: data.result, loading: false })
     } catch (error) {
       console.error(error)

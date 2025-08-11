@@ -248,7 +248,7 @@ export default function Home() {
             <ProductSlider products={videoCallProducts} navigationId="hot" />
           ) : (
           <div className="flex justify-center items-center py-8">
-            <div className="text-lg text-[#777]">해당 키워드의 제품이 없습니다.</div>
+            <div className="text-lg text-[#777]">화상거래 가능 제품이 없습니다.</div>
           </div>
         )}
         </div>

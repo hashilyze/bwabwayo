@@ -26,7 +26,7 @@ export default function Sidebar() {
   };
 
   return (
-   <aside className="w-56 flex-shrink-0">
+   <aside className="w-50 flex-shrink-0">
       <Link href={basePath}>
         <h2 className="text-2xl font-bold mb-8 cursor-pointer hover:text-yellow-500 transition-colors">마이페이지</h2>
       </Link>
@@ -34,16 +34,16 @@ export default function Sidebar() {
         <ul className="space-y-6">
           {Object.entries(menuItems).map(([sectionTitle, items], index) => (
             <li key={sectionTitle} className={index > 0 ? "border-t border-gray-200 pt-6" : ""}>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">{sectionTitle}</h3>
-              <ul className="space-y-2">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">{sectionTitle}</h3>
+              <ul className="space-y-3">
                 {items.map(item => (
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className={`block px-3 py-2 rounded-md text-sm transition-colors ${
+                      className={`block rounded-md text-md transition-colors ${
                         pathname === item.href 
-                        ? 'bg-yellow-400 font-semibold text-gray-900' 
-                        : 'text-gray-600 hover:bg-gray-100'
+                        ? 'font-semibold text-[#FFAE00]' 
+                        : 'text-gray-600 hover:text-[#FFAE00]'
                       }`}
                     >
                       {item.name}

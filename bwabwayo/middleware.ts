@@ -8,7 +8,7 @@ const getBasePath = () => {
 
 // 인증이 필요한 경로들 (직접 URL 접근 시에만 적용)
 const protectedRoutes = [
-  '/product/new',
+  // '/product/new',
   '/chat',
   // '/mypage',
   '/shop',

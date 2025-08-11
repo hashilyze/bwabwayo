@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Sidebar from '@/components/shop/Sidebar';
 
 // --- 타입 정의 ---
 interface Address {
@@ -83,13 +82,7 @@ export default function AddressPage() {
   // 상태 관리 로직을 제거하고 더미 데이터를 직접 사용합니다.
   const addresses = dummyAddresses;
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto flex flex-row gap-10 py-12 px-4">
-        {/* 1. 사이드바 */}
-        <Sidebar />
-    
-        {/* 2. 메인 컨텐츠 */}
-        <main className="flex-1">
+    <div className="min-w-0">
           <h1 className="text-3xl font-bold text-gray-900 mb-8">배송지 관리</h1>
           
           <div className="bg-white p-8 rounded-xl shadow-sm">
@@ -126,8 +119,6 @@ export default function AddressPage() {
               저장하기
             </button>
           </div>
-        </main>
-      </div>
     </div>
   );
 }

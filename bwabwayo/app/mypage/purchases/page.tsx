@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import Sidebar from "@/components/shop/Sidebar"; // Sidebar 컴포넌트를 import 합니다.
 import { useMyActivityStore, myPurchaseProduct } from "@/stores/mypage/myActivityStore"; // Zustand 스토어를 import 합니다.
 import Pagination from "@/components/common/Pagination"; // 페이지네이션 컴포넌트를 import 합니다.
 
@@ -38,13 +37,7 @@ export default function MyPagePurchase() {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen py-10 px-4">
-      <div className="max-w-7xl mx-auto flex flex-row gap-8">
-        
-        <Sidebar/>
-
-        {/* 메인 컨텐츠 */}
-        <main className="flex-1 min-w-0 overflow-hidden">
+    <div className="min-w-0 overflow-hidden">
           <h1 className="text-3xl font-bold mb-8">구매 상품</h1>
           
           {/* 테이블 헤더 */}
@@ -130,8 +123,6 @@ export default function MyPagePurchase() {
             totalPages={totalPages}
             onPageChange={handlePageChange}
           />
-        </main>
-      </div>
     </div>
   );
 }

@@ -1,7 +1,6 @@
 'use client'; // 페이지 내 상호작용(클릭, 라우팅)을 위해 클라이언트 컴포넌트로 선언합니다.
 
 import React, { useState, useEffect } from "react";
-import Sidebar from "@/components/shop/Sidebar"; // Sidebar 컴포넌트를 import 합니다.
 import { useMyActivityStore } from "@/stores/mypage/myActivityStore"; // Zustand 스토어를 import 합니다.
 import { ProductCardUIData } from "@/stores/product/productStore"; // UI 데이터 타입을 import 합니다.
 import ProductCard from "@/components/product/ProductCard"; // 범용 ProductCard를 사용합니다.
@@ -35,14 +34,7 @@ export default function MyPageWishlist() {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen py-10 px-4">
-      <div className="max-w-7xl mx-auto flex flex-row gap-8">
-        
-        {/* Sidebar 컴포넌트를 여기서 사용하고, userId prop을 전달합니다. */}
-        <Sidebar />
-
-        {/* 메인 컨텐츠 */}
-        <main className="flex-1">
+    <div className="min-w-0">
           <h1 className="text-3xl font-bold mb-8">찜 상품</h1>
           
           {/* 상품 리스트 */}
@@ -65,8 +57,6 @@ export default function MyPageWishlist() {
               <p className="text-gray-500">찜한 상품이 없습니다.</p>
             </div>
           )}
-        </main>
-      </div>
     </div>
   );
 }
