@@ -22,6 +22,7 @@ export default function SettingsPage() {
 
   const [nickname, setNickname] = useState('');
   const [bio, setBio] = useState('');
+
   const [bankName, setBankName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [accountHolder, setAccountHolder] = useState('');
@@ -29,6 +30,7 @@ export default function SettingsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [imageKey, setImageKey] = useState<string | null>(null);
+
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const BANK_LIST = [
@@ -115,6 +117,27 @@ export default function SettingsPage() {
     setImageKey(null);
   };
 
+  const handleAccountHolderChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    // 한글만 입력 가능하도록 정규식 사용
+    const koreanOnly = value.replace(/[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '');
+    setAccountHolder(koreanOnly);
+  };
+
+  const handleAccountNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    // 숫자만 입력 가능하도록 정규식 사용
+    const numbersOnly = value.replace(/[^0-9]/g, '');
+    setAccountNumber(numbersOnly);
+  };
+
+  const handleNicknameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    // 특수문자 제외 (영문, 숫자, 한글만 허용)
+    const validNickname = value.replace(/[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣]/g, '');
+    setNickname(validNickname);
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -125,10 +148,13 @@ export default function SettingsPage() {
       return;
     }
     
-    // 계좌 정보는 필수 항목이므로, 빈 값이면 경고 메시지를 표시합니다.
-    if (!accountHolder.trim() || !bankName.trim() || !accountNumber.trim()) {
-      alert('계좌 정보(예금주, 은행, 계좌번호)는 필수 항목입니다.');
-      setIsSubmitting(false); // 로딩 상태를 되돌리는 것이 좋습니다.
+    // 계좌 정보는 3개 필드가 모두 채워져 있거나, 모두 비어있어야 합니다.
+    const accountInfoProvided = bankName.trim() || accountNumber.trim() || accountHolder.trim();
+    const allAccountInfoProvided = bankName.trim() && accountNumber.trim() && accountHolder.trim();
+
+    if (accountInfoProvided && !allAccountInfoProvided) {
+      alert('계좌 정보를 수정하시려면 은행, 계좌번호, 예금주를 모두 입력해주세요.');
+      setIsSubmitting(false);
       return;
     }
 
@@ -139,9 +165,9 @@ export default function SettingsPage() {
         nickname: nickname.trim(),
         bio: bio.trim(),
         // 사용자가 입력한 새 정보 또는 기존 정보를 전달
-        bankName: bankName.trim() ,
-        accountNumber: accountNumber.trim() ,
-        accountHolder: accountHolder.trim() ,
+        bankName: allAccountInfoProvided ? bankName.trim() : userData?.bankName || '',
+        accountNumber: allAccountInfoProvided ? accountNumber.trim() : userData?.accountNumber || '',
+        accountHolder: allAccountInfoProvided ? accountHolder.trim() : userData?.accountHolder || '',
         profileImage: imageChanged ? imageKey : null,
       };
 
@@ -229,9 +255,20 @@ export default function SettingsPage() {
           <input
             type="text"
             value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
+            onChange={handleNicknameChange}
             className="flex-1 max-w-[258px] px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500"
             required
+          />
+        </div>
+
+        {/* 상점 소개 */}
+        <div className="flex items-start">
+          <label className="text-xl font-bold text-black w-[80px] pt-2 mr-10">상점 소개</label>
+          <textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            className="flex-1 max-w-lg h-24 px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500"
+            placeholder="가게에 대한 설명을 적어주세요."
           />
         </div>
 
@@ -260,7 +297,7 @@ export default function SettingsPage() {
                 <input
                   type="text"
                   value={accountHolder}
-                  onChange={(e) => setAccountHolder(e.target.value)}
+                  onChange={handleAccountHolderChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500"
                   placeholder="예금주"
                 />
@@ -286,7 +323,7 @@ export default function SettingsPage() {
                 <input
                   type="text"
                   value={accountNumber}
-                  onChange={(e) => setAccountNumber(e.target.value)}
+                  onChange={handleAccountNumberChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500"
                   placeholder="계좌번호"
                 />

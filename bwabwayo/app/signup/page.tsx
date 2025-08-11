@@ -134,6 +134,41 @@ export default function SignUpPage() {
         setProfileImage(null);
     };
 
+    const handleAccountHolderChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const { value } = e.target;
+        // 한글만 입력 가능하도록 정규식 사용
+        const koreanOnly = value.replace(/[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '');
+        setAccountHolder(koreanOnly);
+    };
+
+    const handleAccountNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const { value } = e.target;
+        // 숫자만 입력 가능하도록 정규식 사용
+        const numbersOnly = value.replace(/[^0-9]/g, '');
+        setAccountNumber(numbersOnly);
+    };
+
+    const handleNicknameChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const { value } = e.target;
+        // 특수문자 제외 (영문, 숫자, 한글만 허용)
+        const validNickname = value.replace(/[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣]/g, '');
+        setNickname(validNickname);
+    };
+
+    const handlePhoneNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const { value } = e.target;
+        // 숫자만 입력 가능하도록 정규식 사용
+        const numbersOnly = value.replace(/[^0-9]/g, '');
+        setPhoneNumber(numbersOnly);
+    };
+
+    const handleRecipientPhoneNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const { value } = e.target;
+        // 숫자만 입력 가능하도록 정규식 사용
+        const numbersOnly = value.replace(/[^0-9]/g, '');
+        setRecipientPhoneNumber(numbersOnly);
+    };
+
     const handleAddressSearch = () => {
         if (window.daum && window.daum.Postcode) {
             new window.daum.Postcode({
@@ -258,13 +293,13 @@ export default function SignUpPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
                     <label className="font-bold text-lg">닉네임 <span className="text-red-500">*</span></label>
                     <div className="md:col-span-2 max-w-xs">
-                        <input type="text" value={nickname} onChange={(e) => setNickname(e.target.value)} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" required />
+                        <input type="text" value={nickname} onChange={handleNicknameChange} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" required />
                     </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
                     <label className="font-bold text-lg">휴대폰 번호</label>
                     <div className="md:col-span-2 max-w-xs">
-                        <input type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" />
+                        <input type="tel" value={phoneNumber} onChange={handlePhoneNumberChange} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" />
                     </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
@@ -283,7 +318,7 @@ export default function SignUpPage() {
                         <label className="font-bold text-lg">예금주 </label>
                         <div className="md:col-span-2 max-w-xs">
                             <input type="text" value={accountHolder}
-                             onChange={(e) => setAccountHolder(e.target.value)}
+                             onChange={handleAccountHolderChange}
                             className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300"
                             required />
                         </div>
@@ -304,7 +339,7 @@ export default function SignUpPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
                         <label className="font-bold text-lg">계좌번호 </label>
                         <div className="md:col-span-2 max-w-xs">
-                            <input type="text" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)}
+                            <input type="text" value={accountNumber} onChange={handleAccountNumberChange}
                             className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" placeholder="'-' 없이 숫자만 입력"
                             required />
                         </div>
@@ -325,7 +360,7 @@ export default function SignUpPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
                         <label className="font-bold text-lg">배송지 전화번호</label>
                         <div className="md:col-span-2 max-w-xs">
-                            <input type="tel" value={recipientPhoneNumber} onChange={(e) => setRecipientPhoneNumber(e.target.value)} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" />
+                            <input type="tel" value={recipientPhoneNumber} onChange={handleRecipientPhoneNumberChange} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" />
                         </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 justify-start">
