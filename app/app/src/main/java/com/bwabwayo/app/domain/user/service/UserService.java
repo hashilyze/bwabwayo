@@ -333,14 +333,20 @@ public class UserService {
         userRepository.save(user);
     }
 
+    @Transactional
     public void penalize(User user){
-        user.setPenaltyCount(user.getPenaltyCount() + 1);
+        int penaltyCount = user.getPenaltyCount() + 1;
+        user.setPenaltyCount(penaltyCount);
+        updateUserTrustScore(user, null, null, null, penaltyCount);
         userRepository.save(user);
     }
 
+    @Transactional
     public void addDealCount(String userId){
         User user = findById(userId);
-        user.setDealCount(user.getDealCount() + 1);
+        int dealCount = user.getDealCount() + 1;
+        user.setDealCount(dealCount);
+        updateUserTrustScore(user, dealCount, null, null, null);
         userRepository.save(user);
     }
 
