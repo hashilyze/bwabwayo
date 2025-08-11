@@ -73,7 +73,7 @@ export default function MyPageVideoTrade() {
   return (
     <div className="">
       <h1 className="text-3xl font-bold mb-8">화상 거래 내역</h1>
-             <ul className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             <ul className="grid grid-cols-2 gap-6">
          {trades
            .sort((a, b) => {
              // 예정 상태(end: false)를 먼저, 완료 상태(end: true)를 나중에
@@ -91,7 +91,7 @@ export default function MyPageVideoTrade() {
               {/* 상태 버튼 */}
               <div className="flex justify-start -ml-1">
                 <div
-                  className={`inline-block px-3 py-2 rounded-[20px] text-[15px] font-semibold ${
+                  className={`inline-block px-5 py-2 rounded-[20px] text-[15px] font-semibold ${
                     trade.end
                       ? "bg-white text-[#7c7c7c] border border-[#7c7c7c]"
                       : "bg-[#fce94f] text-black border border-black"
