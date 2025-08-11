@@ -47,7 +47,7 @@ export default function MyPageVideoTrade() {
     setSelectedVideoUrl(null);
   };
 
-  // console.log("여기", videoSchedules); 
+  console.log("여기", videoSchedules); 
 
     return (
     <div className="">
@@ -171,8 +171,12 @@ export default function MyPageVideoTrade() {
                            1:1 채팅방 입장하기
                          </Link>
                          <button
-                          onClick={() => deleteSchedule(trade.roomId, trade.scheduleId)}
-                          className="flex-1 py-2 px-4 rounded-[20px] text-[14px] font-normal border border-[#eeeeee] bg-white text-black cursor-pointer hover:bg-gray-50">
+                            onClick={() => {
+                              if (window.confirm('정말 취소하시겠습니까?')) {
+                                deleteSchedule(trade.roomId, trade.scheduleId);
+                              }
+                            }}
+                            className="flex-1 py-2 px-4 rounded-[20px] text-[14px] font-normal border border-[#eeeeee] bg-white text-black cursor-pointer hover:bg-gray-50">
                            취소하기
                          </button>
                        </>

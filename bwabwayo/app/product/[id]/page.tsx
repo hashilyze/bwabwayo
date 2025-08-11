@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth/authStore";
 import { useModalStore } from "@/stores/modalStore";
 import { useLikeProductStore } from "@/stores/product/likeProductStore";
+import Link from "next/link";
 
 export default function ProductDetailPage() {
   const { product, loading, error, getProductDetail } = useProductStore();
@@ -34,6 +35,13 @@ export default function ProductDetailPage() {
   // --- 찜하기 기능 로직 통합 ---
   const [isWished, setIsWished] = useState(false);
   const [isLikeLoading, setIsLikeLoading] = useState(false);
+  
+  // --- 이미지 선택 기능 ---
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  
+  // --- 돋보기 기능 ---
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   // 상품 정보가 로드되면 초기 찜 상태를 설정합니다.
   useEffect(() => {
@@ -77,6 +85,12 @@ export default function ProductDetailPage() {
   useEffect(() => {
     getProductDetail(productId);
   }, [getProductDetail, productId]);
+
+  // 상품이 변경되면 선택된 이미지 인덱스를 0으로 리셋
+  useEffect(() => {
+    setSelectedImageIndex(0);
+    setIsZoomed(false); // 돋보기 상태도 리셋
+  }, [product]);
 
   // 상대적 시간 계산 함수
   const getRelativeTime = (dateString: string) => {
@@ -123,20 +137,43 @@ export default function ProductDetailPage() {
             <div className="flex-2 w-full max-w-md">
               <div className="sticky top-60 z-8">
                 <div className="flex flex-col gap-4">
-                  <div className="rounded-2xl overflow-hidden border border-gray-200 relative aspect-square">
+                  <div 
+                    className="rounded-2xl overflow-hidden border-2 border-black relative aspect-square cursor-zoom-in"
+                    onMouseEnter={() => setIsZoomed(true)}
+                    onMouseLeave={() => setIsZoomed(false)}
+                    onMouseMove={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const x = ((e.clientX - rect.left) / rect.width) * 100;
+                      const y = ((e.clientY - rect.top) / rect.height) * 100;
+                      setMousePosition({ x, y });
+                    }}
+                  >
                       <img
-                        src={product?.imageUrls?.[0] || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`}
+                        src={product?.imageUrls?.[selectedImageIndex] || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`}
                         alt="상품 대표 이미지" 
-                        className="object-cover"
+                        className={`object-cover w-full h-full transition-transform duration-200 ${
+                          isZoomed ? 'scale-150' : 'scale-100'
+                        }`}
+                        style={{
+                          transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`
+                        }}
                       />
                   </div>
                     <ul className="grid grid-cols-4 gap-4">
-                     {product?.imageUrls?.slice(1, 5).map((imageUrl, index) => (
-                       <li key={index} className="relative aspect-square">
+                     {product?.imageUrls?.map((imageUrl, index) => (
+                       <li 
+                         key={index} 
+                         className={`relative w-25 h-25 aspect-square rounded-xl overflow-hidden border cursor-pointer transition-all ${
+                           selectedImageIndex === index 
+                             ? 'border-black border-2' 
+                             : 'border-[#eeeeee]'
+                         }`}
+                         onClick={() => setSelectedImageIndex(index)}
+                       >
                           <img 
                             src={imageUrl || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`} 
                             alt={`상품 썸네일${index + 1}`} 
-                            className="rounded-xl border border-[#eeeeee] object-cover"
+                            className="object-cover w-full h-full"
                           />
                        </li>
                      ))}
@@ -147,38 +184,38 @@ export default function ProductDetailPage() {
 
             {/* Product Info */}
             <div className="flex-3 min-h-screen">
-              <div className="bg-white rounded-2xl shadow-sm p-8 mb-6">
-                             <p className="text-gray-500 text-sm mb-2">
+              <div className="bg-white rounded-2xl shadow-sm p-8 mb-6 border-2 border-black">
+                  <p className="text-gray-500 text-md mb-2">
                    홈 &gt; {product?.categories?.[0]?.name || '대분류'} &gt; {product?.categories?.[1]?.name || '소분류'}
                  </p>
-                  <div className="flex flex-col mt-6 mb-2">
-                   <h1 className="text-2xl font-bold">{product?.title || '상품명'}</h1>
-                   <p className="text-[32px] font-black text-gray-800">
+                  <div className="flex flex-col mt-6 mb-4 gap-2">
+                   <h1 className="text-2xl">{product?.title || '상품명'}</h1>
+                   <p className="text-4xl text-black font-bold">
                      {(product?.price || 0).toLocaleString()}원
                    </p>
                  </div>
-                  <div className="text-gray-400 text-sm mb-[30px]">
+                  <div className="text-gray-400 text-md mb-[30px]">
                     {getRelativeTime(product?.createdAt || '')} · 찜 {product?.wishCount || 0} · 조회 {product?.viewCount || 0}
                   </div>
                 
-                <ul className="flex items-center mb-4 border border-gray-200 rounded-lg p-6 relative">
+                <ul className="flex items-center mb-4 bg-[#F9F9F9] rounded-lg p-6 relative">
                   <li className="flex flex-1 flex-col gap-1 items-center">
-                    <div className="text-xs text-black/50">가격제안</div>
-                    <div className="text-base font-semibold">{product?.canNegotiate ? '가능' : '불가능'}</div>
+                    <div className="text-md text-black/50">가격제안</div>
+                    <div className="text-lg font-semibold">{product?.canNegotiate ? '가능' : '불가능'}</div>
                   </li>
                   <li className="flex-0.5 flex items-center justify-center">
                     <div className="block w-[1px] h-7 bg-gray-200"></div>
                   </li>
                   <li className="flex flex-1 flex-col gap-1 items-center">
-                    <p className="text-xs text-black/50">화상거래</p>
-                    <p className="text-base font-semibold">{product?.canVideoCall ? '가능' : '불가능'}</p>
+                    <p className="text-md text-black/50">화상거래</p>
+                    <p className="text-lg font-semibold">{product?.canVideoCall ? '가능' : '불가능'}</p>
                   </li>
                   <li className="flex-0.5 flex items-center justify-center">
                     <div className="block w-[1px] h-7 bg-gray-200"></div>
                   </li>
                   <li className="flex flex-1 flex-col gap-1 items-center">
-                    <p className="text-xs text-black/50">거래방식</p>
-                    <p className="text-base font-semibold">
+                    <p className="text-md text-black/50">거래방식</p>
+                    <p className="text-lg font-semibold"> 
                       {product?.canDirect ? '직거래' : ''} {product?.canDirect && product?.canDelivery ? ', ' : ''} {product?.canDelivery ? '택배' : ''}
                     </p>
                   </li>
@@ -186,8 +223,8 @@ export default function ProductDetailPage() {
                     <div className="block w-[1px] h-7 bg-gray-200"></div>
                   </li>
                   <li className="flex flex-1 flex-col gap-1 items-center">
-                    <div className="text-xs text-black/50">배송비</div>
-                    <div className="text-base font-semibold">{product?.shippingFee || 0}원</div>
+                    <div className="text-md text-black/50">배송비</div>
+                    <div className="text-lg font-semibold">{product?.shippingFee || 0}원</div>
                   </li>
                 </ul>
 
@@ -196,7 +233,7 @@ export default function ProductDetailPage() {
                   <button
                     onClick={handleToggleLike}
                     disabled={isLikeLoading}
-                    className="flex-1 py-4 flex items-center justify-center gap-2 border border-[#eee] text-[#777] rounded-lg cursor-pointer hover:bg-gray-50 transition-colors disabled:cursor-not-allowed"
+                    className="flex-1 py-4 flex items-center justify-center gap-2 text-lg border-2 border-block rounded-lg cursor-pointer hover:bg-gray-50 transition-colors disabled:cursor-not-allowed"
                   >
                     <img
                       src={isWished ? `${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-on.svg` : `${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-off.svg`}
@@ -214,7 +251,7 @@ export default function ProductDetailPage() {
                         openLoginModal()
                       }
                     }}
-                    className={`flex-1 py-4 flex items-center justify-center gap-2 rounded-lg py-3 font-bold cursor-pointer bg-blue-600 text-white hover:bg-blue-700`}
+                    className={`flex-1 border-2 border-black py-4 flex items-center justify-center gap-2 rounded-lg py-3 font-bold cursor-pointer bg-[#FFAE00] text-xl`}
                   >
                     1:1 채팅하기
                   </div>
@@ -222,17 +259,18 @@ export default function ProductDetailPage() {
               </div>
               
             {/* 판매자 정보 */}
-            <div className="bg-white rounded-2xl shadow-sm p-8 flex flex-col items-start gap-4">
+            <div className="bg-white rounded-2xl border-2 border-black p-8 flex flex-col items-start gap-4">
               {/* 판매자 평판 */}
               <SellerTitle seller={seller} />
 
               {/* 판매물품 */}
-              <div className="mt-8">
-                <h3 className="text-lg font-bold mb-4">{product?.seller?.nickname || '판매자'}님의 다른 상품</h3>
+              <div className="mt-10">
+                <h3 className="text-2xl font-bold mb-4">'{product?.seller?.nickname || '판매자'}'님의 다른 상품</h3>
                 <ul className="flex flex-col gap-4">
                   {product?.seller?.otherProducts?.map((otherProduct : any) => (
-                    <li key={otherProduct.id} className="flex flex-row items-center gap-4">
-                       <div className="relative w-24 h-24">
+                    <li key={otherProduct.id}>
+                      <Link href={`/product/${otherProduct.id}`} className="flex flex-row items-center gap-5">
+                       <div className="relative w-30 h-30">
                          <img
                            src={otherProduct?.thumbnail || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`} 
                            alt="" 
@@ -240,11 +278,12 @@ export default function ProductDetailPage() {
                          />
                        </div>
                        <div className="flex flex-col">
-                         <p className="text-sm">{otherProduct?.title || '상품명'}</p>
-                         <p className="text-lg font-semibold mb-1">{otherProduct?.price || 0}원</p>
-                         <p className="text-xs font-light text-gray-400">찜 {otherProduct?.wishCount || 0} · 조회 {otherProduct?.viewCount || 0}</p>
+                         <p className="text-lg">{otherProduct?.title || '상품명'}</p>
+                         <p className="text-xl font-bold mb-2">{otherProduct?.price || 0}원</p>
+                         <p className="text-md font-light text-gray-400">찜 {otherProduct?.wishCount || 0} · 조회 {otherProduct?.viewCount || 0}</p>
                        </div>
-                     </li>
+                       </Link>
+                      </li>
                   ))}
                 </ul>
               </div>
@@ -253,20 +292,12 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Product Description */}
-          <div className="bg-white rounded-2xl py-[60px] px-[40px] mt-[40px] shadow-sm">
+          <div className="bg-white rounded-2xl py-[60px] px-[40px] mt-[40px] border-2 border-black">
             <h2 className="text-2xl font-bold mb-6">상품 설명</h2>
 
-                     <div className="bg-[#F6F8F9] rounded-2xl py-8 px-6 flex flex-col gap-4">
-               <h3 className="text-xl font-semibold">상세 정보</h3>
-                           <p className="text-gray-700">
-                {product?.description || '상품 설명이 없습니다.'}
-                </p>
-             </div>
-            <ul className="bg-[#EFF6FF] flex justify-center py-12 mt-4 rounded-2xl">
-              <li className="flex-1 flex flex-col items-center gap-2"><p className="text-lg font-semibold">네고가능 여부</p><p className="text-gray-600">가능해요</p></li>
-              <li className="flex-1 flex flex-col items-center gap-2"><p className="text-lg font-semibold">거래방법</p><p className="text-gray-600">택배 / 직거래</p></li>
-              <li className="flex-1 flex flex-col items-center gap-2"><p className="text-lg font-semibold">화상거래가능 여부</p><p className="text-gray-600">가능해요</p></li>
-            </ul>
+            <div className="">
+              <p className="text-gray-700">{product?.description || '상품 설명이 없습니다.'}</p>
+            </div>
           </div>
         </>
       ) : (

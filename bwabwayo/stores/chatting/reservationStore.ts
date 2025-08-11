@@ -1,13 +1,7 @@
 import { create } from 'zustand';
 import { useAuthStore } from '@/stores/auth/authStore';
-import { useChatRoomStore } from '@/stores/chatting/chatRoomStore';
 
 const { authenticatedFetch } = useAuthStore.getState();
-
-interface Schedule {
-  created_at: Date;
-  productId: number;
-}
 
 interface ReservationState {
   selectedDate: Date | null;
