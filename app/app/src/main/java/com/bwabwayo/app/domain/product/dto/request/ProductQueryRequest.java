@@ -40,4 +40,7 @@ public class ProductQueryRequest {
 
     private Integer minPrice;
     private Integer maxPrice;
+
+    @Parameter(hidden = true)
+    private String urlPrefix;
 }

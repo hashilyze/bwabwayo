@@ -23,4 +23,6 @@ public class ProductQueryCondition {
 
     private Integer minPrice;
     private Integer maxPrice;
+
+    private String urlPrefix;
 }

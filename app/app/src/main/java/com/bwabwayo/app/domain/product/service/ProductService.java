@@ -151,6 +151,7 @@ public class ProductService {
                 .canDelivery(canDelivery)
                 .minPrice(minPrice)
                 .maxPrice(maxPrice)
+                .urlPrefix(requestDTO.getUrlPrefix())
                 .build();
 
         Page<ProductWithIsLikeDTO> pageData;
@@ -231,7 +232,7 @@ public class ProductService {
 
         // 판매자 정보
         User seller = product.getSeller();
-        List<ProductDTO> others = query(ProductQueryRequest.builder().sellerId(seller.getId()).size(otherCount + 1).build(), loginUser)
+        List<ProductDTO> others = query(ProductQueryRequest.builder().sellerId(seller.getId()).size(otherCount + 1).urlPrefix("http").build(), loginUser)
                 .getResult().stream()
                 .map(ProductQueryResult::getProduct)
                 .filter(p ->!p.getId().equals(product.getId()))

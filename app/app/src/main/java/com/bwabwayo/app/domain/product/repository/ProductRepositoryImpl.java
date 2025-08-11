@@ -33,6 +33,9 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
         QWish wish = QWish.wish;
 
         BooleanBuilder whereCondition = buildWhereCondition(queryCondition);
+        if(queryCondition.getUrlPrefix() != null && !queryCondition.getUrlPrefix().isEmpty()){
+            whereCondition.and(product.thumbnail.like(queryCondition.getUrlPrefix()+"%"));
+        }
 
         String viewerId = queryCondition.getViewerId();
 
