@@ -15,7 +15,7 @@ type Payload = {
 // 타입 선언(옵셔널)
 declare global {
   interface Window {
-    daum?: { Postcode: new (opts: { oncomplete: (data: any) => void }) => { open: () => void } }
+    daum: { Postcode: new (opts: { oncomplete: (data: any) => void }) => { open: () => void } }
   }
 }
 
