@@ -184,20 +184,21 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         
         const serverUrl = 'https://i13e202.p.ssafy.io/be/ws-stomp'
         // 토큰 가져와야하는데 어케하는지 모르겠어용 ㅠ
-        const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI0Mzc1MTI2ODM0Iiwicm9sZSI6IlVTRVIiLCJ0b2tlblR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTQzMjk4OTEsImV4cCI6MzMyNDY3OTM4OTF9.Ri8aEdsV2_37aZ9As4npi_kBvWv0ccQlUzyKweE4B-opos4h-4Ceb7OO4LQUFJp7'
-        
+        const accessToken = localStorage.getItem('accessToken')
+
         try {
             const socket = new SockJS(serverUrl)
             const client = new Client({
                 webSocketFactory: () => socket,
        
                 connectHeaders: {
-                    Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${accessToken}`,
                 },
                 reconnectDelay: 0,
                 heartbeatIncoming: 4000,
                 heartbeatOutgoing: 4000,
                 });
+
             
             client.onConnect = (frame) => {
                 // console.log('✅ STOMP: 연결 성공!')
