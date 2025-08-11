@@ -89,7 +89,7 @@ export default function ProductDetailPage() {
   // 상품 상세 정보가 로드되면 유사 상품 조회
   useEffect(() => {
     if (product?.title) {
-      getSimilarProducts(product?.title);
+      getSimilarProducts(product.title);
     }
   }, [product?.title, productId, getSimilarProducts]);
 

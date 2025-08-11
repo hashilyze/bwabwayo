@@ -103,7 +103,7 @@ interface ProductStore {
   getVideoCallProducts: () => Promise<void>
   getProductDetail: (id: number) => Promise<void>
   clearProducts: () => void
-  getSimilarProducts: (title: number) => Promise<void>
+  getSimilarProducts: (title: string) => Promise<void>
 }
 
 const baseUrl = 'https://i13e202.p.ssafy.io/be/api'
