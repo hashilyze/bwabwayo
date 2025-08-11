@@ -254,15 +254,15 @@ export default function SignUpPage() {
 
                 {/* 계좌 정보 */}
                 <div className="space-y-6">
-                    <h2 className="text-xl font-bold">계좌 정보</h2>
+                    <h2 className="text-xl font-bold">계좌 정보<span className="text-red-500"> *</span></h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
-                        <label className="font-bold text-lg">예금주</label>
+                        <label className="font-bold text-lg">예금주 </label>
                         <div className="md:col-span-2 max-w-xs">
                             <input type="text" value={accountHolder} onChange={(e) => setAccountHolder(e.target.value)} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" />
                         </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
-                        <label className="font-bold text-lg">은행</label>
+                        <label className="font-bold text-lg">은행 </label>
                         <div className="md:col-span-2 max-w-xs">
                             <select value={bankName} onChange={(e) => setBankName(e.target.value)} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300 bg-white">
                                 <option value="">은행선택</option>
@@ -271,7 +271,7 @@ export default function SignUpPage() {
                         </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
-                        <label className="font-bold text-lg">계좌번호</label>
+                        <label className="font-bold text-lg">계좌번호 </label>
                         <div className="md:col-span-2 max-w-xs">
                             <input type="text" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" placeholder="'-' 없이 숫자만 입력" />
                         </div>
