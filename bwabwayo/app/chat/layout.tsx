@@ -150,7 +150,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
         )}
         
         {/* 채팅 목록 컨테이너 */}
-        <div className="h-full overflow-y-auto">
+        <div className="h-full overflow-y-auto flex flex-col">
           {/* 헤더 */}
           <div className="h-[84px] bg-white flex items-center px-5 sticky top-0 z-10">
             <h1 className="text-xl font-bold text-black">전체 대화</h1>

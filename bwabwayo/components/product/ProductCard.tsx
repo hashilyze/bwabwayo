@@ -7,9 +7,10 @@ import { ProductCardUIData } from '@/stores/product/productStore';
 
 type Props = {
   item: ProductCardUIData
+  height?: number
 }
 
-export default function ProductCard({ item }: Props) {
+export default function ProductCard({ item, height = 300 }: Props) {
   const router = useRouter();
   const product = item;
   // console.log(product)
@@ -66,7 +67,7 @@ export default function ProductCard({ item }: Props) {
            className="w-full h-full object-cover hover:scale-105 transition-all duration-300"
            src={product.thumbnail || '/image/no-image.jpg'}
            alt={product.title}
-           style={{ height: '300px' }}
+           style={{ height: `${height}px` }}
          />
        </div>
       

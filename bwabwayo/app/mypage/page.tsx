@@ -62,20 +62,20 @@ export default function MyPage() {
 
   return (
     <div className="flex flex-col gap-12">
-      <div className="flex gap-6">
+      <div className="flex gap-10">
         {userData && <SellerTitle seller={sellerDataForTitle} />}
 
-        <div className="flex-3 max-w-[544px]">
+        <div className="flex-5">
           {/* 상품 등록 섹션 */}
-          <div className="bg-white rounded-xl p-6 mb-4">
+          <div className="rounded-xl p-6 mb-4 bg-[#F7F9FA]">
             <div className="flex justify-between items-center">
               <div>
-                <h3 className="text-lg font-bold text-black mb-1">상품 설명이 자동!</h3>
-                <p className="text-gray-500 text-sm">카테고리를 선택하면 자동으로 상품 설명을 채워줘요</p>
+                <h3 className="text-xl font-bold text-black mb-1">상품 설명이 자동!</h3>
+                <p className="text-gray-500 text-md">카테고리를 선택하면 자동으로 상품 설명을 채워줘요</p>
               </div>
               <Link
                 href="/product/new"
-                className="bg-gray-600 text-white rounded-full px-4 py-2 text-sm font-normal hover:bg-gray-700 transition whitespace-nowrap min-w-[100px]"
+                className="bg-gray-600 text-white text-center rounded-full px-4 py-2 text-md font-normal hover:bg-gray-700 transition whitespace-nowrap min-w-[100px]"
               >
                 상품등록
               </Link>
@@ -83,29 +83,29 @@ export default function MyPage() {
           </div>
 
           {/* 통계 섹션 */}
-          <ul className="grid grid-cols-4 border border-gray-200 rounded-xl overflow-hidden">
+          <ul className="flex border border-gray-200 rounded-xl overflow-hidden">
             {/* 판매상품 */}
-            <li className="p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
-              <div className="text-gray-500 text-sm mb-2">판매상품</div>
-              <div className="text-black text-xl font-normal">{myProducts.length}</div>
+            <li className="flex-1 p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
+              <div className="text-gray-500 text-md mb-1">판매상품</div>
+              <div className="text-black text-xl font-normal min-w-[60px]">{myProducts.length}</div>
             </li>
             
             {/* 거래후기 */}
-            <li className="p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
-              <div className="text-gray-500 text-sm mb-2">거래후기</div>
-              <div className="text-black text-xl font-normal">{userData.dealCount ?? 0}</div>
+            <li className="flex-1 p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
+              <div className="text-gray-500 text-md mb-1">거래후기</div>
+              <div className="text-black text-xl font-normal min-w-[60px]">{userData.dealCount ?? 0}</div>
             </li>
             
             {/* 화상거래 */}
-            <li className="p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
-              <div className="text-gray-500 text-sm mb-2">화상거래</div>
-              <div className="text-black text-xl font-normal">0</div>
+            <li className="flex-1 p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
+              <div className="text-gray-500 text-sm mb-1">화상거래</div>
+              <div className="text-black text-xl font-normal min-w-[60px]">0</div>
             </li>
             
             {/* 포인트 */}
-            <li className="p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
-              <div className="text-gray-500 text-sm mb-2">포인트</div>
-              <div className="text-black text-xl font-normal">{userData.point.toLocaleString()} P</div>
+            <li className="flex-2 p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
+              <div className="text-gray-500 text-md mb-1">포인트</div>
+              <div className="text-black text-xl font-normal min-w-[90px]">{userData.point.toLocaleString()} P</div>
             </li>
           </ul>
         </div>
@@ -114,7 +114,7 @@ export default function MyPage() {
       {/* 판매 물품 섹션 */}
       <section className="">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold">판매 물품</h3>
+          <h3 className="text-2xl font-bold">판매 물품</h3>
           {myProducts.length > 4 && (
             <Link href="/mypage/sales" className="text-sm font-semibold text-gray-600 hover:text-blue-600 hover:underline">
               더보기 &gt;
@@ -124,15 +124,16 @@ export default function MyPage() {
         {myProducts.length > 0 ? (
           <ul className="grid grid-cols-4 gap-6 gap-y-12">
             {myProducts.slice(0, 4).map((activityItem: ActivityProduct) => (
-              <li key={activityItem.product.id}>
-                <ProductCard
-                  item={{
-                    ...activityItem.product,
-                    isLike: activityItem.product.isLike ?? false,
-                  }}
-                />
-              </li>
-            ))}
+               <li key={activityItem.product.id}>
+                 <ProductCard
+                   item={{
+                     ...activityItem.product,
+                     isLike: activityItem.product.isLike ?? false,
+                   }}
+                   height={240}
+                 />
+               </li>
+             ))}
           </ul>
         ) : (
           <div className="text-center text-gray-500 py-12">판매중인 상품이 없습니다.</div>

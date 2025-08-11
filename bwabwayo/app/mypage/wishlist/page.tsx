@@ -43,7 +43,7 @@ export default function MyPageWishlist() {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {currentItems.map((item: ProductCardUIData) => (
-                  <ProductCard key={item.id} item={item} />
+                  <ProductCard key={item.id} item={item} height={240} />
                 ))}
               </div>
               <Pagination
