@@ -9,11 +9,9 @@ function CallbackHandler() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { setToken, authenticatedFetch } = useAuthStore()
-  const accessToken = searchParams.get('accessToken')
-  const isNewUser = searchParams.get('isNewUser')
+  const accessToken = searchParams?.get('accessToken')
+  const isNewUser = searchParams?.get('isNewUser')
   const { setSocialInfo, setEmail, setProfileImage } = useSignupStore();
-
-
 
   useEffect(() => {
     const processLogin = async () => {
@@ -21,10 +19,10 @@ function CallbackHandler() {
       if (isNewUser === 'true') {
         // 신규 유저인 경우, 회원가입 페이지로 모든 파라미터를 가지고 이동합니다.
         // 회원가입 페이지에서 accessToken을 포함한 다른 정보들을 활용할 수 있습니다.
-        const email = searchParams.get('email');
-        const profileImage = searchParams.get('profileImage');
-        const accessToken = searchParams.get('accessToken');
-        const id = searchParams.get('id');
+        const email = searchParams?.get('email');
+        const profileImage = searchParams?.get('profileImage');
+        const accessToken = searchParams?.get('accessToken');
+        const id = searchParams?.get('id');
         
         // store에 저장
        if (accessToken && id) {
