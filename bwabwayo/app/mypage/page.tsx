@@ -6,14 +6,24 @@ import ProductCard from "@/components/product/ProductCard";
 import SellerTitle from '@/components/shop/SellerTitle';
 import { useMyStore, Evaluation } from '@/stores/mypage/myStore';
 import { useMyActivityStore, ActivityProduct } from '@/stores/mypage/myActivityStore';
+import { useLoadingStore } from '@/stores/loadingStore';
 
 export default function MyPage() {
   const { userData, loading: userLoading, error: userError, fetchUserData } = useMyStore();
   const { salesList, salesTotalElements, loading: salesListLoading, error:salesListError, fetchSales} = useMyActivityStore();
+  const { showLoading, hideLoading } = useLoadingStore();
+  
   useEffect(() => {
-    fetchUserData();
-    fetchSales();
-  }, [fetchUserData, fetchSales]);
+    const loadData = async () => {
+      showLoading('데이터를 불러오는 중...');
+      try {
+        await Promise.all([fetchUserData(), fetchSales()]);
+      } finally {
+        hideLoading();
+      }
+    };
+    loadData();
+  }, [fetchUserData, fetchSales, showLoading, hideLoading]);
 
   // 현재 로그인한 사용자의 상품만 필터링합니다.
   const myProducts = salesList
@@ -54,6 +64,7 @@ export default function MyPage() {
     7: '포장이 깔끔해요.',
     8: '거래 장소가 안전했어요.',
   };
+  
   const formattedEvaluations = userData.evaluation.map((item) => ({
     id: item.item_id,
     text: reviewTextMap[item.item_id] || item.description,
@@ -61,17 +72,20 @@ export default function MyPage() {
   }));
 
   return (
-    <div className="flex flex-col gap-12">
+    <div className="flex flex-col gap-15">
       <div className="flex gap-10">
         {userData && <SellerTitle seller={sellerDataForTitle} />}
 
-        <div className="flex-5">
+        <div className="flex-6">
           {/* 상품 등록 섹션 */}
           <div className="rounded-xl p-6 mb-4 bg-[#F7F9FA]">
             <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-xl font-bold text-black mb-1">상품 설명이 자동!</h3>
-                <p className="text-gray-500 text-md">카테고리를 선택하면 자동으로 상품 설명을 채워줘요</p>
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16"><img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/mypage-addproduct.png`} alt="" /></div>
+                <div>
+                  <h3 className="text-xl font-bold text-black mb-1">상품 설명이 자동!</h3>
+                  <p className="text-gray-500 text-md">카테고리를 선택하면 자동으로 상품 설명을 채워줘요</p>
+                </div>
               </div>
               <Link
                 href="/product/new"
@@ -141,22 +155,57 @@ export default function MyPage() {
       </section>
 
       {/* 상점 후기 섹션 */}
-      <section className="">
-        <h3 className="text-xl font-bold mb-4">상점 후기</h3>
-        <div className="flex items-center gap-2 text-lg font-bold mb-6">
-          <span>{userData.rating}</span>
-          <span className="text-gray-500 text-base font-normal">총 후기</span>
-          <span>{userData.reviewCount}</span>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {formattedEvaluations.map((item) => (
-            <div key={item.id} className="bg-white rounded-lg shadow p-4 flex justify-between items-center">
-              <span className="text-gray-600">{item.text}</span>
-              <span className="font-bold text-blue-600">{item.count}</span>
-            </div>
-          ))}
-        </div>
-      </section>
+       <section className="">
+         <h3 className="text-2xl font-bold mb-4">상점 후기</h3>
+         
+         {/* 평점 및 총 후기 수 */}
+         <div className="border border-[#d9d9d9] rounded-[15px] p-6 mb-6">
+           <div className="flex items-center justify-center">
+             <div className="flex items-center gap-10 w-full">
+              {/* 평점 */}
+              <div className="flex flex-col items-center flex-1">
+                <span className="text-2xl font-bold text-black">{userData.rating.toFixed(1)}</span>
+                 <div className="flex gap-1 mt-2">
+                   {[1, 2, 3, 4, 5].map((star) => (
+                     <div key={star} className="w-6 h-6">
+                       <img 
+                         src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/star-${star <= Math.floor(userData.rating) ? 'on' : 'off'}.svg`} 
+                         alt={`별점 ${star}`}
+                         className="w-full h-full"
+                       />
+                     </div>
+                   ))}
+                 </div>
+               </div>
+               
+               {/* 구분선 */}
+               <div className="w-px h-9 bg-[#eeeeee] border border-[#d9d9d9]"></div>
+               
+               {/* 총 후기 수 */}
+               <div className="flex flex-col items-center flex-1">
+                 <span className="text-2xl font-bold text-black">{userData.reviewCount}</span>
+                 <span className="text-[14px] text-[#7c7c7c] mt-1">총 후기</span>
+               </div>
+             </div>
+           </div>
+         </div>
+         
+         {/* 후기 항목들 */}
+         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+           {formattedEvaluations.length > 0 ? (
+             formattedEvaluations.map((item) => (
+               <div key={item.id} className="bg-[#F5F5F5] rounded-2xl py-4 px-6 flex justify-between items-center">
+                 <span className="">{item.text}</span>
+                 <span className="font-bold">{item.count}</span>
+               </div>
+             ))
+           ) : (
+             <div className="col-span-2 text-center text-gray-500 py-8">
+               등록된 후기가 없습니다.
+             </div>
+           )}
+         </div>
+       </section>
     </div>
   );
 }

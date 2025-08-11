@@ -332,7 +332,7 @@ function ChatbotWindow({
 
                             <div className="mt-1">
                               <Link
-                                href={`https://i13e202.p.ssafy.io/fe/product/${item.id}`}
+                                href={`/product/${item.id}`}
                                 className="text-xs text-green-700 underline hover:text-green-800"
                                 target="_blank"
                                 rel="noopener noreferrer"

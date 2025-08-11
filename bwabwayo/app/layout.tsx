@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Chatbot from "@/components/chat/Chatbot";
 import LoginModalWrapper from '@/components/common/LoginModalWrapper';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { Suspense } from "react";
 import RecommendItems from "@/components/home/RecommendItems";
 
@@ -34,6 +35,7 @@ export default function RootLayout({
         <div className="pt-[198px]">
           {children}
         </div>
+        <LoadingSpinner />
         <Chatbot />
         <Footer />
       </body>

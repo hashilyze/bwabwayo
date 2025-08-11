@@ -50,7 +50,7 @@ export default function ProductCard({ item, height = 300 }: Props) {
 
   return (
     <div
-      className="cursor-pointer bg-white rounded-xl overflow-hidden shadow-md flex flex-col"
+      className="cursor-pointer bg-white rounded-xl overflow-hidden border border-[#eee] hover:border-black hover:border-2 hover:shadow-md transition-all duration-300 flex flex-col"
       onClick={(e) => handleCardClick(e, product.id || 0)}
     >
       {/* 상품 이미지 */}
