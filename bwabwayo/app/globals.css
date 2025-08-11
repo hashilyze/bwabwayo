@@ -138,6 +138,7 @@ body {
 /* 채팅방 화상예약 달력 */
 .calender-wrap .react-calendar{width: 100%;border: unset;}
 
+
 /* Container 유틸리티 클래스 */
 .container-default {
   width: var(--container-width);

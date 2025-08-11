@@ -119,7 +119,7 @@ export default function ProductDetailPage() {
                      {(product?.price || 0).toLocaleString()}원
                    </p>
                  </div>
-                               <div className="text-gray-400 text-sm mb-[30px]">
+                  <div className="text-gray-400 text-sm mb-[30px]">
                     {getRelativeTime(product?.createdAt || '')} · 찜 {product?.wishCount || 0} · 조회 {product?.viewCount || 0}
                   </div>
                 
