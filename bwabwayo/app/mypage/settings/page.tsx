@@ -22,6 +22,7 @@ export default function SettingsPage() {
 
   const [nickname, setNickname] = useState('');
   const [bio, setBio] = useState('');
+
   const [bankName, setBankName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [accountHolder, setAccountHolder] = useState('');
@@ -29,6 +30,7 @@ export default function SettingsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [imageKey, setImageKey] = useState<string | null>(null);
+
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const BANK_LIST = [
@@ -113,6 +115,27 @@ export default function SettingsPage() {
     }
     setProfileImagePreview(userData?.profileImage || null);
     setImageKey(null);
+  };
+
+  const handleAccountHolderChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    // 한글만 입력 가능하도록 정규식 사용
+    const koreanOnly = value.replace(/[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '');
+    setAccountHolder(koreanOnly);
+  };
+
+  const handleAccountNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    // 숫자만 입력 가능하도록 정규식 사용
+    const numbersOnly = value.replace(/[^0-9]/g, '');
+    setAccountNumber(numbersOnly);
+  };
+
+  const handleNicknameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    // 특수문자 제외 (영문, 숫자, 한글만 허용)
+    const validNickname = value.replace(/[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣]/g, '');
+    setNickname(validNickname);
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -232,9 +255,20 @@ export default function SettingsPage() {
           <input
             type="text"
             value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
+            onChange={handleNicknameChange}
             className="flex-1 max-w-[258px] px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500"
             required
+          />
+        </div>
+
+        {/* 상점 소개 */}
+        <div className="flex items-start">
+          <label className="text-xl font-bold text-black w-[80px] pt-2 mr-10">상점 소개</label>
+          <textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            className="flex-1 max-w-lg h-24 px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500"
+            placeholder="가게에 대한 설명을 적어주세요."
           />
         </div>
 
@@ -263,7 +297,7 @@ export default function SettingsPage() {
                 <input
                   type="text"
                   value={accountHolder}
-                  onChange={(e) => setAccountHolder(e.target.value)}
+                  onChange={handleAccountHolderChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500"
                   placeholder="예금주"
                 />
@@ -289,7 +323,7 @@ export default function SettingsPage() {
                 <input
                   type="text"
                   value={accountNumber}
-                  onChange={(e) => setAccountNumber(e.target.value)}
+                  onChange={handleAccountNumberChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500"
                   placeholder="계좌번호"
                 />

@@ -77,6 +77,7 @@ export default function Navbar() {
             logout();
             // 사용자 정보도 초기화
             setShowMyPageMenu(false);
+            alert('로그아웃 되었습니다.');
             router.replace('/'); 
         }
     };

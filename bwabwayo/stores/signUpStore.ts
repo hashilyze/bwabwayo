@@ -26,6 +26,8 @@ interface SignupState {
     // --- 추가된 부분: 소셜 로그인 임시 정보 ---
     socialAccessToken: string | null; // 회원가입 전 임시 토큰
     socialId: string | null; // 소셜 로그인 유저 ID
+    loginPoint: number | null;
+    signUpPoint: number | null;
 
     // 액션 (Actions)
     setShowOptionalFields: (show: boolean) => void;
@@ -71,6 +73,8 @@ const initialState = {
     isSuccess: false,
     socialAccessToken: null,
     socialId: null,
+    loginPoint: null,
+    signUpPoint: null,
 };
 
 /**
@@ -137,10 +141,6 @@ export const useSignupStore = create<SignupState>((set, get) => ({
                 throw new Error('닉네임을 입력해주세요.');
             }
 
-            if (!bankName.trim()) throw new Error('계좌 정보를 입력해주세요.');
-            if (!accountNumber.trim()) throw new Error('계좌 정보를 입력해주세요.');
-            if (!accountHolder.trim()) throw new Error('계좌 정보를 입력해주세요.');
-
             const payload = {
                 id: socialId,
                 email: email || null,
@@ -184,14 +184,14 @@ export const useSignupStore = create<SignupState>((set, get) => ({
         }
 
         const data = responseData.result || responseData;
-        const { accessToken } = data;
+        const { accessToken, loginPoint, signUpPoint } = data;
 
         if (!accessToken) {
             throw new Error('회원가입 응답이 올바르지 않습니다. (accessToken 누락)');
         }
 
         localStorage.setItem('accessToken', accessToken);
-        set({ loading: false, isSuccess: true });
+        set({ loading: false, isSuccess: true, loginPoint, signUpPoint });
         console.log('회원가입 및 로그인 성공!');
         return true;
 
