@@ -45,9 +45,24 @@ export interface ProductCardUIData {
   // ... 카드 표시에 필요한 다른 필드가 있다면 추가
 }
 
+// 상품 수정을 위한 데이터 타입
+export interface UpdateProductData {
+  title: string;
+  description: string;
+  price: number;
+  shippingFee: number;
+  canNegotiate: boolean;
+  canDirect: boolean;
+  canDelivery: boolean;
+  canVideoCall: boolean;
+  categoryId: number;
+  images: string[];
+}
+
 
 
 interface ProductDetail {
+  id: number;
   title: string
   description: string
   price: number
@@ -83,6 +98,7 @@ interface ProductStore {
   error: string | null
   getProducts: (options?: { title?: string; category_id?: number; minPrice?: number; maxPrice?: number }) => Promise<void>
   addProduct: (product: ProductDetail | Product) => Promise<void>
+  updateProduct: (productId: number, productData: UpdateProductData) => Promise<any>;
   getHotKewordProducts: (title: string) => Promise<void>
   getVideoCallProducts: () => Promise<void>
   getProductDetail: (id: number) => Promise<void>
@@ -107,7 +123,7 @@ function adaptProductWithSeller(apiData: ProductWithSeller): ProductCardUIData {
 }
 
 
-export const useProductStore = create<ProductStore>((set) => ({
+export const useProductStore = create<ProductStore>((set, get) => ({
   product: null,
   products: [],
   hotKeywordProducts: [],
@@ -205,6 +221,12 @@ export const useProductStore = create<ProductStore>((set) => ({
         set({ error: data.message, loading: false, product: null })
         return
       }
+      // API 응답에 id가 없는 경우, 파라미터로 받은 id를 주입해줍니다.
+      // 이렇게 하면 productDetail.id === productId 비교가 정상적으로 동작합니다.
+      if (data && typeof data.id === 'undefined') {
+        data.id = id;
+      }
+
       set({ product: data, loading: false })
     } catch (error) {
       console.error('상품 상세 조회 실패:', error)
@@ -225,6 +247,40 @@ export const useProductStore = create<ProductStore>((set) => ({
       set({ loading: false })
     } catch (error) {
       console.error(error)
+    }
+  },
+
+  updateProduct: async (productId: number, productData: UpdateProductData) => {
+    set({ loading: true, error: null });
+    try {
+      const { authenticatedFetch } = useAuthStore.getState();
+      const response = await authenticatedFetch(`${baseUrl}/products/${productId}`, {
+        method: 'PUT',
+        body: JSON.stringify(productData),
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({ message: '상품 수정에 실패했습니다.' }));
+        throw new Error(errorBody.message || '상품 수정에 실패했습니다.');
+      }
+
+      const data = await response.json();
+      console.log('상품 수정 성공:', data);
+
+      // 수정 성공 후, 현재 보고 있는 상품 상세 정보를 업데이트
+      const currentProductDetail = get().product;
+
+      if (currentProductDetail && currentProductDetail.id === productId) {
+        get().getProductDetail(productId);
+      }
+
+      set({ loading: false });
+      return data;
+    } catch (error) {
+      console.error('상품 수정 실패:', error);
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다';
+      set({ loading: false, error: errorMessage });
+      throw error;
     }
   },
 
