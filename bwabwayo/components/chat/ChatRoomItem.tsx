@@ -146,7 +146,7 @@ export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected 
       }`}
       onClick={handleClick}
     >
-             <div className="w-[60px] h-[60px] bg-gray-200 rounded-full mr-[18px]">
+      <div className="w-[60px] h-[60px] bg-gray-200 rounded-full mr-[18px]">
          <img 
            src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`}
            alt={`${getPartnerName()} 프로필`}

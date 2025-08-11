@@ -2,12 +2,11 @@
 
 import ChatModal from '@/components/chat/ChatModal'
 import { useEffect, useRef, useState } from 'react'
-import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
 import AllModals from '@/components/chat/modals/AllModals'
 import VideoConference from '@/components/openvidu/VideoConference';
 import ReservationModal from '@/components/chat/ReservationModal'
-import InputPriceModal from '@/components/chat/modals/InputPriceModal'
 
 // 전역에서 사용할 채팅방 정보 가져오는 함수 (AllModals.tsx와 동일)
 const useChatRoomInfo = () => {
@@ -41,9 +40,7 @@ const useChatRoomInfo = () => {
 };
 
 export default function ChatRoomPage() {
-  const router = useRouter()
   const params = useParams()
-  const searchParams = useSearchParams()
   const roomId = Number(params.roomId)
   const { messages, getMessageHistory, connectStomp, currentSelectedRoom } = useChatRoomStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -52,13 +49,10 @@ export default function ChatRoomPage() {
   const chatInfo = useChatRoomInfo();
 
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
-  const [isInputPriceModalOpen, setIsInputPriceModalOpen] = useState(false);
   const [isHeaderModalOpen, setIsHeaderModalOpen] = useState(false);
 
   const openReservationModal = () => setIsReservationModalOpen(true);
   const closeReservationModal = () => setIsReservationModalOpen(false);
-  const openInputPriceModal = () => setIsInputPriceModalOpen(true);
-  const closeInputPriceModal = () => setIsInputPriceModalOpen(false);
   const openHeaderModal = () => setIsHeaderModalOpen(true);
   const closeHeaderModal = () => setIsHeaderModalOpen(false);
 
@@ -105,18 +99,6 @@ export default function ChatRoomPage() {
     }
   }, [messages])
 
-  // InputPriceModal 열기 이벤트 감지
-  useEffect(() => {
-    const handleOpenInputPriceModal = () => {
-      openInputPriceModal();
-    };
-
-    window.addEventListener('openInputPriceModal', handleOpenInputPriceModal);
-
-    return () => {
-      window.removeEventListener('openInputPriceModal', handleOpenInputPriceModal);
-    };
-  }, []);
 
   // URL 파라미터에서 현재 사용자 ID 결정
   const getMyUserId = () => {
@@ -186,12 +168,12 @@ export default function ChatRoomPage() {
           {/* 채팅 UI... */}
 
           {/* 화상 채팅 시작 버튼 */}
-          <button
+          {/* <button
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             onClick={handleVideoButtonClick}
           >
             화상 채팅 시작
-          </button>
+          </button> */}
 
           {/* 버튼 클릭하면 바로 VideoConference 컴포넌트 렌더 */}
           {isVideoChatOpen && (
@@ -228,9 +210,7 @@ export default function ChatRoomPage() {
       )}
 
       {/* 메인 콘텐츠 영역 */}
-      <div
-        className="chat-container overflow-y-auto p-4 pt-[160px]"
-      >
+      <div className="chat-container overflow-y-auto p-4 pt-[160px]">
         <div className="mb-10 flex flex-col gap-2 items-center">
           <div className="w-[100px] h-[100px] bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
             <img
@@ -338,9 +318,6 @@ export default function ChatRoomPage() {
 
       {/* 예약 모달 조건부 렌더링 */}
       {isReservationModalOpen && <ReservationModal onClose={closeReservationModal} chatRoomId={roomId} />}
-
-      {/* 가격 입력 모달 조건부 렌더링 */}
-      {isInputPriceModalOpen && <InputPriceModal onClose={closeInputPriceModal} roomId={roomId} />}
 
       {/* + 버튼 */}
       <ChatModal onOpenReservationModal={openReservationModal} myUserId={myUserId} />

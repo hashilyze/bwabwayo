@@ -5,6 +5,7 @@ import { useChatRoomStore } from "@/stores/chatting/chatRoomStore"
 import { OverlayPortal } from "@/components/chat/modals/OverlayPortal"
 import TrackingNumberModal from '@/components/chat/modals/TrackingForm'
 import FinalPriceModal from '@/components/chat/modals/FinalPriceForm'
+import { PaymentCheckoutPage } from '@/components/chat/modals/tossPay/PaymentCheckout'
 
 import AddressSelectModal, { AddressItem } from '@/components/chat/modals/DeliverySelectForm'
 
@@ -360,42 +361,60 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
 //REQUEST_DEPOSIT,        // 입금 요청 - 최종 가격 설정 후 전송
 const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
   const [isButtonHovered, setIsButtonHovered] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const chatInfo = useChatRoomInfo();
 
   const handleStart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     console.log('결제 요청');
+    setIsPaymentModalOpen(true);
   }
 
-  return (
-    <div className="w-[400px] h-[169px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
-      <div className="flex flex-col w-[371px] h-[102px] items-center justify-between relative top-[49px] left-3.5">
-        <div className="flex w-[281px] items-center justify-between gap-1 relative flex-[0_0_auto]">
-          <img
-            className="relative w-[97px] h-[37px] aspect-[2.62]"
-            alt="Toss icon"
-            src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/toss-icon.png`}
-          />
-          <p className="relative w-[169px] mt-[-0.50px] font-medium leading-[18px] text-black text-sm tracking-[0]">
-            최종 거래 가격이 설정되었어요
-            <br />
-            결제를 진행해 주세요!
-          </p>
+  // message.content에서 금액 추출 (숫자만)
+  const amount = message.content.replace(/[^\d]/g, '');
+  const formattedAmount = amount ? Number(amount).toLocaleString() + '원' : '0원';
+  const paymentAmount = amount ? Number(amount) : 0;
 
-        </div>
-        <button
-          className={`relative w-[150px] h-10 bg-[#fce94f] rounded-[20px] border-2 border-solid border-black cursor-pointer transition-all duration-200 ${isButtonHovered ? "transform scale-105 shadow-lg" : ""
-            }`}
-          onClick={(e) => handleStart(e)}
-          onMouseEnter={() => setIsButtonHovered(true)}
-          onMouseLeave={() => setIsButtonHovered(false)}
-          aria-label="결제하기"
-        >
-          <div className="absolute h-[17px] top-2.5 left-[50px] [font-family:'SUITE-Bold',Helvetica] font-bold text-center leading-[normal] text-black text-sm tracking-[0]">
-            결제하기
+  return (
+    <>
+      <div className="w-[400px] h-[169px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black flex flex-col justify-center">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <div className="flex items-center justify-between gap-3">
+            <img
+              className="relative w-[97px] h-[37px] aspect-[2.62]"
+              alt="Toss icon"
+              src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/toss-icon.png`}
+            />
+            <div className="flex flex-col leading-[18px] text-black text-sm">
+              <p>최종 거래 가격이 설정되었어요</p>
+              <p className="font-bold text-base my-1">{formattedAmount}</p>
+              <p>결제를 진행해 주세요!</p>
+            </div>
           </div>
-        </button>
+          <button
+            className={`relative w-[150px] h-10 bg-[#fce94f] rounded-[20px] border-2 border-solid border-black cursor-pointer transition-all duration-200 ${isButtonHovered ? "transform scale-105 shadow-lg" : ""
+              }`}
+            onClick={(e) => handleStart(e)}
+            onMouseEnter={() => setIsButtonHovered(true)}
+            onMouseLeave={() => setIsButtonHovered(false)}
+            aria-label="결제하기"
+          >
+            <div className="absolute h-[17px] top-2.5 left-[50px] [font-family:'SUITE-Bold',Helvetica] font-bold text-center leading-[normal] text-black text-sm tracking-[0]">
+              결제하기
+            </div>
+          </button>
+        </div>
       </div>
-    </div>
+
+      {/* PaymentCheckout 모달 */}
+      <OverlayPortal open={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)}>
+        <PaymentCheckoutPage
+          onClose={() => setIsPaymentModalOpen(false)}
+          amount={paymentAmount}
+          orderName={chatInfo?.product?.title || "상품"}
+        />
+      </OverlayPortal>
+    </>
   );
 };
 

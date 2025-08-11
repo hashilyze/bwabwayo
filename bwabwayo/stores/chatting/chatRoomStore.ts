@@ -161,7 +161,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         try{
             const response = await useAuthStore.getState().authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/chatrooms`)
             const data = await response.json()
-            // console.log(data)
+            console.log(data)
             set({ roomList: data })
         } catch (error) {
             console.error('Error getting room list:', error)
@@ -191,7 +191,6 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
             const socket = new SockJS(serverUrl)
             const client = new Client({
                 webSocketFactory: () => socket,
-       
                 connectHeaders: {
                     Authorization: `Bearer ${accessToken}`,
                 },
@@ -200,15 +199,14 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 heartbeatOutgoing: 4000,
                 });
 
-            
             client.onConnect = (frame) => {
                 // console.log('✅ STOMP: 연결 성공!')
                 set({ isConnected: true, isConnecting: false, stompClient: client })
                 
-                console.log('📡 STOMP: 채팅방 목록(/user/chat/roomlist) 구독 시작');
+                // console.log('📡 STOMP: 채팅방 목록(/user/chat/roomlist) 구독 시작');
                 client.subscribe('/user/sub/chat/roomlist', (messageOutput) => {
                     try {
-                        console.log(messageOutput.body)
+                        // console.log(messageOutput.body)
                         const updatedRoomList = JSON.parse(messageOutput.body) as ChatRoom[];
                         console.log('📋 채팅방 목록 업데이트 수신:', updatedRoomList);
                         get().updateRoomList(updatedRoomList);
@@ -229,11 +227,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                             console.log('📹 화상채팅 세션ID 저장:', msg.content);
                             set({ videoSessionId: msg.content });
                         }
-                        
                         get().appendMessage(msg, false) // isMine은 appendMessage에서 결정하도록 변경 가능
-                        
-                
-
                     })
                 }
             }

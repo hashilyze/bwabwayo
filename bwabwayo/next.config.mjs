@@ -1,5 +1,6 @@
 const nextConfig = {
-  trailingSlash: true,
+  // trailingSlash: true,
+  exportTrailingSlash: true,
   basePath: process.env.NODE_ENV === 'production' ? '/fe' : '',
   env: {
     NEXT_PUBLIC_PUBLIC_URL: process.env.NODE_ENV === 'production' ? '/fe' : '',

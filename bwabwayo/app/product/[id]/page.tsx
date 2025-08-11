@@ -156,16 +156,16 @@ export default function ProductDetailPage() {
                       setMousePosition({ x, y });
                     }}
                   >
-                      <img
-                        src={product?.imageUrls?.[selectedImageIndex] || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`}
-                        alt="상품 대표 이미지" 
-                        className={`object-cover w-full h-full transition-transform duration-200 ${
-                          isZoomed ? 'scale-150' : 'scale-100'
-                        }`}
-                        style={{
-                          transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`
-                        }}
-                      />
+                  <img
+                    src={product?.imageUrls?.[selectedImageIndex] || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`}
+                    alt="상품 대표 이미지" 
+                    className={`object-cover w-full h-full transition-transform duration-200 ${
+                      isZoomed ? 'scale-150' : 'scale-100'
+                    }`}
+                    style={{
+                      transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`
+                    }}
+                  />
                   </div>
                     <ul className="grid grid-cols-4 gap-4">
                      {product?.imageUrls?.map((imageUrl, index) => (

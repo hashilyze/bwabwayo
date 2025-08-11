@@ -25,23 +25,21 @@ function CallbackHandler() {
         const id = searchParams?.get('id');
         
         // store에 저장
-       if (accessToken && id) {
-  setSocialInfo({ token: accessToken, id });
-  console.log('콜백: setSocialInfo', { token: accessToken, id });
-}
-if (email) {
-  setEmail(email);
-  console.log('콜백: setEmail', email);
-}
-if (profileImage) {
-  setProfileImage(decodeURIComponent(profileImage));
-  console.log('콜백: setProfileImage', decodeURIComponent(profileImage));
-}
+        if (accessToken && id) {
+          setSocialInfo({ token: accessToken, id });
+          console.log('콜백: setSocialInfo', { token: accessToken, id });
+        }
+        if (email) {
+          setEmail(email);
+          console.log('콜백: setEmail', email);
+        }
+        if (profileImage) {
+          setProfileImage(decodeURIComponent(profileImage));
+          console.log('콜백: setProfileImage', decodeURIComponent(profileImage));
+        }
         // 회원가입 페이지로 이동 (파라미터 없이)
         router.replace('/signup');
-
-
-        return // 리디렉션 후에는 더 이상 로직을 진행하지 않습니다.
+        return
       }
 
       // 2. 기존 유저인 경우, accessToken이 있는지 확인합니다.
