@@ -12,11 +12,20 @@ type Payload = {
   recipient_phone_number: string
 }
 
-// 타입 선언(옵셔널)
+interface DaumPostcodeData { 
+    address: string;
+    addressType: 'R' | 'J';
+    bname: string;
+    buildingName: string;
+    zonecode: string;
+}
+
 declare global {
-  interface Window {
-    daum: { Postcode: new (opts: { oncomplete: (data: any) => void }) => { open: () => void } }
-  }
+  interface Window {
+    daum: {
+        Postcode: new (options: { oncomplete: (data: DaumPostcodeData) => void }) => { open: () => void };
+    };
+  }
 }
 
 export default function AddressAddForm({
