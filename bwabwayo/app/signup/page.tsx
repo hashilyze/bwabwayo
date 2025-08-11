@@ -179,7 +179,7 @@ export default function SignUpPage() {
         const allAddressInfoProvided = recipientName.trim() && recipientPhoneNumber.trim() && zipcode.trim() && address.trim() && addressDetail.trim();
 
         if (addressInfoProvided && !allAddressInfoProvided) {
-            alert('은행, 계좌번호, 예금주를 모두 입력해주세요.');
+            alert('배송지 관련 정보를 모두 입력해주세요.');
             return;
         }
 
@@ -280,13 +280,20 @@ export default function SignUpPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
                         <label className="font-bold text-lg">예금주 </label>
                         <div className="md:col-span-2 max-w-xs">
-                            <input type="text" value={accountHolder} onChange={(e) => setAccountHolder(e.target.value)} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" />
+                            <input type="text" value={accountHolder}
+                             onChange={(e) => setAccountHolder(e.target.value)}
+                            className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                            required />
                         </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
                         <label className="font-bold text-lg">은행 </label>
                         <div className="md:col-span-2 max-w-xs">
-                            <select value={bankName} onChange={(e) => setBankName(e.target.value)} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300 bg-white">
+                            <select 
+                            value={bankName} 
+                            onChange={(e) => setBankName(e.target.value)} 
+                            className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300 bg-white"
+                            required>
                                 <option value="">은행선택</option>
                                 {BANK_LIST.map((bank) => (<option key={bank} value={bank}>{bank}</option>))}
                             </select>
@@ -295,7 +302,9 @@ export default function SignUpPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
                         <label className="font-bold text-lg">계좌번호 </label>
                         <div className="md:col-span-2 max-w-xs">
-                            <input type="text" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" placeholder="'-' 없이 숫자만 입력" />
+                            <input type="text" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)}
+                            className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" placeholder="'-' 없이 숫자만 입력"
+                            required />
                         </div>
                     </div>
                 </div>
