@@ -307,7 +307,7 @@ function ChatbotWindow({
                             >
                               {item.title}
                             </div>
-                            
+
                             {item.categoryName && (
                               <div className="text-xs text-gray-500 mt-0.5">
                                 {item.categoryName}
@@ -320,7 +320,7 @@ function ChatbotWindow({
                             </div>
                             <div className="mt-1">
                               <a
-                                href={item.href ?? `/product/${item.id}`}
+                                href={item.href ?? `/fe/product/${item.id}`}
                                 className="text-xs text-green-700 underline hover:text-green-800"
                                 target="_blank"
                                 rel="noopener noreferrer"
