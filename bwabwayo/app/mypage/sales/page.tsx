@@ -1,10 +1,11 @@
 // 파일 경로: app/shop/[id]/sales/page.tsx
 'use client'; // 페이지 내 상호작용을 위해 클라이언트 컴포넌트로 선언합니다.
 
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Sidebar from "@/components/shop/Sidebar"; // Sidebar 컴포넌트를 import 합니다.
 import { useMyActivityStore, ActivityProduct } from "@/stores/mypage/myActivityStore"; // Zustand 스토어를 import 합니다.
+import Pagination from "@/components/common/Pagination"; // 페이지네이션 컴포넌트를 import 합니다.
 
 
 export default function MyPageSales() {
@@ -14,9 +15,19 @@ export default function MyPageSales() {
     fetchSales();
   }, [fetchSales]);
 
-  // 판매 상품 목록
-  const sales = salesList;
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // 한 페이지에 5개의 판매 내역을 표시합니다.
 
+  // 페이지네이션을 위한 로직
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = salesList ? salesList.slice(indexOfFirstItem, indexOfLastItem) : [];
+  const totalPages = salesList ? Math.ceil(salesList.length / itemsPerPage) : 0;
+
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+  
   // 판매 상태에 따라 다른 스타일을 반환하는 함수
   const getStatusChip = (status: string) => {
     switch (status) {
@@ -52,8 +63,15 @@ export default function MyPageSales() {
           
           {/* 상품 리스트 */}
           <div className="divide-y divide-gray-200 bg-white rounded-b-lg shadow">
-            {sales.map((item) => (
-              <div key={item.product.id} className="grid grid-cols-12 items-center px-6 py-6">
+            {currentItems.length === 0 && !salesLoading && (
+              <div className="text-center text-gray-500 py-20">
+                판매 내역이 없습니다.
+              </div>
+            )}
+            {salesError && <div className="text-center text-red-500 py-20">에러: {salesError}</div>}
+
+            {currentItems.map((item) => (
+              <div key={item.product.id} className="grid grid-cols-12 items-center px-6 py-6 transition-colors hover:bg-gray-50">
                 {/* 상품명 및 이미지 */}
                 <div className="col-span-4">
                   <Link href={`/product/${item.product.id}`} className="flex items-center gap-4 group">
@@ -65,7 +83,9 @@ export default function MyPageSales() {
                 </div>
                 
                 {/* 가격 */}
-                <div className="col-span-2 text-lg font-medium text-gray-900 text-center">{item.product.price}</div>
+                <div className="col-span-2 text-lg font-medium text-gray-900 text-center">
+                  {item.product.price.toLocaleString('ko-KR')}원
+                </div>
                 
                 {/* 배송상태 */}
                 <div className="col-span-3 text-center">
@@ -84,6 +104,13 @@ export default function MyPageSales() {
               </div>
             ))}
           </div>
+
+          {/* 페이지네이션 */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         </main>
       </div>
     </div>

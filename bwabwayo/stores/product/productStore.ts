@@ -31,6 +31,21 @@ interface Product {
   description: string
   images: string[]
 }
+// UI를 위한 상품 카드 데이터 타입
+export interface ProductCardUIData {
+  id: number;
+  thumbnail: string;
+  title: string;
+  price: number;
+  wishCount: number;
+  viewCount: number;
+  isLike: boolean;
+  canVideoCall?: boolean; // 화상통화 가능 여부
+  createdAt?: string; // 생성일
+  // ... 카드 표시에 필요한 다른 필드가 있다면 추가
+}
+
+
 
 interface ProductDetail {
   title: string
@@ -47,7 +62,7 @@ interface ProductDetail {
   createdAt: string
   imageKeys: string[]
   imageUrls: string[]
-  isWish: boolean
+  isLike: boolean
   seller: Seller
   viewCount: number
   wishCount: number
@@ -74,6 +89,21 @@ interface ProductStore {
 }
 
 const baseUrl = 'https://i13e202.p.ssafy.io/be/api'
+
+// ProductWithSeller -> ProductCardUIData 변환 함수
+function adaptProductWithSeller(apiData: ProductWithSeller): ProductCardUIData {
+  const { product } = apiData;
+  return {
+    id: product.id ?? 0, // id 통일
+    thumbnail: product.thumbnail ?? '', // thumbnail이 optional이므로 기본값 제공
+    title: product.title,
+    price: product.price,
+    wishCount: Number(product.wishCount ?? 0), // string일 수 있으므로 숫자로 변환
+    viewCount: Number(product.viewCount ?? 0),
+    isLike: product.isLike ?? false,
+  };
+}
+
 
 export const useProductStore = create<ProductStore>((set) => ({
   product: null,

@@ -10,6 +10,9 @@ import { useModalStore } from '@/stores/modalStore';
 import { useAuthStore } from '@/stores/auth/authStore';
 import RecommendItems from "@/components/home/RecommendItems";
 import Banner from "@/components/home/Banner";
+import { ProductWithSeller, ProductCardUIData } from '@/stores/product/productStore';
+import { transformToProductCardData } from '@/lib/dataTransFormers';
+
 
 // swiper
 import { Navigation, Pagination } from 'swiper/modules';
@@ -33,6 +36,11 @@ function AuthHandler() {
   return null;
 }
 
+
+
+
+
+
 // ProductSlider 컴포넌트
 function ProductSlider({ products, navigationId }: { products: any[], navigationId: string }) {
   const [swiper, setSwiper] = useState<SwiperClass>();
@@ -45,6 +53,9 @@ function ProductSlider({ products, navigationId }: { products: any[], navigation
   const handleNext = () => {
     swiper?.slideNext()
   }
+  
+  
+
 
   // products가 없거나 빈 배열인 경우 처리
   if (!products || products.length === 0) {
@@ -54,6 +65,9 @@ function ProductSlider({ products, navigationId }: { products: any[], navigation
       </div>
     );
   }
+
+  
+
 
   return (
     <div className="relative px-[70px]">
@@ -78,11 +92,20 @@ function ProductSlider({ products, navigationId }: { products: any[], navigation
         }}
         className="swiper"
       >
-        {products.map((item) => (
-          <SwiperSlide key={item.product.id}>
-            <ProductCard item={item} />
-          </SwiperSlide>
-        ))}
+         {products.map((item) => {
+          // React key로 사용될 id가 있는지 먼저 확인하는 것이 안전합니다.
+          if (!item.product?.id) return null;
+
+          // ✅ 데이터 변환을 반복문 '안에서' 각 item에 대해 실행합니다.
+          const cardDataForItem = transformToProductCardData(item);
+
+          return (
+            <SwiperSlide key={item.product.id}>
+              {/* ✅ 방금 변환한 개별 데이터를 item 프롭으로 전달합니다. */}
+              <ProductCard item={cardDataForItem} />
+            </SwiperSlide>
+          );
+        })}
       </Swiper>
       <button 
         className={`custom-prev-${navigationId} hover:bg-[#343D48] pl-1 z-1 absolute left-0 top-1/2 -translate-y-1/2 w-14 h-14 flex items-center justify-center rounded transition-all duration-200 ${

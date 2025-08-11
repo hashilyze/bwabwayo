@@ -12,9 +12,14 @@ interface ChatInputActiveProps {
 const ChatInputActive: React.FC<ChatInputActiveProps> = ({ onOpenReservationModal, myUserId }) => {
   const params = useParams();
   const roomId = Number(params.roomId);
-  const { sendMessage } = useChatRoomStore();
+  const { sendMessage, currentSelectedRoom } = useChatRoomStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [messageInput, setMessageInput] = useState('');
+
+  // seller인지 확인
+  const currentUserId = currentSelectedRoom?.userId.toString();
+  const sellerId = currentSelectedRoom?.seller.id.toString();
+  const isSeller = currentUserId === sellerId;
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -78,11 +83,28 @@ const ChatInputActive: React.FC<ChatInputActiveProps> = ({ onOpenReservationModa
       {isMenuOpen && (
         <div className="grid grid-cols-3 gap-4 border-t border-[#eee] py-6 px-8 animate-in slide-in-from-bottom-2 duration-300">
           {/* 거래시작 */}
-          <div className="flex flex-col items-center cursor-pointer">
-            <div className="w-[51px] h-[51px] bg-[#fafafa] border border-[#9b9b9b] rounded-full flex items-center justify-center mb-[7px]">
-              <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/start-trade.svg`} alt="거래시작" className="w-5 h-5" />
+          <div 
+            className={`flex flex-col items-center ${isSeller ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+            onClick={() => {
+              if (isSeller) {
+                // START_TRADE 타입의 메시지 전송
+                sendMessage(roomId, "거래시작", "START_TRADE");
+                setIsMenuOpen(false); // 메뉴 닫기
+              }
+            }}
+          >
+            <div className={`w-[51px] h-[51px] rounded-full flex items-center justify-center mb-[7px] ${
+              isSeller 
+                ? 'bg-[#fafafa] border border-[#9b9b9b]' 
+                : 'bg-gray-200 border border-gray-300'
+            }`}>
+              <img 
+                src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/start-trade.svg`} 
+                alt="거래시작" 
+                className={`w-5 h-5 ${isSeller ? '' : 'opacity-50'}`} 
+              />
             </div>
-            <span className="text-xs text-black">거래시작</span>
+            <span className={`text-xs ${isSeller ? 'text-black' : 'text-gray-400'}`}>거래시작</span>
           </div>
 
           {/* 화상채팅예약 */}

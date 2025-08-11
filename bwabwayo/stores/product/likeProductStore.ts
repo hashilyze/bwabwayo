@@ -1,37 +1,39 @@
 import { create } from 'zustand'
 import { useAuthStore } from '@/stores/auth/authStore'
+import { useProductStore } from '@/stores/product/productStore'
 
-interface LikeProduct {
+export interface LikeProduct {
   id: number
+  seller_id: number
   title: string
   price: number
-  thumbnail?: string
-  isLiked: boolean
+  thumbnail: string
+  wishCount: number
+  viewCount: number
+  isLike: boolean
+  status: "판매중" | "판매완료"
 }
 
+// 인터페이스를 더 명확하게 리팩토링합니다.
+// 불필요한 액션을 제거하고, API 호출 후 상태 동기화를 명확히 합니다.
 interface LikeProductStore {
   likeProducts: LikeProduct[]
   loading: boolean
   error: string | null
   
-  // 좋아요 추가
+  // 좋아요 추가 후 상태 동기화
   addLike: (productId: number) => Promise<void>
   
-  // 좋아요 제거
+  // 좋아요 제거 후 상태 동기화
   removeLike: (productId: number) => Promise<void>
   
-  // 좋아요 상태 토글
-  toggleLike: (productId: number) => Promise<void>
-  
-  // 좋아요 목록 조회
+  // 좋아요 목록 조회 (상태 동기화의 핵심)
   getLikeProducts: () => Promise<void>
   
-  // 좋아요 상태 확인
+  // 특정 상품의 좋아요 상태만 확인 (UI 초기 렌더링용)
   checkLikeStatus: (productId: number) => Promise<boolean>
   
-  // 로컬 상태 관리
-  addLikeProduct: (product: LikeProduct) => void
-  removeLikeProduct: (productId: number) => void
+  // 에러 상태 초기화
   clearError: () => void
 }
 
@@ -46,33 +48,36 @@ export const useLikeProductStore = create<LikeProductStore>((set, get) => ({
   addLike: async (productId: number) => {
     set({ loading: true, error: null })
     try {
-      console.log(`좋아요 추가 시도: 상품 ID ${productId}`)
-      
-      // 강화된 AuthStore의 authenticatedFetch 사용
-      // 자동 토큰 관리, 갱신, 재시도, 큐 처리 모든 기능 포함! 🚀
       const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products/wishes/${productId}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
       })
 
       if (!response.ok) {
+        const errorBody = await response.text();
+        console.error('좋아요 추가 API 에러 응답:', errorBody);
         throw new Error('좋아요 추가에 실패했습니다')
       }
 
-      const data = await response.json()
-      console.log('좋아요 추가 성공:', data)
-      console.log('파싱 후 적용할 상태:', data.result || []);
-      
-      set({ loading: false })
+      // 성공 시, 전체 좋아요 목록을 다시 불러와 상태를 완벽하게 동기화합니다.
+      // [해결책] 다른 스토어의 상태를 직접 업데이트하여 UI 동기화
+      useProductStore.setState(state => ({
+        products: state.products.map(p => 
+          p.product.id === productId ? { ...p, product: { ...p.product, isLike: true, wishCount: String(Number(p.product.wishCount) + 1) } } : p
+        ),
+        hotKeywordProducts: state.hotKeywordProducts.map(p => 
+          p.product.id === productId ? { ...p, product: { ...p.product, isLike: true, wishCount: String(Number(p.product.wishCount) + 1) } } : p
+        ),
+        videoCallProducts: state.videoCallProducts.map(p => 
+          p.product.id === productId ? { ...p, product: { ...p.product, isLike: true, wishCount: String(Number(p.product.wishCount) + 1) } } : p
+        ),
+      }));
+      await get().getLikeProducts()
+
     } catch (error) {
       console.error('좋아요 추가 실패:', error)
-      set({ 
-        loading: false, 
-        error: error instanceof Error ? error.message : '좋아요 추가 중 오류가 발생했습니다' 
-      })
-      throw error
+      const errorMessage = error instanceof Error ? error.message : '좋아요 추가 중 오류가 발생했습니다';
+      set({ loading: false, error: errorMessage })
+      throw error // 컴포넌트의 catch 블록에서 처리할 수 있도록 에러를 다시 던집니다.
     }
   },
 
@@ -80,77 +85,47 @@ export const useLikeProductStore = create<LikeProductStore>((set, get) => ({
   removeLike: async (productId: number) => {
     set({ loading: true, error: null })
     try {
-      console.log(`좋아요 제거 시도: 상품 ID ${productId}`)
-      
-      // 강화된 AuthStore의 authenticatedFetch 사용
       const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products/wishes/${productId}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
       })
 
       if (!response.ok) {
+        const errorBody = await response.text();
+        console.error('좋아요 제거 API 에러 응답:', errorBody);
         throw new Error('좋아요 제거에 실패했습니다')
       }
 
-      const data = await response.json()
-      console.log('좋아요 제거 성공:', data)
-      
-      set({ loading: false })
+      // 성공 시, 전체 좋아요 목록을 다시 불러와 상태를 완벽하게 동기화합니다.
+      // 이 방식은 'Unexpected end of JSON input' 에러를 원천적으로 방지합니다.
+      // [해결책] 좋아요 제거 시에도 동일하게 상태 동기화
+      useProductStore.setState(state => ({
+        products: state.products.map(p => 
+          p.product.id === productId ? { ...p, product: { ...p.product, isLike: false, wishCount: String(Number(p.product.wishCount) - 1) } } : p
+        ),
+        hotKeywordProducts: state.hotKeywordProducts.map(p => 
+          p.product.id === productId ? { ...p, product: { ...p.product, isLike: false, wishCount: String(Number(p.product.wishCount) - 1) } } : p
+        ),
+        videoCallProducts: state.videoCallProducts.map(p => 
+          p.product.id === productId ? { ...p, product: { ...p.product, isLike: false, wishCount: String(Number(p.product.wishCount) - 1) } } : p
+        ),
+      }));
+      await get().getLikeProducts()
+
     } catch (error) {
       console.error('좋아요 제거 실패:', error)
-      set({ 
-        loading: false, 
-        error: error instanceof Error ? error.message : '좋아요 제거 중 오류가 발생했습니다' 
-      })
-      throw error
-    }
-  },
-
-  // 좋아요 상태 토글
-  toggleLike: async (productId: number) => {
-    set({ loading: true, error: null })
-    try {
-      console.log(`좋아요 토글 시도: 상품 ID ${productId}`)
-      
-      // 현재 좋아요 상태 확인
-      const isLiked = get().likeProducts.some(product => product.id === productId)
-      console.log('현재 로컬 좋아요 상태:', isLiked);
-      if (isLiked) {
-        // 이미 좋아요가 되어 있으면 제거
-        await get().removeLike(productId)
-        get().removeLikeProduct(productId)
-      } else {
-        // 좋아요가 되어 있지 않으면 추가
-        await get().addLike(productId)
-        // 상품 정보를 가져와서 로컬 상태에 추가
-        // 실제로는 상품 정보를 매개변수로 받거나 별도로 조회해야 함
-      }
-      
-      set({ loading: false })
-    } catch (error) {
-      console.error('좋아요 토글 실패:', error)
-      set({ 
-        loading: false, 
-        error: error instanceof Error ? error.message : '좋아요 토글 중 오류가 발생했습니다' 
-      })
+      const errorMessage = error instanceof Error ? error.message : '좋아요 제거 중 오류가 발생했습니다';
+      set({ loading: false, error: errorMessage })
       throw error
     }
   },
 
   // 좋아요 목록 조회
   getLikeProducts: async () => {
+    // 이 액션은 스토어의 메인 데이터 소스 역할을 합니다.
     set({ loading: true, error: null })
     try {
-      console.log('좋아요 목록 조회 시도')
-      
-      // 강화된 AuthStore의 authenticatedFetch 사용
       const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products/wishes`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
       })
 
       if (!response.ok) {
@@ -158,7 +133,6 @@ export const useLikeProductStore = create<LikeProductStore>((set, get) => ({
       }
 
       const data = await response.json()
-      console.log('좋아요 목록 조회 성공:', data)
       
       set({ 
         likeProducts: data.result || [], 
@@ -176,47 +150,28 @@ export const useLikeProductStore = create<LikeProductStore>((set, get) => ({
 
   // 좋아요 상태 확인
   checkLikeStatus: async (productId: number): Promise<boolean> => {
+    // 이 함수는 스토어의 loading/error 상태에 영향을 주지 않고, 값만 반환합니다.
+    // 컴포넌트의 초기 상태 확인 용도로 적합합니다.
     try {
-      console.log(`좋아요 상태 확인: 상품 ID ${productId}`)
-      
-      // 강화된 AuthStore의 authenticatedFetch 사용
       const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products/wishes/${productId}/status`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
       })
 
       if (!response.ok) {
-        throw new Error('좋아요 상태 확인에 실패했습니다')
+        console.error(`좋아요 상태 확인 실패 (ID: ${productId}):`, response.status)
+        return false
       }
 
       const data = await response.json()
-      console.log('좋아요 상태 확인 성공:', data)
-      
-      return data.isLiked || false
+      return data.result.isLiked || false
     } catch (error) {
-      console.error('좋아요 상태 확인 실패:', error)
+      console.error('좋아요 상태 확인 중 예외 발생:', error)
       return false
     }
   },
 
-  // 로컬 상태 관리
-  addLikeProduct: (product: LikeProduct) => {
-    set((state) => ({ 
-      likeProducts: [...state.likeProducts, product] 
-      
-    }))
-  },
-
-  removeLikeProduct: (productId: number) => {
-    set((state) => ({ 
-      likeProducts: state.likeProducts.filter(product => product.id !== productId) 
-    }))
-  },
-
+  // 에러 상태 초기화
   clearError: () => {
-    console.log('에러 상태 초기화 호출됨');
     set({ error: null })
-  }
+  },
 }))

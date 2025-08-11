@@ -1,44 +1,46 @@
 // 파일 경로: app/shop/[id]/purchases/page.tsx
 'use client'; // '구매확정' 버튼 등 상호작용이 있으므로 클라이언트 컴포넌트로 선언합니다.
 
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Sidebar from "@/components/shop/Sidebar"; // Sidebar 컴포넌트를 import 합니다.
 import { useMyActivityStore, myPurchaseProduct } from "@/stores/mypage/myActivityStore"; // Zustand 스토어를 import 합니다.
+import Pagination from "@/components/common/Pagination"; // 페이지네이션 컴포넌트를 import 합니다.
 
 export default function MyPagePurchase() {
   const {
     purchaseList,
-    purchasePage,
-    purchaseHasMore,
     loading: purchaseListLoading,
     error: purchaseListError,
     fetchPurchases,
-    resetPurchases,
   } = useMyActivityStore();
 
-  useEffect(() => {
-    // 첫 페이지 로드
-    fetchPurchases(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // 한 페이지에 5개의 구매 내역을 표시합니다.
 
-    // 컴포넌트 언마운트 시 상태 초기화
-    return () => {
-      resetPurchases();
-    };
+  useEffect(() => {
+    // 전체 구매 목록을 가져옵니다.
+    // 참고: 현재 fetchPurchases가 페이지별로 데이터를 가져온다면,
+    // 모든 데이터를 한 번에 가져오는 새로운 함수가 스토어에 필요할 수 있습니다.
+    // 여기서는 fetchPurchases(0)가 모든 데이터를 가져온다고 가정하고 진행합니다.
+    fetchPurchases(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // 마운트 시 한 번만 실행
 
-  const handleLoadMore = () => {
-    if (!purchaseListLoading && purchaseHasMore) {
-      fetchPurchases(purchasePage + 1);
-    }
+  // 페이지네이션을 위한 로직
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = purchaseList ? purchaseList.slice(indexOfFirstItem, indexOfLastItem) : [];
+  const totalPages = purchaseList ? Math.ceil(purchaseList.length / itemsPerPage) : 0;
+
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
   };
 
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
       <div className="max-w-7xl mx-auto flex flex-row gap-8">
         
-        {/* Sidebar 컴포넌트를 여기서 사용하고, userId prop을 전달합니다. */}
         <Sidebar/>
 
         {/* 메인 컨텐츠 */}
@@ -55,14 +57,14 @@ export default function MyPagePurchase() {
           
           {/* 상품 리스트 */}
           <div className="divide-y divide-gray-200 bg-white rounded-b-lg shadow">
-            {purchaseList.length === 0 && !purchaseListLoading && (
+            {currentItems.length === 0 && !purchaseListLoading && (
               <div className="text-center text-gray-500 py-20">
                 구매 내역이 없습니다.
               </div>
             )}
             {purchaseListError && <div className="text-center text-red-500 py-20">에러: {purchaseListError}</div>}
 
-            {purchaseList.map((item: myPurchaseProduct) => (
+            {currentItems.map((item: myPurchaseProduct) => (
               <div key={item.id} className="grid grid-cols-12 items-center px-6 py-6">
                 {/* 상품명 및 이미지 */}
                 <div className="col-span-4">
@@ -75,7 +77,9 @@ export default function MyPagePurchase() {
                 </div>
                 
                 {/* 가격 */}
-                <div className="col-span-2 text-lg font-medium text-gray-900 text-center">{item.price}</div>
+                <div className="col-span-2 text-lg font-medium text-gray-900 text-center">
+                  {item.price.toLocaleString('ko-KR')}원
+                </div>
                 
                 {/* 배송상태 */}
                 <div className="col-span-3 text-center">
@@ -120,18 +124,12 @@ export default function MyPagePurchase() {
             ))}
           </div>
 
-          {/* 더보기 버튼 */}
-          {purchaseHasMore && (
-            <div className="mt-8 text-center">
-              <button
-                onClick={handleLoadMore}
-                disabled={purchaseListLoading}
-                className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {purchaseListLoading ? '불러오는 중...' : '더보기'}
-              </button>
-            </div>
-          )}
+          {/* 페이지네이션 */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         </main>
       </div>
     </div>

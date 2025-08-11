@@ -106,10 +106,12 @@ interface ChatRoomStore{
     openVideoChat: (roomId: number) => void
     closeVideoChat: () => void
     getMessageHistory: (roomId: number) => Promise<void>
-    sendMessage: (roomId: number, content: string) => void
+    sendMessage: (roomId: number, content: string, type?: string) => void
     setVideoSessionId: (id: string | null) => void
     // 화상채팅 세션 생성 함수 추가
     createVideoSession: (roomId: number) => Promise<string | null>
+      // 채팅방 목록 업데이트 함수 추가
+    updateRoomList: (newRoomList: ChatRoom[]) => void
 }
 
 export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
@@ -181,20 +183,39 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         set({ isConnecting: true });
         
         const serverUrl = 'https://i13e202.p.ssafy.io/be/ws-stomp'
+        // 토큰 가져와야하는데 어케하는지 모르겠어용 ㅠ
+        const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI0Mzc1MTI2ODM0Iiwicm9sZSI6IlVTRVIiLCJ0b2tlblR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTQzMjk4OTEsImV4cCI6MzMyNDY3OTM4OTF9.Ri8aEdsV2_37aZ9As4npi_kBvWv0ccQlUzyKweE4B-opos4h-4Ceb7OO4LQUFJp7'
         
         try {
             const socket = new SockJS(serverUrl)
             const client = new Client({
                 webSocketFactory: () => socket,
+       
+                connectHeaders: {
+                    Authorization: `Bearer ${token}`,
+                },
                 reconnectDelay: 0,
                 heartbeatIncoming: 4000,
-                heartbeatOutgoing: 4000
-            })
+                heartbeatOutgoing: 4000,
+                });
             
             client.onConnect = (frame) => {
                 // console.log('✅ STOMP: 연결 성공!')
                 set({ isConnected: true, isConnecting: false, stompClient: client })
                 
+                console.log('📡 STOMP: 채팅방 목록(/user/chat/roomlist) 구독 시작');
+                client.subscribe('/user/sub/chat/roomlist', (messageOutput) => {
+                    try {
+                        console.log(messageOutput.body)
+                        const updatedRoomList = JSON.parse(messageOutput.body) as ChatRoom[];
+                        console.log('📋 채팅방 목록 업데이트 수신:', updatedRoomList);
+                        get().updateRoomList(updatedRoomList);
+                    } catch (error) {
+                        console.error('❌ 채팅방 목록 파싱 오류:', error);
+                    }
+                });
+
+
                 if (roomId) {
                     console.log(`📡 STOMP: 채팅방 ${roomId} 구독 시작`)
                     client.subscribe(`/sub/chat/room/${roomId}`, (messageOutput) => {
@@ -263,7 +284,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         }
     },
 
-    sendMessage: (roomId: number, content: string) => {
+    sendMessage: (roomId: number, content: string, type: string = "TEXT") => {
         const { stompClient, isConnected } = get()
         
         if (!stompClient || !isConnected) {
@@ -311,7 +332,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 content: content.trim(),
                 isRead: false,
                 createdAt: new Date(),
-                type: "TEXT"
+                type: type
             }
 
             console.log('📤 STOMP 메시지 전송 시도:', stompMessage)
@@ -359,6 +380,20 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         } catch (error) {
             console.error('❌ 화상채팅 세션 생성 오류:', error);
             return null;
+        }
+    },
+
+    updateRoomList: (newRoomList: ChatRoom[]) => {
+        console.log('📋 채팅방 목록 업데이트:', newRoomList);
+        set({ roomList: newRoomList });
+        
+        // 현재 선택된 채팅방이 있다면 해당 정보도 업데이트
+        const { currentSelectedRoom } = get();
+        if (currentSelectedRoom) {
+            const updatedCurrentRoom = newRoomList.find(room => room.roomId === currentSelectedRoom.roomId);
+            if (updatedCurrentRoom) {
+                set({ currentSelectedRoom: updatedCurrentRoom });
+            }
         }
     },
 

@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { MouseEvent } from 'react'
-import LikeHeart from '@/components/product/wishHeart'
+import WishHeart from '@/components/product/wishHeart'
 import { ProductWithSeller } from '@/stores/product/productStore'
 
 type Props = {
@@ -54,7 +54,7 @@ export default function ProductCard({ item }: Props) {
           />
           <div className="absolute top-3 right-3 z-10">
             {typeof product.id === 'number' && (
-              <LikeHeart
+              <WishHeart
                 productId={product.id}
                 initialIsLiked={product.isLike || false}
               />

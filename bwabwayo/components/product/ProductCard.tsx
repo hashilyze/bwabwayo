@@ -2,16 +2,16 @@
 
 import { useRouter } from 'next/navigation'
 import { MouseEvent } from 'react'
-import LikeHeart from '@/components/product/wishHeart';
-import { ProductWithSeller } from '@/stores/product/productStore';
+import WishHeart from '@/components/product/wishHeart';
+import { ProductCardUIData } from '@/stores/product/productStore';
 
 type Props = {
-  item: ProductWithSeller
+  item: ProductCardUIData
 }
 
 export default function ProductCard({ item }: Props) {
   const router = useRouter();
-  const product = item.product;
+  const product = item;
   // console.log(product)
 
   const handleCardClick = (e: MouseEvent<HTMLDivElement>, productId: number) => {
@@ -56,7 +56,7 @@ export default function ProductCard({ item }: Props) {
        <div className="relative border-b border-[#eee] flex-shrink-0 overflow-hidden">
          <div className="absolute top-4 right-4 z-10">
            {typeof product.id === 'number' && (
-            <LikeHeart 
+            <WishHeart 
               productId={product.id} 
               initialIsLiked={product.isLike || false} 
             />

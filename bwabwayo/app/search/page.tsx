@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useProductStore, ProductWithSeller } from '@/stores/product/productStore';
 import { useCategoryStore } from '@/stores/categoryStore';
 import ProductCard from '@/components/product/ProductCard';
+import { transformToProductCardData } from '@/lib/dataTransFormers';
 
 export default function SearchPage({
     searchParams,
@@ -409,11 +410,17 @@ export default function SearchPage({
         </div>
       ) : products.length > 0 ? (
         <ul className="grid grid-cols-4 gap-8 gap-y-12 items-stretch">
-          {products.map((item: ProductWithSeller) => (
-            <li key={item.product.id}>
-              <ProductCard item={item} />
-            </li>
-          ))}
+          {products.map((item: ProductWithSeller) => {
+            if (!item.product?.id) return null;
+
+            const cardData = transformToProductCardData(item);
+
+            return (
+              <li key={item.product.id}>
+                <ProductCard item={cardData} />
+              </li>
+            );
+          })}
         </ul>
       ) : (
         <div className="flex justify-center items-center py-8">
