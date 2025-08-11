@@ -43,6 +43,7 @@ export const useMyAddressStore = create<AddressStoreState>((set, get) => ({
     try {
       const response = await useAuthStore.getState().authenticatedFetch(requestUrl);
       const data = await response.json();
+      console.log('📦 [주소] API 원본 응답:', data); // API 원본 응답을 콘솔에 출력
 
       if (!response.ok) {
         throw new Error(data.message || '배송지 목록을 불러오는데 실패했습니다.');
