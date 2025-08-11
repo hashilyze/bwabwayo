@@ -9,7 +9,6 @@ export interface Address {
   zipcode: string;
   address: string;
   addressDetail: string;
-  isDefault?: boolean; // ERD에는 없지만, UI에서 기본 배송지 표기를 위해 클라이언트에서 관리
 }
 
 // 스토어의 상태(state)와 액션(actions) 타입 정의
@@ -18,10 +17,9 @@ interface AddressStoreState {
   loading: boolean;
   error: string | null;
   fetchAddresses: () => Promise<void>;
-  addAddress: (newAddress: Omit<Address, 'id' | 'isDefault'>) => Promise<void>;
+  addAddress: (newAddress: Omit<Address, 'id'>) => Promise<void>;
   updateAddress: (updatedAddress: Address) => Promise<void>;
   deleteAddress: (addressId: number) => Promise<void>;
-  setDefaultAddress: (addressId: number) => Promise<void>;
 }
 const baseUrl = 'https://i13e202.p.ssafy.io/be/api';
 
@@ -49,15 +47,19 @@ export const useMyAddressStore = create<AddressStoreState>((set, get) => ({
         throw new Error(data.message || '배송지 목록을 불러오는데 실패했습니다.');
       }
 
+      const responseContent = data.content;
+      if (!Array.isArray(responseContent)) {
+        throw new Error('API 응답 형식이 올바르지 않습니다. (content 배열 누락)');
+      }
+
       // API 응답이 snake_case일 경우를 대비하여 camelCase로 변환합니다.
-      const transformedData = data.map((addr: any) => ({
+      const transformedData = responseContent.map((addr: any) => ({
         id: addr.id,
         recipientName: addr.recipientName,
         recipientPhoneNumber: addr.recipientPhoneNumber,
         zipcode: addr.zipcode,
         address: addr.address,
         addressDetail: addr.addressDetail,
-        isDefault: addr.isDefault,
       }));
 
       console.log('✅ [주소] 배송지 목록:', transformedData);
@@ -148,31 +150,6 @@ export const useMyAddressStore = create<AddressStoreState>((set, get) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '배송지 삭제 중 오류가 발생했습니다.';
       console.error('🔥 [주소] 배송지 삭제 실패:', error);
-      set({ error: errorMessage, loading: false });
-      throw error;
-    }
-  },
-
-  // 기본 배송지로 설정하는 액션
-  setDefaultAddress: async addressId => {
-    set({ loading: true, error: null });
-    const requestUrl = `${baseUrl}/addresses/${addressId}/default`;
-    console.log(`[주소] 기본 배송지 설정 요청: PATCH ${requestUrl}`);
-    try {
-      const response = await useAuthStore.getState().authenticatedFetch(requestUrl, {
-        method: 'PATCH',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || '기본 배송지 설정에 실패했습니다.');
-      }
-
-      console.log('✅ [주소] 기본 배송지 설정 성공');
-      await get().fetchAddresses();
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '기본 배송지 설정 중 오류가 발생했습니다.';
-      console.error('🔥 [주소] 기본 배송지 설정 실패:', error);
       set({ error: errorMessage, loading: false });
       throw error;
     }

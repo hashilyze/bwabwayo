@@ -331,7 +331,7 @@ export default function SignUpPage() {
                         <div className="md:col-span-2 space-y-2 max-w-xs">
                             <div className="flex gap-4 justify-start">
                                 <input type="text" value={zipcode} className="w-32 border border-gray-300 rounded-xl px-4 py-2 bg-gray-50" placeholder="우편번호" readOnly />
-                                <button type="button" onClick={handleAddressSearch} className="px-4 bg-yellow-300 border border-black rounded-full font-bold text-sm hover:bg-yellow-200 flex-shrink-0">주소 검색</button>
+                                <button type="button" onClick={handleAddressSearch} className="px-4 bg-yellow-300 border border-black rounded-full font-bold text-sm hover:bg-yellow-200 flex-shrink-0">우편번호 찾기</button>
 
                             </div>
                             <input type="text" value={address} className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-gray-50" placeholder="주소" readOnly />
