@@ -189,7 +189,11 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         const accessToken = localStorage.getItem('accessToken')
         console.log(accessToken)
         try {
-            const socket = new SockJS(serverUrl)
+            const socket = new SockJS(serverUrl, null, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                }
+            })
             const client = new Client({
                 webSocketFactory: () => socket,
        
