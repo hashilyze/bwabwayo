@@ -17,7 +17,7 @@ const SignupSuccessModal: React.FC<SignupSuccessModalProps> = ({ isOpen, onConfi
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-white rounded-2xl shadow-lg p-8 text-center max-w-md w-full">
         <div className="flex justify-center mb-4">
           <CheckCircleIcon />
