@@ -285,7 +285,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
   },
 
   // 유사 상품 조회
-  getSimilarProducts: async (title: number) => {
+  getSimilarProducts: async (title: string) => {
     set({ loading: true, error: null })
     try {
       const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products?keyword=${title}&sortBy=related`)
