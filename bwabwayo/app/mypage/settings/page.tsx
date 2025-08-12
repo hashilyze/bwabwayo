@@ -22,6 +22,8 @@ export default function SettingsPage() {
 
   const [nickname, setNickname] = useState('');
   const [bio, setBio] = useState('');
+  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
 
   const [bankName, setBankName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
@@ -48,6 +50,8 @@ export default function SettingsPage() {
     if (userData) {
       setNickname(userData.nickname || '');
       setBio(userData.bio || '');
+      setEmail(userData.email || '');
+      setPhoneNumber(userData.phoneNumber || '');
       setProfileImagePreview(userData.profileImage);
       // 수정 필드는 비워둡니다.
       setBankName('');
@@ -138,6 +142,13 @@ export default function SettingsPage() {
     setNickname(validNickname);
   };
 
+  const handlePhoneNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    // 숫자만 입력 가능하도록 정규식 사용하고, 11자로 제한합니다.
+    const numbersOnly = value.replace(/[^0-9]/g, '').slice(0, 11);
+    setPhoneNumber(numbersOnly);
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -164,6 +175,8 @@ export default function SettingsPage() {
       const profileUpdateRequest: ProfileData = {
         nickname: nickname.trim(),
         bio: bio.trim(),
+        email: email.trim(),
+        phoneNumber: phoneNumber.trim(),
         // 사용자가 입력한 새 정보 또는 기존 정보를 전달
         bankName: allAccountInfoProvided ? bankName.trim() : userData?.bankName || '',
         accountNumber: allAccountInfoProvided ? accountNumber.trim() : userData?.accountNumber || '',
@@ -269,6 +282,31 @@ export default function SettingsPage() {
             onChange={(e) => setBio(e.target.value)}
             className="flex-1 max-w-lg h-24 px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500"
             placeholder="가게에 대한 설명을 적어주세요."
+          />
+        </div>
+
+        {/* 이메일 */}
+        <div className="flex items-center">
+          <label className="text-xl font-bold text-black w-[80px] mr-10">이메일</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="flex-1 max-w-[258px] px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500 bg-gray-100 text-gray-500"
+            placeholder="이메일"
+          />
+        </div>
+
+        {/* 전화번호 */}
+        <div className="flex items-center">
+          <label className="text-xl font-bold text-black w-[80px] mr-10">전화번호</label>
+          <input
+            type="tel"
+            value={phoneNumber}
+            onChange={handlePhoneNumberChange}
+            className="flex-1 max-w-[258px] px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500"
+            maxLength={11}
+            placeholder="전화번호"
           />
         </div>
 
