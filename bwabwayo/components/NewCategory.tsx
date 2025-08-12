@@ -59,11 +59,11 @@ export default function NewCategory({ showCategory }: NewCategoryProps) {
         <div className="flex" onClick={handleContainerClick}>
           {/* 첫 번째 컬럼 - 대분류 */}
           <div className="flex-1" onClick={handleContainerClick}>
-            <div className="grid grid-cols-3 gap-x-8 gap-y-8" onClick={handleContainerClick}>
+            <div className="grid grid-cols-3 gap-x-6 gap-y-7" onClick={handleContainerClick}>
               {categories.map((category) => (
                 <div 
                   key={category.categoryId}
-                  className={`text-xl font-semibold cursor-pointer transition-colors ${
+                  className={`text-lg font-semibold cursor-pointer transition-colors ${
                     selectedCategory?.categoryId === category.categoryId 
                       ? 'text-[#ffae00]' 
                       : 'text-black hover:text-[#ffae00]'
@@ -77,24 +77,22 @@ export default function NewCategory({ showCategory }: NewCategoryProps) {
           </div>
 
           {/* 두 번째 컬럼 - 선택된 대분류의 소분류들 */}
-          <div className="flex-1 flex justify-center items-center" onClick={handleContainerClick}>
+          <div className="flex-1 flex justify-start items-start" onClick={handleContainerClick}>
             {selectedCategory ? (
-              <div onClick={handleContainerClick}>
-                <div className="grid grid-cols-3 gap-x-16 gap-y-6" onClick={handleContainerClick}>
-                  {selectedCategory.subCategories.map((subCategory) => (
-                    <div 
-                      key={subCategory.categoryId}
-                      className="text-lg text-gray-600 cursor-pointer hover:text-[#ffae00] transition-colors"
-                      onClick={(e) => handleSubCategoryClickWithPrevention(e, subCategory)}
-                    >
-                      {subCategory.categoryName}
-                    </div>
-                  ))}
-                </div>
+              <div className="grid grid-cols-3 gap-x-16 gap-y-6" onClick={handleContainerClick}>
+                {selectedCategory.subCategories.map((subCategory) => (
+                  <div 
+                    key={subCategory.categoryId}
+                    className="text-lg text-gray-600 cursor-pointer hover:text-[#ffae00] transition-colors"
+                    onClick={(e) => handleSubCategoryClickWithPrevention(e, subCategory)}
+                  >
+                    {subCategory.categoryName}
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="flex items-center justify-center h-64" onClick={handleContainerClick}>
-                <div className="text-xl text-gray-500">
+                <div className="text-lg text-gray-500">
                   왼쪽에서 카테고리를 선택해주세요
                 </div>
               </div>

@@ -6,7 +6,6 @@ import Chatbot from "@/components/chat/Chatbot";
 import LoginModalWrapper from '@/components/common/LoginModalWrapper';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { Suspense } from "react";
-import RecommendItems from "@/components/home/RecommendItems";
 
 export const metadata: Metadata = {
   title: "봐봐요",
