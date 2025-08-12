@@ -139,50 +139,66 @@ export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected 
 
   return (
     <div 
-      className={`h-[92px] flex items-center px-5 cursor-pointer ${
+      className={`h-[120px] flex items-center px-5 cursor-pointer ${
         isSelected 
-          ? 'bg-blue-50 border-r-4 border-r-blue-500' 
+          ? 'bg-[#fffde2] border-r-4 border-r-[#FFAE00]' 
           : 'bg-white hover:bg-gray-50'
       }`}
       onClick={handleClick}
     >
-      <div className="w-[60px] h-[60px] bg-gray-200 rounded-full mr-[18px]">
+      <div className="w-[80px] h-[80px] bg-gray-200 rounded-full mr-[18px]">
          <img 
-           src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`}
+           src={(() => {
+             if (layoutRoom) {
+               // 현재 사용자가 판매자인 경우 구매자 프로필을, 구매자인 경우 판매자 프로필을 반환
+               const currentUserId = layoutRoom.userId;
+               const sellerId = layoutRoom.seller.id;
+               const buyerId = layoutRoom.buyer.id;
+               
+               if (currentUserId === sellerId) {
+                 return layoutRoom.buyer.profileImageUrl; // 구매자 프로필
+               } else if (currentUserId === buyerId) {
+                 return layoutRoom.seller.profileImageUrl; // 판매자 프로필
+               } else {
+                 return layoutRoom.seller.profileImageUrl; // fallback
+               }
+             }
+             return chatRoom?.seller?.profileImageUrl || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`;
+           })()}
            alt={`${getPartnerName()} 프로필`}
            className="w-full h-full rounded-full object-cover"
          />
        </div>
        
-       <div className="flex-1">
-         <div className="flex items-center mb-1">
-           <span className="text-base font-bold text-black mr-2">
+       <div className="flex flex-col flex-1">
+         <div className="flex items-center">
+           <span className="text-lg font-bold text-black mr-2">
              {getPartnerName()}
            </span>
           <div className="w-[2px] h-[2px] bg-gray-500 rounded-full mr-2"></div>
-          <span className="text-xs text-gray-500">
+          <span className="text-sm text-gray-500">
             {formatTime(layoutRoom?.lastMessage?.createdAt || regularRoom?.lastChatmessageDto?.createdAt || regularRoom?.lastMessageTime || chatRoom?.lastMessage?.createdAt)}
           </span>
         </div>
         <div className="flex items-center justify-between">
-          <p className="text-xs text-gray-500 truncate flex-1 mr-2">
+          <p className="text-md text-gray-500 truncate flex-1 mr-2">
             {(() => {
               const message = layoutRoom?.lastMessage?.content || regularRoom?.lastChatmessageDto?.content || regularRoom?.lastMessageContent || chatRoom?.lastMessage?.content || '메시지 없음';
               return message.length > 25 ? message.substring(0, 25) + '...' : message;
             })()}
           </p>
           {(layoutRoom?.unreadCount || regularRoom?.unreadMessagesNum || chatRoom?.unreadCount) && (layoutRoom?.unreadCount || regularRoom?.unreadMessagesNum || chatRoom?.unreadCount || 0) > 0 && (
-            <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+            <span className="bg-red-500 text-white text-md rounded-full px-2 py-1 w-[30px] h-[30px] text-center mr-2">
               {layoutRoom?.unreadCount || regularRoom?.unreadMessagesNum || chatRoom?.unreadCount}
             </span>
           )}
         </div>
-        <p className="text-xs text-gray-400 mt-1">
+        <p className="text-md text-gray-400">
           [{layoutRoom?.product?.title || regularRoom?.productName || chatRoom?.product?.title || '상품'}] 상품
         </p>
       </div>
       
-      <div className="w-[40px] h-[40px] bg-gray-300 rounded ml-2">
+      <div className="w-[60px] h-[60px] bg-gray-300 rounded ml-2">
         <img 
           src={layoutRoom?.product?.imageUrl || regularRoom?.product?.thumnail || chatRoom?.product?.imageUrl || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`}
           alt="상품 이미지" 

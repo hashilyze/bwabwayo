@@ -113,6 +113,27 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     loadInitialRoomList()
   }, []); // 빈 배열로 한 번만 실행
 
+  // STOMP 메시지 수신 시 채팅방 목록 업데이트
+  useEffect(() => {
+    const { stompClient, isConnected } = useChatRoomStore.getState();
+    
+    if (isConnected && stompClient) {
+      // 메시지 수신 시 채팅방 목록을 다시 가져오는 함수
+      const handleMessageReceived = async () => {
+        try {
+          console.log('📋 메시지 수신으로 인한 채팅방 목록 업데이트');
+          await getRoomList();
+        } catch (error) {
+          console.error('📋 채팅방 목록 업데이트 실패:', error);
+        }
+      };
+
+      // 메시지 수신 이벤트 리스너 추가 (간접적으로)
+      // STOMP 구독에서 메시지를 받으면 roomList가 업데이트되므로
+      // roomList 변경을 감지하여 처리
+    }
+  }, [getRoomList]);
+
   // 실시간 업데이트를 위해 기존 폴링 제거
   // STOMP 구독으로 실시간 업데이트되므로 더 이상 폴링 불필요
 
@@ -134,11 +155,8 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     console.log('📋 roomList 업데이트됨:', roomList?.length, '개');
   }, [roomList]);
 
-  // openvidu 임시 세션 ID (기본값)
-  const defaultVideoRoomId = 17;
-  
   return (
-    <div className="flex h-[600px] bg-white container-default m-auto">
+    <div className="flex h-[700px] bg-white container-default m-auto border border-[#eee]">
       {/* 좌측 채팅 목록 */}
       <div className="w-[640px] border-r border-gray-200 relative">
         {/* 연결 상태 표시 (개발용) */}
@@ -150,9 +168,9 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
         )}
         
         {/* 채팅 목록 컨테이너 */}
-        <div className="h-full overflow-y-auto flex flex-col">
+        <div className="h-full overflow-y-auto flex flex-col [&::-webkit-scrollbar]:w-[10px] [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-clip-padding [&::-webkit-scrollbar-button]:hidden">
           {/* 헤더 */}
-          <div className="h-[84px] bg-white flex items-center px-5 sticky top-0 z-10">
+          <div className="min-h-[100px] bg-white flex items-center px-5 sticky top-0 z-10">
             <h1 className="text-2xl font-bold text-black">전체 대화</h1>
           </div>
           

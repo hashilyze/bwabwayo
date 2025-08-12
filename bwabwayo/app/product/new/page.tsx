@@ -1,5 +1,6 @@
 'use client'
 import { useState, useRef, ChangeEvent, useEffect, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { useCategoryStore } from '@/stores/categoryStore';
 import { useAiDescriptionStore } from '@/stores/ai/aiDescriptionStore';
@@ -19,6 +20,7 @@ const XCircleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 // --- 메인 페이지 컴포넌트 (Main Page Component) ---
 export default function CreateProductPage() {
+  const router = useRouter();
   const { categories, getCategories } = useCategoryStore();
   const { addProduct } = useProductStore();
   const {
@@ -53,22 +55,17 @@ export default function CreateProductPage() {
 
   // AI 템플릿 생성 핸들러
   const handleGenerateAiTemplate = async () => {
-    // 사용자가 선택한 대분류/소분류 이름에 해당하는 최종 categoryId를 찾는 함수입니다.
-    // 설명해주신 ID 구조(대분류 1 + 소분류 001 = 1001)에 따라, 백엔드에서 이미 조합된 최종 ID를 제공한다고 가정합니다.
-    // 이 로직은 먼저 선택된 대분류를 찾고, 그 안에서 소분류를 찾아 ID를 반환하여 더 정확하고 안정적입니다.
     const getCategoryId = (): number | null => {
         const selectedMajor = categories.find(cat => cat.categoryName === majorCategory);
-        if (!selectedMajor) return null;
+        // 소분류가 선택되었을 때만 ID를 반환합니다.
+        if (!selectedMajor || !minorCategory) return null;
 
-        if (minorCategory) {
-            const selectedMinor = selectedMajor.subCategories.find(sub => sub.categoryName === minorCategory);
-            return selectedMinor ? selectedMinor.categoryId : null;
-        }
-        return selectedMajor.categoryId;
+        const selectedMinor = selectedMajor.subCategories.find(sub => sub.categoryName === minorCategory);
+        return selectedMinor ? selectedMinor.categoryId : null;
     };
 
     const categoryId = getCategoryId();
-    if (!categoryId) { alert('AI 템플릿을 생성하려면 카테고리를 먼저 선택해주세요.'); return; }
+    if (!categoryId) { alert('AI 템플릿을 생성하려면 카테고리를 모두 선택해주세요.'); return; }
     await fetchDescription(categoryId);
   };
 
@@ -215,29 +212,20 @@ export default function CreateProductPage() {
     if (!termsAgreed) { alert('판매 정보 동의 약관에 체크해주세요.'); return; }
     if (uploadedImageUrls.length === 0) { alert('이미지를 1개 이상 등록해주세요.'); return; }
     if (!productName.trim()) { alert('상품명을 입력해주세요.'); return; }
-    if (!majorCategory) { alert('카테고리를 선택해주세요.'); return; }
+    if (!majorCategory || !minorCategory) { alert('카테고리를 모두 선택해주세요.'); return; }
 
     // *** 카테고리 이름을 ID로 변환 ***
     const getCategoryId = (): number | null => {
-      if (minorCategory) {
-        // 서브카테고리가 선택된 경우
-        for (const category of categories) {
-          const subCategory = category.subCategories.find(sub => sub.categoryName === minorCategory);
-          if (subCategory) {
-            return subCategory.categoryId;
-          }
-        }
-      } else if (majorCategory) {
-        // 메인카테고리만 선택된 경우
-        const category = categories.find(cat => cat.categoryName === majorCategory);
-        return category ? category.categoryId : null;
-      }
-      return null;
+      const selectedMajor = categories.find(cat => cat.categoryName === majorCategory);
+      if (!selectedMajor || !minorCategory) return null;
+
+      const selectedMinor = selectedMajor.subCategories.find(sub => sub.categoryName === minorCategory);
+      return selectedMinor ? selectedMinor.categoryId : null;
     };
 
     const categoryId = getCategoryId();
-    if (!categoryId) {
-      alert('카테고리 ID를 찾을 수 없습니다.');
+    if (!categoryId) { // 이중 확인
+      alert('선택된 카테고리를 찾을 수 없습니다.');
       return;
     }
 
@@ -290,13 +278,14 @@ export default function CreateProductPage() {
     try {
       console.log('--- 🛒 상품 등록 API 호출 시작 ---');
 
-      const result = await addProduct(requestData as any);
-      console.log('✅ 상품 등록 성공:', result);
+      const newProductId = await addProduct(requestData as any);
+      console.log('✅ 상품 등록 성공, ID:', newProductId);
 
       alert(`상품이 성공적으로 등록되었습니다!\\n\\n📝 제목: ${requestData.title}\\n💰 가격: ${requestData.price}원\\n📸 이미지: ${requestData.images.length}개`);
 
-      // 성공 후 폼 초기화
+      // 성공 후 폼 초기화 및 페이지 이동
       resetForm();
+      router.push(`/product/${newProductId}`);
 
     } catch (error) {
       console.error('❌ 상품 등록 실패:', error);
@@ -406,7 +395,7 @@ export default function CreateProductPage() {
               <button
                 type="button"
                 onClick={handleGenerateAiTemplate}
-                disabled={aiLoading || (!majorCategory && !minorCategory)}
+                disabled={aiLoading || !minorCategory}
                 className="w-full bg-blue-600 text-white font-bold px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 {aiLoading ? 'AI가 생성 중...' : 'AI 템플릿 생성'}

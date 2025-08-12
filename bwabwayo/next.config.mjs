@@ -3,7 +3,7 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_PUBLIC_URL: process.env.NODE_ENV === 'production' ? '/fe' : '',
   },
-  trailingSlash: true,
+  // trailingSlash: true,
   sassOptions: {
     includePaths: ['./'],
   },

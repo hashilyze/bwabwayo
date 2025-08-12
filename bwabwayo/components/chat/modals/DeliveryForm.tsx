@@ -3,6 +3,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { X } from 'lucide-react'
+import { useMyAddressStore } from '@/stores/mypage/myAddressStore'
+import { DaumPostcodeData } from '@/types/daum'
 
 type Payload = {
   zipcode: string
@@ -10,22 +12,6 @@ type Payload = {
   address_detail: string
   recipient_name: string
   recipient_phone_number: string
-}
-
-interface DaumPostcodeData { 
-    address: string;
-    addressType: 'R' | 'J';
-    bname: string;
-    buildingName: string;
-    zonecode: string;
-}
-
-declare global {
-  interface Window {
-    daum: {
-        Postcode: new (options: { oncomplete: (data: DaumPostcodeData) => void }) => { open: () => void };
-    };
-  }
 }
 
 export default function AddressAddForm({
@@ -37,6 +23,7 @@ export default function AddressAddForm({
   onSubmit: (data: Payload) => void
   onClose: () => void
 }) {
+  const { addAddress, loading, error: storeError } = useMyAddressStore()
   const [form, setForm] = useState<Payload>({
     zipcode: initial?.zipcode ?? '',
     address: initial?.address ?? '',
@@ -76,18 +63,34 @@ export default function AddressAddForm({
     )
   }, [form])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!valid) {
       setError('필수 항목을 올바르게 입력해 주세요.')
       return
     }
     setError('')
-    onSubmit({
-      ...form,
-      zipcode: form.zipcode.replace(/\D/g, '').slice(0, 5),
-      recipient_phone_number: form.recipient_phone_number.replace(/\D/g, ''),
-    })
+    
+    try {
+      // myAddressStore의 addAddress 호출
+      await addAddress({
+        recipientName: form.recipient_name,
+        recipientPhoneNumber: form.recipient_phone_number.replace(/\D/g, ''),
+        zipcode: form.zipcode.replace(/\D/g, '').slice(0, 5),
+        address: form.address,
+        addressDetail: form.address_detail,
+      })
+      
+      // 성공 시 onSubmit 콜백 호출 (기존 로직 유지)
+      onSubmit({
+        ...form,
+        zipcode: form.zipcode.replace(/\D/g, '').slice(0, 5),
+        recipient_phone_number: form.recipient_phone_number.replace(/\D/g, ''),
+      })
+    } catch (error) {
+      console.error('배송지 추가 실패:', error)
+      setError('배송지 추가에 실패했습니다. 다시 시도해 주세요.')
+    }
   }
 
   // ✅ 주소 검색 (로드되었을 때만 오픈)
@@ -198,14 +201,15 @@ export default function AddressAddForm({
         aria-label="수령인 전화번호"
       />
 
-      {error && <p className="text-xs text-red-600 -mt-4 mb-4">{error}</p>}
+      {(error || storeError) && <p className="text-xs text-red-600 -mt-4 mb-4">{error || storeError}</p>}
 
       <button
         type="submit"
+        disabled={!valid || loading}
         className={`h-12 w-full rounded-full border-2 border-black text-black font-medium
-          ${valid ? 'bg-[#ffae00] hover:scale-[1.01] transition' : 'bg-[#ffae00]/60 cursor-not-allowed'}`}
+          ${valid && !loading ? 'bg-[#ffae00] hover:scale-[1.01] transition' : 'bg-[#ffae00]/60 cursor-not-allowed'}`}
       >
-        새 주소 추가
+        {loading ? '추가 중...' : '새 주소 추가'}
       </button>
     </form>
   )

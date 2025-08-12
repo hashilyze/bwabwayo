@@ -106,15 +106,37 @@ interface ErrorResponse {
   // code?: string; 와 같이 다른 에러 관련 필드가 있다면 추가할 수 있습니다.
 }
 
-// API 응답 타입
-interface ActivityProductsResponse {
-  size: number;
+// ✨ 판매내역 API 응답 타입을 페이지네이션에 맞게 수정 또는 추가
+interface PaginatedSalesResponse {
   result: ActivityProduct[];
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  hasNext: boolean;
+}
+
+// ✨ 수정: API 명세에 맞게 모든 검색 조건 타입을 확장합니다.
+export interface SalesSearchConditions {
+  page?: number;
+  size?: number;
+  keyword?: string;
+  categoryId?: number;
+  sortBy?: 'latest' | 'views' | 'wishes' | 'related';
+  sellerId?: string;
+  canVideoCall?: boolean;
+  canNegotiate?: boolean;
+  canDirect?: boolean;
+  canDelivery?: boolean;
+  minPrice?: number;
+  maxPrice?: number;
 }
 
 // Zustand 스토어 상태 및 액션 타입
 interface MyActivityStore {
   salesList: ActivityProduct[];
+  salesPage: number; // 페이지 상태 관리를 위한 필드 추가
+  salesTotalPages: number; // 전체 페이지 수 저장을 위한 필드 추가
+  salesHasMore: boolean;
   salesTotalElements: number;
   purchaseList: myPurchaseProduct[];
   purchasePage: number;
@@ -123,10 +145,11 @@ interface MyActivityStore {
   wishList: ProductCardUIData[] | null;
   loading: boolean;
   error: string | null;
-  fetchSales: () => Promise<void>;
+  fetchSales: (conditions: SalesSearchConditions) => Promise<void>; // ✨ 인자를 객체 형태로 변경
   fetchPurchases: (page?: number) => Promise<void>;
   fetchWishlist: () => Promise<void>;
   resetPurchases: () => void;
+  resetSales: () => void; // ✨ 리셋 함수 추가 (선택사항이지만 추천)
 }
 
 // ActivityProduct -> ProductCardUIData 변환 함수
@@ -148,6 +171,9 @@ const baseUrl = 'https://i13e202.p.ssafy.io/be/api';
 
 export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
   salesList: [],
+  salesPage: 1,
+  salesTotalPages: 1,
+  salesHasMore: true,
   salesTotalElements: 0,
   purchaseList: [],
   purchasePage: 0,
@@ -157,25 +183,71 @@ export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
   loading: false,
   error: null,
 
-  // 내 판매내역 불러오기
-  fetchSales: async () => {
+  // ✨ 수정: 내 판매내역 불러오기 (모든 검색 조건 적용)
+  fetchSales: async (conditions: SalesSearchConditions) => {
     set({ loading: true, error: null });
-    const requestUrl = `${baseUrl}/products/my`; // 판매내역 API
+
+    const params = new URLSearchParams();
+
+    // 기본 페이지 및 사이즈 설정
+    params.append('page', String((conditions.page || 1)));
+    params.append('size', String(conditions.size || 10));
+
+    // 조건이 존재할 경우에만 파라미터 추가
+    if (conditions.keyword) {
+      params.append('keyword', conditions.keyword);
+    }
+    if (conditions.categoryId) {
+      params.append('categoryId', String(conditions.categoryId));
+    }
+    if (conditions.sortBy) {
+      params.append('sortBy', conditions.sortBy);
+    }
+    if (conditions.sellerId) {
+      params.append('sellerId', conditions.sellerId);
+    }
+    if (conditions.canVideoCall !== undefined) {
+      params.append('canVideoCall', String(conditions.canVideoCall));
+    }
+    if (conditions.canNegotiate !== undefined) {
+      params.append('canNegotiate', String(conditions.canNegotiate));
+    }
+    if (conditions.canDirect !== undefined) {
+      params.append('canDirect', String(conditions.canDirect));
+    }
+    if (conditions.canDelivery !== undefined) {
+      params.append('canDelivery', String(conditions.canDelivery));
+    }
+    if (conditions.minPrice !== undefined) {
+      params.append('minPrice', String(conditions.minPrice));
+    }
+    if (conditions.maxPrice !== undefined) {
+      params.append('maxPrice', String(conditions.maxPrice));
+    }
+    
+    const requestUrl = `${baseUrl}/products/my?${params.toString()}`;
+    console.log("🚀 최종 요청 URL:", requestUrl);
+
     try {
       const response = await useAuthStore.getState().authenticatedFetch(requestUrl);
-      const data: ActivityProductsResponse | ErrorResponse = await response.json();
+      const data: PaginatedSalesResponse = await response.json();
+
       if (!response.ok) {
-        throw new Error((data as ErrorResponse).message || '판매 내역을 가져오는데 실패했습니다.');
+        throw new Error((data as any).message || '판매 내역을 가져오는데 실패했습니다.');
       }
-      const responseData = data as ActivityProductsResponse;
+
       set({
-        salesList: responseData.result,
-        salesTotalElements: responseData.size,
+        salesList: data.result,
+        salesPage: data.currentPage,
+        salesTotalPages: data.totalPages,
+        salesTotalElements: data.totalItems,
+        salesHasMore: data.hasNext,
         loading: false,
       });
+
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
-      set({ error: errorMessage, loading: false, salesList: [], salesTotalElements: 0 });
+      set({ error: errorMessage, loading: false });
     }
   },
 
@@ -226,6 +298,16 @@ export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
     purchaseHasMore: true,
     error: null,
   }),
+
+  resetSales: () =>
+    set({
+      salesList: [],
+      salesPage: 1,
+      salesTotalPages: 1,
+      salesHasMore: true,
+      salesTotalElements: 0,
+      error: null,
+    }),
 
   // 내 찜목록 불러오기 (API 확인 필요)
   fetchWishlist: async () => {

@@ -228,6 +228,11 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                             set({ videoSessionId: msg.content });
                         }
                         get().appendMessage(msg, false) // isMine은 appendMessage에서 결정하도록 변경 가능
+                        
+                        // 메시지 수신 시 채팅방 목록 업데이트
+                        setTimeout(() => {
+                            get().getRoomList();
+                        }, 500); // 약간의 지연을 두어 서버에서 처리될 시간을 줌
                     })
                 }
             }
@@ -256,7 +261,20 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     appendMessage: (msg: ChatMessage, isMine: boolean) => {        
         set(state => {
             const currentMessages = Array.isArray(state.messages) ? state.messages : []
+            
+            // 중복 메시지 방지: 같은 내용, 같은 시간대의 메시지는 추가하지 않음
+            const isDuplicate = currentMessages.some(existingMsg => 
+                existingMsg.content === msg.content && 
+                existingMsg.senderId === msg.senderId &&
+                Math.abs(new Date(existingMsg.createdAt).getTime() - new Date(msg.createdAt).getTime()) < 1000 // 1초 이내
+            );
+            
+            if (isDuplicate) {
+                console.log('🔄 중복 메시지 감지, 추가하지 않음:', msg.content);
+                return state;
+            }
 
+            console.log('📝 새 메시지 추가:', msg.content);
             return { 
                 messages: [...currentMessages, msg] 
             }
@@ -281,68 +299,90 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     },
 
     sendMessage: (roomId: number, content: string, type: string = "TEXT") => {
-        const { stompClient, isConnected } = get()
-        
-        if (!stompClient || !isConnected) {
-            console.error('❌ STOMP 클라이언트가 연결되지 않았습니다.')
-            return
-        }
-
-        if (!content.trim()) {
-            console.warn('⚠️ 빈 메시지는 전송할 수 없습니다.')
-            return
-        }
-
-        try {
-            const { currentSelectedRoom } = get();
-            const currentUserId = currentSelectedRoom?.userId.toString();
-
-            // receiverId 결정: 현재 사용자가 판매자인지 구매자인지 판단
-            let receiverId = null;
-            const sellerId = currentSelectedRoom?.seller.id.toString();
-            const buyerId = currentSelectedRoom?.buyer.id.toString();
+        return new Promise<void>((resolve, reject) => {
+            const { stompClient, isConnected } = get()
             
-            // 현재 사용자가 판매자인 경우 구매자에게 전송
-            if (currentUserId === sellerId) {
-                receiverId = buyerId;
-            }
-            // 현재 사용자가 구매자인 경우 판매자에게 전송
-            else if (currentUserId === buyerId) {
-                receiverId = sellerId;
-            }
-            // 그 외의 경우 (예상치 못한 상황)
-            else {
-                receiverId = sellerId;
-            }
-
-            if (!receiverId) {
-                console.error('❌ receiverId를 결정할 수 없습니다.')
+            if (!stompClient || !isConnected) {
+                console.error('❌ STOMP 클라이언트가 연결되지 않았습니다.')
+                reject(new Error('STOMP 클라이언트가 연결되지 않았습니다.'))
                 return
             }
 
-            // STOMP 메시지 형식
-            const stompMessage = {
-                roomId: roomId,
-                senderId: currentUserId, // myUserId를 senderId로 사용
-                receiverId: receiverId,
-                content: content.trim(),
-                isRead: false,
-                createdAt: new Date(),
-                type: type
+            if (!content.trim()) {
+                console.warn('⚠️ 빈 메시지는 전송할 수 없습니다.')
+                reject(new Error('빈 메시지는 전송할 수 없습니다.'))
+                return
             }
 
-            console.log('📤 STOMP 메시지 전송 시도:', stompMessage)
-            
-            // STOMP를 통해 메시지 전송
-            stompClient.publish({
-                destination: "/pub/chat/message",
-                body: JSON.stringify(stompMessage)
-            })
+            try {
+                const { currentSelectedRoom } = get();
+                const currentUserId = currentSelectedRoom?.userId.toString();
 
-            console.log('✅ STOMP 메시지 전송 완료')            
-        } catch (error) {
-            console.error('❌ 메시지 전송 실패:', error)
-        }
+                // receiverId 결정: 현재 사용자가 판매자인지 구매자인지 판단
+                let receiverId = null;
+                const sellerId = currentSelectedRoom?.seller.id.toString();
+                const buyerId = currentSelectedRoom?.buyer.id.toString();
+                
+                // 현재 사용자가 판매자인 경우 구매자에게 전송
+                if (currentUserId === sellerId) {
+                    receiverId = buyerId;
+                }
+                // 현재 사용자가 구매자인 경우 판매자에게 전송
+                else if (currentUserId === buyerId) {
+                    receiverId = sellerId;
+                }
+                // 그 외의 경우 (예상치 못한 상황)
+                else {
+                    receiverId = sellerId;
+                }
+
+                if (!receiverId) {
+                    console.error('❌ receiverId를 결정할 수 없습니다.')
+                    reject(new Error('receiverId를 결정할 수 없습니다.'))
+                    return
+                }
+
+                // 즉시 UI에 반영할 메시지 객체 생성
+                const immediateMessage: ChatMessage = {
+                    roomId: roomId,
+                    senderId: currentUserId || '',
+                    receiverId: receiverId || '',
+                    content: content.trim(),
+                    type: type,
+                    createdAt: new Date().toISOString(),
+                    isRead: false
+                }
+
+                // 즉시 로컬 메시지 목록에 추가 (낙관적 업데이트)
+                console.log('📝 즉시 메시지 추가:', immediateMessage)
+                get().appendMessage(immediateMessage, true)
+
+                // STOMP 메시지 형식
+                const stompMessage = {
+                    roomId: roomId,
+                    senderId: currentUserId, // myUserId를 senderId로 사용
+                    receiverId: receiverId,
+                    content: content.trim(),
+                    isRead: false,
+                    createdAt: new Date(),
+                    type: type
+                }
+
+                console.log('📤 STOMP 메시지 전송 시도:', stompMessage)
+                
+                // STOMP를 통해 메시지 전송
+                stompClient.publish({
+                    destination: "/pub/chat/message",
+                    body: JSON.stringify(stompMessage)
+                })
+
+                console.log('✅ STOMP 메시지 전송 완료')
+                resolve()
+            } catch (error) {
+                console.error('❌ 메시지 전송 실패:', error)
+                reject(error)
+            }
+        })
     },
 
     // 화상채팅 관련 함수들

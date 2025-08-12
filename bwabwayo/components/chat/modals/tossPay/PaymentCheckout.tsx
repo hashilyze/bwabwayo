@@ -16,6 +16,8 @@ interface PaymentCheckoutProps {
   onClose: () => void;
   amount: number;
   orderName: string;
+  roomId: number;
+  productId: number;
 }
 
 type PaymentMethod = "CARD" | "TRANSFER" | "VIRTUAL_ACCOUNT" | "MOBILE_PHONE" | "CULTURE_GIFT_CERTIFICATE" | "FOREIGN_EASY_PAY" | null;
@@ -25,7 +27,7 @@ function generateRandomString() {
   return window.btoa(Math.random().toString()).slice(0, 20);
 }
 
-export function PaymentCheckoutPage({ onClose, amount, orderName }: PaymentCheckoutProps) {
+export function PaymentCheckoutPage({ onClose, amount, orderName, roomId, productId }: PaymentCheckoutProps) {
   const [payment, setPayment] = useState<any>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>(null);
   const [customerKey, setCustomerKey] = useState("");
@@ -90,7 +92,7 @@ export function PaymentCheckoutPage({ onClose, amount, orderName }: PaymentCheck
           amount: paymentAmount,
           orderId: generateRandomString(), // 고유 주문번호
           orderName: orderName,
-          successUrl: window.location.origin + "/payment/success", // 결제 요청이 성공하면 리다이렉트되는 URL
+          successUrl: window.location.origin + `${process.env.NEXT_PUBLIC_PUBLIC_URL}/chat/${roomId}?productId=${productId}`, // 결제 요청이 성공하면 리다이렉트되는 URL
           failUrl: window.location.origin + "/fail", // 결제 요청이 실패하면 리다이렉트되는 URL
           customerEmail: "customer123@gmail.com",
           customerName: userData?.nickname || "사용자",
@@ -110,7 +112,7 @@ export function PaymentCheckoutPage({ onClose, amount, orderName }: PaymentCheck
           amount: paymentAmount,
           orderId: generateRandomString(),
           orderName: orderName,
-          successUrl: window.location.origin + "/payment/success",
+          successUrl: window.location.origin + `${process.env.NEXT_PUBLIC_PUBLIC_URL}/chat/${roomId}?productId=${productId}`,
           failUrl: window.location.origin + "/fail",
           customerEmail: "customer123@gmail.com",
           customerName: userData?.nickname || "사용자",
@@ -130,7 +132,7 @@ export function PaymentCheckoutPage({ onClose, amount, orderName }: PaymentCheck
           amount: paymentAmount,
           orderId: generateRandomString(),
           orderName: orderName,
-          successUrl: window.location.origin + "/payment/success",
+          successUrl: window.location.origin + `${process.env.NEXT_PUBLIC_PUBLIC_URL}/chat/${roomId}?productId=${productId}`,
           failUrl: window.location.origin + "/fail",
           customerEmail: "customer123@gmail.com",
           customerName: userData?.nickname || "사용자",
@@ -151,7 +153,7 @@ export function PaymentCheckoutPage({ onClose, amount, orderName }: PaymentCheck
           amount: paymentAmount,
           orderId: generateRandomString(),
           orderName: orderName,
-          successUrl: window.location.origin + "/payment/success",
+          successUrl: window.location.origin + `${process.env.NEXT_PUBLIC_PUBLIC_URL}/chat/${roomId}?productId=${productId}`,
           failUrl: window.location.origin + "/fail",
           customerEmail: "customer123@gmail.com",
           customerName: userData?.nickname || "사용자",
@@ -165,7 +167,7 @@ export function PaymentCheckoutPage({ onClose, amount, orderName }: PaymentCheck
           amount: paymentAmount,
           orderId: generateRandomString(),
           orderName: orderName,
-          successUrl: window.location.origin + "/payment/success",
+          successUrl: window.location.origin + `${process.env.NEXT_PUBLIC_PUBLIC_URL}/chat/${roomId}?productId=${productId}`,
           failUrl: window.location.origin + "/fail",
           customerEmail: "customer123@gmail.com",
           customerName: userData?.nickname || "사용자",
@@ -182,7 +184,7 @@ export function PaymentCheckoutPage({ onClose, amount, orderName }: PaymentCheck
           },
           orderId: generateRandomString(),
           orderName: orderName,
-          successUrl: window.location.origin + "/payment/success",
+          successUrl: `${process.env.NEXT_PUBLIC_PUBLIC_URL}/chat/${roomId}?productId=${productId}`,
           failUrl: window.location.origin + "/fail",
           customerEmail: "customer123@gmail.com",
           customerName: userData?.nickname || "사용자",

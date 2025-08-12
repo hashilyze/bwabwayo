@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useChatRoomStore } from "@/stores/chatting/chatRoomStore";
 
 const jwtToken =
   "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI0Mzc1MTI2ODM0Iiwicm9sZSI6IlVTRVIiLCJ0b2tlblR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTQzMjk4OTEsImV4cCI6MzMyNDY3OTM4OTF9.Ri8aEdsV2_37aZ9As4npi_kBvWv0ccQlUzyKweE4B-opos4h-4Ceb7OO4LQUFJp7";
@@ -11,6 +12,7 @@ export function PaymentSuccessPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [responseData, setResponseData] = useState(null);
+  const { sendMessage } = useChatRoomStore();
 
   useEffect(() => {
     async function confirm() {
@@ -18,7 +20,7 @@ export function PaymentSuccessPage() {
         orderId: searchParams.get("orderId"),
         amount: searchParams.get("amount"),
         paymentKey: searchParams.get("paymentKey"),
-        productId: 73,
+        productId: searchParams.get("productId"),
       };
 
       // https://i13e202.p.ssafy.io/be/api/payments/confirm
@@ -45,11 +47,24 @@ export function PaymentSuccessPage() {
     confirm()
       .then((data) => {
         setResponseData(data);
+        
+        // 결제 성공 후 채팅방에 배송지 입력 메시지 전송
+        const roomId = searchParams.get("roomId");
+        if (roomId) {
+          // INPUT_DELIVERY_ADDRESS 타입 메시지 전송
+          sendMessage(parseInt(roomId), "배송지 입력이 필요합니다.", "INPUT_DELIVERY_ADDRESS");
+          console.log("✅ 배송지 입력 메시지 전송 완료");
+        }
+        
+        // 새창을 바로 종료
+        setTimeout(() => {
+          window.close();
+        }, 1000); // 1초 후 창 닫기
       })
       .catch((error) => {
         router.push(`/fail?code=${error.code}&message=${error.message}`);
       });
-  }, [searchParams, router]);
+  }, [searchParams, router, sendMessage]);
 
   return (
     <div className="min-h-screen bg-[#e8f3ff] font-['Toss_Product_Sans',-apple-system,BlinkMacSystemFont,'Bazier_Square','Noto_Sans_KR','Segoe_UI','Apple_SD_Gothic_Neo',Roboto,'Helvetica_Neue',Arial,sans-serif]">
@@ -63,6 +78,7 @@ export function PaymentSuccessPage() {
             className="mx-auto mb-4"
           />
           <h2 className="text-[24px] font-semibold text-[#4e5968] mb-0">결제를 완료했어요</h2>
+          <p className="text-[16px] text-[#6b7684] mt-2">잠시 후 창이 자동으로 닫힙니다.</p>
           
           <div className="mt-[50px] space-y-[10px]">
             <div className="flex justify-between items-center">
