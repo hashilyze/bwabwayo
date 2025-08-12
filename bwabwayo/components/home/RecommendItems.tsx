@@ -24,7 +24,7 @@ export default function RecommendItems() {
         },
         {
             id: 5,
-            name: '조던던',
+            name: '조던',
             image: 'image/rec-category/jordan.png'
         },
         {
