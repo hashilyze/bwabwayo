@@ -116,24 +116,24 @@ export default function ChatRoomPage() {
         try {
           console.log('📡 결제 확인 API 호출 시작...')
           
-          // currentSelectedRoom에서 productId 가져오기
-          const productIdFromRoom = currentSelectedRoom?.product?.id
-          console.log('🔍 채팅방에서 가져온 productId:', productIdFromRoom)
-          
-          // 서버에 결제 확인 요청
-            const response = await fetch('https://i13e202.p.ssafy.io/be/api/payments/confirm', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-              },
-              body: JSON.stringify({
-                paymentKey,
-                orderId,
-                amount: parseInt(amount),
-                productId: productIdFromRoom || productId
-              }),
-            })
+                     // URL 파라미터에서 productId 가져오기 (우선순위)
+           const productIdFromUrl = searchParams.get('productId')
+           console.log('🔍 URL에서 가져온 productId:', productIdFromUrl)
+           
+           // 서버에 결제 확인 요청
+             const response = await fetch('https://i13e202.p.ssafy.io/be/api/payments/confirm', {
+               method: 'POST',
+               headers: {
+                 'Content-Type': 'application/json',
+                 'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+               },
+               body: JSON.stringify({
+                 paymentKey,
+                 orderId,
+                 amount: parseInt(amount),
+                 productId: productIdFromUrl || productId
+               }),
+             })
 
           console.log('📡 API 응답 상태:', response.status)
 
