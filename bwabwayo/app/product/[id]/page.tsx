@@ -2,7 +2,7 @@
 
 import SellerTitle, { type Seller } from "@/components/shop/SellerTitle";
 import { useProductStore } from "@/stores/product/productStore";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import { useChatRoomStore } from "@/stores/chatting/chatRoomStore";
 import { useRouter } from "next/navigation";
@@ -10,6 +10,18 @@ import { useAuthStore } from "@/stores/auth/authStore";
 import { useModalStore } from "@/stores/modalStore";
 import { useLikeProductStore } from "@/stores/product/likeProductStore";
 import Link from "next/link";
+import type { ProductWithSeller } from "@/stores/product/productStore";
+import { OverlayPortal } from "@/components/chat/modals/OverlayPortal";
+
+// 판매자의 다른 상품을 위한 타입 정의
+interface OtherProduct {
+  id: number;
+  thumbnail?: string;
+  title?: string;
+  price?: number;
+  wishCount?: number;
+  viewCount?: number;
+}
 
 export default function ProductDetailPage() {
   const { product, loading, error, getProductDetail, similarProducts, getSimilarProducts } = useProductStore();
@@ -21,6 +33,13 @@ export default function ProductDetailPage() {
 
   const params = useParams();
   const productId = Number(params.id);
+
+  // 톱니바퀴 드롭다운 상태
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // 삭제 확인 모달 상태
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const seller: Seller = {
     id: product?.seller.id ? String(product.seller.id) : undefined,
@@ -42,6 +61,20 @@ export default function ProductDetailPage() {
   // --- 돋보기 기능 ---
   const [isZoomed, setIsZoomed] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  
+  // 드롭다운 외부 클릭 감지
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // 상품 정보가 로드되면 초기 찜 상태를 설정합니다.
   useEffect(() => {
@@ -81,6 +114,31 @@ export default function ProductDetailPage() {
       setIsLikeLoading(false);
     }
   }, [isLikeLoading, isLoggedIn, product, isWished, addLike, removeLike, productId, openLoginModal]);
+
+  // 제품 삭제 함수
+  const handleDeleteProduct = async () => {
+    try {
+      const response = await fetch(`/be/api/products/${productId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        alert('상품이 삭제되었습니다.');
+        router.push('/'); // 홈으로 이동
+      } else {
+        throw new Error('삭제 실패');
+      }
+    } catch (error) {
+      console.error('상품 삭제 중 오류:', error);
+      alert('상품 삭제에 실패했습니다.');
+    }
+  };
+
+  // 삭제 확인 모달 열기
+  const openDeleteModal = () => {
+    setIsDeleteModalOpen(true);
+    setIsDropdownOpen(false); // 드롭다운 닫기
+  };
 
   useEffect(() => {
     getProductDetail(productId);
@@ -199,7 +257,54 @@ export default function ProductDetailPage() {
                     홈 &gt; {product?.categories?.[0]?.name || '대분류'} &gt; {product?.categories?.[1]?.name || '소분류'}
                   </p>
 
-                  <Link href={`/product/${productId}/edit`} className="block bg-black text-white text-xl p-2  absolute top-10 right-10">수정</Link>
+                  {/* 톱니바퀴 버튼 - isMine이 true일 때만 표시 */}
+                  {product.isMine && (
+                    <div className="absolute top-10 right-10" ref={dropdownRef}>
+                      <button
+                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                        className="w-12 h-12 bg-black text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                      >
+                        <svg 
+                          className={`w-6 h-6 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`}
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth={2} 
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" 
+                          />
+                          <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth={2} 
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" 
+                          />
+                        </svg>
+                      </button>
+                      
+                      {/* 드롭다운 메뉴 */}
+                      {isDropdownOpen && (
+                        <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                          <Link
+                            href={`/product/${productId}/edit`}
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg border-b border-gray-100"
+                            onClick={() => setIsDropdownOpen(false)}
+                          >
+                            수정
+                          </Link>
+                          <button
+                            onClick={openDeleteModal}
+                            className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 rounded-b-lg"
+                          >
+                            삭제
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   
                   <div className="flex flex-col mt-6 mb-4 gap-2">
                     <h1 className="text-2xl">{product?.title || '상품명'}</h1>
@@ -228,10 +333,10 @@ export default function ProductDetailPage() {
                       <div className="block w-[1px] h-7 bg-gray-200"></div>
                     </li>
                     <li className="flex flex-1 flex-col gap-1 items-center">
-                      <p className="text-md text-black/50">거래방식</p>
-                      <p className="text-lg font-semibold"> 
+                      <div className="text-md text-black/50">거래방식</div>
+                      <div className="text-lg font-semibold"> 
                         {product?.canDirect ? '직거래' : ''} {product?.canDirect && product?.canDelivery ? ', ' : ''} {product?.canDelivery ? '택배' : ''}
-                      </p>
+                      </div>
                     </li>
                     <li className="flex-0.5 flex items-center justify-center">
                       <div className="block w-[1px] h-7 bg-gray-200"></div>
@@ -258,18 +363,28 @@ export default function ProductDetailPage() {
                       찜하기
                     </button>
 
-                    <div
+                    {/* 1:1 채팅 버튼 - isMine이 true이면 비활성화 */}
+                    <button
                       onClick={() => {
+                        if (product.isMine) {
+                          alert('자신의 상품에는 채팅할 수 없습니다.');
+                          return;
+                        }
                         if (isLoggedIn) {
                           makeChatRoom()
                         } else {
                           openLoginModal()
                         }
                       }}
-                      className={`flex-1 border-2 border-black py-4 flex items-center justify-center gap-2 rounded-lg py-3 font-bold cursor-pointer bg-[#FFAE00] text-xl`}
+                      disabled={product.isMine}
+                      className={`flex-1 border-2 border-black py-4 flex items-center justify-center gap-2 rounded-lg py-3 font-bold cursor-pointer text-xl ${
+                        product.isMine 
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                          : 'bg-[#FFAE00] hover:bg-[#FF9500] transition-colors'
+                      }`}
                     >
-                      1:1 채팅하기
-                    </div>
+                      {product.isMine ? '내 상품입니다' : '1:1 채팅하기'}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -278,7 +393,10 @@ export default function ProductDetailPage() {
               <div>
                 <h1 className="text-2xl font-bold mb-4">이 상품과 비슷해요!!</h1>
                   <ul className="grid grid-cols-4 gap-4">
-                  {similarProducts?.slice(0, 4).map((similarProduct : any) => (
+                  {similarProducts
+                    ?.filter((similarProduct: ProductWithSeller) => similarProduct.product.id !== productId) // 현재 제품 제외
+                    ?.slice(0, 4)
+                    ?.map((similarProduct: ProductWithSeller) => (
                     <li key={similarProduct.product.id} className="">
                       <Link href={`/product/${similarProduct.product.id}`} className="flex flex-col gap-2"  >
                       <div className="relative">
@@ -320,7 +438,7 @@ export default function ProductDetailPage() {
                 <div className="mt-10">
                   <h3 className="text-2xl font-bold mb-4">'{product?.seller?.nickname || '판매자'}'님의 다른 상품</h3>
                   <ul className="flex flex-col gap-4">
-                    {product?.seller?.otherProducts?.map((otherProduct : any) => (
+                    {(product?.seller?.otherProducts as OtherProduct[])?.map((otherProduct: OtherProduct) => (
                       <li key={otherProduct.id}>
                         <Link href={`/product/${otherProduct.id}`} className="flex flex-row items-center gap-5">
                           <div className="relative flex-1">
@@ -331,7 +449,7 @@ export default function ProductDetailPage() {
                             />
                           </div>
                           <div className="flex flex-col flex-2">
-                            <p className="text-lg">{otherProduct?.title?.length > 25 ? `${otherProduct.title.slice(0, 25)}...` : otherProduct?.title || '상품명'}</p>
+                            <p className="text-lg">{otherProduct?.title && otherProduct.title.length > 25 ? `${otherProduct.title.slice(0, 25)}...` : otherProduct?.title || '상품명'}</p>
                             <p className="text-xl font-bold mb-2">{(otherProduct?.price || 0).toLocaleString()}원</p>
                             <p className="text-md font-light text-gray-400">찜 {otherProduct?.wishCount || 0} · 조회 {otherProduct?.viewCount || 0}</p>
                           </div>
@@ -349,6 +467,43 @@ export default function ProductDetailPage() {
         <div className="flex justify-center items-center min-h-screen">
           상품을 찾을 수 없습니다.
         </div>
+      )}
+
+      {/* 삭제 확인 모달 */}
+      {isDeleteModalOpen && (
+        <OverlayPortal open={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)}>
+          <div className="bg-white rounded-2xl p-8 border-2 border-black shadow-lg max-w-md w-full mx-4">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">상품 삭제</h2>
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <p className="text-gray-700 mb-8 text-center">
+              정말로 이 상품을 삭제하시겠습니까?
+            </p>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="flex-1 py-3 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+              >
+                취소
+              </button>
+              <button
+                onClick={() => {
+                  handleDeleteProduct();
+                  setIsDeleteModalOpen(false);
+                }}
+                className="flex-1 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </OverlayPortal>
       )}
     </div>
   );

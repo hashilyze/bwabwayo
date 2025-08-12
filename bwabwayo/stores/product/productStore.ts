@@ -78,6 +78,7 @@ interface ProductDetail {
   imageKeys: string[]
   imageUrls: string[]
   isLike: boolean
+  isMine: boolean
   seller: Seller
   viewCount: number
   wishCount: number
