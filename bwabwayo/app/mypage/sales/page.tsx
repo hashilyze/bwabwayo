@@ -2,26 +2,26 @@
 'use client'; // 페이지 내 상호작용을 위해 클라이언트 컴포넌트로 선언합니다.
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import { useMyActivityStore, ActivityProduct } from "@/stores/mypage/myActivityStore"; // Zustand 스토어를 import 합니다.
+import Link from 'next/link';
+import { useMyActivityStore, type SalesSearchConditions } from "@/stores/mypage/myActivityStore"; // Zustand 스토어를 import 합니다.
 import Pagination from "@/components/common/Pagination"; // 페이지네이션 컴포넌트를 import 합니다.
 
 
 export default function MyPageSales() {
-  const {salesList, loading: salesLoading, error: salesError, fetchSales } = useMyActivityStore();
-
-  useEffect(() => {
-    fetchSales();
-  }, [fetchSales]);
-
+  const { salesList, salesTotalPages, fetchSales, loading: salesLoading, error: salesError } = useMyActivityStore();
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // 한 페이지에 5개의 판매 내역을 표시합니다.
+  const [keyword, setKeyword] = useState('');
+  const [sortBy, setSortBy] = useState<SalesSearchConditions['sortBy']>('latest');
 
-  // 페이지네이션을 위한 로직
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = salesList ? salesList.slice(indexOfFirstItem, indexOfLastItem) : [];
-  const totalPages = salesList ? Math.ceil(salesList.length / itemsPerPage) : 0;
+  // 페이지, 키워드, 정렬 기준이 변경될 때마다 데이터를 새로 불러옵니다.
+  useEffect(() => {
+    fetchSales({
+      page: currentPage,
+      size: 5, // 한 페이지에 표시할 아이템 수
+      keyword: keyword || undefined, // 빈 문자열일 경우 undefined로 전달하여 쿼리에서 제외
+      sortBy: sortBy,
+    });
+  }, [currentPage, keyword, sortBy, fetchSales]);
 
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
@@ -30,7 +30,7 @@ export default function MyPageSales() {
   return (
     <div className="">
       <h1 className="text-3xl font-bold mb-8">판매 상품</h1>
-      
+
       {/* 테이블 헤더 */}
       <div className="bg-gray-100 rounded-lg px-6 py-3 mb-4">
         <div className="flex gap-6 text-gray-500 text-base font-semibold">
@@ -41,17 +41,17 @@ export default function MyPageSales() {
           <div className="w-32 text-center">판매상태</div>
         </div>
       </div>
-      
+
       {/* 상품 리스트 */}
       <div className="space-y-4">
-        {currentItems.length === 0 && !salesLoading && (
+        {salesList.length === 0 && !salesLoading && (
           <div className="text-center text-gray-500 py-20">
             판매 내역이 없습니다.
           </div>
         )}
         {salesError && <div className="text-center text-red-500 py-20">에러: {salesError}</div>}
 
-        {currentItems.map((item) => (
+        {salesList.map((item) => (
           <div key={item.product.id} className="bg-white rounded-[30px] border border-[#d9d9d9] p-6">
             <div className="flex items-center gap-6">
               {/* 상품 이미지 */}
@@ -63,9 +63,9 @@ export default function MyPageSales() {
               <div className="flex flex-col gap-2 flex-1">
                 {/* 날짜 */}
                 <div className="text-[#7c7c7c] text-sm font-normal">
-                  등록일자 : 2025.08.06 14:00
+                  등록일자 : {new Date(item.product.createdAt).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
                 </div>
-                
+
                 {/* 상품명 */}
                 <Link href={`/product/${item.product.id}`} className="group">
                   <div className="text-black text-xl font-semibold leading-[25px]">
@@ -112,7 +112,7 @@ export default function MyPageSales() {
       {/* 페이지네이션 */}
       <Pagination
         currentPage={currentPage}
-        totalPages={totalPages}
+        totalPages={salesTotalPages}
         onPageChange={handlePageChange}
       />
     </div>
