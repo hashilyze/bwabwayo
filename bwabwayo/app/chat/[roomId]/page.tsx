@@ -105,14 +105,15 @@ export default function ChatRoomPage() {
       const paymentKey = searchParams.get('paymentKey')
       const orderId = searchParams.get('orderId')
       const amount = searchParams.get('amount')
+      const productId = searchParams.get('productId')
 
-      console.log('🔍 결제 파라미터 확인:', { paymentKey, orderId, amount, roomId })
+      console.log('🔍 결제 파라미터 확인:', { paymentKey, orderId, amount, roomId, productId })
 
       if (paymentKey && orderId && amount) {
         try {
           console.log('📡 결제 확인 API 호출 시작...')
           
-                     // 서버에 결제 확인 요청
+          // 서버에 결제 확인 요청
             const response = await fetch('https://i13e202.p.ssafy.io/be/api/payments/confirm', {
               method: 'POST',
               headers: {
@@ -123,7 +124,7 @@ export default function ChatRoomPage() {
                 paymentKey,
                 orderId,
                 amount: parseInt(amount),
-                productId: chatInfo?.product?.id,
+                productId: productId
               }),
             })
 

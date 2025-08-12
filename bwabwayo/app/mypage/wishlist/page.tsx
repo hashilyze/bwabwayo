@@ -7,8 +7,6 @@ import ProductCard from "@/components/product/ProductCard"; // 범용 ProductCar
 import Pagination from "@/components/common/Pagination"; // 페이지네이션 컴포넌트를 import 합니다.
 import { useRouter, useSearchParams } from "next/navigation"; // URL 관리를 위해 import 합니다.
 
-
-
 export default function MyPageWishlist() {
   const {
     wishList,
