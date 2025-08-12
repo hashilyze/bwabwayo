@@ -281,6 +281,7 @@ export default function SettingsPage() {
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             className="flex-1 max-w-lg h-24 px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500"
+
             placeholder="가게에 대한 설명을 적어주세요."
           />
         </div>
@@ -294,6 +295,7 @@ export default function SettingsPage() {
             onChange={(e) => setEmail(e.target.value)}
             className="flex-1 max-w-[258px] px-4 py-2 border border-gray-300 rounded-[20px] focus:outline-none focus:border-blue-500 bg-gray-100 text-gray-500"
             placeholder="이메일"
+
           />
         </div>
 
