@@ -112,19 +112,20 @@ export default function ChatRoomPage() {
         try {
           console.log('📡 결제 확인 API 호출 시작...')
           
-          // 서버에 결제 확인 요청
-           const response = await fetch('https://i13e202.p.ssafy.io/be/api/payments/confirm', {
-             method: 'POST',
-             headers: {
-               'Content-Type': 'application/json',
-               'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-             },
-             body: JSON.stringify({
-               paymentKey,
-               orderId,
-               amount: parseInt(amount),
-             }),
-           })
+                     // 서버에 결제 확인 요청
+            const response = await fetch('https://i13e202.p.ssafy.io/be/api/payments/confirm', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+              },
+              body: JSON.stringify({
+                paymentKey,
+                orderId,
+                amount: parseInt(amount),
+                productId: chatInfo?.product?.id,
+              }),
+            })
 
           console.log('📡 API 응답 상태:', response.status)
 
