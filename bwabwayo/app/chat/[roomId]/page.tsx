@@ -2,7 +2,7 @@
 
 import ChatModal from '@/components/chat/ChatModal'
 import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
 import AllModals from '@/components/chat/modals/AllModals'
 import VideoConference from '@/components/openvidu/VideoConference';
@@ -41,8 +41,10 @@ const useChatRoomInfo = () => {
 
 export default function ChatRoomPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const roomId = Number(params.roomId)
-  const { messages, getMessageHistory, connectStomp, currentSelectedRoom } = useChatRoomStore()
+  const { messages, getMessageHistory, connectStomp, currentSelectedRoom, sendMessage } = useChatRoomStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // 전역 채팅방 정보 가져오기
@@ -91,6 +93,52 @@ export default function ChatRoomPage() {
       disconnectStomp()
     }
   }, [roomId, getMessageHistory, connectStomp])
+
+  // 결제 성공 처리
+  useEffect(() => {
+    const handlePaymentSuccess = async () => {
+      const paymentKey = searchParams.get('paymentKey')
+      const orderId = searchParams.get('orderId')
+      const amount = searchParams.get('amount')
+
+      if (paymentKey && orderId && amount) {
+        try {
+          // 서버에 결제 확인 요청
+          const response = await fetch('/api/payment/confirm', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              paymentKey,
+              orderId,
+              amount: parseInt(amount),
+            }),
+          })
+
+          if (!response.ok) {
+            throw new Error('결제 확인에 실패했습니다.')
+          }
+
+          const result = await response.json()
+
+          if (result.status === 'DONE') {
+            // 결제 성공 시 채팅방에 INPUT_DELIVERY_ADDRESS 메시지 전송
+            await sendMessage(roomId, '입금이 완료되었습니다. 배송지를 입력해 주세요!', 'INPUT_DELIVERY_ADDRESS')
+            
+            // URL에서 결제 파라미터 제거
+            router.replace(`/chat/${roomId}`)
+          }
+        } catch (error) {
+          console.error('결제 처리 중 오류:', error)
+          // 오류 발생 시에도 URL 정리
+          router.replace(`/chat/${roomId}`)
+        }
+      }
+    }
+
+    handlePaymentSuccess()
+  }, [searchParams, roomId, sendMessage, router])
 
   // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동
   useEffect(() => {

@@ -412,6 +412,7 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
           onClose={() => setIsPaymentModalOpen(false)}
           amount={paymentAmount}
           orderName={chatInfo?.product?.title || "상품"}
+          roomId={chatInfo?.roomId || 0}
         />
       </OverlayPortal>
     </>
