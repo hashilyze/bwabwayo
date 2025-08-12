@@ -141,7 +141,7 @@ export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected 
     <div 
       className={`h-[120px] flex items-center px-5 cursor-pointer ${
         isSelected 
-          ? 'bg-blue-50 border-r-4 border-r-blue-500' 
+          ? 'bg-[#fffde2] border-r-4 border-r-[#FFAE00]' 
           : 'bg-white hover:bg-gray-50'
       }`}
       onClick={handleClick}

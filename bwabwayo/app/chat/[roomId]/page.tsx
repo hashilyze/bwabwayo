@@ -136,32 +136,63 @@ export default function ChatRoomPage() {
 
           if (result.status === 'DONE') {
             console.log('✅ 결제 성공! 메시지 전송 시작...')
-            console.log('📤 sendMessage 호출:', { roomId, message: '입금이 완료되었습니다. 배송지를 입력해 주세요!', type: 'INPUT_DELIVERY_ADDRESS' })
+            
+            // 결제 모달 닫기 (먼저 닫기)
+            closePaymentModal()
             
             // STOMP 연결 상태 확인 및 재연결 시도
-            const { stompClient, isConnected, connectStomp } = useChatRoomStore.getState()
+            let retryCount = 0;
+            const maxRetries = 3;
             
-            if (!isConnected || !stompClient) {
-              console.log('🔄 STOMP 연결이 끊어져 있음. 재연결 시도...')
+            while (retryCount < maxRetries) {
+              const { stompClient, isConnected, connectStomp } = useChatRoomStore.getState()
+              
+              if (isConnected && stompClient) {
+                console.log('✅ STOMP 연결 상태 정상')
+                break;
+              }
+              
+              console.log(`🔄 STOMP 연결 시도 ${retryCount + 1}/${maxRetries}...`)
               try {
                 await connectStomp(roomId)
                 // 연결 대기
                 await new Promise(resolve => setTimeout(resolve, 2000))
+                
+                // 연결 상태 재확인
+                const { stompClient: newStompClient, isConnected: newIsConnected } = useChatRoomStore.getState()
+                if (newIsConnected && newStompClient) {
+                  console.log('✅ STOMP 재연결 성공')
+                  break;
+                }
               } catch (error) {
-                console.error('❌ STOMP 재연결 실패:', error)
+                console.error(`❌ STOMP 재연결 실패 (시도 ${retryCount + 1}):`, error)
               }
+              
+              retryCount++;
+              if (retryCount < maxRetries) {
+                await new Promise(resolve => setTimeout(resolve, 1000))
+              }
+            }
+            
+            if (retryCount >= maxRetries) {
+              console.error('❌ STOMP 연결 실패 - 최대 재시도 횟수 초과')
             }
             
             // 메시지 전송 전 추가 대기
             await new Promise(resolve => setTimeout(resolve, 1000))
             
             // 결제 성공 시 채팅방에 INPUT_DELIVERY_ADDRESS 메시지 전송
-            await sendMessage(roomId, '입금이 완료되었습니다. 배송지를 입력해 주세요!', 'INPUT_DELIVERY_ADDRESS')
+            console.log('📤 sendMessage 호출:', { roomId, message: '입금이 완료되었습니다. 배송지를 입력해 주세요!', type: 'INPUT_DELIVERY_ADDRESS' })
             
-            console.log('✅ 메시지 전송 완료! 모달 닫기 및 URL 정리 중...')
+            try {
+              await sendMessage(roomId, '입금이 완료되었습니다. 배송지를 입력해 주세요!', 'INPUT_DELIVERY_ADDRESS')
+              console.log('✅ 메시지 전송 완료!')
+            } catch (error) {
+              console.error('❌ 메시지 전송 실패:', error)
+              // 메시지 전송 실패 시에도 계속 진행
+            }
             
-            // 결제 모달 닫기
-            closePaymentModal()
+            console.log('✅ URL 정리 중...')
             
             // URL에서 결제 파라미터 제거 (약간의 지연 후)
             setTimeout(() => {
@@ -171,7 +202,7 @@ export default function ChatRoomPage() {
               } catch (error) {
                 console.error('❌ URL 정리 실패:', error)
               }
-            }, 1000)
+            }, 2000)
           } else {
             console.log('❌ 결제 상태가 DONE이 아님:', result.status)
           }
@@ -186,7 +217,7 @@ export default function ChatRoomPage() {
     }
 
     handlePaymentSuccess()
-  }, [searchParams, roomId, sendMessage, router, closePaymentModal])
+  }, [searchParams, roomId, router, closePaymentModal])
 
   // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동
   useEffect(() => {
@@ -232,12 +263,12 @@ export default function ChatRoomPage() {
   }
 
   return (
-    <div className="h-full flex flex-col justify-between relative overflow-hidden">
+    <div className="bg-[#fffde2] h-full flex flex-col justify-between relative overflow-hidden">
       {/* 채팅방 헤더 */}
       <div className="absolute top-0 left-0 right-0 bg-white border-b border-gray-200 z-2 flex flex-col px-5 py-4 gap-2">
         {/* 상품 정보 */}
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-semibold text-black">{partnerInfo.nickname}</h1>
+          <h1 className="text-2xl mb-1 font-semibold text-black">{partnerInfo.nickname}</h1>
           {/* 메뉴 버튼 */}
           <ul className="flex items-center h-5 gap-1 cursor-pointer" onClick={openHeaderModal}>
             <li className="w-1 h-1 bg-gray-400 rounded-full"></li>
@@ -247,7 +278,7 @@ export default function ChatRoomPage() {
         </div>
 
         <div className="flex gap-2">
-          <div className="w-10 h-10 bg-gray-200 flex items-center justify-center overflow-hidden rounded">
+          <div className="w-15 h-15 bg-gray-200 flex items-center justify-center overflow-hidden rounded border border-[#eee]">
             <img
               src={chatInfo.product.imageUrl || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`}
               alt="상품 이미지"
@@ -255,8 +286,8 @@ export default function ChatRoomPage() {
             />
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-xs text-gray-500">{chatInfo.product.title}</span>
-            <span className="text-sm font-semibold text-black">{chatInfo.product.formattedPrice}</span>
+            <span className="text-md text-gray-500">{chatInfo.product.title}</span>
+            <span className="text-md font-semibold text-black">{chatInfo.product.formattedPrice}</span>
           </div>
         </div>
 
@@ -346,7 +377,7 @@ export default function ChatRoomPage() {
         {!messages || messages.length === 0 || !messages.every(msg => msg && typeof msg === 'object') ? (
           <div className="text-center text-gray-500 py-8">
             <p>아직 메시지가 없습니다.</p>
-            <p className="text-sm mt-10">첫 번째 메시지를 보내보세요!</p>
+            <p className="text-md mt-10">첫 번째 메시지를 보내보세요!</p>
           </div>
         ) : (
           <>
@@ -388,13 +419,13 @@ export default function ChatRoomPage() {
                 >
                   <div
                     className={`max-w-xs lg:max-w-md px-4 py-2 rounded-full ${isMine
-                        ? 'bg-[#0047A5] text-white py-4 px-5'
+                        ? 'bg-[#FFAE00] text-white py-4 px-5'
                         : 'bg-[#979CA4] text-white py-4 px-5'
                       }`}
                   >
-                    <div className="text-sm">{message.content}</div>
+                    <div className="text-md">{message.content}</div>
                   </div>
-                  <div className={`text-xs text-[#666666]`}>
+                  <div className={`text-sm text-[#666666]`}>
                     {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
                       hour: 'numeric',
                       minute: '2-digit',
