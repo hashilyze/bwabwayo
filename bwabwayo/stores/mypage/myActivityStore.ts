@@ -106,15 +106,21 @@ interface ErrorResponse {
   // code?: string; 와 같이 다른 에러 관련 필드가 있다면 추가할 수 있습니다.
 }
 
-// API 응답 타입
-interface ActivityProductsResponse {
-  size: number;
+// ✨ 판매내역 API 응답 타입을 페이지네이션에 맞게 수정 또는 추가
+interface PaginatedSalesResponse {
   result: ActivityProduct[];
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  hasNext: boolean;
 }
 
 // Zustand 스토어 상태 및 액션 타입
 interface MyActivityStore {
   salesList: ActivityProduct[];
+  salesPage: number; // 페이지 상태 관리를 위한 필드 추가
+  salesTotalPages: number; // 전체 페이지 수 저장을 위한 필드 추가
+  salesHasMore: boolean;
   salesTotalElements: number;
   purchaseList: myPurchaseProduct[];
   purchasePage: number;
@@ -123,10 +129,11 @@ interface MyActivityStore {
   wishList: ProductCardUIData[] | null;
   loading: boolean;
   error: string | null;
-  fetchSales: () => Promise<void>;
+  fetchSales: (page?: number, size?: number) => Promise<void>; // ✨ 인자 추가
   fetchPurchases: (page?: number) => Promise<void>;
   fetchWishlist: () => Promise<void>;
   resetPurchases: () => void;
+  resetSales: () => void; // ✨ 리셋 함수 추가 (선택사항이지만 추천)
 }
 
 // ActivityProduct -> ProductCardUIData 변환 함수
@@ -148,6 +155,9 @@ const baseUrl = 'https://i13e202.p.ssafy.io/be/api';
 
 export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
   salesList: [],
+  salesPage: 1,
+  salesTotalPages: 1,
+  salesHasMore: true,
   salesTotalElements: 0,
   purchaseList: [],
   purchasePage: 0,
@@ -157,25 +167,33 @@ export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
   loading: false,
   error: null,
 
-  // 내 판매내역 불러오기
-  fetchSales: async () => {
+  // ✨ 수정: 내 판매내역 불러오기 (페이지네이션 적용)
+  fetchSales: async (page = 1, size = 8) => {
+    // 기본 페이지 1, 페이지당 8개로 설정
     set({ loading: true, error: null });
-    const requestUrl = `${baseUrl}/products/my`; // 판매내역 API
+    // API는 페이지를 0부터 계산할 수 있으므로 UI에서 받은 페이지 번호에서 1을 빼서 요청
+    const requestUrl = `${baseUrl}/products/my?page=${page - 1}&size=${size}`;
+
     try {
       const response = await useAuthStore.getState().authenticatedFetch(requestUrl);
-      const data: ActivityProductsResponse | ErrorResponse = await response.json();
+      const data: PaginatedSalesResponse = await response.json();
+
       if (!response.ok) {
-        throw new Error((data as ErrorResponse).message || '판매 내역을 가져오는데 실패했습니다.');
+        throw new Error((data as any).message || '판매 내역을 가져오는데 실패했습니다.');
       }
-      const responseData = data as ActivityProductsResponse;
+
+      // 데이터를 이어 붙이지 않고, 매번 새로운 페이지 데이터로 '교체'
       set({
-        salesList: responseData.result,
-        salesTotalElements: responseData.size,
+        salesList: data.result,
+        salesPage: data.currentPage,
+        salesTotalPages: data.totalPages,
+        salesTotalElements: data.totalItems,
+        salesHasMore: data.hasNext,
         loading: false,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
-      set({ error: errorMessage, loading: false, salesList: [], salesTotalElements: 0 });
+      set({ error: errorMessage, loading: false });
     }
   },
 

@@ -101,7 +101,7 @@ export default function MyPage() {
             {/* 판매상품 */}
             <li className="flex-1 p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
               <div className="text-gray-500 text-md mb-1">판매상품</div>
-              <div className="text-black text-xl font-normal min-w-[60px]">{myProducts.length}</div>
+              <div className="text-black text-xl font-normal min-w-[60px]">{salesTotalElements}</div>
             </li>
             
             {/* 거래후기 */}
@@ -129,7 +129,7 @@ export default function MyPage() {
       <section className="">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-2xl font-bold">판매 물품</h3>
-          {myProducts.length > 4 && (
+          {salesTotalElements > 4 && (
             <Link href="/mypage/sales" className="text-sm font-semibold text-gray-600 hover:text-blue-600 hover:underline">
               더보기 &gt;
             </Link>

@@ -6,14 +6,43 @@ interface PaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  pageRangeDisplayed?: number; // ✨ 한 번에 보여줄 페이지 번호 개수 (옵션)
 }
 
-const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPageChange }) => {
+const Pagination: React.FC<PaginationProps> = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+  pageRangeDisplayed = 5 // ✨ 기본값 5로 설정
+}) => {
   if (totalPages <= 1) {
     return null;
   }
 
-  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+  // --- 슬라이딩 윈도우 로직 ---
+  const getPageNumbers = () => {
+    const halfRange = Math.floor(pageRangeDisplayed / 2);
+    let startPage = currentPage - halfRange;
+    let endPage = currentPage + halfRange;
+
+    if (pageRangeDisplayed % 2 === 0) {
+      endPage = currentPage + halfRange - 1;
+    }
+
+    if (startPage < 1) {
+      startPage = 1;
+      endPage = Math.min(pageRangeDisplayed, totalPages);
+    }
+
+    if (endPage > totalPages) {
+      endPage = totalPages;
+      startPage = Math.max(1, totalPages - pageRangeDisplayed + 1);
+    }
+
+    return Array.from({ length: (endPage - startPage + 1) }, (_, i) => startPage + i);
+  };
+
+  const pageNumbers = getPageNumbers();
 
   return (
     <div className="flex justify-center items-center mt-8 space-x-4">
@@ -30,9 +59,9 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
           <button
             key={number}
             onClick={() => onPageChange(number)}
-            className={`px-4 py-2 rounded-lg ${
+            className={`px-4 py-2 rounded-lg transition-colors ${
               currentPage === number
-                ? 'bg-yellow-400 text-gray-900 font-bold border border-yellow-400'
+                ? 'bg-[#ffae00] text-white font-bold border border-[#ffae00]' // 활성 페이지 스타일
                 : 'bg-white text-gray-600 border hover:bg-gray-50'
             }`}
           >
