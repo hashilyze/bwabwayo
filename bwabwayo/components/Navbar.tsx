@@ -9,6 +9,7 @@ import { useModalStore } from '@/stores/modalStore';
 import Category from '@/components/Category';
 import NewCategory from '@/components/NewCategory';
 
+
 // 새로운 카테고리
 export default function Navbar() {
     const [title, setTitle] = useState('')
@@ -87,7 +88,12 @@ export default function Navbar() {
             <header className="w-[1280px] mx-auto">
                 {/* 유틸리티 바 */}
                 <div className="py-4 flex justify-end items-center gap-4">
-                    <span className="text-md text-gray-700 cursor-pointer hover:text-black">알림</span>
+                    <span 
+                        className="text-md text-gray-700 cursor-pointer hover:text-black"
+                        onClick={() => console.log('알림 버튼이 클릭되었습니다!')}
+                    >
+                        알림
+                    </span>
                     {isLoggedIn ? (
                         <button onClick={handleLogout} className="text-md text-gray-700 cursor-pointer hover:text-black">
                             로그아웃
