@@ -8,6 +8,7 @@ import { useModalStore } from '@/stores/modalStore'
 import AllModals from '@/components/chat/modals/AllModals'
 import VideoPortal from '@/components/openvidu/VideoPortal'
 import ReservationModal from '@/components/chat/ReservationModal'
+import { ReportModal } from '@/components/chat/modals/ReportModal'
 
 // 전역에서 사용할 채팅방 정보 가져오는 함수 (AllModals.tsx와 동일)
 const useChatRoomInfo = () => {
@@ -54,11 +55,14 @@ export default function ChatRoomPage() {
 
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
   const [isHeaderModalOpen, setIsHeaderModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const openReservationModal = () => setIsReservationModalOpen(true);
   const closeReservationModal = () => setIsReservationModalOpen(false);
   const openHeaderModal = () => setIsHeaderModalOpen(true);
   const closeHeaderModal = () => setIsHeaderModalOpen(false);
+  const openReportModal = () => setIsReportModalOpen(true);
+  const closeReportModal = () => setIsReportModalOpen(false);
 
   const {
     videoRoomId,
@@ -316,15 +320,10 @@ export default function ChatRoomPage() {
 
           {/* 모달 컨테이너 */}
           <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-lg">
-            <div className="h-[70px] flex items-center justify-center border-b border-gray-100 cursor-pointer hover:bg-gray-50" onClick={() => {
-              console.log('채팅방 나가기');
-              closeHeaderModal();
-            }}>
-              <span className="text-black font-medium">채팅방 나가기</span>
-            </div>
             <div className="h-[70px] flex items-center justify-center cursor-pointer hover:bg-gray-50" onClick={() => {
               console.log('신고하기');
               closeHeaderModal();
+              openReportModal();
             }}>
               <span className="text-black font-medium">신고하기</span>
             </div>
@@ -439,11 +438,21 @@ export default function ChatRoomPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* 예약 모달 조건부 렌더링 */}
-      {isReservationModalOpen && <ReservationModal onClose={closeReservationModal} chatRoomId={roomId} />}
+             {/* 예약 모달 조건부 렌더링 */}
+       {isReservationModalOpen && <ReservationModal onClose={closeReservationModal} chatRoomId={roomId} />}
 
-      {/* + 버튼 */}
-      <ChatModal onOpenReservationModal={openReservationModal} myUserId={myUserId} />
+               {/* 신고 모달 조건부 렌더링 */}
+        {isReportModalOpen && (
+          <ReportModal 
+            isOpen={isReportModalOpen} 
+            onClose={closeReportModal} 
+            sellerNickname={partnerInfo.nickname}
+            sellerId={chatInfo.partner.id.toString()}
+          />
+        )}
+
+       {/* + 버튼 */}
+       <ChatModal onOpenReservationModal={openReservationModal} myUserId={myUserId} />
 
       {/* 화상 채팅 포탈 - 채팅방 목록 위에 오버레이로 표시 */}
       {isVideoChatOpen && (
