@@ -160,7 +160,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       
       // 전역 토큰을 우선적으로 사용
       // let currentToken = get().getGlobalToken()
-      
+      //
       // // 전역 토큰이 없으면 기존 방식 사용
       // if (!currentToken) {
       //   currentToken = get().getToken()
