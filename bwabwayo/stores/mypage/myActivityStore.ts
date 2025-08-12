@@ -115,6 +115,22 @@ interface PaginatedSalesResponse {
   hasNext: boolean;
 }
 
+// ✨ 수정: API 명세에 맞게 모든 검색 조건 타입을 확장합니다.
+export interface SalesSearchConditions {
+  page?: number;
+  size?: number;
+  keyword?: string;
+  categoryId?: number;
+  sortBy?: 'latest' | 'views' | 'wishes' | 'related';
+  sellerId?: string;
+  canVideoCall?: boolean;
+  canNegotiate?: boolean;
+  canDirect?: boolean;
+  canDelivery?: boolean;
+  minPrice?: number;
+  maxPrice?: number;
+}
+
 // Zustand 스토어 상태 및 액션 타입
 interface MyActivityStore {
   salesList: ActivityProduct[];
@@ -129,7 +145,7 @@ interface MyActivityStore {
   wishList: ProductCardUIData[] | null;
   loading: boolean;
   error: string | null;
-  fetchSales: (page?: number, size?: number) => Promise<void>; // ✨ 인자 추가
+  fetchSales: (conditions: SalesSearchConditions) => Promise<void>; // ✨ 인자를 객체 형태로 변경
   fetchPurchases: (page?: number) => Promise<void>;
   fetchWishlist: () => Promise<void>;
   resetPurchases: () => void;
@@ -167,12 +183,50 @@ export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
   loading: false,
   error: null,
 
-  // ✨ 수정: 내 판매내역 불러오기 (페이지네이션 적용)
-  fetchSales: async (page = 1, size = 8) => {
-    // 기본 페이지 1, 페이지당 8개로 설정
+  // ✨ 수정: 내 판매내역 불러오기 (모든 검색 조건 적용)
+  fetchSales: async (conditions: SalesSearchConditions) => {
     set({ loading: true, error: null });
-    // API는 페이지를 0부터 계산할 수 있으므로 UI에서 받은 페이지 번호에서 1을 빼서 요청
-    const requestUrl = `${baseUrl}/products/my?page=${page - 1}&size=${size}`;
+
+    const params = new URLSearchParams();
+
+    // 기본 페이지 및 사이즈 설정
+    params.append('page', String((conditions.page || 1)));
+    params.append('size', String(conditions.size || 10));
+
+    // 조건이 존재할 경우에만 파라미터 추가
+    if (conditions.keyword) {
+      params.append('keyword', conditions.keyword);
+    }
+    if (conditions.categoryId) {
+      params.append('categoryId', String(conditions.categoryId));
+    }
+    if (conditions.sortBy) {
+      params.append('sortBy', conditions.sortBy);
+    }
+    if (conditions.sellerId) {
+      params.append('sellerId', conditions.sellerId);
+    }
+    if (conditions.canVideoCall !== undefined) {
+      params.append('canVideoCall', String(conditions.canVideoCall));
+    }
+    if (conditions.canNegotiate !== undefined) {
+      params.append('canNegotiate', String(conditions.canNegotiate));
+    }
+    if (conditions.canDirect !== undefined) {
+      params.append('canDirect', String(conditions.canDirect));
+    }
+    if (conditions.canDelivery !== undefined) {
+      params.append('canDelivery', String(conditions.canDelivery));
+    }
+    if (conditions.minPrice !== undefined) {
+      params.append('minPrice', String(conditions.minPrice));
+    }
+    if (conditions.maxPrice !== undefined) {
+      params.append('maxPrice', String(conditions.maxPrice));
+    }
+    
+    const requestUrl = `${baseUrl}/products/my?${params.toString()}`;
+    console.log("🚀 최종 요청 URL:", requestUrl);
 
     try {
       const response = await useAuthStore.getState().authenticatedFetch(requestUrl);
@@ -182,7 +236,6 @@ export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
         throw new Error((data as any).message || '판매 내역을 가져오는데 실패했습니다.');
       }
 
-      // 데이터를 이어 붙이지 않고, 매번 새로운 페이지 데이터로 '교체'
       set({
         salesList: data.result,
         salesPage: data.currentPage,
@@ -191,6 +244,7 @@ export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
         salesHasMore: data.hasNext,
         loading: false,
       });
+
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
       set({ error: errorMessage, loading: false });
