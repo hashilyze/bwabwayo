@@ -203,16 +203,16 @@ export default function Home() {
              className="ad-swiper"
            >
             {adsContainer().map((ad) => (
-                <SwiperSlide key={ad.id}>
-                  <Link href={ad.link} className="flex items-center justify-center h-full">
-                    <img 
-                      src={ad.url} 
-                      alt={ad.alt} 
-                      className="w-full h-full object-contain"
-                    />
-                  </Link>
-                </SwiperSlide>
-              ))}
+              <SwiperSlide key={ad.id}>
+                <Link href={ad.link} className="flex items-center justify-center h-full">
+                  <img 
+                    src={ad.url} 
+                    alt={ad.alt} 
+                    className="w-full h-full object-contain"
+                  />
+                </Link>
+              </SwiperSlide>
+            ))}
            </Swiper>
       </div>
 

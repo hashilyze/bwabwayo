@@ -7,6 +7,7 @@ import { OverlayPortal } from "@/components/chat/modals/OverlayPortal"
 import TrackingNumberModal from '@/components/chat/modals/TrackingForm'
 import FinalPriceModal from '@/components/chat/modals/FinalPriceForm'
 import { PaymentCheckoutPage } from '@/components/chat/modals/tossPay/PaymentCheckout'
+import PurchaseConfirm from '@/components/chat/modals/PurchaseConfirm'
 
 import AddressSelectModal, { AddressItem } from '@/components/chat/modals/DeliverySelectForm'
 
@@ -604,9 +605,6 @@ const InputTrackingAddressModal = ({ message }: { message: ChatMessage }) => {
   
   // 메시지에서 배송지 정보 파싱
   const parseDeliveryInfo = () => {
-    console.log('📦 InputTrackingAddressModal - 메시지 내용:', message.content);
-    console.log('📦 InputTrackingAddressModal - 메시지 타입:', (message as any).type);
-    
     try {
       if (message.content.startsWith('배송지가 입력 되었어요.')) {
         const addressData = message.content.replace('배송지가 입력 되었어요.', '');
@@ -762,13 +760,32 @@ const StartDeliveryModal = ({ message }: { message: ChatMessage }) => {
   )
 }
 
+
 //CONFIRM_PURCHASE, // 구매 확정 요청 - 송장번호 입력 후 전송
 const ConfirmPurchaseModal = ({ message }: { message: ChatMessage }) => {
   const [isButtonHovered, setIsButtonHovered] = useState(false);
+  const [showPurchaseConfirm, setShowPurchaseConfirm] = useState(false);
 
   const handleStart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    console.log('구매 확정');
+    console.log('구매 확정 모달 열기');
+    setShowPurchaseConfirm(true);
+  }
+
+  const handlePurchaseConfirm = () => {
+    console.log('구매 확정 완료');
+    setShowPurchaseConfirm(false);
+    
+    // END_TRADE 타입의 메시지 전송
+    const { sendMessage, currentSelectedRoom } = useChatRoomStore.getState();
+    if (currentSelectedRoom) {
+      sendMessage(currentSelectedRoom.roomId, '구매가 확정되었습니다.', 'END_TRADE');
+    }
+  }
+
+  const handlePurchaseCancel = () => {
+    console.log('구매 확정 취소');
+    setShowPurchaseConfirm(false);
   }
 
   const chatInfo = useChatRoomInfo(); // 전역 정보 사용
@@ -804,9 +821,19 @@ const ConfirmPurchaseModal = ({ message }: { message: ChatMessage }) => {
           </div>
         </button>
       </div>
-    </div>
+          </div>
+
+      {/* PurchaseConfirm 모달 */}
+      <OverlayPortal open={showPurchaseConfirm} onClose={() => setShowPurchaseConfirm(false)}>
+        <PurchaseConfirm 
+          roomId={chatInfo?.roomId || 0}
+          onConfirm={handlePurchaseConfirm}
+          onCancel={handlePurchaseCancel}
+        />
+      </OverlayPortal>
+
       {/* 시간 표시 */}
-      <div className="text-center my-3">
+      <div className="my-3 text-md text-[#666666] text-center">
         <span className="text-md text-[#666666]">
           {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
             hour: 'numeric',
@@ -825,21 +852,19 @@ const EndTradeModal = ({ message }: { message: ChatMessage }) => {
   const chatInfo = useChatRoomInfo(); // 전역 정보 사용
 
   return (
-    <div className="w-[400px] h-[107px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black relative">
-      <div className="flex flex-col w-[371px] h-[76px] items-center justify-around gap-3 relative top-3.5 left-3">
-        <div className="flex w-[317px] items-center gap-[19px] relative flex-[0_0_auto]">
-          <img
-            className="relative w-[67px] h-[67px] aspect-[1] object-cover"
-            alt="point icon"
-            src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/point-icon.png`}
-          />
-          <div className="inline-flex flex-col items-start jusify-center relative flex-[0_0_auto]">
-            <p className="self-strech mt-[-1.00px] font-medium text-black text-sm realative w-[232px] tracking-[0] leading-[18px]">
-              {chatInfo?.product.title || '팝마트 라부부 코카콜라 키링'}의 구매가 확정 되었어요!
-            </p>
+    <>
+      <div className="w-[400px] p-6 rounded-[30px] border-2 border-black">
+        <div className="flex flex-col items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
+            <img
+              className="relative w-[67px] h-[67px] aspect-[1] object-cover"
+              alt="point icon"
+              src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/point-icon.png`}
+            />
+            <div className="text-md">
+              '{chatInfo?.product.title || ''}'의 구매가 확정 되었어요!
+            </div>
           </div>
-
-
         </div>
       </div>
       {/* 시간 표시 */}
@@ -852,8 +877,7 @@ const EndTradeModal = ({ message }: { message: ChatMessage }) => {
           })}
         </span>
       </div>
-
-    </div>
+    </>
   )
 }
 
