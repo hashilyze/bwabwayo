@@ -24,7 +24,7 @@ export function PaymentSuccessPage() {
       // https://i13e202.p.ssafy.io/be/api/payments/confirm
       // http://localhost:8081/api/payments/confirm
       // /api/confirm/payment
-      const response = await fetch("http://localhost:8081/api/payments/confirm", {
+      const response = await fetch("https://i13e202.p.ssafy.io/be/api/payments/confirm", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -34,7 +34,7 @@ export function PaymentSuccessPage() {
       });
 
       const json = await response.json();
-
+      console.log(json);
       if (!response.ok) {
         throw { message: json.message, code: json.code };
       }
