@@ -1,14 +1,14 @@
 // 파일 경로: app/shop/[id]/sales/page.tsx
 'use client'; // 페이지 내 상호작용을 위해 클라이언트 컴포넌트로 선언합니다.
 
-import React, { useState, useEffect } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import { useMyActivityStore, type SalesSearchConditions } from "@/stores/mypage/myActivityStore"; // Zustand 스토어를 import 합니다.
 import Pagination from "@/components/common/Pagination"; // 페이지네이션 컴포넌트를 import 합니다.
 import { useRouter, useSearchParams } from "next/navigation"; // URL 관리를 위해 import 합니다.
 import Link from 'next/link';
 
 
-export default function MyPageSales() {
+function SalesContent() {
   const { salesList, salesTotalPages, fetchSales, loading: salesLoading, error: salesError } = useMyActivityStore();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -125,5 +125,13 @@ export default function MyPageSales() {
         onPageChange={handlePageChange}
       />
     </div>
+  );
+}
+
+export default function MyPageSales() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center h-screen">판매 목록을 불러오는 중...</div>}>
+      <SalesContent />
+    </Suspense>
   );
 }

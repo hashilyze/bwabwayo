@@ -1,13 +1,19 @@
 'use client'; // 페이지 내 상호작용(클릭, 라우팅)을 위해 클라이언트 컴포넌트로 선언합니다.
 
-import React, { useEffect } from "react";
+import React, { Suspense, useEffect } from "react";
 import { useMyActivityStore } from "@/stores/mypage/myActivityStore"; // Zustand 스토어를 import 합니다.
 import { ProductCardUIData } from "@/stores/product/productStore"; // UI 데이터 타입을 import 합니다.
 import ProductCard from "@/components/product/ProductCard"; // 범용 ProductCard를 사용합니다.
 import Pagination from "@/components/common/Pagination"; // 페이지네이션 컴포넌트를 import 합니다.
 import { useRouter, useSearchParams } from "next/navigation"; // URL 관리를 위해 import 합니다.
 
+<<<<<<< HEAD
 export default function MyPageWishlist() {
+=======
+
+
+function WishlistContent() {
+>>>>>>> 95a00f043a9967a6e7d208a0465cfff0e2afcbfa
   const {
     wishList,
     loading: purchaseListLoading,
@@ -62,5 +68,13 @@ export default function MyPageWishlist() {
             </div>
           )}
     </div>
+  );
+}
+
+export default function MyPageWishlist() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center h-screen">찜 목록을 불러오는 중...</div>}>
+      <WishlistContent />
+    </Suspense>
   );
 }
