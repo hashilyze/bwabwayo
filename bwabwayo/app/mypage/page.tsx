@@ -17,7 +17,7 @@ export default function MyPage() {
     const loadData = async () => {
       showLoading('데이터를 불러오는 중...');
       try {
-        await Promise.all([fetchUserData(), fetchSales()]);
+        await Promise.all([fetchUserData(), fetchSales({})]);
       } finally {
         hideLoading();
       }
