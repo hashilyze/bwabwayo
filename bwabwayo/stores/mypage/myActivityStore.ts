@@ -115,6 +115,19 @@ interface PaginatedSalesResponse {
   hasNext: boolean;
 }
 
+// ✨ 일반 상품 목록 API 응답 타입
+export interface PaginatedProductsResponse {
+  size: number;
+  result: ActivityProduct[];
+  currentPage: number;
+  startPage: number;
+  lastPage: number;
+  totalPages: number;
+  totalItems: number;
+  hasPrev: boolean;
+  hasNext: boolean;
+}
+
 // ✨ 수정: API 명세에 맞게 모든 검색 조건 타입을 확장합니다.
 export interface SalesSearchConditions {
   page?: number;
@@ -138,6 +151,11 @@ interface MyActivityStore {
   salesTotalPages: number; // 전체 페이지 수 저장을 위한 필드 추가
   salesHasMore: boolean;
   salesTotalElements: number;
+  products: ActivityProduct[];
+  productsPage: number;
+  productsTotalPages: number;
+  productsHasMore: boolean;
+  productsTotalItems: number;
   purchaseList: myPurchaseProduct[];
   purchasePage: number;
   purchaseTotalPages: number;
@@ -145,6 +163,7 @@ interface MyActivityStore {
   wishList: ProductCardUIData[] | null;
   loading: boolean;
   error: string | null;
+  fetchProducts: (conditions: SalesSearchConditions) => Promise<void>;
   fetchSales: (conditions: SalesSearchConditions) => Promise<void>; // ✨ 인자를 객체 형태로 변경
   fetchPurchases: (page?: number) => Promise<void>;
   fetchWishlist: () => Promise<void>;
@@ -175,6 +194,11 @@ export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
   salesTotalPages: 1,
   salesHasMore: true,
   salesTotalElements: 0,
+  products: [],
+  productsPage: 1,
+  productsTotalPages: 1,
+  productsHasMore: true,
+  productsTotalItems: 0,
   purchaseList: [],
   purchasePage: 0,
   purchaseTotalPages: 1,
@@ -182,6 +206,72 @@ export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
   wishList: null,
   loading: false,
   error: null,
+
+  // 일반 상품 목록 불러오기
+  fetchProducts: async (conditions: SalesSearchConditions) => {
+    set({ loading: true, error: null });
+
+    const params = new URLSearchParams();
+    params.append('page', String(conditions.page || 1));
+    params.append('size', String(conditions.size || 100));
+
+    if (conditions.keyword) {
+      params.append('keyword', conditions.keyword);
+    }
+    if (conditions.categoryId) {
+      params.append('categoryId', String(conditions.categoryId));
+    }
+    if (conditions.sortBy) {
+      params.append('sortBy', conditions.sortBy);
+    }
+    if (conditions.sellerId) {
+      params.append('sellerId', conditions.sellerId);
+    }
+    if (conditions.canVideoCall !== undefined) {
+      params.append('canVideoCall', String(conditions.canVideoCall));
+    }
+    if (conditions.canNegotiate !== undefined) {
+      params.append('canNegotiate', String(conditions.canNegotiate));
+    }
+    if (conditions.canDirect !== undefined) {
+      params.append('canDirect', String(conditions.canDirect));
+    }
+    if (conditions.canDelivery !== undefined) {
+      params.append('canDelivery', String(conditions.canDelivery));
+    }
+    if (conditions.minPrice !== undefined) {
+      params.append('minPrice', String(conditions.minPrice));
+    }
+    if (conditions.maxPrice !== undefined) {
+      params.append('maxPrice', String(conditions.maxPrice));
+    }
+
+    const requestUrl = `${baseUrl}/products?${params.toString()}`;
+    console.log("🚀 [상품] 일반 상품 목록 요청 URL:", requestUrl);
+
+    try {
+      const response = await useAuthStore.getState().authenticatedFetch(requestUrl);
+      const data: PaginatedProductsResponse = await response.json();
+
+      if (!response.ok) {
+        throw new Error((data as any).message || '상품 목록을 가져오는데 실패했습니다.');
+      }
+
+      console.log('📦 [상품] 응답 데이터:', data);
+      set({
+        products: data.result,
+        productsPage: data.currentPage,
+        productsTotalPages: data.totalPages,
+        productsTotalItems: data.totalItems,
+        productsHasMore: data.hasNext,
+        loading: false,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
+      console.error('🔥 [상품] 상품 목록 조회 실패:', error);
+      set({ error: errorMessage, loading: false });
+    }
+  },
 
   // ✨ 수정: 내 판매내역 불러오기 (모든 검색 조건 적용)
   fetchSales: async (conditions: SalesSearchConditions) => {
@@ -306,6 +396,16 @@ export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
       salesTotalPages: 1,
       salesHasMore: true,
       salesTotalElements: 0,
+      error: null,
+    }),
+
+  resetProducts: () =>
+    set({
+      products: [],
+      productsPage: 1,
+      productsTotalPages: 1,
+      productsHasMore: true,
+      productsTotalItems: 0,
       error: null,
     }),
 
