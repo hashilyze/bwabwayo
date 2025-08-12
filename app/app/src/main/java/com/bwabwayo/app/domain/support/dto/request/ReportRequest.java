@@ -14,9 +14,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReportRequest {
-
     private String title;
     private String description;
-    private User target;
+    private String targetId;
     private List<String> imageUrlList;
 }

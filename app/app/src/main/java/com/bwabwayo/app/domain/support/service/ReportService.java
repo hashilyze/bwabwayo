@@ -6,6 +6,7 @@ import com.bwabwayo.app.domain.support.dto.request.ReportRequest;
 import com.bwabwayo.app.domain.support.dto.response.ReportResponse;
 import com.bwabwayo.app.domain.support.repository.ReportRepository;
 import com.bwabwayo.app.domain.user.domain.User;
+import com.bwabwayo.app.domain.user.service.UserService;
 import com.bwabwayo.app.global.storage.service.StorageService;
 import com.bwabwayo.app.global.storage.util.StorageUtil;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class ReportService {
     private final ReportRepository reportRepository;
     private final StorageService storageService;
     private final StorageUtil storageUtil;
+    private final UserService userService;
 
     // 신고 게시물 페이지 페이징
     public Page<ReportResponse> findAll(Pageable pageable) {
@@ -61,10 +63,11 @@ public class ReportService {
 
     // 신고 게시물 작성
     public String save(ReportRequest reportRequest, User user) {
+        User target = userService.findById(reportRequest.getTargetId());
         Report report = Report.builder()
                 .title(reportRequest.getTitle())
                 .description(reportRequest.getDescription())
-                .target(reportRequest.getTarget())
+                .target(target)
                 .reporter(user)
                 .build();
 
