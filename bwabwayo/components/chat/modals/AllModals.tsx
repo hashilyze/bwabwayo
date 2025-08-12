@@ -10,6 +10,7 @@ import { PaymentCheckoutPage } from '@/components/chat/modals/tossPay/PaymentChe
 import PurchaseConfirm from '@/components/chat/modals/PurchaseConfirm'
 
 import AddressSelectModal, { AddressItem } from '@/components/chat/modals/DeliverySelectForm'
+import Link from 'next/link';
 
 interface ChatMessage {
   content: string;
@@ -55,14 +56,6 @@ const CreateRoomModal = ({ message }: { message: ChatMessage }) => {
   const [isButtonHovered, setIsButtonHovered] = useState(false);
   const chatInfo = useChatRoomInfo(); // 전역 정보 사용
 
-  const handleStart = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    console.log('상품상세 보기');
-    if (chatInfo?.product?.id) {
-      console.log(`상품 ID: ${chatInfo.product.id}로 이동`);
-    }
-  }
-
   if (!chatInfo) {
     return (
       <article className="w-[400px] h-[242px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black flex items-center justify-center">
@@ -72,45 +65,41 @@ const CreateRoomModal = ({ message }: { message: ChatMessage }) => {
   }
 
   return (
-    <article className="w-[400px] h-[242px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black relative">
-      <div className="flex flex-col w-[371px] h-[193px] items-center justify-between relative top-7 left-[15px]">
-        <header className="inline-flex items-start justify-center gap-3 relative flex-[0_0_auto]">
-          <img
-            className="relative w-[60px] h-[60px] object-cover rounded-[10px]"
-            alt="product image"
-            src={chatInfo.product.imageUrl || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/nintendo.jpg`}
-          />
-          <p className="relative w-[291px] mt-[-1.00px] font-medium text-black text-sm tracking-[0] leading-[18px]">
-            {chatInfo.partner.nickname} 님과 {chatInfo.product.title}에 대한 이야기를 시작해보세요.
-          </p>
-        </header>
-        <section className="relative self-stretch text-[#7c7c7c] text-xs tracking-[0] leading-[18px]">
-          <p>
-            · 상품 금액 : {chatInfo.product.formattedPrice}
-            <br />· 거래 방법 : {chatInfo.product.deliveryMethods}
-            <br />· 배송비 : {chatInfo.product.formattedShippingFee}
-            {chatInfo.product.canNegotiate && (
-              <>
-                <br />· 가격 협상 가능
-              </>
-            )}
-          </p>
-        </section>
-        <button
-          className={`relative w-[150px] h-10 bg-[#fce94f] rounded-[20px] border-2 border-solid border-black cursor-pointer transition-all duration-200 ${isButtonHovered ? "transform scale-105 shadow-lg" : ""
-            }`}
-          onClick={(e) => handleStart(e)}
-          onMouseEnter={() => setIsButtonHovered(true)}
-          onMouseLeave={() => setIsButtonHovered(false)}
-          aria-label="상품 상세 보기"
-        >
-          <span className="absolute h-[17px] top-2.5 left-9 font-bold text-center leading-[normal] text-black text-sm tracking-[0]">
+    <>
+      <article className="w-[400px] p-6 rounded-[30px] border-2 border-black">
+        <div className="flex flex-col items-center justify-between">
+          <header className="flex items-center gap-3 mb-2">
+            <img
+              className="relative w-[60px] h-[60px] object-cover rounded-[10px]"
+              alt="product image"
+              src={chatInfo.product.imageUrl || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/nintendo.jpg`}
+            />
+            <p className="text-md">
+              '{chatInfo.partner.nickname}' 님과 {chatInfo.product.title}에 대한 이야기를 시작해보세요.
+            </p>
+          </header>
+          <section className="flex flex-col gap-1 text-[#7c7c7c] text-md w-full mb-2">
+            <p>
+              · 상품 금액 : {chatInfo.product.formattedPrice}
+              <br />· 거래 방법 : {chatInfo.product.deliveryMethods}
+              <br />· 배송비 : {chatInfo.product.formattedShippingFee}
+              {chatInfo.product.canNegotiate && (
+                <>
+                  <br />· 가격 협상 가능
+                </>
+              )}
+            </p>
+          </section>
+          <Link
+            href={`/product/${chatInfo.product.id}`}
+            className="py-2 px-6 font-bold text-center text-md bg-[#fce94f] rounded-[20px] border-2 border-black cursor-pointer transition-all duration-200 hover:scale-105"
+          >
             상품상세 보기
-          </span>
-        </button>
-      </div>
+          </Link>
+        </div>
+      </article>
       {/* 시간 표시 */}
-      <div className="my-4 text-md text-[#666666] text-center">
+      <div className="my-3 text-md text-[#666666] text-center">
         <span className="">
           {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
             hour: 'numeric',
@@ -119,7 +108,7 @@ const CreateRoomModal = ({ message }: { message: ChatMessage }) => {
           })}
         </span>
       </div>
-    </article>
+    </>
   );
 };
 
@@ -140,60 +129,62 @@ const ReserveVideoCallModal = ({ message }: { message: ChatMessage }) => {
   }
 
   return (
-    <div className="w-[400px] h-[169px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black relative">
-      <div className="flex flex-col w-[371px] h-[123px] items-center justify-between relative top-7 left-3.5">
-        <div className="flex w-[301px] items-center justify-between relative flex-[0_0_auto]">
-          <img
-            className="relative w-[70px] h-[70px] aspect-[1] object-cover"
-            alt="Calendar appointment icon"
-            src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/reservation-icon.png`}
-          />
+    <>
+      <div className="w-[400px] p-6 rounded-[30px] border-2 border-black">
+        <div className="flex flex-col items-center justify-between">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <img
+              className="w-[70px] h-[70px] aspect-[1] object-cover"
+              alt="Calendar appointment icon"
+              src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/reservation-icon.png`}
+            />
 
-          <div className="flex w-[223px] items-start justify-center gap-3 relative">
-            <div className="inline-flex flex-col items-start gap-1.5 relative flex-[0_0_auto]">
-              <p className="relative w-fit mt-[-1.00px] font-medium text-black text-sm tracking-[0] leading-[18px] whitespace-nowrap">
-                {chatInfo?.partner.nickname || 'OOO'} 님이 화상 거래를 예약했어요!
-              </p>
+            <div className="flex items-start justify-center gap-3">
+              <div className="flex flex-col items-start gap-1.5">
+                <p className="text-md">
+                  '{chatInfo?.partner.nickname || 'OOO'}' 님이 화상 거래를 예약했어요!
+                </p>
 
-              <div className="inline-flex flex-col items-start relative flex-[0_0_auto]">
-                <div className="relative w-fit mt-[-1.00px] [font-family:'SUITE-Medium',Helvetica] font-medium text-[#7c7c7c] text-xs tracking-[0] leading-[18px] whitespace-nowrap">
-                  일정: 2025-08-06(수) 오전 10:00
-                </div>
+                <div className="flex flex-col items-start gap-1">
+                  <div className="text-[#7c7c7c] text-md">
+                    일정: 2025-08-06(수) 오전 10:00
+                  </div>
 
-                <div className="relative w-fit [font-family:'SUITE-Medium',Helvetica] font-medium text-[#7c7c7c] text-xs tracking-[0] leading-[18px] whitespace-nowrap">
-                  사용 포인트 : 1000 P
+                  <div className="text-[#7c7c7c] text-md">
+                    사용 포인트 : 1,000 P
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex w-[337px] items-start justify-between relative flex-[0_0_auto]">
-          <button
-            className={`relative w-40 h-10 bg-[#fce94f] rounded-[20px] border-2 border-solid border-black cursor-pointer transition-all duration-200 ${isListButtonHovered ? "transform scale-105 shadow-lg" : ""
-              }`}
-            onClick={(e) => handleReservationList(e)}
-            onMouseEnter={() => setIsListButtonHovered(true)}
-            onMouseLeave={() => setIsListButtonHovered(false)}
-            aria-label="화상 거래 목록 보기"
-          >
-            <span className="absolute h-[17px] top-2.5 left-[26px] font-semibold text-black text-sm text-center tracking-[0] leading-[normal]">
-              화상 거래 목록 보기
-            </span>
-          </button>
+          <div className="flex items-start justify-between gap-2">
+            <button
+              className={`py-2 px-6 bg-[#fce94f] rounded-[20px] border-2 border-black cursor-pointer transition-all duration-200 ${isListButtonHovered ? "transform scale-105 shadow-lg" : ""
+                }`}
+              onClick={(e) => handleReservationList(e)}
+              onMouseEnter={() => setIsListButtonHovered(true)}
+              onMouseLeave={() => setIsListButtonHovered(false)}
+              aria-label="화상 거래 목록 보기"
+            >
+              <span className="font-semibold text-black text-md text-center">
+                화상 거래 목록 보기
+              </span>
+            </button>
 
-          <button
-            className={`relative w-40 h-10 rounded-[20px] border-2 border-solid border-black cursor-pointer transition-all duration-200 ${isCancelButtonHovered ? "transform scale-105 shadow-lg" : ""
-              }`}
-            onClick={(e) => handleCancel(e)}
-            onMouseEnter={() => setIsCancelButtonHovered(true)}
-            onMouseLeave={() => setIsCancelButtonHovered(false)}
-            aria-label="예약 취소하기"
-          >
-            <span className="absolute h-[17px] top-2.5 left-[55px] [font-family:'SUITE-Bold',Helvetica] font-semibold text-black text-sm text-center tracking-[0] leading-[normal]">
-              취소하기
-            </span>
-          </button>
+            <button
+              className={`py-2 px-6 rounded-[20px] border-2 border-black cursor-pointer transition-all duration-200 ${isCancelButtonHovered ? "transform scale-105 shadow-lg" : ""
+                }`}
+              onClick={(e) => handleCancel(e)}
+              onMouseEnter={() => setIsCancelButtonHovered(true)}
+              onMouseLeave={() => setIsCancelButtonHovered(false)}
+              aria-label="예약 취소하기"
+            >
+              <span className="font-semibold text-black text-md text-center">
+                취소하기
+              </span>
+            </button>
+          </div>
         </div>
       </div>
       {/* 시간 표시 */}
@@ -206,7 +197,7 @@ const ReserveVideoCallModal = ({ message }: { message: ChatMessage }) => {
           })}
         </span>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -215,23 +206,25 @@ const CancelVideoCallModal = ({ message }: { message: ChatMessage }) => {
   const chatInfo = useChatRoomInfo(); // 전역 정보 사용
 
   return (
-    <div className="w-[400px] h-[114px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black relative">
-      <div className="flex flex-col w-[371px] h-[81px] items-center justify-around gap-3 relative top-4 left-3">
-        <div className="flex w-[317px] items-center gap-[10px] relative flex-[0_0_auto]">
-          <img
-            className="relative w-[65px] h-[58px] aspect-[1.12]"
-            alt="Sad cat icon"
-            src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/sadCat-icon.png`}
-          />
+    <>
+      <div className="w-[400px] p-6 rounded-[30px] border-2 border-black">
+        <div className="flex flex-col items-center justify-around gap-3">
+          <div className="flex items-center gap-[10px]">
+            <img
+              className="w-[65px] h-[58px] aspect-[1.12]"
+              alt="Sad cat icon"
+              src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/sadCat-icon.png`}
+            />
 
-          <div className="flex w-[223px] items-start justify-center gap-3 relative">
-            <div className="inline-flex flex-col items-start gap-1.5 relative flex-[0_0_auto] ml-[-6.50px] mr-[-6.50px]">
-              <p className="mt-[-1.00px] font-medium text-black text-sm realative w-fit tracking-[0] leading-[18px] whitespace-nowrap">
-                {chatInfo?.partner.nickname || 'OO'} 님과 화상 거래 예약이 취소되었어요!
-              </p>
+            <div className="flex items-start justify-center gap-3">
+              <div className="flex flex-col items-start gap-1.5">
+                <p className="text-md">
+                  {chatInfo?.partner.nickname || 'OO'} 님과 화상 거래 예약이 취소되었어요!
+                </p>
 
-              <div className="text-[#7c7c7c] text-xs relative w-fit font-medium tracking-[0] leading-[18px] whitespace-nowrap">
-                일정: 2025-08-06(수) 오전 10:00
+                <div className="text-[#7c7c7c] text-md">
+                  일정: 2025-08-06(수) 오전 10:00
+                </div>
               </div>
             </div>
           </div>
@@ -247,7 +240,7 @@ const CancelVideoCallModal = ({ message }: { message: ChatMessage }) => {
           })}
         </span>
       </div>
-    </div>
+    </>
   )
 }
 
@@ -285,38 +278,40 @@ const StartVideoCallModal = ({ message }: { message: ChatMessage }) => {
   }
 
   return (
-    <div className="w-[400px] h-[169px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black relative">
-      <div className="flex flex-col w-[371px] h-[123px] items-center justify-between relative top-7 left-[15px]">
-        <div className="flex w-[371px] items-center justify-center gap-3 relative flex-[0_0_auto]">
+    <>
+    <div className="w-[400px] p-6 rounded-[30px] border-2 border-black">
+      <div className="flex flex-col items-center justify-between">
+        <div className="flex items-center justify-center gap-3">
           <img
-            className="relative w-[78px] h-[70px] aspect-[1.11] object-cover"
+            className="w-[78px] h-[70px] aspect-[1.11] object-cover"
             alt="videoChatCat"
             src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/videoChatCat-icon.png`}
           />
 
-          <div className="inline-flex flex-col items-start gap-1.5 relative flex-[0_0_auto]">
-            <p className="relative w-fit mt-[-1.00px] font-medium leading-[18px] text-black text-sm tracking-[0] leading-[18px] whitespace-nowrap">
+          <div className="flex flex-col items-start gap-1.5">
+            <p className="text-md">
               지금, {chatInfo?.partner.nickname || 'OOO'} 님과 화상 거래가 시작되었어요!
             </p>
 
-            <div className="relative w-fit text-[#7c7c7c] text-xs font-medium tracking-[0] leading-[18px] whitespace-nowrap">
+            <div className="text-[#7c7c7c] text-md">
               일정: 2025-08-06(수) 오전 10:00
             </div>
           </div>
         </div>
         <button
-          className={`relative w-[150px] h-10 bg-[#fce94f] rounded-[20px] border-2 border-solid border-black cursor-pointer transition-all duration-200 ${isButtonHovered ? "transform scale-105 shadow-lg" : ""
+          className={`mt-3 py-2 px-6 bg-[#fce94f] rounded-[20px] border-2 border-black cursor-pointer transition-all duration-200 ${isButtonHovered ? "transform scale-105 shadow-lg" : ""
             }`}
           onClick={(e) => handleStart(e)}
           onMouseEnter={() => setIsButtonHovered(true)}
           onMouseLeave={() => setIsButtonHovered(false)}
           aria-label="화상 거래 하러 하기"
         >
-          <div className="absolute h-[17px] top-2.5 left-[21px] [font-family:'SUITE-Bold',Helvetica] font-bold text-center leading-[normal] text-black text-sm tracking-[0]">
+          <div className="font-bold text-center text-md">
             화상 거래 하러 하기
           </div>
         </button>
       </div>
+    </div>
       {/* 시간 표시 */}
       <div className="my-4 text-md text-[#666666] text-center">
         <span className="">
@@ -327,7 +322,7 @@ const StartVideoCallModal = ({ message }: { message: ChatMessage }) => {
           })}
         </span>
       </div>
-    </div>
+    </>
   );
 };
 
