@@ -165,7 +165,10 @@ export const useProductStore = create<ProductStore>((set, get) => ({
           return price >= minPrice && price <= maxPrice;
         });
       }
-      set({ products: filteredProducts, loading: false })
+      
+      // 20개만 제한
+      const limitedProducts = filteredProducts.slice(0, 20);
+      set({ products: limitedProducts, loading: false })
     } catch (error) {
       console.error('상품 조회 실패:', error)
       set({ 
@@ -184,7 +187,10 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       
       const data = await response.json()
       console.log('핫 키워드 상품 조회 성공:', data.result)
-      set({ hotKeywordProducts: data.result, loading: false })
+      
+      // 20개만 제한
+      const limitedProducts = data.result.slice(0, 20);
+      set({ hotKeywordProducts: limitedProducts, loading: false })
     } catch (error) {
       console.error(error)
       set({ hotKeywordProducts: [], loading: false, error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다' })
@@ -200,7 +206,10 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       console.log(data.result)
 
       const filteredProducts = data.result.filter((item: any) => item.product.canVideoCall)
-      set({ videoCallProducts: filteredProducts, loading: false })
+      
+      // 20개만 제한
+      const limitedProducts = filteredProducts.slice(0, 20);
+      set({ videoCallProducts: limitedProducts, loading: false })
     } catch (error) {
       console.error('화상통화 상품 조회 실패:', error)
       set({ 

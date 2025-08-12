@@ -20,7 +20,7 @@ export function PaymentSuccessPage() {
         orderId: searchParams.get("orderId"),
         amount: searchParams.get("amount"),
         paymentKey: searchParams.get("paymentKey"),
-        productId: 73,
+        productId: searchParams.get("productId"),
       };
 
       // https://i13e202.p.ssafy.io/be/api/payments/confirm

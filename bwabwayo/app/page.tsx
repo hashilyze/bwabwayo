@@ -36,11 +36,6 @@ function AuthHandler() {
   return null;
 }
 
-
-
-
-
-
 // ProductSlider 컴포넌트
 function ProductSlider({ products, navigationId }: { products: any[], navigationId: string }) {
   const [swiper, setSwiper] = useState<SwiperClass>();
@@ -53,9 +48,6 @@ function ProductSlider({ products, navigationId }: { products: any[], navigation
   const handleNext = () => {
     swiper?.slideNext()
   }
-  
-  
-
 
   // products가 없거나 빈 배열인 경우 처리
   if (!products || products.length === 0) {
@@ -66,21 +58,16 @@ function ProductSlider({ products, navigationId }: { products: any[], navigation
     );
   }
 
-  
-
-
   return (
     <div className="relative px-[70px]">
       <Swiper
-        modules={[Pagination, Navigation]}
-        spaceBetween={32}
-        slidesPerView={4}
-        slidesPerGroup={3}
-        pagination={{ clickable: true }}
-        navigation={{
-          nextEl: `.custom-next-${navigationId}`,
-          prevEl: `.custom-prev-${navigationId}`,
-        }}
+         modules={[Pagination, Navigation]}
+         spaceBetween={32}
+         slidesPerView={4}
+         slidesPerGroup={4}
+         loop={false}
+         pagination={{ clickable: true }}
+         navigation={false}
         onSwiper={(e) => {
           setSwiper(e);
           setIsBeginning(e.isBeginning);
@@ -245,7 +232,7 @@ export default function Home() {
             </h1>
           </div>
           {videoCallProducts && videoCallProducts.length > 0 ? (
-            <ProductSlider products={videoCallProducts} navigationId="hot" />
+            <ProductSlider products={videoCallProducts} navigationId="video" />
           ) : (
           <div className="flex justify-center items-center py-8">
             <div className="text-lg text-[#777]">화상거래 가능 제품이 없습니다.</div>

@@ -45,7 +45,7 @@ export default function ChatRoomPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const roomId = Number(params.roomId)
-  const { messages, getMessageHistory, connectStomp, currentSelectedRoom, sendMessage } = useChatRoomStore()
+  const { messages, getMessageHistory, connectStomp, currentSelectedRoom, sendMessage, getRoomList } = useChatRoomStore()
   const { closePaymentModal } = useModalStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -77,10 +77,13 @@ export default function ChatRoomPage() {
   useEffect(() => {
     const initializeChat = async () => {
       try {
-        // 1. 메시지 히스토리 로드
+        // 1. 채팅방 목록 로드 (currentSelectedRoom 설정을 위해)
+        await getRoomList()
+        
+        // 2. 메시지 히스토리 로드
         await getMessageHistory(roomId)
 
-        // 2. STOMP 연결
+        // 3. STOMP 연결
         connectStomp(roomId)
       } catch (error) {
         console.error('채팅 초기화 실패:', error)
@@ -94,7 +97,7 @@ export default function ChatRoomPage() {
       const { disconnectStomp } = useChatRoomStore.getState()
       disconnectStomp()
     }
-  }, [roomId, getMessageHistory, connectStomp])
+  }, [roomId, getMessageHistory, connectStomp, getRoomList])
 
   // 결제 성공 처리
   useEffect(() => {
@@ -105,26 +108,32 @@ export default function ChatRoomPage() {
       const paymentKey = searchParams.get('paymentKey')
       const orderId = searchParams.get('orderId')
       const amount = searchParams.get('amount')
+      const productId = searchParams.get('productId')
 
-      console.log('🔍 결제 파라미터 확인:', { paymentKey, orderId, amount, roomId })
+      console.log('🔍 결제 파라미터 확인:', { paymentKey, orderId, amount, roomId, productId })
 
       if (paymentKey && orderId && amount) {
         try {
           console.log('📡 결제 확인 API 호출 시작...')
           
-          // 서버에 결제 확인 요청
-           const response = await fetch('https://i13e202.p.ssafy.io/be/api/payments/confirm', {
-             method: 'POST',
-             headers: {
-               'Content-Type': 'application/json',
-               'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-             },
-             body: JSON.stringify({
-               paymentKey,
-               orderId,
-               amount: parseInt(amount),
-             }),
-           })
+                     // URL 파라미터에서 productId 가져오기 (우선순위)
+           const productIdFromUrl = searchParams.get('productId')
+           console.log('🔍 URL에서 가져온 productId:', productIdFromUrl)
+           
+           // 서버에 결제 확인 요청
+             const response = await fetch('https://i13e202.p.ssafy.io/be/api/payments/confirm', {
+               method: 'POST',
+               headers: {
+                 'Content-Type': 'application/json',
+                 'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+               },
+               body: JSON.stringify({
+                 paymentKey,
+                 orderId,
+                 amount: parseInt(amount),
+                 productId: productIdFromUrl || productId
+               }),
+             })
 
           console.log('📡 API 응답 상태:', response.status)
 
@@ -223,7 +232,13 @@ export default function ChatRoomPage() {
   // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ block: 'end' })
+      // 약간의 지연을 두어 DOM 업데이트 완료 후 스크롤
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'end' 
+        })
+      }, 100)
     }
   }, [messages])
 
@@ -264,7 +279,7 @@ export default function ChatRoomPage() {
   }
 
   return (
-    <div className="bg-[#fffde2] h-full flex flex-col justify-between relative overflow-hidden">
+    <div className="h-full flex flex-col justify-between relative overflow-hidden">
       {/* 채팅방 헤더 */}
       <div className="absolute top-0 left-0 right-0 bg-white border-b border-gray-200 z-2 flex flex-col px-5 py-4 gap-2">
         {/* 상품 정보 */}

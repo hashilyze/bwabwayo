@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useChatRoomStore } from "@/stores/chatting/chatRoomStore"
-import { useModalStore } from "@/stores/modalStore"
 import { OverlayPortal } from "@/components/chat/modals/OverlayPortal"
 import TrackingNumberModal from '@/components/chat/modals/TrackingForm'
 import FinalPriceModal from '@/components/chat/modals/FinalPriceForm'
@@ -362,13 +361,13 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
 //REQUEST_DEPOSIT,        // 입금 요청 - 최종 가격 설정 후 전송
 const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
   const [isButtonHovered, setIsButtonHovered] = useState(false);
-  const { isPaymentModalOpen, openPaymentModal, closePaymentModal } = useModalStore();
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const chatInfo = useChatRoomInfo();
 
   const handleStart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     console.log('결제 요청');
-    openPaymentModal();
+    setIsPaymentModalOpen(true);
   }
 
   // message.content에서 금액 추출 (숫자만)
@@ -408,12 +407,13 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
       </div>
 
       {/* PaymentCheckout 모달 */}
-      <OverlayPortal open={isPaymentModalOpen} onClose={closePaymentModal}>
+      <OverlayPortal open={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)}>
         <PaymentCheckoutPage
-          onClose={closePaymentModal}
+          onClose={() => setIsPaymentModalOpen(false)}
           amount={paymentAmount}
           orderName={chatInfo?.product?.title || "상품"}
           roomId={chatInfo?.roomId || 0}
+          productId={chatInfo?.product?.id || 0}
         />
       </OverlayPortal>
     </>

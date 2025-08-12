@@ -1,15 +1,21 @@
 // 파일 경로: app/shop/[id]/sales/page.tsx
 'use client'; // 페이지 내 상호작용을 위해 클라이언트 컴포넌트로 선언합니다.
 
-import React, { useState, useEffect } from "react";
-import Link from 'next/link';
+import React, { Suspense, useState, useEffect } from "react";
 import { useMyActivityStore, type SalesSearchConditions } from "@/stores/mypage/myActivityStore"; // Zustand 스토어를 import 합니다.
 import Pagination from "@/components/common/Pagination"; // 페이지네이션 컴포넌트를 import 합니다.
+import { useRouter, useSearchParams } from "next/navigation"; // URL 관리를 위해 import 합니다.
+import Link from 'next/link';
 
 
-export default function MyPageSales() {
+function SalesContent() {
   const { salesList, salesTotalPages, fetchSales, loading: salesLoading, error: salesError } = useMyActivityStore();
-  const [currentPage, setCurrentPage] = useState(1);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // ✨ 페이지 상태를 URL 쿼리 파라미터에서 가져옵니다. 없으면 1로 기본값 설정.
+  const currentPage = Number(searchParams.get('page')) || 1;
+
   const [keyword, setKeyword] = useState('');
   const [sortBy, setSortBy] = useState<SalesSearchConditions['sortBy']>('latest');
 
@@ -21,10 +27,13 @@ export default function MyPageSales() {
       keyword: keyword || undefined, // 빈 문자열일 경우 undefined로 전달하여 쿼리에서 제외
       sortBy: sortBy,
     });
-  }, [currentPage, keyword, sortBy, fetchSales]);
+  }, [currentPage, keyword, sortBy, fetchSales]); // currentPage가 URL에서 오므로 의존성 배열에 포함
 
   const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
+    // ✨ 페이지 변경 시 URL을 업데이트하여 상태를 유지합니다.
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', String(pageNumber));
+    router.push(`?${params.toString()}`);
   };
 
   return (
@@ -116,5 +125,13 @@ export default function MyPageSales() {
         onPageChange={handlePageChange}
       />
     </div>
+  );
+}
+
+export default function MyPageSales() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center h-screen">판매 목록을 불러오는 중...</div>}>
+      <SalesContent />
+    </Suspense>
   );
 }

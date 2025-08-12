@@ -6,6 +6,8 @@ export interface UserSettingsData {
   nickname: string;
   profileImage: string | null;
   bio: string | null;
+  email: string;
+  phoneNumber: string;
   accountNumber: string;
   bankName: string;
   accountHolder: string;
@@ -15,12 +17,12 @@ export interface ProfileData {
   nickname: string;
   profileImage?: string | null;
   bio?: string | null;
+  email?: string;
+  phoneNumber?: string;
   accountNumber?: string;
   bankName?: string;
   accountHolder?: string;
 }
-
-
 
 interface MyPageSettingStore {
   userData: UserSettingsData | null;

@@ -12,8 +12,6 @@ const protectedRoutes = [
   // '/chat',
   // '/mypage',
   '/signup',
-  '/signup',
-
 ]
 
 // 인증이 필요한 경로인지 확인하는 함수
