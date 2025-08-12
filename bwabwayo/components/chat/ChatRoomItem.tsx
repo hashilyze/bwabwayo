@@ -148,7 +148,23 @@ export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected 
     >
       <div className="w-[80px] h-[80px] bg-gray-200 rounded-full mr-[18px]">
          <img 
-           src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`}
+           src={(() => {
+             if (layoutRoom) {
+               // 현재 사용자가 판매자인 경우 구매자 프로필을, 구매자인 경우 판매자 프로필을 반환
+               const currentUserId = layoutRoom.userId;
+               const sellerId = layoutRoom.seller.id;
+               const buyerId = layoutRoom.buyer.id;
+               
+               if (currentUserId === sellerId) {
+                 return layoutRoom.buyer.profileImageUrl; // 구매자 프로필
+               } else if (currentUserId === buyerId) {
+                 return layoutRoom.seller.profileImageUrl; // 판매자 프로필
+               } else {
+                 return layoutRoom.seller.profileImageUrl; // fallback
+               }
+             }
+             return chatRoom?.seller?.profileImageUrl || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/no-image.jpg`;
+           })()}
            alt={`${getPartnerName()} 프로필`}
            className="w-full h-full rounded-full object-cover"
          />
@@ -160,7 +176,7 @@ export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected 
              {getPartnerName()}
            </span>
           <div className="w-[2px] h-[2px] bg-gray-500 rounded-full mr-2"></div>
-          <span className="text-xs text-gray-500">
+          <span className="text-sm text-gray-500">
             {formatTime(layoutRoom?.lastMessage?.createdAt || regularRoom?.lastChatmessageDto?.createdAt || regularRoom?.lastMessageTime || chatRoom?.lastMessage?.createdAt)}
           </span>
         </div>

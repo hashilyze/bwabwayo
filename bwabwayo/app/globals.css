@@ -175,3 +175,13 @@ body {
   display: flex !important;
   flex-direction: column !important;
 }
+
+/* 채팅방 스크롤바 숨김 */
+.chat-container {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.chat-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
