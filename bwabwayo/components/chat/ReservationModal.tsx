@@ -46,6 +46,8 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ onClose, chatRoomId
       
       try {
         await addSchedule(startAt, chatRoomId);
+        alert("예약되었습니다.");
+        onClose(); // 모달 닫기
       } catch (error) {
         alert("예약 중 오류가 발생했습니다.");
       }

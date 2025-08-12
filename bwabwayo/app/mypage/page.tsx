@@ -111,10 +111,10 @@ export default function MyPage() {
             </li>
             
             {/* 화상거래 */}
-            <li className="flex-1 p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
+            {/* <li className="flex-1 p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
               <div className="text-gray-500 text-sm mb-1">화상거래</div>
               <div className="text-black text-xl font-normal min-w-[60px]">0</div>
-            </li>
+            </li> */}
             
             {/* 포인트 */}
             <li className="flex-2 p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">

@@ -12,10 +12,10 @@ import RecommendItems from "@/components/home/RecommendItems";
 import Banner from "@/components/home/Banner";
 import { ProductWithSeller, ProductCardUIData } from '@/stores/product/productStore';
 import { transformToProductCardData } from '@/lib/dataTransFormers';
-
+import Link from "next/link";
 
 // swiper
-import { Navigation, Pagination } from 'swiper/modules';
+import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { Swiper, SwiperClass, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -124,6 +124,23 @@ function ProductSlider({ products, navigationId }: { products: any[], navigation
   );
 }
 
+const adsContainer = () => {
+  return [
+    {
+    id:1,
+    url: `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/banner/banner-1.png`,
+    alt: '광고 배너 1',
+    link: '/',
+  },
+  {
+    id:2,
+    url: `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/banner/banner-2.png`,
+    alt: '광고 배너 2',
+    link: '/',
+  }
+  ]
+}
+
 export default function Home() {
   const { products, hotKeywordProducts, videoCallProducts, loading, error, getProducts, getHotKewordProducts, getVideoCallProducts } = useProductStore();
   const { initializeAuth, setGlobalToken, getToken } = useAuthStore();
@@ -168,10 +185,35 @@ export default function Home() {
       </Suspense>
 
       {/* 광고 : swiper 들어갈 예정 */}
-      <div className="bg-[#E8F4E9] w-full h-[400px]">
-        <div className="container-default m-auto">
-          광고입니다
-        </div>
+      <div className="bg-[#E8F4E9] w-full">
+          {/* 광고 Swiper */}
+          <Swiper
+             modules={[Autoplay, Pagination]}
+             slidesPerView={1}
+             loop={true}
+             autoplay={{
+               delay: 3000,
+               disableOnInteraction: false,
+             }}
+             pagination={{
+               clickable: true,
+               bulletActiveClass: 'swiper-pagination-bullet-active',
+               bulletClass: 'swiper-pagination-bullet',
+             }}
+             className="ad-swiper"
+           >
+            {adsContainer().map((ad) => (
+              <SwiperSlide key={ad.id}>
+                <Link href={ad.link} className="flex items-center justify-center h-full">
+                  <img 
+                    src={ad.url} 
+                    alt={ad.alt} 
+                    className="w-full h-full object-contain"
+                  />
+                </Link>
+              </SwiperSlide>
+            ))}
+           </Swiper>
       </div>
 
       {/* 카테고리 추천 */}

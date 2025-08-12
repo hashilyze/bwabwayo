@@ -285,7 +285,7 @@ export default function CreateProductPage() {
 
       // 성공 후 폼 초기화 및 페이지 이동
       resetForm();
-      router.push(`/product/${newProductId}`);
+      router.push(`/mypage`);
 
     } catch (error) {
       console.error('❌ 상품 등록 실패:', error);

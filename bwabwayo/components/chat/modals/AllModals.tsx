@@ -2,12 +2,15 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useChatRoomStore } from "@/stores/chatting/chatRoomStore"
+import { useMyAddressStore } from "@/stores/mypage/myAddressStore"
 import { OverlayPortal } from "@/components/chat/modals/OverlayPortal"
 import TrackingNumberModal from '@/components/chat/modals/TrackingForm'
 import FinalPriceModal from '@/components/chat/modals/FinalPriceForm'
 import { PaymentCheckoutPage } from '@/components/chat/modals/tossPay/PaymentCheckout'
+import PurchaseConfirm from '@/components/chat/modals/PurchaseConfirm'
 
 import AddressSelectModal, { AddressItem } from '@/components/chat/modals/DeliverySelectForm'
+import Link from 'next/link';
 
 interface ChatMessage {
   content: string;
@@ -53,14 +56,6 @@ const CreateRoomModal = ({ message }: { message: ChatMessage }) => {
   const [isButtonHovered, setIsButtonHovered] = useState(false);
   const chatInfo = useChatRoomInfo(); // 전역 정보 사용
 
-  const handleStart = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    console.log('상품상세 보기');
-    if (chatInfo?.product?.id) {
-      console.log(`상품 ID: ${chatInfo.product.id}로 이동`);
-    }
-  }
-
   if (!chatInfo) {
     return (
       <article className="w-[400px] h-[242px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black flex items-center justify-center">
@@ -70,44 +65,50 @@ const CreateRoomModal = ({ message }: { message: ChatMessage }) => {
   }
 
   return (
-    <article className="w-[400px] h-[242px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
-      <div className="flex flex-col w-[371px] h-[193px] items-center justify-between relative top-7 left-[15px]">
-        <header className="inline-flex items-start justify-center gap-3 relative flex-[0_0_auto]">
-          <img
-            className="relative w-[60px] h-[60px] object-cover rounded-[10px]"
-            alt="product image"
-            src={chatInfo.product.imageUrl || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/nintendo.jpg`}
-          />
-          <p className="relative w-[291px] mt-[-1.00px] font-medium text-black text-sm tracking-[0] leading-[18px]">
-            {chatInfo.partner.nickname} 님과 {chatInfo.product.title}에 대한 이야기를 시작해보세요.
-          </p>
-        </header>
-        <section className="relative self-stretch text-[#7c7c7c] text-xs tracking-[0] leading-[18px]">
-          <p>
-            · 상품 금액 : {chatInfo.product.formattedPrice}
-            <br />· 거래 방법 : {chatInfo.product.deliveryMethods}
-            <br />· 배송비 : {chatInfo.product.formattedShippingFee}
-            {chatInfo.product.canNegotiate && (
-              <>
-                <br />· 가격 협상 가능
-              </>
-            )}
-          </p>
-        </section>
-        <button
-          className={`relative w-[150px] h-10 bg-[#fce94f] rounded-[20px] border-2 border-solid border-black cursor-pointer transition-all duration-200 ${isButtonHovered ? "transform scale-105 shadow-lg" : ""
-            }`}
-          onClick={(e) => handleStart(e)}
-          onMouseEnter={() => setIsButtonHovered(true)}
-          onMouseLeave={() => setIsButtonHovered(false)}
-          aria-label="상품 상세 보기"
-        >
-          <span className="absolute h-[17px] top-2.5 left-9 font-bold text-center leading-[normal] text-black text-sm tracking-[0]">
+    <>
+      <article className="w-[400px] p-6 rounded-[30px] border-2 border-black">
+        <div className="flex flex-col items-center justify-between">
+          <header className="flex items-center gap-3 mb-2">
+            <img
+              className="relative w-[60px] h-[60px] object-cover rounded-[10px]"
+              alt="product image"
+              src={chatInfo.product.imageUrl || `${process.env.NEXT_PUBLIC_PUBLIC_URL}/nintendo.jpg`}
+            />
+            <p className="text-md">
+              '{chatInfo.partner.nickname}' 님과 {chatInfo.product.title}에 대한 이야기를 시작해보세요.
+            </p>
+          </header>
+          <section className="flex flex-col gap-1 text-[#7c7c7c] text-md w-full mb-2">
+            <p>
+              · 상품 금액 : {chatInfo.product.formattedPrice}
+              <br />· 거래 방법 : {chatInfo.product.deliveryMethods}
+              <br />· 배송비 : {chatInfo.product.formattedShippingFee}
+              {chatInfo.product.canNegotiate && (
+                <>
+                  <br />· 가격 협상 가능
+                </>
+              )}
+            </p>
+          </section>
+          <Link
+            href={`/product/${chatInfo.product.id}`}
+            className="py-2 px-6 font-bold text-center text-md bg-[#fce94f] rounded-[20px] border-2 border-black cursor-pointer transition-all duration-200 hover:scale-105"
+          >
             상품상세 보기
-          </span>
-        </button>
+          </Link>
+        </div>
+      </article>
+      {/* 시간 표시 */}
+      <div className="my-3 text-md text-[#666666] text-center">
+        <span className="">
+          {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          })}
+        </span>
       </div>
-    </article>
+    </>
   );
 };
 
@@ -128,63 +129,75 @@ const ReserveVideoCallModal = ({ message }: { message: ChatMessage }) => {
   }
 
   return (
-    <div className="w-[400px] h-[169px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
-      <div className="flex flex-col w-[371px] h-[123px] items-center justify-between relative top-7 left-3.5">
-        <div className="flex w-[301px] items-center justify-between relative flex-[0_0_auto]">
-          <img
-            className="relative w-[70px] h-[70px] aspect-[1] object-cover"
-            alt="Calendar appointment icon"
-            src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/reservation-icon.png`}
-          />
+    <>
+      <div className="w-[400px] p-6 rounded-[30px] border-2 border-black">
+        <div className="flex flex-col items-center justify-between">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <img
+              className="w-[70px] h-[70px] aspect-[1] object-cover"
+              alt="Calendar appointment icon"
+              src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/reservation-icon.png`}
+            />
 
-          <div className="flex w-[223px] items-start justify-center gap-3 relative">
-            <div className="inline-flex flex-col items-start gap-1.5 relative flex-[0_0_auto]">
-              <p className="relative w-fit mt-[-1.00px] font-medium text-black text-sm tracking-[0] leading-[18px] whitespace-nowrap">
-                {chatInfo?.partner.nickname || 'OOO'} 님이 화상 거래를 예약했어요!
-              </p>
+            <div className="flex items-start justify-center gap-3">
+              <div className="flex flex-col items-start gap-1.5">
+                <p className="text-md">
+                  '{chatInfo?.partner.nickname || 'OOO'}' 님이 화상 거래를 예약했어요!
+                </p>
 
-              <div className="inline-flex flex-col items-start relative flex-[0_0_auto]">
-                <div className="relative w-fit mt-[-1.00px] [font-family:'SUITE-Medium',Helvetica] font-medium text-[#7c7c7c] text-xs tracking-[0] leading-[18px] whitespace-nowrap">
-                  일정: 2025-08-06(수) 오전 10:00
-                </div>
+                <div className="flex flex-col items-start gap-1">
+                  <div className="text-[#7c7c7c] text-md">
+                    일정: 2025-08-06(수) 오전 10:00
+                  </div>
 
-                <div className="relative w-fit [font-family:'SUITE-Medium',Helvetica] font-medium text-[#7c7c7c] text-xs tracking-[0] leading-[18px] whitespace-nowrap">
-                  사용 포인트 : 1000 P
+                  <div className="text-[#7c7c7c] text-md">
+                    사용 포인트 : 1,000 P
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex w-[337px] items-start justify-between relative flex-[0_0_auto]">
-          <button
-            className={`relative w-40 h-10 bg-[#fce94f] rounded-[20px] border-2 border-solid border-black cursor-pointer transition-all duration-200 ${isListButtonHovered ? "transform scale-105 shadow-lg" : ""
-              }`}
-            onClick={(e) => handleReservationList(e)}
-            onMouseEnter={() => setIsListButtonHovered(true)}
-            onMouseLeave={() => setIsListButtonHovered(false)}
-            aria-label="화상 거래 목록 보기"
-          >
-            <span className="absolute h-[17px] top-2.5 left-[26px] font-semibold text-black text-sm text-center tracking-[0] leading-[normal]">
-              화상 거래 목록 보기
-            </span>
-          </button>
+          <div className="flex items-start justify-between gap-2">
+            <button
+              className={`py-2 px-6 bg-[#fce94f] rounded-[20px] border-2 border-black cursor-pointer transition-all duration-200 ${isListButtonHovered ? "transform scale-105 shadow-lg" : ""
+                }`}
+              onClick={(e) => handleReservationList(e)}
+              onMouseEnter={() => setIsListButtonHovered(true)}
+              onMouseLeave={() => setIsListButtonHovered(false)}
+              aria-label="화상 거래 목록 보기"
+            >
+              <span className="font-semibold text-black text-md text-center">
+                화상 거래 목록 보기
+              </span>
+            </button>
 
-          <button
-            className={`relative w-40 h-10 rounded-[20px] border-2 border-solid border-black cursor-pointer transition-all duration-200 ${isCancelButtonHovered ? "transform scale-105 shadow-lg" : ""
-              }`}
-            onClick={(e) => handleCancel(e)}
-            onMouseEnter={() => setIsCancelButtonHovered(true)}
-            onMouseLeave={() => setIsCancelButtonHovered(false)}
-            aria-label="예약 취소하기"
-          >
-            <span className="absolute h-[17px] top-2.5 left-[55px] [font-family:'SUITE-Bold',Helvetica] font-semibold text-black text-sm text-center tracking-[0] leading-[normal]">
-              취소하기
-            </span>
-          </button>
+            <button
+              className={`py-2 px-6 rounded-[20px] border-2 border-black cursor-pointer transition-all duration-200 ${isCancelButtonHovered ? "transform scale-105 shadow-lg" : ""
+                }`}
+              onClick={(e) => handleCancel(e)}
+              onMouseEnter={() => setIsCancelButtonHovered(true)}
+              onMouseLeave={() => setIsCancelButtonHovered(false)}
+              aria-label="예약 취소하기"
+            >
+              <span className="font-semibold text-black text-md text-center">
+                취소하기
+              </span>
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+      {/* 시간 표시 */}
+      <div className="my-4 text-md text-[#666666] text-center">
+        <span className="">
+          {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          })}
+        </span>
+      </div>
+    </>
   );
 };
 
@@ -193,29 +206,41 @@ const CancelVideoCallModal = ({ message }: { message: ChatMessage }) => {
   const chatInfo = useChatRoomInfo(); // 전역 정보 사용
 
   return (
-    <div className="w-[400px] h-[114px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
-      <div className="flex flex-col w-[371px] h-[81px] items-center justify-around gap-3 relative top-4 left-3">
-        <div className="flex w-[317px] items-center gap-[10px] relative flex-[0_0_auto]">
-          <img
-            className="relative w-[65px] h-[58px] aspect-[1.12]"
-            alt="Sad cat icon"
-            src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/sadCat-icon.png`}
-          />
+    <>
+      <div className="w-[400px] p-6 rounded-[30px] border-2 border-black">
+        <div className="flex flex-col items-center justify-around gap-3">
+          <div className="flex items-center gap-[10px]">
+            <img
+              className="w-[65px] h-[58px] aspect-[1.12]"
+              alt="Sad cat icon"
+              src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/sadCat-icon.png`}
+            />
 
-          <div className="flex w-[223px] items-start justify-center gap-3 relative">
-            <div className="inline-flex flex-col items-start gap-1.5 relative flex-[0_0_auto] ml-[-6.50px] mr-[-6.50px]">
-              <p className="mt-[-1.00px] font-medium text-black text-sm realative w-fit tracking-[0] leading-[18px] whitespace-nowrap">
-                {chatInfo?.partner.nickname || 'OO'} 님과 화상 거래 예약이 취소되었어요!
-              </p>
+            <div className="flex items-start justify-center gap-3">
+              <div className="flex flex-col items-start gap-1.5">
+                <p className="text-md">
+                  {chatInfo?.partner.nickname || 'OO'} 님과 화상 거래 예약이 취소되었어요!
+                </p>
 
-              <div className="text-[#7c7c7c] text-xs relative w-fit font-medium tracking-[0] leading-[18px] whitespace-nowrap">
-                일정: 2025-08-06(수) 오전 10:00
+                <div className="text-[#7c7c7c] text-md">
+                  일정: 2025-08-06(수) 오전 10:00
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+      {/* 시간 표시 */}
+      <div className="my-4 text-md text-[#666666] text-center">
+        <span className="">
+          {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          })}
+        </span>
+      </div>
+    </>
   )
 }
 
@@ -230,6 +255,7 @@ const StartVideoCallModal = ({ message }: { message: ChatMessage }) => {
   const handleStart = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     console.log('화상채팅 시작');
+  
 
     if (!currentSelectedRoom) {
       console.error('현재 선택된 채팅방 정보가 없습니다.');
@@ -244,7 +270,7 @@ const StartVideoCallModal = ({ message }: { message: ChatMessage }) => {
     }
 
     try {
-      openVideoChat(currentSelectedRoom.roomId);
+      openVideoChat(Number(videoSessionId));
       console.log('화상채팅 시작 - 세션ID:', videoSessionId);
     } catch (error) {
       console.error('화상채팅 시작 실패:', error);
@@ -253,39 +279,51 @@ const StartVideoCallModal = ({ message }: { message: ChatMessage }) => {
   }
 
   return (
-    <div className="w-[400px] h-[169px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
-      <div className="flex flex-col w-[371px] h-[123px] items-center justify-between relative top-7 left-[15px]">
-        <div className="flex w-[371px] items-center justify-center gap-3 relative flex-[0_0_auto]">
+    <>
+    <div className="w-[400px] p-6 rounded-[30px] border-2 border-black">
+      <div className="flex flex-col items-center justify-between">
+        <div className="flex items-center justify-center gap-3">
           <img
-            className="relative w-[78px] h-[70px] aspect-[1.11] object-cover"
+            className="w-[78px] h-[70px] aspect-[1.11] object-cover"
             alt="videoChatCat"
             src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/videoChatCat-icon.png`}
           />
 
-          <div className="inline-flex flex-col items-start gap-1.5 relative flex-[0_0_auto]">
-            <p className="relative w-fit mt-[-1.00px] font-medium leading-[18px] text-black text-sm tracking-[0] leading-[18px] whitespace-nowrap">
+          <div className="flex flex-col items-start gap-1.5">
+            <p className="text-md">
               지금, {chatInfo?.partner.nickname || 'OOO'} 님과 화상 거래가 시작되었어요!
             </p>
 
-            <div className="relative w-fit text-[#7c7c7c] text-xs font-medium tracking-[0] leading-[18px] whitespace-nowrap">
+            <div className="text-[#7c7c7c] text-md">
               일정: 2025-08-06(수) 오전 10:00
             </div>
           </div>
         </div>
         <button
-          className={`relative w-[150px] h-10 bg-[#fce94f] rounded-[20px] border-2 border-solid border-black cursor-pointer transition-all duration-200 ${isButtonHovered ? "transform scale-105 shadow-lg" : ""
+          className={`mt-3 py-2 px-6 bg-[#fce94f] rounded-[20px] border-2 border-black cursor-pointer transition-all duration-200 ${isButtonHovered ? "transform scale-105 shadow-lg" : ""
             }`}
           onClick={(e) => handleStart(e)}
           onMouseEnter={() => setIsButtonHovered(true)}
           onMouseLeave={() => setIsButtonHovered(false)}
           aria-label="화상 거래 하러 하기"
         >
-          <div className="absolute h-[17px] top-2.5 left-[21px] [font-family:'SUITE-Bold',Helvetica] font-bold text-center leading-[normal] text-black text-sm tracking-[0]">
+          <div className="font-bold text-center text-md">
             화상 거래 하러 하기
           </div>
         </button>
       </div>
     </div>
+      {/* 시간 표시 */}
+      <div className="my-4 text-md text-[#666666] text-center">
+        <span className="">
+          {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          })}
+        </span>
+      </div>
+    </>
   );
 };
 
@@ -310,16 +348,17 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
   }
 
   return (
-    <div className="w-[400px] h-[169px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
-      <div className="flex flex-col w-[371px] h-[123px] items-center justify-between relative top-7 left-2.5">
-        <div className="flex w-[281px] items-center justify-between">
+    <>
+    <div className="w-[400px] p-6 rounded-[30px] border-2 border-black">
+      <div className="flex flex-col items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <img
             className="w-[75px] h-[75px] object-cover"
             alt="Money"
             src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/money-icon.png`}
           />
-          <p className="w-[201px] text-sm leading-[18px] text-black font-medium">
-            {chatInfo?.partner.nickname || 'OOO'} 님과 거래가 시작되었어요.
+          <p className="text-md text-black">
+            '{chatInfo?.partner.nickname || ''}' 님과 거래가 시작되었어요.
             <br />
             최종 거래 가격을 입력해주세요!
           </p>
@@ -333,14 +372,14 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
           disabled={!isSeller}
           aria-disabled={!isSeller}
           className={[
-            'relative w-40 h-10 rounded-[20px] border-2 border-black transition-all duration-200',
+            'py-2 px-6 rounded-[20px] border-2 border-black transition-all duration-200',
             isSeller
               ? `bg-[#fce94f] ${isButtonHovered ? 'scale-105 shadow-lg' : ''}`
               : 'bg-gray-300 cursor-not-allowed'
           ].join(' ')}
           aria-label="최종 거래 가격 설정하기"
         >
-          <span className="absolute top-2.5 left-3.5 font-bold text-sm text-black">
+          <span className="font-bold text-md text-black">
             최종 거래 가격 설정하기
           </span>
         </button>
@@ -354,6 +393,18 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
         />
       </OverlayPortal>
     </div>
+      {/* 시간 표시 */}
+      <div className="my-3 text-md text-[#666666] text-center">
+        <span className="">
+          {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          })}
+        </span>
+      </div>
+    </>
+
   )
 }
 
@@ -377,7 +428,7 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
 
   return (
     <>
-      <div className="w-[400px] h-[169px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black flex flex-col justify-center">
+      <div className="w-[400px] p-6 rounded-[30px] border-2 border-black">
         <div className="flex flex-col items-center justify-center gap-4">
           <div className="flex items-center justify-between gap-3">
             <img
@@ -385,25 +436,35 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
               alt="Toss icon"
               src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/toss-icon.png`}
             />
-            <div className="flex flex-col leading-[18px] text-black text-sm">
+            <div className="flex flex-col text-md">
               <p>최종 거래 가격이 설정되었어요</p>
-              <p className="font-bold text-base my-1">{formattedAmount}</p>
+              <p className="font-bold my-1">{formattedAmount}</p>
               <p>결제를 진행해 주세요!</p>
             </div>
           </div>
           <button
-            className={`relative w-[150px] h-10 bg-[#fce94f] rounded-[20px] border-2 border-solid border-black cursor-pointer transition-all duration-200 ${isButtonHovered ? "transform scale-105 shadow-lg" : ""
+            className={`py-2 px-6 bg-[#fce94f] rounded-[20px] border-2 border-black cursor-pointer transition-all duration-200 ${isButtonHovered ? "transform scale-105 shadow-lg" : ""
               }`}
             onClick={(e) => handleStart(e)}
             onMouseEnter={() => setIsButtonHovered(true)}
             onMouseLeave={() => setIsButtonHovered(false)}
             aria-label="결제하기"
           >
-            <div className="absolute h-[17px] top-2.5 left-[50px] [font-family:'SUITE-Bold',Helvetica] font-bold text-center leading-[normal] text-black text-sm tracking-[0]">
+            <div className="font-bold text-center text-md">
               결제하기
             </div>
           </button>
         </div>
+      </div>
+      {/* 시간 표시 */}
+      <div className="my-4 text-md text-[#666666] text-center">
+        <span className="">
+          {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          })}
+        </span>
       </div>
 
       {/* PaymentCheckout 모달 */}
@@ -426,66 +487,109 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
 const InputDeliveryAddressModal = ({ message }: { message: ChatMessage }) => {
   const [isButtonHovered, setIsButtonHovered] = useState(false);
   const [open, setOpen] = useState(false)
+  const { addresses, loading, error, fetchAddresses } = useMyAddressStore();
+  const { sendMessage, currentSelectedRoom } = useChatRoomStore();
 
-  const addresses: AddressItem[] = [
-    {
-      id: 1,
-      address: '부산광역시 연제구 중앙대로 1134번길',
-      detail: '105동 405호',
-    },
-    {
-      id: 2,
-      address: '삼성전기 부산 사업장',
-      detail: '삼성 청년 SW 아카데미 교육장',
-    },
-  ]
+  // 컴포넌트 마운트 시 주소 목록 가져오기
+  useEffect(() => {
+    fetchAddresses();
+  }, [fetchAddresses]);
+
+  // Address 타입을 AddressItem 타입으로 변환
+  const addressItems: AddressItem[] = addresses.map((addr: any) => ({
+    id: addr.id,
+    address: `${addr.address} ${addr.addressDetail}`,
+    detail: `${addr.recipientName} (${addr.recipientPhoneNumber})`,
+  }));
 
   const handleStart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     console.log('배송지 입력 요청');
+    
+    // 로딩 중이거나 에러가 있으면 처리하지 않음
+    if (loading) {
+      console.log('주소 목록을 불러오는 중입니다...');
+      return;
+    }
+    
+    if (error) {
+      console.error('주소 목록 로딩 실패:', error);
+      alert('주소 목록을 불러오는데 실패했습니다. 다시 시도해주세요.');
+      return;
+    }
+    
+    setOpen(true);
   }
 
   return (
-    <div className="w-[400px] h-[169px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
-      <div className="flex flex-col w-[371px] h-[123px] items-center justify-between relative top-7 left-3.5">
-        <div className="flex w-[323px] items-center justify-center gap-[18px] relative flex-[0_0_auto]">
-          <img
-            className="relative w-[85px] h-[66px] aspect-[1.29]"
-            alt="Money cat icon"
-            src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/moneyCat-icon.png`}
-          />
-          <div className="relative w-[158px] font-medium leading-[18px] text-black text-sm tracking-[0]">
-            입금이 완료되었어요.
-            <br />
-            배송지를 입력해 주세요!
+    <>
+    <div className="w-[400px] p-6 rounded-[30px] border-2 border-black">
+      <div className="flex flex-col items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
+            <img
+              className="relative w-[85px] h-[66px] aspect-[1.29]"
+              alt="Money cat icon"
+              src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/moneyCat-icon.png`}
+            />
+            <div className="text-md text-black">
+              입금이 완료되었어요.
+              <br />
+              배송지를 입력해 주세요!
+            </div>
+
           </div>
+          <button
+            className={`py-2 px-6 mt-3 bg-[#fce94f] rounded-[20px] border-2 border-black cursor-pointer transition-all duration-200 ${isButtonHovered ? "transform scale-105 shadow-lg" : ""
+              }`}
+            onClick={() => setOpen(true)}
+            onMouseEnter={() => setIsButtonHovered(true)}
+            onMouseLeave={() => setIsButtonHovered(false)}
+            aria-label="배송지 입력"
+          >
+            <div className="font-bold text-center text-md">
+              배송지 입력하기
+            </div>
+          </button>
+
+          <OverlayPortal open={open} onClose={() => setOpen(false)}>
+            <AddressSelectModal
+              items={addressItems}
+              initialSelectedId="home"
+              onConfirm={(selectedAddress) => { 
+                setOpen(false);
+                
+                // selectedAddress는 이미 AddressItem 객체이므로 바로 사용
+                if (selectedAddress) {
+                  const messageContent = `배송지가 입력 되었어요.${JSON.stringify(selectedAddress)}`; 
+                  console.log('📝 생성된 메시지 내용:', messageContent);
+                  
+                  if (currentSelectedRoom) {                  
+                    // 구매자에게 INPUT_TRACKING_NUMBER 메시지 전송
+                    try {
+                      sendMessage(currentSelectedRoom.roomId, messageContent, "INPUT_TRACKING_NUMBER");
+                    } catch (error: any) {
+                    }
+                  }
+                }
+              }}
+              onClose={() => setOpen(false)}
+              onAddAddress={() => alert('배송지 추가 모달 열기')}
+            />
+          </OverlayPortal>
 
         </div>
-        <button
-          className={`relative w-[150px] h-10 bg-[#fce94f] rounded-[20px] border-2 border-solid border-black cursor-pointer transition-all duration-200 ${isButtonHovered ? "transform scale-105 shadow-lg" : ""
-            }`}
-          onClick={() => setOpen(true)}
-          onMouseEnter={() => setIsButtonHovered(true)}
-          onMouseLeave={() => setIsButtonHovered(false)}
-          aria-label="배송지 입력"
-        >
-          <div className="absolute h-[17px] top-2.5 left-8 font-bold text-center leading-[normal] text-black text-sm tracking-[0]">
-            배송지 입력하기
-          </div>
-        </button>
-
-        <OverlayPortal open={open} onClose={() => setOpen(false)}>
-          <AddressSelectModal
-            items={addresses}
-            initialSelectedId="home"
-            onConfirm={(sel) => { console.log('선택됨:', sel); setOpen(false) }}
-            onClose={() => setOpen(false)}
-            onAddAddress={() => alert('배송지 추가 모달 열기')}
-          />
-        </OverlayPortal>
-
       </div>
-    </div>
+      {/* 시간 표시 */}
+      <div className="my-4 text-md text-[#666666] text-center">
+        <span className="">
+          {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          })}
+        </span>
+      </div>
+    </>
   );
 };
 
@@ -494,33 +598,58 @@ const InputDeliveryAddressModal = ({ message }: { message: ChatMessage }) => {
 const InputTrackingAddressModal = ({ message }: { message: ChatMessage }) => {
   const [isButtonHovered, setIsButtonHovered] = useState(false);
   const [openTracking, setOpenTracking] = useState(false)
+  
+  // 메시지에서 배송지 정보 파싱
+  const parseDeliveryInfo = () => {
+    try {
+      if (message.content.startsWith('배송지가 입력 되었어요.')) {
+        const addressData = message.content.replace('배송지가 입력 되었어요.', '');
+        if (addressData.trim()) {
+          const parsedData = JSON.parse(addressData);
+          return parsedData;
+        }
+      }
+      return null;
+    } catch (error) {
+      return null;
+    }
+  };
+  
+  const deliveryInfo = parseDeliveryInfo();
 
 
   return (
-    <div className="w-[400px] h-[169px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
-      <div className="flex flex-col w-[371px] h-[123px] items-center justify-between relative top-7 left-3.5">
-        <div className="flex w-[281px] items-center justify-center gap-[18px] relative flex-[0_0_auto]">
-          <img
-            className="relative w-[75px] h-[75px] ml-[-14.00px] aspect-[1] object-cover"
-            alt="Box icon"
-            src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/box-icon.png`}
-          />
-          <p className="relative w-fit mr-[-14.00px] font-medium leading-[18px] text-black text-sm tracking-[0]">
-            배송지가 입력 되었어요.
-            <br />
-            택배 발송 후, 송장번호를 입력해 주세요!
-          </p>
+    <>
+    <div className="w-[400px] p-6 rounded-[30px] border-2 border-black">
+      <div className="flex flex-col items-center justify-between">
+        <div className="flex flex-col items-center justify-center gap-2">
+          <div className="text-md flex items-center gap-2">
+            <img
+              className="relative w-[75px] h-[75px] ml-[-14.00px] aspect-[1] object-cover"
+              alt="Box icon"
+              src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/box-icon.png`}
+            />
+            <p>배송지가 입력 되었어요.<br/>
+            택배 발송 후, 송장번호를 입력해 주세요!</p>
+          </div>
+
+          {deliveryInfo && (
+            <div className="text-md text-gray-600 mb-4">
+              <p><strong>배송지:</strong> {deliveryInfo.address}</p>
+              <p><strong>수령인:</strong> {deliveryInfo.detail}</p>
+            </div>
+          )}
 
         </div>
         <button
-          className={`relative w-[150px] h-10 bg-[#fce94f] rounded-[20px] border-2 border-solid border-black cursor-pointer transition-all duration-200 ${isButtonHovered ? "transform scale-105 shadow-lg" : ""
+          className={`bg-[#fce94f] rounded-[20px] border-2 border-solid border-black cursor-pointer transition-all duration-200 ${isButtonHovered ? "transform scale-105 shadow-lg" : ""
             }`}
           onClick={(e) => setOpenTracking(true)}
           onMouseEnter={() => setIsButtonHovered(true)}
           onMouseLeave={() => setIsButtonHovered(false)}
           aria-label="송장번호 입력하기"
         >
-          <div className="absolute h-[17px] top-2.5 left-6.5 [font-family:'SUITE-Bold',Helvetica] font-bold text-center leading-[normal] text-black text-sm tracking-[0]">
+          <div className="py-2 px-6 text-md font-bold">
             송장번호 입력하기
           </div>
         </button>
@@ -530,11 +659,40 @@ const InputTrackingAddressModal = ({ message }: { message: ChatMessage }) => {
           onClose={() => setOpenTracking(false)}
           onSubmit={(v) => {
             console.log('송장 등록 값:', v)
+            
+            // START_DELIVERY 타입의 메시지 전송
+            const { sendMessage, currentSelectedRoom } = useChatRoomStore.getState();
+            if (currentSelectedRoom) {
+              const deliveryMessage = JSON.stringify({
+                carrier: v.carrier,
+                trackingNumber: v.trackingNumber
+              });
+              
+              // START_DELIVERY 메시지 전송
+              sendMessage(currentSelectedRoom.roomId, deliveryMessage, 'START_DELIVERY');
+              
+              // 1초 후 CONFIRM_PURCHASE 메시지 전송
+              setTimeout(() => {
+                sendMessage(currentSelectedRoom.roomId, '구매 확정을 요청합니다.', 'CONFIRM_PURCHASE');
+              }, 1000);
+            }
+            
             setOpenTracking(false)
           }}
         />
       </OverlayPortal>
     </div>
+      {/* 시간 표시 */}
+      <div className="my-3 text-md text-[#666666] text-center">
+        <span className="">
+          {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          })}
+        </span>
+      </div>
+    </>
   );
 };
 
@@ -542,76 +700,145 @@ const InputTrackingAddressModal = ({ message }: { message: ChatMessage }) => {
 const StartDeliveryModal = ({ message }: { message: ChatMessage }) => {
   const chatInfo = useChatRoomInfo(); // 전역 정보 사용
 
+  // 메시지에서 택배사와 송장번호 정보 파싱
+  const parseDeliveryInfo = () => {
+    try {
+      const deliveryData = JSON.parse(message.content);
+      return {
+        carrier: deliveryData.carrier,
+        trackingNumber: deliveryData.trackingNumber
+      };
+    } catch (error) {
+      console.error('배송 정보 파싱 실패:', error);
+      return null;
+    }
+  };
+
+  const deliveryInfo = parseDeliveryInfo();
+
   return (
-    <div className="w-[400px] h-[107px] top-0 left-0 bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
-      <div className="flex flex-col w-[356px] h-[76px] items-center justify-around gap-3 relative top-4 left-3">
-        <div className="w-[317px] items-center gap-[19px] relative flex-[0_0_auto] flex">
-          <img
-            className="relative w-[55px] h-[70px] aspect-[0.79]"
-            alt="Delivery cat icon"
-            src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/deliveryCat-icon.png`}
-          />
-          <div className="inline-flex flex-col items-start jusify-center relative flex-[0_0_auto]">
-            <p className="mt-[-1.00px] font-medium text-black text-sm realative w-[232px] tracking-[0] leading-[18px]">
-              {chatInfo?.product.title || '팝마트 라부부 코카콜라 키링'}의
-            </p>
-            <div className="relative font-medium text-black text-sm w-[232px] tracking-[0] leading-[18px]">
-              배송이 시작되었어요!
+    <>
+      <div className="w-[400px] py-6 px-6 rounded-[30px] border-2 border-black">
+        <div className="flex flex-col items-center justify-around gap-3">
+          <div className="flex gap-4 items-center">
+            <img
+              className="relative w-[55px] h-[70px] aspect-[0.79]"
+              alt="Delivery cat icon"
+              src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/deliveryCat-icon.png`}
+            />
+            <div className="">
+              <p className="text-md">
+                '{chatInfo?.product.title || ''}'의 배송이 시작되었어요!
+              </p>
+              
+              {/* 택배사와 송장번호 정보 표시 */}
+              {deliveryInfo && (
+                <div className="mt-2 text-md text-gray-600">
+                  <p><strong>택배사:</strong> {deliveryInfo.carrier}</p>
+                  <p><strong>송장번호:</strong> {deliveryInfo.trackingNumber}</p>
+                </div>
+              )}
             </div>
-
           </div>
-
         </div>
       </div>
-
-    </div>
+      {/* 시간 표시 */}
+      <div className="my-3 text-md text-[#666666] text-center">
+        <span className="">
+          {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          })}
+        </span>
+      </div>
+    </>
   )
 }
+
 
 //CONFIRM_PURCHASE, // 구매 확정 요청 - 송장번호 입력 후 전송
 const ConfirmPurchaseModal = ({ message }: { message: ChatMessage }) => {
   const [isButtonHovered, setIsButtonHovered] = useState(false);
+  const [showPurchaseConfirm, setShowPurchaseConfirm] = useState(false);
 
   const handleStart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    console.log('구매 확정');
+    console.log('구매 확정 모달 열기');
+    setShowPurchaseConfirm(true);
+  }
+
+  const handlePurchaseConfirm = () => {
+    console.log('구매 확정 완료');
+    setShowPurchaseConfirm(false);
+    
+    // END_TRADE 타입의 메시지 전송
+    const { sendMessage, currentSelectedRoom } = useChatRoomStore.getState();
+    if (currentSelectedRoom) {
+      sendMessage(currentSelectedRoom.roomId, '구매가 확정되었습니다.', 'END_TRADE');
+    }
+  }
+
+  const handlePurchaseCancel = () => {
+    console.log('구매 확정 취소');
+    setShowPurchaseConfirm(false);
   }
 
   const chatInfo = useChatRoomInfo(); // 전역 정보 사용
 
   return (
-    <div className="w-[400px] h-[169px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
-      <div className="flex flex-col w-[371px] h-[123px] items-center justify-between relative top-7 left-[15px]">
-        <div className="flex w-[325px] items-center justify-between relative flex-[0_0_auto]">
+    <>
+    <div className="w-[400px] p-6 rounded-[30px] border-2 border-black">
+      <div className="flex flex-col items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <img
-            className="relative w-[750x] h-16 aspect-[1.09]"
+            className="relative h-16 aspect-[1.09]"
             alt="Box cat icon"
             src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/boxCat-icon.png`}
           />
 
-          <div className="flex flex-col w-[231px] items-start relative">
-            <p className="self-strech mt-[-1.00px] font-medium text-black text-sm realative w-[232px] tracking-[0] leading-[18px]">
-              {chatInfo?.product.title || '팝마트 라부부 코카콜라 키링'}을(를) 받아 보셨나요?
-            </p>
-            <p className="relative w-[239px] mr-[-9.00px] font-medium leading-[18px] text-black text-sm tracking-[0]">
+          <div className="flex flex-col items-start">
+            <p className="text-md">
+              '{chatInfo?.product.title || ''}'을(를) 받아 보셨나요?<br/>
               구매 확정을 해주세요!
             </p>
           </div>
         </div>
         <button
-          className={`relative w-[150px] h-10 bg-[#fce94f] rounded-[20px] border-2 border-solid border-black cursor-pointer transition-all duration-200 ${isButtonHovered ? "transform scale-105 shadow-lg" : ""
+          className={`mt-4 py-2 px-6 bg-[#fce94f] rounded-[20px] border-2 border-black cursor-pointer transition-all duration-200 ${isButtonHovered ? "transform scale-105 shadow-lg" : ""
             }`}
           onClick={(e) => handleStart(e)}
           onMouseEnter={() => setIsButtonHovered(true)}
           onMouseLeave={() => setIsButtonHovered(false)}
           aria-label="구매 확정하기"
         >
-          <div className="absolute h-[17px] top-2.5 left-9 [font-family:'SUITE-Bold',Helvetica] font-bold text-center leading-[normal] text-black text-sm tracking-[0]">
+          <div className="font-bold text-center text-md">
             구매 확정하기
           </div>
         </button>
       </div>
-    </div>
+          </div>
+
+      {/* PurchaseConfirm 모달 */}
+      <OverlayPortal open={showPurchaseConfirm} onClose={() => setShowPurchaseConfirm(false)}>
+        <PurchaseConfirm 
+          roomId={chatInfo?.roomId || 0}
+          onConfirm={handlePurchaseConfirm}
+          onCancel={handlePurchaseCancel}
+        />
+      </OverlayPortal>
+
+      {/* 시간 표시 */}
+      <div className="my-3 text-md text-[#666666] text-center">
+        <span className="text-md text-[#666666]">
+          {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          })}
+        </span>
+      </div>
+    </>
   );
 };
 
@@ -621,25 +848,32 @@ const EndTradeModal = ({ message }: { message: ChatMessage }) => {
   const chatInfo = useChatRoomInfo(); // 전역 정보 사용
 
   return (
-    <div className="w-[400px] h-[107px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black">
-      <div className="flex flex-col w-[371px] h-[76px] items-center justify-around gap-3 relative top-3.5 left-3">
-        <div className="flex w-[317px] items-center gap-[19px] relative flex-[0_0_auto]">
-          <img
-            className="relative w-[67px] h-[67px] aspect-[1] object-cover"
-            alt="point icon"
-            src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/point-icon.png`}
-          />
-          <div className="inline-flex flex-col items-start jusify-center relative flex-[0_0_auto]">
-            <p className="self-strech mt-[-1.00px] font-medium text-black text-sm realative w-[232px] tracking-[0] leading-[18px]">
-              {chatInfo?.product.title || '팝마트 라부부 코카콜라 키링'}의 구매가 확정 되었어요!
-            </p>
+    <>
+      <div className="w-[400px] p-6 rounded-[30px] border-2 border-black">
+        <div className="flex flex-col items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
+            <img
+              className="relative w-[67px] h-[67px] aspect-[1] object-cover"
+              alt="point icon"
+              src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/point-icon.png`}
+            />
+            <div className="text-md">
+              '{chatInfo?.product.title || ''}'의 구매가 확정 되었어요!
+            </div>
           </div>
-
-
         </div>
       </div>
-
-    </div>
+      {/* 시간 표시 */}
+      <div className="my-4 text-md text-[#666666] text-center">
+        <span className="">
+          {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          })}
+        </span>
+      </div>
+    </>
   )
 }
 
