@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 
 import { useCategoryStore } from '@/stores/categoryStore';
 import { useAiDescriptionStore } from '@/stores/ai/aiDescriptionStore';
-import { useProductStore } from '@/stores/product/productStore';
+import { useProductStore, ProductFormData } from '@/stores/product/productStore';
 
 // --- 아이콘 컴포넌트 (Icons) ---
 const CheckIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -230,7 +230,7 @@ export default function CreateProductPage() {
     }
 
     // *** 상품 등록 요청 데이터 준비 ***
-    const requestData = {
+    const requestData: ProductFormData = {
       title: productName,
       description: description,
       price: Number(removeCommas(price)),
@@ -259,6 +259,16 @@ export default function CreateProductPage() {
       return;
     }
 
+    if (requestData.price > 2100000000) {
+      alert('가격은 21억 이하로 입력해주세요.');
+      return;
+    }
+
+    if (requestData.shippingFee > 2100000000) {
+      alert('배송비는 21억 이하로 입력해주세요.');
+      return;
+    }
+
     // AtLeastOneTrue 검증: canDirect 또는 canDelivery 중 하나는 true여야 함
     if (!requestData.canDirect && !requestData.canDelivery) {
       alert('직거래 또는 택배거래 중 하나는 선택해야 합니다.');
@@ -278,14 +288,14 @@ export default function CreateProductPage() {
     try {
       console.log('--- 🛒 상품 등록 API 호출 시작 ---');
 
-      const newProductId = await addProduct(requestData as any);
+      const newProductId = await addProduct(requestData);
       console.log('✅ 상품 등록 성공, ID:', newProductId);
 
       alert(`상품이 성공적으로 등록되었습니다!\\n\\n📝 제목: ${requestData.title}\\n💰 가격: ${requestData.price}원\\n📸 이미지: ${requestData.images.length}개`);
 
       // 성공 후 폼 초기화 및 페이지 이동
       resetForm();
-      router.push(`/mypage`);
+      router.replace(`/product/${newProductId}`);
 
     } catch (error) {
       console.error('❌ 상품 등록 실패:', error);
@@ -415,7 +425,13 @@ export default function CreateProductPage() {
             <div className="relative"><input type="text" id="price" value={price} onChange={(e) => {
               const value = e.target.value.replace(/,/g, '');
               if (value === '' || !isNaN(Number(value))) {
-                setPrice(formatNumber(value));
+                const numericValue = Number(value);
+                if (numericValue > 2100000000) {
+                  alert('가격은 21억 이하로 입력해주세요.');
+                  setPrice(formatNumber('2100000000'));
+                } else {
+                  setPrice(formatNumber(value));
+                }
               }
             }} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 pr-8 bg-white" placeholder="판매가격을 입력해주세요." /><span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-500">원</span></div>
           </section>
@@ -448,7 +464,13 @@ export default function CreateProductPage() {
             <div className="relative"><input type="text" id="shippingCost" value={shippingCost} onChange={(e) => {
               const value = e.target.value.replace(/,/g, '');
               if (value === '' || !isNaN(Number(value))) {
-                setShippingCost(formatNumber(value));
+                const numericValue = Number(value);
+                if (numericValue > 2100000000) {
+                  alert('배송비는 21억 이하로 입력해주세요.');
+                  setShippingCost(formatNumber('2100000000'));
+                } else {
+                  setShippingCost(formatNumber(value));
+                }
               }
             }} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 pr-8 bg-white" placeholder="배송비를 입력해주세요." /><span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-500">원</span></div>
           </section>

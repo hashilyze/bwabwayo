@@ -45,8 +45,8 @@ export interface ProductCardUIData {
   // ... 카드 표시에 필요한 다른 필드가 있다면 추가
 }
 
-// 상품 수정을 위한 데이터 타입
-export interface UpdateProductData {
+// 상품 생성/수정을 위한 데이터 타입 (이전 UpdateProductData)
+export interface ProductFormData {
   title: string;
   description: string;
   price: number;
@@ -98,8 +98,8 @@ interface ProductStore {
   loading: boolean
   error: string | null
   getProducts: (options?: { title?: string; category_id?: number; minPrice?: number; maxPrice?: number }) => Promise<void>
-  addProduct: (product: ProductDetail | Product) => Promise<void>
-  updateProduct: (productId: number, productData: UpdateProductData) => Promise<any>;
+  addProduct: (product: ProductFormData) => Promise<number>
+  updateProduct: (productId: number, productData: ProductFormData) => Promise<any>;
   getHotKewordProducts: (title: string) => Promise<void>
   getVideoCallProducts: () => Promise<void>
   getProductDetail: (id: number) => Promise<void>
@@ -243,24 +243,39 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     }
   },
 
-  addProduct: async (product: ProductDetail | Product) => {
+  addProduct: async (product: ProductFormData): Promise<number> => {
     const { authenticatedFetch } = useAuthStore.getState();
     set({ loading: true, error: null })
     try {
       const response = await authenticatedFetch(`${baseUrl}/products`, {
         method: 'POST',
-        body: JSON.stringify(product)
+        body: JSON.stringify(product),
       })
       
       const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || '상품 등록에 실패했습니다.');
+      }
+
       console.log('상품 등록 성공:', data)
       set({ loading: false })
+
+      // 백엔드 응답에서 productId를 반환한다고 가정합니다.
+      // 실제 필드명 (data.result.id, data.id 등)에 따라 수정해야 합니다.
+      const newProductId = data.result?.id ?? data.productId ?? data.id;
+      if (newProductId === undefined) {
+        throw new Error('API 응답에서 새로 생성된 상품의 ID를 찾을 수 없습니다.');
+      }
+      return newProductId;
     } catch (error) {
-      console.error(error)
+      console.error('상품 등록 실패:', error);
+      set({ loading: false, error: error instanceof Error ? error.message : '알 수 없는 오류' });
+      throw error;
     }
   },
 
-  updateProduct: async (productId: number, productData: UpdateProductData) => {
+  updateProduct: async (productId: number, productData: ProductFormData) => {
     set({ loading: true, error: null });
     try {
       const { authenticatedFetch } = useAuthStore.getState();

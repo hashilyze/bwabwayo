@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 
 import { useCategoryStore } from '@/stores/categoryStore';
 import { useAiDescriptionStore } from '@/stores/ai/aiDescriptionStore';
-import { useProductStore, UpdateProductData } from '@/stores/product/productStore';
+import { useProductStore, ProductFormData } from '@/stores/product/productStore';
 
 // --- 아이콘 컴포넌트 (Icons) ---
 const XCircleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -230,7 +230,7 @@ majorCategory: majorCat?.name || null,
       return;
     }
 
-    const requestData: UpdateProductData = {
+    const requestData: ProductFormData = {
       title: productName,
       description: description,
       price: Number(removeCommas(price)),
@@ -247,6 +247,14 @@ majorCategory: majorCat?.name || null,
     if (!requestData.title.trim()) { alert('상품명을 입력해주세요.'); return; }
     if (!requestData.description.trim()) { alert('상품 설명을 입력해주세요.'); return; }
     if (requestData.price <= 0) { alert('가격을 올바르게 입력해주세요.'); return; }
+    if (requestData.price > 2100000000) {
+      alert('가격은 21억 이하로 입력해주세요.');
+      return;
+    }
+    if (requestData.shippingFee > 2100000000) {
+      alert('배송비는 21억 이하로 입력해주세요.');
+      return;
+    }
     if (!requestData.canDirect && !requestData.canDelivery) { alert('직거래 또는 택배거래 중 하나는 선택해야 합니다.'); return; }
     if (requestData.images.length === 0) { alert('이미지를 1개 이상 등록해주세요.'); return; }
     if (requestData.images.length > 10) { alert('이미지는 최대 10개까지 등록할 수 있습니다.'); return; }
@@ -384,8 +392,14 @@ majorCategory: majorCat?.name || null,
               <input type="text" id="price" value={price} onChange={(e) => {
                 const value = e.target.value.replace(/,/g, '');
                 if (value === '' || !isNaN(Number(value))) {
+                const numericValue = Number(value);
+                if (numericValue > 2100000000) {
+                  alert('가격은 21억 이하로 입력해주세요.');
+                  setPrice(formatNumber('2100000000'));
+                } else {
                   setPrice(formatNumber(value));
                 }
+              }
               }} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 pr-8 bg-white" placeholder="판매가격을 입력해주세요." />
               <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-500">원</span>
             </div>
@@ -423,7 +437,13 @@ majorCategory: majorCat?.name || null,
                 <input type="text" id="shippingCost" value={shippingCost} onChange={(e) => {
                     const value = e.target.value.replace(/,/g, '');
                     if (value === '' || !isNaN(Number(value))) {
-                        setShippingCost(formatNumber(value));
+                        const numericValue = Number(value);
+                        if (numericValue > 2100000000) {
+                          alert('배송비는 21억 이하로 입력해주세요.');
+                          setShippingCost(formatNumber('2100000000'));
+                        } else {
+                          setShippingCost(formatNumber(value));
+                        }
                     }
                 }} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 pr-8 bg-white" placeholder="배송비를 입력해주세요." />
                 <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-500">원</span>
