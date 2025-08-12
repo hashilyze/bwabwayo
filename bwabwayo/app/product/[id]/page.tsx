@@ -118,7 +118,8 @@ export default function ProductDetailPage() {
   // 제품 삭제 함수
   const handleDeleteProduct = async () => {
     try {
-      const response = await fetch(`/be/api/products/${productId}`, {
+      const { authenticatedFetch } = useAuthStore.getState();
+      const response = await authenticatedFetch(`/be/api/products/${productId}`, {
         method: 'DELETE',
       });
 
