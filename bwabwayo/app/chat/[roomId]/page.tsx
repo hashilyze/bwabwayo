@@ -6,7 +6,7 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
 import { useModalStore } from '@/stores/modalStore'
 import AllModals from '@/components/chat/modals/AllModals'
-import VideoConference from '@/components/openvidu/VideoConference';
+import VideoPortal from '@/components/openvidu/VideoPortal'
 import ReservationModal from '@/components/chat/ReservationModal'
 
 // 전역에서 사용할 채팅방 정보 가져오는 함수 (AllModals.tsx와 동일)
@@ -306,26 +306,6 @@ export default function ChatRoomPage() {
             <span className="text-md font-semibold text-black">{chatInfo.product.formattedPrice}</span>
           </div>
         </div>
-
-        <div>
-          {/* 채팅 UI... */}
-
-          {/* 화상 채팅 시작 버튼 */}
-          {/* <button
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            onClick={handleVideoButtonClick}
-          >
-            화상 채팅 시작
-          </button> */}
-
-          {/* 버튼 클릭하면 바로 VideoConference 컴포넌트 렌더 */}
-          {isVideoChatOpen && (
-            <VideoConference
-              videoRoomId={videoRoomId || 17}
-              onClose={closeVideoChat}
-            />
-          )}
-        </div>
       </div>
 
       {/* 채팅방 헤더 모달 */}
@@ -464,6 +444,14 @@ export default function ChatRoomPage() {
 
       {/* + 버튼 */}
       <ChatModal onOpenReservationModal={openReservationModal} myUserId={myUserId} />
+
+      {/* 화상 채팅 포탈 - 채팅방 목록 위에 오버레이로 표시 */}
+      {isVideoChatOpen && (
+        <VideoPortal
+          videoRoomId={videoRoomId || 17}
+          onClose={closeVideoChat}
+        />
+      )}
     </div>
   )
 }
