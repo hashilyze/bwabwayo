@@ -3,6 +3,7 @@ package com.bwabwayo.app.domain.ai.service;
 import com.bwabwayo.app.domain.ai.domain.QdrantPointDto;
 import com.bwabwayo.app.domain.ai.dto.response.QueryItemDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,6 +53,7 @@ public class EmbeddingService {
         List<Map<String, Object>> points = new ArrayList<>();
         for (QdrantPointDto pointDto : pointDtos) {
             // 1. vectors 구성
+            // category는 query에 사용하지 않으나, 변경에 대비해 유지
             ensureSize("title", pointDto.getTitleVector());
             ensureSize("category", pointDto.getCategoryVector());
 
@@ -81,7 +83,7 @@ public class EmbeddingService {
         Map<String, Object> body = Map.of("points", points);
 
         try {
-            log.debug("Qdrant Upsert 요청 JSON:\n{}", objectMapper.writeValueAsString(body));
+            log.trace("Qdrant Upsert 요청 JSON:\n{}", objectMapper.writeValueAsString(body));
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, getJsonHeader());
             restTemplate.put(url, request);
@@ -119,7 +121,8 @@ public class EmbeddingService {
             List<Double> queryTitleVector,
             List<Double> queryCategoryVector,
             Pageable pageable,
-            Map<String, Object> filter
+            Map<String, Object> filter,
+            boolean with_payload
     ) {
         final String url = qdrantUrl + "/collections/" + collectionName + "/points/query";
 
@@ -134,9 +137,10 @@ public class EmbeddingService {
         body.put("query", queryTitleVector);
         body.put("using", "title");
         body.put("limit", limit);
-        body.put("with_payload", true);
+        body.put("with_payload", with_payload);
         body.put("filter", filter);
 
+        // title+category (RRF)
 //        body.put("prefetch", List.of(
 //                Map.of("using", "title", "query", queryTitleVector, "limit", prefetchLimit, "filter", filter),
 //                Map.of("using", "category", "query", queryCategoryVector, "limit", prefetchLimit, "filter", filter)
@@ -181,7 +185,8 @@ public class EmbeddingService {
     /* ===================== Scroll ===================== */
 
     /** Point를 가져옴 */
-    public ResponseEntity<Map> getPoints(int limit) {
+    @Operation(summary = "Qdrant에 저장된 벡터를 가져옴")
+    public ResponseEntity<?> getPoints(int limit) {
         final String url = qdrantUrl + "/collections/" + collectionName + "/points/scroll";
 
         Map<String, Object> request = new HashMap<>();

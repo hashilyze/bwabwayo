@@ -51,7 +51,8 @@ public class EmbeddingController {
         productEmbeddingService.deleteById(productId);
         return ResponseEntity.ok().build();
     }
-
+    
+    @Operation(summary = "[TEST] Qdrant point 목록 조회")
     @GetMapping("/scroll")
     public ResponseEntity<?> scroll(@RequestParam Integer limit){
         return ResponseEntity.ok(embeddingService.getPoints(limit));
