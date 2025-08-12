@@ -37,15 +37,15 @@ export default function RecommendItems() {
             name: '그래픽카드',
             image: 'image/rec-category/graphic-card.png'
         },
-        // {
-        //     id: 8,
-        //     name: '티켓',
-        //     image: 'image/rec-category/ticket.png'
-        // },
+        {
+            id: 8,
+            name: '티켓',
+            image: 'image/rec-category/ticket.png'
+        },
     ]
 
   return (
-    <ul className="grid grid-cols-6 gap-10 py-20">
+    <ul className="grid grid-cols-7 gap-10 py-20">
       {categoryList.map((category) => (
         <li key={category.id} className="">
             <Link href={`/search?title=${category.name}`} className="flex flex-col items-center justify-center gap-4">
@@ -56,7 +56,7 @@ export default function RecommendItems() {
                         className="" 
                     />
                 </div>
-                <p className="text-2xl font-bold">{category.name}</p>
+                <p className="text-xl font-bold">{category.name}</p>
             </Link>
         </li>
       ))}

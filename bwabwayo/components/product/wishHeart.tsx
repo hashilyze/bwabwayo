@@ -77,12 +77,17 @@ export default function LikeHeart({ productId, initialIsLiked = false }: LikeHea
       onClick={handleToggleLike} 
       disabled={isLoading} 
       aria-label={isLiked ? '좋아요 취소' : '좋아요 추가'}
-      className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+      className="p-1 rounded-full cursor-pointer group"
     >
       <img
         src={isLiked ? `${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-on.svg` : `${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-off.svg`}
         alt={isLiked ? "좋아요 취소" : "좋아요"}
-        className="w-6 h-6"
+        className="w-6 h-6 group-hover:hidden"
+      />
+      <img
+        src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-on.svg`}
+        alt="좋아요"
+        className="w-6 h-6 hidden group-hover:block"
       />
     </button>
   );

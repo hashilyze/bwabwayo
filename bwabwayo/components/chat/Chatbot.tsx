@@ -32,7 +32,7 @@ const CloseIcon = () => (
     viewBox="0 0 24 24"
     strokeWidth={1.5}
     stroke="currentColor"
-    className="w-6 h-6 text-gray-500 hover:text-black"
+    className="w-6 h-6 text-white"
   >
     <path
       strokeLinecap="round"
@@ -459,7 +459,7 @@ export default function Chatbot() {
     <>
       <button
         onClick={() => setIsChatbotOpen((prev) => !prev)}
-        className="fixed bottom-4 right-4 sm:right-8 w-16 h-16 bg-gradient-to-br from-green-500 to-green-700 rounded-full shadow-xl flex items-center justify-center text-white transform hover:scale-110 transition-transform z-50"
+        className="cursor-pointer fixed bottom-10 right-10 w-16 h-16 bg-gradient-to-br from-green-500 to-green-700 rounded-full shadow-xl flex items-center justify-center text-white transform hover:scale-110 transition-transform z-50"
         aria-label="챗봇 열기/닫기"
       >
         {isChatbotOpen ? <CloseIcon /> : <ChatbotIcon />}
