@@ -157,15 +157,15 @@ export default function SignUpPage() {
 
     const handlePhoneNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { value } = e.target;
-        // 숫자만 입력 가능하도록 정규식 사용
-        const numbersOnly = value.replace(/[^0-9]/g, '');
+        // 숫자만 입력 가능하도록 정규식 사용하고, 11자로 제한합니다.
+        const numbersOnly = value.replace(/[^0-9]/g, '').slice(0, 11);
         setPhoneNumber(numbersOnly);
     };
 
     const handleRecipientPhoneNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { value } = e.target;
-        // 숫자만 입력 가능하도록 정규식 사용
-        const numbersOnly = value.replace(/[^0-9]/g, '');
+        // 숫자만 입력 가능하도록 정규식 사용하고, 11자로 제한합니다.
+        const numbersOnly = value.replace(/[^0-9]/g, '').slice(0, 11);
         setRecipientPhoneNumber(numbersOnly);
     };
 
@@ -299,7 +299,7 @@ export default function SignUpPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
                     <label className="font-bold text-lg">휴대폰 번호</label>
                     <div className="md:col-span-2 max-w-xs">
-                        <input type="tel" value={phoneNumber} onChange={handlePhoneNumberChange} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" />
+                        <input type="tel" value={phoneNumber} onChange={handlePhoneNumberChange} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" maxLength={11} />
                     </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
@@ -360,7 +360,7 @@ export default function SignUpPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
                         <label className="font-bold text-lg">배송지 전화번호</label>
                         <div className="md:col-span-2 max-w-xs">
-                            <input type="tel" value={recipientPhoneNumber} onChange={handleRecipientPhoneNumberChange} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" />
+                            <input type="tel" value={recipientPhoneNumber} onChange={handleRecipientPhoneNumberChange} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" maxLength={11} />
                         </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 justify-start">
