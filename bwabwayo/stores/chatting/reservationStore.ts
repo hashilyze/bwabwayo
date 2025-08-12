@@ -28,9 +28,13 @@ export const useReservationStore = create<ReservationState>((set) => ({
       const response = await authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/users/video`);
       const data = await response.json();
       // console.log(data);
-      set({ videoSchedules: data });
+      // API 응답이 배열인지 확인하고, 배열이 아니면 빈 배열로 설정
+      const schedules = Array.isArray(data) ? data : [];
+      set({ videoSchedules: schedules });
     } catch (error) {
       console.error('Failed to get schedule', error);
+      // 에러 발생 시 빈 배열로 설정
+      set({ videoSchedules: [] });
     }
   },
 
