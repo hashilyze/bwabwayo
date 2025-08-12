@@ -3,26 +3,13 @@
 import React, { useState, FormEvent } from 'react';
 import Script from 'next/script'; // Daum 우편번호 서비스를 위해 Script 태그를 import 합니다.
 import { useMyAddressStore } from '@/stores/mypage/myAddressStore';
-
-
+import { DaumPostcodeData } from '@/types/daum';
 
 // --- 타입 정의 ---
 interface AddressModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-// Daum 우편번호 서비스에서 반환하는 데이터 타입을 정의합니다.
-interface DaumPostcodeData { 
-    address: string;
-    addressType: 'R' | 'J';
-    bname: string;
-    buildingName: string;
-    zonecode: string;
-}
-
-
-
 
 // --- 주소 추가 모달 컴포넌트 ---
 const AddressModal: React.FC<AddressModalProps> = ({ isOpen, onClose }) => {

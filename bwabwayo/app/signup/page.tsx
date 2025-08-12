@@ -10,21 +10,7 @@ import SignupSuccessModal from '@/components/signup/SignupSuccessModal'; // 성�
 import { UserCircleIcon, XCircleIcon } from '@/components/signup/Icons'; // 아이콘 컴포넌트 경로가 맞는지 확인해주세요.
 
 // --- 타입 정의 ---
-interface DaumPostcodeData { 
-    address: string;
-    addressType: 'R' | 'J';
-    bname: string;
-    buildingName: string;
-    zonecode: string;
-}
-
-declare global {
-  interface Window {
-    daum: {
-        Postcode: new (options: { oncomplete: (data: DaumPostcodeData) => void }) => { open: () => void };
-    };
-  }
-}
+import { DaumPostcodeData } from '@/types/daum';
 
 const BANK_LIST = [
     '기업은행', '국민은행', '우리은행', 'NH농협은행', '부산은행',

@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { X } from 'lucide-react'
 import { useMyAddressStore } from '@/stores/mypage/myAddressStore'
+import { DaumPostcodeData } from '@/types/daum'
 
 type Payload = {
   zipcode: string
@@ -11,21 +12,6 @@ type Payload = {
   address_detail: string
   recipient_name: string
   recipient_phone_number: string
-}
-
-interface DaumPostcodeData {
-  address: string;
-  addressType: 'R' | 'J';
-  buildingName: string;
-  zonecode: string;
-}
-
-declare global {
-  interface Window {
-    daum: {
-        Postcode: new (options: { oncomplete: (data: DaumPostcodeData) => void }) => { open: () => void };
-    };
-  }
 }
 
 export default function AddressAddForm({
