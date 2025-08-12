@@ -32,7 +32,7 @@ public class RedisSubscriber {
             );
 
             // TODO: 알림 연결
-            sseService.upsertChatNotification(chatMessage.getRoomId(), UpsertRequest.of(chatMessage.getReceiverId(), chatMessage.getContent()));
+            sseService.handleMessage(chatMessage);
         } catch (Exception e) {
             log.error("[sendMessage] Exception: {}", e.getMessage(), e);
         }

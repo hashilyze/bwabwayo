@@ -1,6 +1,7 @@
 package com.bwabwayo.app.domain.notification.service;
 
 import com.bwabwayo.app.domain.chat.domain.ChatRoom;
+import com.bwabwayo.app.domain.chat.dto.MessageDTO;
 import com.bwabwayo.app.domain.chat.repository.ChatRoomRepository;
 import com.bwabwayo.app.domain.notification.domain.Notification;
 import com.bwabwayo.app.domain.notification.dto.request.UpsertRequest;
@@ -149,5 +150,27 @@ public class SseService {
         Notification notification = notificationService.findByProduct(receiverId, productId);
 
         pushEvent(receiverId, notification);
+    }
+
+    @Transactional
+    public void handleMessage(MessageDTO message){
+        String contnet = message.getContent();
+        switch (message.getType()){
+            case TEXT: break;
+            case IMAGE: contnet = "이미지 파일입니다."; break;
+            case CREATE_ROOM: contnet = "채팅방이 생성되었습니다."; break;
+            case RESERVE_VIDEOCALL: contnet = "화상 거래가 예약되었습니다"; break;
+            case CANCEL_VIDEOCALL: contnet = "화상 거래가 취소되었습니다"; break;
+            case START_VIDEOCALL: contnet = "화상 거래가 시작되었습니다"; break;
+            case START_TRADE: contnet = "거래가 시작되었습니다"; break;
+            case REQUEST_DEPOSIT: contnet = "입금하세요"; break;
+            case INPUT_DELIVERY_ADDRESS: contnet = "배송지를 입력하세요"; break;
+            case INPUT_TRACKING_NUMBER: contnet = "송장번호를 입력하세요"; break;
+            case START_DELIVERY: contnet = "배송이 시작되었습니다."; break;
+            case CONFIRM_PURCHASE: contnet = "구매가 확정되었습니다."; break;
+            case END_TRADE: contnet = "거래가 종료됩니다."; break;
+        }
+
+        upsertChatNotification(message.getRoomId(), UpsertRequest.of(message.getReceiverId(), contnet));
     }
 }
