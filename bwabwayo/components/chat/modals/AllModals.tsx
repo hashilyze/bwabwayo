@@ -414,6 +414,7 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
           amount={paymentAmount}
           orderName={chatInfo?.product?.title || "상품"}
           roomId={chatInfo?.roomId || 0}
+          productId={chatInfo?.product?.id || 0}
         />
       </OverlayPortal>
     </>

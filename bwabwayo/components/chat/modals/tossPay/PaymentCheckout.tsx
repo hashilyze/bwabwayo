@@ -17,6 +17,7 @@ interface PaymentCheckoutProps {
   amount: number;
   orderName: string;
   roomId: number;
+  productId: number;
 }
 
 type PaymentMethod = "CARD" | "TRANSFER" | "VIRTUAL_ACCOUNT" | "MOBILE_PHONE" | "CULTURE_GIFT_CERTIFICATE" | "FOREIGN_EASY_PAY" | null;
