@@ -45,7 +45,7 @@ export default function ChatRoomPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const roomId = Number(params.roomId)
-  const { messages, getMessageHistory, connectStomp, currentSelectedRoom, sendMessage } = useChatRoomStore()
+  const { messages, getMessageHistory, connectStomp, currentSelectedRoom, sendMessage, getRoomList } = useChatRoomStore()
   const { closePaymentModal } = useModalStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -77,10 +77,13 @@ export default function ChatRoomPage() {
   useEffect(() => {
     const initializeChat = async () => {
       try {
-        // 1. 메시지 히스토리 로드
+        // 1. 채팅방 목록 로드 (currentSelectedRoom 설정을 위해)
+        await getRoomList()
+        
+        // 2. 메시지 히스토리 로드
         await getMessageHistory(roomId)
 
-        // 2. STOMP 연결
+        // 3. STOMP 연결
         connectStomp(roomId)
       } catch (error) {
         console.error('채팅 초기화 실패:', error)
@@ -94,7 +97,7 @@ export default function ChatRoomPage() {
       const { disconnectStomp } = useChatRoomStore.getState()
       disconnectStomp()
     }
-  }, [roomId, getMessageHistory, connectStomp])
+  }, [roomId, getMessageHistory, connectStomp, getRoomList])
 
   // 결제 성공 처리
   useEffect(() => {
@@ -113,6 +116,10 @@ export default function ChatRoomPage() {
         try {
           console.log('📡 결제 확인 API 호출 시작...')
           
+          // currentSelectedRoom에서 productId 가져오기
+          const productIdFromRoom = currentSelectedRoom?.product?.id
+          console.log('🔍 채팅방에서 가져온 productId:', productIdFromRoom)
+          
           // 서버에 결제 확인 요청
             const response = await fetch('https://i13e202.p.ssafy.io/be/api/payments/confirm', {
               method: 'POST',
@@ -124,7 +131,7 @@ export default function ChatRoomPage() {
                 paymentKey,
                 orderId,
                 amount: parseInt(amount),
-                productId: productId
+                productId: productIdFromRoom || productId
               }),
             })
 
