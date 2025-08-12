@@ -3,12 +3,14 @@
 import { InquirySection } from '@/components/cs-center/InquirySection';
 import { ReportSection } from '@/components/cs-center/ReportSection';
 import { FaqSection } from '@/components/cs-center/FaqSection';
+import { InquiryModal } from '@/components/cs-center/modals/InquiryModal';
 import { useState } from 'react';
 
 type Tab = 'faq' | 'inquiry' | 'report';
 
 export default function CustomerServicePage() {
   const [activeTab, setActiveTab] = useState<Tab>('faq');
+  const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false);
   const tabs = [
     { id: 'faq', label: '자주묻는질문' },
     { id: 'inquiry', label: '문의내역' },
@@ -20,7 +22,10 @@ export default function CustomerServicePage() {
       {/* 헤더 섹션 */}
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-black">고객센터</h1>
-        <button className="bg-[#FFAE00] hover:bg-[#FF9500] text-black font-bold py-2 px-4 rounded-[20px] border-[1.5px] border-black transition-colors">
+        <button 
+          onClick={() => setIsInquiryModalOpen(true)}
+          className="bg-[#FFAE00] hover:bg-[#FF9500] text-black font-bold py-2 px-4 rounded-[20px] border-[1.5px] border-black transition-colors"
+        >
           문의하기
         </button>
       </div>
@@ -52,6 +57,12 @@ export default function CustomerServicePage() {
         {activeTab === 'inquiry' && <InquirySection />}
         {activeTab === 'report' && <ReportSection />}
       </section>
+
+      {/* 1:1 문의하기 모달 */}
+      <InquiryModal 
+        isOpen={isInquiryModalOpen}
+        onClose={() => setIsInquiryModalOpen(false)}
+      />
     </div>
   );
 }
