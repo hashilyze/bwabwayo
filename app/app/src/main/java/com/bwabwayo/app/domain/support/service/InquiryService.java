@@ -14,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 
 @Service
 @RequiredArgsConstructor
@@ -66,10 +68,10 @@ public class InquiryService {
         inquiry.setDescription(inquiryRequest.getDescription());
         inquiry.setUser(user);
 
-        storageUtil.copyToDirectory(inquiryRequest.getImageUrlList(), "temp", "inquiries");
+        List<String> storedImageKeys = storageUtil.copyToDirectory(inquiryRequest.getImageUrlList(), "temp", "inquiries");
 
         int index = 1;
-        for (String imageUrl : inquiryRequest.getImageUrlList()) {
+        for (String imageUrl : storedImageKeys) {
             inquiry.getInquiryImages().add(
                     InquiryImage.builder()
                             .no(index++)
