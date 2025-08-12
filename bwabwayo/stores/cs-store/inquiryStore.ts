@@ -74,7 +74,7 @@ export const useInquiryStore = create<InquiryStore>((set, get) => ({
     getInquiries: async (page = 0, size = 10) => {
         set({ loading: true, error: null });
         try {
-            const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/support/inquery?page=${page}&size=${size}&sort=createdAt,desc`);
+            const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/support/inquery/me?page=${page}&size=${size}&sort=createdAt,desc`);
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
                 throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
