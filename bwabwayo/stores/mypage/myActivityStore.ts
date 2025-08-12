@@ -227,6 +227,16 @@ export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
     error: null,
   }),
 
+  resetSales: () =>
+    set({
+      salesList: [],
+      salesPage: 1,
+      salesTotalPages: 1,
+      salesHasMore: true,
+      salesTotalElements: 0,
+      error: null,
+    }),
+
   // 내 찜목록 불러오기 (API 확인 필요)
   fetchWishlist: async () => {
     set({ loading: true, error: null });

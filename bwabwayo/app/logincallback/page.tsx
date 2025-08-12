@@ -55,7 +55,7 @@ function CallbackHandler() {
           // 요청 성공 후, authStore의 setToken 액션을 호출하여 상태를 업데이트하고
           // accessToken을 localStorage에 저장합니다.
           setToken(accessToken)
-          router.replace('/')
+          router.replace(`/`)
         } catch (error) {
           console.error('로그인 초기화 요청 실패:', error)
           alert('로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.')
