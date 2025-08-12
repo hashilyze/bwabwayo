@@ -40,12 +40,12 @@ const ChatInputActive: React.FC<ChatInputActiveProps> = ({ onOpenReservationModa
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full bg-white">
       {/* 하단 입력창 */}
-      <div className="h-[77px] bg-white border-t border-gray-200 flex items-center px-8">
+      <div className="h-[90px] bg-white border-t border-gray-200 flex items-center px-8">
         {/* 첨부 버튼 */}
         <div
-          className="w-[26px] h-[26px] border border-gray-500 rounded-full flex items-center justify-center mr-4 cursor-pointer transition-transform duration-200 hover:rotate-90"
+          className="w-[30px] h-[30px] border border-gray-500 rounded-full flex items-center justify-center mr-4 cursor-pointer transition-transform duration-200 hover:rotate-90"
           onClick={toggleMenu}
         >
           <div className="flex items-center justify-center">
@@ -54,14 +54,14 @@ const ChatInputActive: React.FC<ChatInputActiveProps> = ({ onOpenReservationModa
           </div>
         </div>
         {/* 입력창 */}
-        <div className="flex-1 h-[45px] bg-gray-50 rounded-[38px] flex items-center px-5">
+        <div className="flex-1 h-[52px] bg-gray-50 rounded-[38px] flex items-center px-5">
           <input
             type="text"
             value={messageInput}
             onChange={(e) => setMessageInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="메세지를 입력하세요."
-            className="flex-1 bg-transparent text-xs text-gray-500 outline-none placeholder-gray-500"
+            className="flex-1 bg-transparent text-md text-gray-500 outline-none placeholder-gray-500"
           />
         </div>
 
@@ -69,7 +69,7 @@ const ChatInputActive: React.FC<ChatInputActiveProps> = ({ onOpenReservationModa
         <button
           onClick={handleSendMessage}
           disabled={!messageInput.trim()}
-          className={`ml-3 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+          className={`ml-3 px-5 h-[52px] rounded-full text-md font-medium transition-colors ${
             messageInput.trim()
               ? 'bg-[#0047A5] text-white hover:bg-[#003d8f]'
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'

@@ -223,7 +223,13 @@ export default function ChatRoomPage() {
   // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ block: 'end' })
+      // 약간의 지연을 두어 DOM 업데이트 완료 후 스크롤
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'end' 
+        })
+      }, 100)
     }
   }, [messages])
 
@@ -264,7 +270,7 @@ export default function ChatRoomPage() {
   }
 
   return (
-    <div className="bg-[#fffde2] h-full flex flex-col justify-between relative overflow-hidden">
+    <div className="h-full flex flex-col justify-between relative overflow-hidden">
       {/* 채팅방 헤더 */}
       <div className="absolute top-0 left-0 right-0 bg-white border-b border-gray-200 z-2 flex flex-col px-5 py-4 gap-2">
         {/* 상품 정보 */}

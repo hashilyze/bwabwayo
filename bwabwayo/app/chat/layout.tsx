@@ -113,6 +113,27 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     loadInitialRoomList()
   }, []); // 빈 배열로 한 번만 실행
 
+  // STOMP 메시지 수신 시 채팅방 목록 업데이트
+  useEffect(() => {
+    const { stompClient, isConnected } = useChatRoomStore.getState();
+    
+    if (isConnected && stompClient) {
+      // 메시지 수신 시 채팅방 목록을 다시 가져오는 함수
+      const handleMessageReceived = async () => {
+        try {
+          console.log('📋 메시지 수신으로 인한 채팅방 목록 업데이트');
+          await getRoomList();
+        } catch (error) {
+          console.error('📋 채팅방 목록 업데이트 실패:', error);
+        }
+      };
+
+      // 메시지 수신 이벤트 리스너 추가 (간접적으로)
+      // STOMP 구독에서 메시지를 받으면 roomList가 업데이트되므로
+      // roomList 변경을 감지하여 처리
+    }
+  }, [getRoomList]);
+
   // 실시간 업데이트를 위해 기존 폴링 제거
   // STOMP 구독으로 실시간 업데이트되므로 더 이상 폴링 불필요
 

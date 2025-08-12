@@ -228,6 +228,11 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                             set({ videoSessionId: msg.content });
                         }
                         get().appendMessage(msg, false) // isMine은 appendMessage에서 결정하도록 변경 가능
+                        
+                        // 메시지 수신 시 채팅방 목록 업데이트
+                        setTimeout(() => {
+                            get().getRoomList();
+                        }, 500); // 약간의 지연을 두어 서버에서 처리될 시간을 줌
                     })
                 }
             }
@@ -256,7 +261,20 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     appendMessage: (msg: ChatMessage, isMine: boolean) => {        
         set(state => {
             const currentMessages = Array.isArray(state.messages) ? state.messages : []
+            
+            // 중복 메시지 방지: 같은 내용, 같은 시간대의 메시지는 추가하지 않음
+            const isDuplicate = currentMessages.some(existingMsg => 
+                existingMsg.content === msg.content && 
+                existingMsg.senderId === msg.senderId &&
+                Math.abs(new Date(existingMsg.createdAt).getTime() - new Date(msg.createdAt).getTime()) < 1000 // 1초 이내
+            );
+            
+            if (isDuplicate) {
+                console.log('🔄 중복 메시지 감지, 추가하지 않음:', msg.content);
+                return state;
+            }
 
+            console.log('📝 새 메시지 추가:', msg.content);
             return { 
                 messages: [...currentMessages, msg] 
             }
@@ -323,6 +341,21 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                     reject(new Error('receiverId를 결정할 수 없습니다.'))
                     return
                 }
+
+                // 즉시 UI에 반영할 메시지 객체 생성
+                const immediateMessage: ChatMessage = {
+                    roomId: roomId,
+                    senderId: currentUserId || '',
+                    receiverId: receiverId || '',
+                    content: content.trim(),
+                    type: type,
+                    createdAt: new Date().toISOString(),
+                    isRead: false
+                }
+
+                // 즉시 로컬 메시지 목록에 추가 (낙관적 업데이트)
+                console.log('📝 즉시 메시지 추가:', immediateMessage)
+                get().appendMessage(immediateMessage, true)
 
                 // STOMP 메시지 형식
                 const stompMessage = {
