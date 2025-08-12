@@ -256,6 +256,7 @@ public class ProductService {
                 .description(product.getDescription())
                 .price(product.getPrice())
                 .saleStatus(product.getSaleStatus().getLevel())
+                .shippingFee(product.getShippingFee())
                 .canNegotiate(product.isCanNegotiate())
                 .canDirect(product.isCanDirect())
                 .canDelivery(product.isCanDelivery())
