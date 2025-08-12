@@ -13,7 +13,7 @@ interface ProductSummary {
   viewCount: number;
   wishCount: number;
   chatCount: number;
-  isLike?: boolean;
+  isLike: boolean;
   canVideoCall: boolean;
   saleStatusCode: number;
   saleStatus: string;

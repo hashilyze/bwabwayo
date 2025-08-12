@@ -118,10 +118,23 @@ export default function SellerShopInfo({ params }: { params: { id: string } }) {
             <ul className="grid grid-cols-4 gap-6 gap-y-12">
               {sellerProducts.map((item: ActivityProduct) => {
                 if (!item.product?.id) return null;
-                const cardData = transformToProductCardData(item);
+                // const cardData = transformToProductCardData(item);
                 return (
                   <li key={item.product.id}>
-                    <ProductCard item={cardData} height={240} />
+                    <ProductCard 
+                      item={{
+                        id: item.product.id,
+                        thumbnail: item.product.thumbnail,
+                        title: item.product.title,
+                        price: item.product.price,
+                        wishCount: item.product.wishCount,
+                        viewCount: item.product.viewCount,
+                        isLike: item.product.isLike ?? false, // isLike가 없을 경우 false로 기본값 설정
+                        canVideoCall: item.product.canVideoCall,
+                        createdAt: item.product.createdAt,
+                      }} 
+                      height={240} 
+                    />
                   </li>
                 );
               })}

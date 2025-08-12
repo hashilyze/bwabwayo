@@ -222,7 +222,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                         const msg = JSON.parse(messageOutput.body)
                         console.log('메세지' +  msg.type);
                         console.log('내용 ' + msg.content);
-                        // RESERVATION_VIDEOCALL 타입 메시지인 경우 세션ID 저장
+                        // START_VIDEOCALL 타입 메시지인 경우 세션ID 저장
                         if (msg.type === 'START_VIDEOCALL' && msg.content) {
                             console.log('📹 화상채팅 세션ID 저장:', msg.content);
                             set({ videoSessionId: msg.content });
@@ -386,9 +386,9 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     },
 
     // 화상채팅 관련 함수들
-    openVideoChat: (roomId: number) => {
-        console.log('📹 화상채팅 열기:', roomId);
-        set({ isVideoChatOpen: true, videoRoomId: roomId });
+    openVideoChat: (sessionId: number) => {
+        console.log('📹 화상채팅 열기:', sessionId);
+        set({ isVideoChatOpen: true, videoRoomId: sessionId });
     },
 
     closeVideoChat: () => {

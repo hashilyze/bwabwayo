@@ -255,6 +255,7 @@ const StartVideoCallModal = ({ message }: { message: ChatMessage }) => {
   const handleStart = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     console.log('화상채팅 시작');
+  
 
     if (!currentSelectedRoom) {
       console.error('현재 선택된 채팅방 정보가 없습니다.');
@@ -269,7 +270,7 @@ const StartVideoCallModal = ({ message }: { message: ChatMessage }) => {
     }
 
     try {
-      openVideoChat(currentSelectedRoom.roomId);
+      openVideoChat(Number(videoSessionId));
       console.log('화상채팅 시작 - 세션ID:', videoSessionId);
     } catch (error) {
       console.error('화상채팅 시작 실패:', error);
