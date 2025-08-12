@@ -4,6 +4,7 @@ import ChatModal from '@/components/chat/ChatModal'
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
+import { useModalStore } from '@/stores/modalStore'
 import AllModals from '@/components/chat/modals/AllModals'
 import VideoConference from '@/components/openvidu/VideoConference';
 import ReservationModal from '@/components/chat/ReservationModal'
@@ -45,6 +46,7 @@ export default function ChatRoomPage() {
   const router = useRouter()
   const roomId = Number(params.roomId)
   const { messages, getMessageHistory, connectStomp, currentSelectedRoom, sendMessage } = useChatRoomStore()
+  const { closePaymentModal } = useModalStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // 전역 채팅방 정보 가져오기
@@ -96,13 +98,20 @@ export default function ChatRoomPage() {
 
   // 결제 성공 처리
   useEffect(() => {
+    // 클라이언트 사이드에서만 실행
+    if (typeof window === 'undefined') return;
+    
     const handlePaymentSuccess = async () => {
       const paymentKey = searchParams.get('paymentKey')
       const orderId = searchParams.get('orderId')
       const amount = searchParams.get('amount')
 
+      console.log('🔍 결제 파라미터 확인:', { paymentKey, orderId, amount, roomId })
+
       if (paymentKey && orderId && amount) {
         try {
+          console.log('📡 결제 확인 API 호출 시작...')
+          
           // 서버에 결제 확인 요청
           const response = await fetch('/api/payment/confirm', {
             method: 'POST',
@@ -116,29 +125,68 @@ export default function ChatRoomPage() {
             }),
           })
 
+          console.log('📡 API 응답 상태:', response.status)
+
           if (!response.ok) {
             throw new Error('결제 확인에 실패했습니다.')
           }
 
           const result = await response.json()
+          console.log('📡 API 응답 결과:', result)
 
           if (result.status === 'DONE') {
+            console.log('✅ 결제 성공! 메시지 전송 시작...')
+            console.log('📤 sendMessage 호출:', { roomId, message: '입금이 완료되었습니다. 배송지를 입력해 주세요!', type: 'INPUT_DELIVERY_ADDRESS' })
+            
+            // STOMP 연결 상태 확인 및 재연결 시도
+            const { stompClient, isConnected, connectStomp } = useChatRoomStore.getState()
+            
+            if (!isConnected || !stompClient) {
+              console.log('🔄 STOMP 연결이 끊어져 있음. 재연결 시도...')
+              try {
+                await connectStomp(roomId)
+                // 연결 대기
+                await new Promise(resolve => setTimeout(resolve, 2000))
+              } catch (error) {
+                console.error('❌ STOMP 재연결 실패:', error)
+              }
+            }
+            
+            // 메시지 전송 전 추가 대기
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            
             // 결제 성공 시 채팅방에 INPUT_DELIVERY_ADDRESS 메시지 전송
             await sendMessage(roomId, '입금이 완료되었습니다. 배송지를 입력해 주세요!', 'INPUT_DELIVERY_ADDRESS')
             
-            // URL에서 결제 파라미터 제거
-            router.replace(`/chat/${roomId}`)
+            console.log('✅ 메시지 전송 완료! 모달 닫기 및 URL 정리 중...')
+            
+            // 결제 모달 닫기
+            closePaymentModal()
+            
+            // URL에서 결제 파라미터 제거 (약간의 지연 후)
+            setTimeout(() => {
+              try {
+                router.replace(`/chat/${roomId}`)
+                console.log('✅ URL 정리 완료')
+              } catch (error) {
+                console.error('❌ URL 정리 실패:', error)
+              }
+            }, 1000)
+          } else {
+            console.log('❌ 결제 상태가 DONE이 아님:', result.status)
           }
         } catch (error) {
-          console.error('결제 처리 중 오류:', error)
+          console.error('❌ 결제 처리 중 오류:', error)
           // 오류 발생 시에도 URL 정리
           router.replace(`/chat/${roomId}`)
         }
+      } else {
+        console.log('🔍 결제 파라미터가 없음 - 일반 채팅방 접속')
       }
     }
 
     handlePaymentSuccess()
-  }, [searchParams, roomId, sendMessage, router])
+  }, [searchParams, roomId, sendMessage, router, closePaymentModal])
 
   // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동
   useEffect(() => {
