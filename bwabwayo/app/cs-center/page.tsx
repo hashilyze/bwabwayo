@@ -5,43 +5,53 @@ import { ReportSection } from '@/components/cs-center/ReportSection';
 import { FaqSection } from '@/components/cs-center/FaqSection';
 import { useState } from 'react';
 
-type Tab = 'inquiry' | 'report' | 'faq';
+type Tab = 'faq' | 'inquiry' | 'report';
 
 export default function CustomerServicePage() {
-  const [activeTab, setActiveTab] = useState<Tab>('inquiry');
+  const [activeTab, setActiveTab] = useState<Tab>('faq');
   const tabs = [
-    { id: 'inquiry', label: '문의 내역' },
-    { id: 'report', label: '신고 내역' },
-    { id: 'faq', label: '자주 묻는 질문' },
+    { id: 'faq', label: '자주묻는질문' },
+    { id: 'inquiry', label: '문의내역' },
+    { id: 'report', label: '신고내역' },
   ];
 
   return (
-    <div className="min-h-screen max-w-3xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-semibold mb-6 text-gray-900">고객센터</h1>
+    <div className="min-h-screen max-w-[1280px] mx-auto px-4 py-10">
+      {/* 헤더 섹션 */}
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-black">고객센터</h1>
+        <button className="bg-[#FFAE00] hover:bg-[#FF9500] text-black font-bold py-2 px-4 rounded-[20px] border-[1.5px] border-black transition-colors">
+          문의하기
+        </button>
+      </div>
 
-      <div>
-        <nav className="flex border-b mb-6">
-          {tabs.map(tab => (
+      {/* 탭 네비게이션 */}
+      <div className="mb-8">
+        <div className="border-b-2 border-gray-200 mb-2"></div>
+        <nav className="flex">
+          {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as Tab)}
-              className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors duration-200 ${
+              className={`flex-1 py-3 text-lg font-semibold transition-colors ${
                 activeTab === tab.id
-                  ? 'border-gray-900 text-gray-900'
-                  : 'border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300'
+                  ? 'text-black'
+                  : 'text-gray-400 hover:text-gray-600'
               }`}
             >
               {tab.label}
             </button>
           ))}
         </nav>
-        <section>
-          {activeTab === 'inquiry' && <InquirySection />}
-          {activeTab === 'report' && <ReportSection />}
-          {activeTab === 'faq' && <FaqSection />}
-        </section>
+        <div className="border-b-2 border-gray-200 mt-2"></div>
       </div>
 
+      {/* 컨텐츠 섹션 */}
+      <section className="mb-24">
+        {activeTab === 'faq' && <FaqSection />}
+        {activeTab === 'inquiry' && <InquirySection />}
+        {activeTab === 'report' && <ReportSection />}
+      </section>
     </div>
   );
 }

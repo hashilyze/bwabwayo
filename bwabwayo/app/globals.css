@@ -17,6 +17,7 @@ html, body, * {
   --foreground: #171717;
   --container-width: 1280px;
   --container-width-wide: 1420px;
+  color-scheme: light;
 }
 
 @theme inline {
@@ -26,18 +27,11 @@ html, body, * {
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 ul,li{list-style: none;}
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: #ffffff;
+  color: #171717;
   font-family: Arial, Helvetica, sans-serif;
 }
 

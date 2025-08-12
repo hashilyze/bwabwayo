@@ -2,226 +2,152 @@
 
 import { useReportStore } from "@/stores/cs-store/reportStore";
 import { useEffect, useState } from "react";
+import Pagination from "@/components/common/Pagination";
 
 export const ReportSection = () => {
     const { reports, loading, error, getReports, totalPages, currentPage } = useReportStore();
-    const [currentPageState, setCurrentPageState] = useState(0);
-    const [openReportId, setOpenReportId] = useState<number | null>(null);
+    
+    const [currentPageState, setCurrentPageState] = useState(1);
     const pageSize = 10;
 
     useEffect(() => {
-        getReports(currentPageState, pageSize);
+        getReports(currentPageState - 1, pageSize); // API는 0-based index를 사용
     }, [currentPageState]);
 
     const handlePageChange = (page: number) => {
         setCurrentPageState(page);
-        setOpenReportId(null); // 페이지 변경 시 열린 탭 닫기
     };
 
-    const handleReportToggle = (reportId: number) => {
-        setOpenReportId(openReportId === reportId ? null : reportId);
-    };
-
-    const renderPagination = () => {
-        const pages = [];
-        const maxVisiblePages = 5;
-        let startPage = Math.max(0, currentPage - Math.floor(maxVisiblePages / 2));
-        let endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 1);
-
-        if (endPage - startPage + 1 < maxVisiblePages) {
-            startPage = Math.max(0, endPage - maxVisiblePages + 1);
-        }
-
-        // 이전 페이지 버튼
-        if (currentPage > 0) {
-            pages.push(
-                <button
-                    key="prev"
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50"
-                >
-                    이전
-                </button>
-            );
-        }
-
-        // 페이지 번호들
-        for (let i = startPage; i <= endPage; i++) {
-            pages.push(
-                <button
-                    key={i}
-                    onClick={() => handlePageChange(i)}
-                    className={`px-3 py-2 text-sm font-medium border ${
-                        i === currentPage
-                            ? 'bg-blue-600 text-white border-blue-600'
-                            : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-50'
-                    }`}
-                >
-                    {i + 1}
-                </button>
-            );
-        }
-
-        // 다음 페이지 버튼
-        if (currentPage < totalPages - 1) {
-            pages.push(
-                <button
-                    key="next"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50"
-                >
-                    다음
-                </button>
-            );
-        }
-
-        return pages;
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).replace(/\. /g, '.').replace('.', '');
     };
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center py-8">
-                <div className="text-gray-500">로딩 중...</div>
+            <div className="flex justify-center items-center py-16">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FFAE00] mx-auto mb-4"></div>
+                    <div className="text-gray-500 text-lg">신고 내역을 불러오는 중...</div>
+                </div>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="text-center py-8">
-                <div className="text-red-500">오류가 발생했습니다: {error}</div>
+            <div className="text-center py-16">
+                <div className="text-red-500 text-lg mb-4">오류가 발생했습니다</div>
+                <div className="text-gray-600">{error}</div>
+                <button 
+                    onClick={() => getReports(0, pageSize)}
+                    className="mt-4 px-6 py-2 bg-[#FFAE00] text-black font-semibold rounded-lg hover:bg-[#FF9500] transition-colors"
+                >
+                    다시 시도
+                </button>
             </div>
         );
     }
 
     return (
-        <div className="max-w-4xl mx-auto p-6">
-            {/* 헤더 */}
-            <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">신고 내역</h2>
-                <p className="text-gray-600">고객님의 신고사항과 답변을 확인하실 수 있습니다.</p>
+        <div className="space-y-[30px]">
+            {/* 상단 안내 섹션 */}
+            <div className="bg-white pt-8 pb-8">
+                <div className="flex justify-between items-start gap-[30px] px-[90px]">
+                    {/* 왼쪽: 안내 텍스트 */}
+                    <div className="flex-1">
+                        <div className="text-2xl font-bold text-[#7C7C7C] leading-[1.21] h-[183px] flex flex-col justify-center">
+                            <span className="text-black mb-2 text-3xl">신고해 주셔서 감사합니다.</span>
+                            <span className="mt-4"></span>
+                            <span>건전한 거래 문화를 만들기 위해 여러분의 작은 참여가 큰 힘이 됩니다.</span>
+                            <span>허위 매물, 사기 시도, 부적절한 언행 등 이상한 점이 보이셨다면 지금 바로 신고해 주세요.</span>
+                            <span>모든 신고는 비공개로 처리되며, 운영팀이 신속하고 공정하게 확인 후 조치합니다.</span>
+                            <span className="text-black font-bold">안전한 거래를 위한 여러분의 목소리를 소중히 반영하겠습니다 :D</span>
+                        </div>
+                    </div>
+                    
+                    {/* 오른쪽: 이미지 */}
+                    <div className="w-[183px] h-[183px] flex-shrink-0">
+                        <img 
+                            src="/image/cs-center/report-info-image.png" 
+                            alt="신고 안내 이미지"
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                </div>
             </div>
 
-            {/* 신고 목록 */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <ul className="divide-y divide-gray-200">
-                    {reports.length === 0 ? (
-                        <li className="px-6 py-12 text-center">
-                            <div className="text-gray-400 mb-2">
-                                <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                                </svg>
-                            </div>
-                            <p className="text-gray-500 text-sm">신고 내역이 없습니다.</p>
-                        </li>
-                    ) : (
-                        reports.map((report) => (
-                            <li key={report.id} className="hover:bg-gray-50 transition-colors">
-                                <div 
-                                    className="title-wrap cursor-pointer px-6 py-4 flex justify-between items-center"
-                                    onClick={() => handleReportToggle(report.id)}
-                                >
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                                                report.reply 
-                                                    ? 'bg-green-100 text-green-800 border border-green-200' 
-                                                    : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
-                                            }`}>
-                                                {report.reply ? '답변완료' : '답변대기'}
-                                            </span>
-                                            <h3 className="text-sm font-semibold text-gray-900 line-clamp-1">
-                                                {report.title}
-                                            </h3>
+            {/* 테이블 헤더와 모든 항목 */}
+            <div className="relative pt-8">
+                {/* 헤더 배경 */}
+                <div className="bg-white h-[57px] flex items-center">
+                    <div className="flex justify-between items-center w-full px-5">
+                        <div className="w-[250px] text-base font-semibold text-black">신고 날짜</div>
+                        <div className="w-[420px] text-base font-semibold text-black">상점명</div>
+                        <div className="w-[420px] text-base font-semibold text-black">신고 제목</div>
+                        <div className="w-[150px] text-base font-semibold text-black">상태</div>
+                    </div>
+                </div>
+                {/* 하단 구분선 */}
+                <div className="h-[1px] bg-gray-300"></div>
+                
+                {/* 모든 신고 항목 */}
+                {reports.length === 0 ? (
+                    <div className="text-center py-16">
+                        <div className="text-gray-400 mb-4">
+                            <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <p className="text-gray-500 text-lg mb-2">신고 내역이 없습니다.</p>
+                        <p className="text-gray-400 text-sm">첫 번째 신고를 작성해보세요!</p>
+                    </div>
+                ) : (
+                    <div>
+                        {reports.map((report, index) => (
+                            <div key={report.id}>
+                                {/* 신고 항목 */}
+                                <div className="h-[100px] flex items-center px-5">
+                                    <div className="flex justify-between items-center w-full">
+                                        <div className="w-[250px] text-base font-medium text-gray-800">
+                                            {formatDate(report.createdAt)}
                                         </div>
-                                        <p className="text-xs text-gray-500">
-                                            {new Date(report.createdAt).toLocaleDateString('ko-KR', {
-                                                year: 'numeric',
-                                                month: 'long',
-                                                day: 'numeric',
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
-                                        </p>
-                                    </div>
-                                    <div className="flex items-center">
-                                        <svg 
-                                            className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
-                                                openReportId === report.id ? 'rotate-180' : ''
-                                            }`} 
-                                            fill="none" 
-                                            stroke="currentColor" 
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
+                                        <div className="w-[420px] text-base font-medium text-gray-800">
+                                            {report.targetName}
+                                        </div>
+                                        <div className="w-[420px] text-base font-medium text-gray-800 truncate">
+                                            {report.title}
+                                        </div>
+                                        <div className="w-[150px]">
+                                            <span className="text-base font-medium text-gray-800">
+                                                {report.reply ? '답변완료' : '검토중'}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                {openReportId === report.id && (
-                                    <div className="hide-wrap px-6 pb-4 bg-gray-50 border-t border-gray-100">
-                                        <div className="space-y-4">
-                                            {/* 신고 내용 */}
-                                            <div>
-                                                <h4 className="text-sm font-medium text-gray-700 mb-2">신고 내용</h4>
-                                                <div className="text-sm text-gray-600 bg-white p-4 rounded-lg border border-gray-200">
-                                                    {report.description}
-                                                </div>
-                                            </div>
-                                            
-                                            {/* 이미지가 있는 경우 */}
-                                            {report.images.length > 0 && (
-                                                <div>
-                                                    <h4 className="text-sm font-medium text-gray-700 mb-2">첨부 이미지</h4>
-                                                    <div className="flex gap-2 flex-wrap">
-                                                        {report.images.map((image, index) => (
-                                                            <img 
-                                                                key={index}
-                                                                src={image.imageUrl} 
-                                                                alt="report-image" 
-                                                                className="w-20 h-20 object-cover rounded-lg border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
-                                                                onClick={() => window.open(image.imageUrl, '_blank')}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                            
-                                            {/* 답변이 있는 경우 */}
-                                            {report.reply && (
-                                                <div>
-                                                    <h4 className="text-sm font-medium text-gray-700 mb-2">답변</h4>
-                                                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                                                        <div className="text-sm text-gray-800 mb-2">
-                                                            {report.reply}
-                                                        </div>
-                                                        <div className="text-xs text-blue-600">
-                                                            {report.repliedAt && new Date(report.repliedAt).toLocaleDateString('ko-KR', {
-                                                                year: 'numeric',
-                                                                month: 'long',
-                                                                day: 'numeric',
-                                                                hour: '2-digit',
-                                                                minute: '2-digit'
-                                                            })}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
+                                {/* 구분선 (마지막 항목 제외) */}
+                                {index < reports.length - 1 && (
+                                    <div className="h-[1px] bg-gray-200 mx-5"></div>
                                 )}
-                            </li>
-                        ))
-                    )}
-                </ul>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
             
             {/* 페이지네이션 */}
             {totalPages > 1 && (
-                <div className="flex justify-center mt-8">
-                    <nav className="flex items-center space-x-1 bg-white rounded-lg shadow-sm border border-gray-200 p-2">
-                        {renderPagination()}
-                    </nav>
+                <div className="mt-8">
+                    <Pagination
+                        currentPage={currentPageState}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                    />
                 </div>
             )}
         </div>
