@@ -20,8 +20,6 @@ export interface ProfileData {
   accountHolder?: string;
 }
 
-
-
 interface MyPageSettingStore {
   userData: UserSettingsData | null;
   loading: boolean;
