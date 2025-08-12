@@ -61,14 +61,13 @@ function ProductSlider({ products, navigationId }: { products: any[], navigation
   return (
     <div className="relative px-[70px]">
       <Swiper
-        modules={[Pagination, Navigation]}
-        spaceBetween={32}
-        slidesPerView={4}
-        pagination={{ clickable: true }}
-        navigation={{
-          nextEl: `.custom-next-${navigationId}`,
-          prevEl: `.custom-prev-${navigationId}`,
-        }}
+         modules={[Pagination, Navigation]}
+         spaceBetween={32}
+         slidesPerView={4}
+         slidesPerGroup={4}
+         loop={false}
+         pagination={{ clickable: true }}
+         navigation={false}
         onSwiper={(e) => {
           setSwiper(e);
           setIsBeginning(e.isBeginning);
