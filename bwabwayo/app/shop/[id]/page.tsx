@@ -2,37 +2,80 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation';
 import ProductCard from "@/components/product/ProductCard";
 import SellerTitle, { Seller } from '@/components/shop/SellerTitle';
-import { useProductStore, ProductWithSeller } from '@/stores/product/productStore';
+import { useMyActivityStore, ActivityProduct } from '@/stores/mypage/myActivityStore';
 import { transformToProductCardData } from '@/lib/dataTransFormers';
 import { useUserStore } from '@/stores/user/userStore';
+import { useLoadingStore } from '@/stores/loadingStore';
+import { ProductWithSeller } from '@/stores/product/productStore';
+import Pagination from '@/components/common/Pagination';
 
 export default function SellerShopInfo({ params }: { params: { id: string } }) {
-  const { products, loading, error, getProducts } = useProductStore();
-  const { user, getUser } = useUserStore();
+  const { 
+    salesList: sellerProducts, 
+    salesTotalElements: productsTotalItems,
+    salesTotalPages: productsTotalPages,
+    loading: productsLoading, 
+    error: productsError, 
+    fetchSales: fetchProducts 
+  } = useMyActivityStore();
+  const { 
+    user, 
+    loading: userLoading, 
+    error: userError, 
+    getUser 
+  } = useUserStore();
+  const { showLoading, hideLoading } = useLoadingStore();
   
   const sellerId = params.id;
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const currentPage = Number(searchParams.get('page')) || 1;
+  const itemsPerPage = 4; // 한 페이지에 4개의 상품을 표시
   
   useEffect(() => {
-    // 특정 판매자의 정보 조회
-    getUser(sellerId);
-    // 모든 상품 조회 후 클라이언트에서 필터링
-    getProducts();
-  }, [sellerId, getUser, getProducts]);
+    const loadData = async () => {
+      showLoading("상점 정보를 불러오는 중...");
+      try {
+        await Promise.all([
+          getUser(sellerId),
+          fetchProducts({ 
+            sellerId: sellerId, 
+            page: currentPage, 
+            size: itemsPerPage 
+          })
+        ]);
+      } catch(e) {
+        console.error("데이터 로딩 중 오류 발생", e);
+      } finally {
+        hideLoading();
+      }
+    };
+    if (sellerId) {
+      loadData();
+    }
+  }, [sellerId, currentPage, getUser, fetchProducts, showLoading, hideLoading]);
 
-  // 특정 판매자의 상품만 필터링
-  const sellerProducts = products.filter(item => item.seller?.id === sellerId);
+  const handlePageChange = (pageNumber: number) => {
+    router.push(`/shop/${sellerId}?page=${pageNumber}`);
+  };
 
-  console.log(user);
+  const isLoading = userLoading || productsLoading;
+  const error = userError || productsError;
 
-  return (
+  if (isLoading) return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
+  if (error) return <div className="flex justify-center items-center h-screen">에러: {error}</div>;
+  if (!user) return <div className="flex justify-center items-center h-screen">사용자 정보를 불러올 수 없습니다.</div>;
+
+   return (
     <div className="flex flex-col gap-12 container-default m-auto pt-20 pb-40">
       <div className="flex gap-10">
-        <SellerTitle seller={user} />
+        <SellerTitle seller={user} /> 
 
         <div className="flex-4">
-          {/* 상품 등록 섹션 */}
           <div className="rounded-xl p-6 mb-4 bg-[#F7F9FA]">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-4">
@@ -51,30 +94,14 @@ export default function SellerShopInfo({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          {/* 통계 섹션 */}
           <ul className="flex border border-gray-200 rounded-xl overflow-hidden">
-              {/* 판매상품 */}
-             <li className="flex-1 p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
-               <div className="text-gray-500 text-md mb-1">판매상품</div>
-               <div className="text-black text-xl font-normal min-w-[60px]">{sellerProducts.length}</div>
-             </li>
-            
-            {/* 거래후기 */}
+            <li className="flex-1 p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
+              <div className="text-gray-500 text-md mb-1">판매상품</div>
+              <div className="text-black text-xl font-normal min-w-[60px]">{productsTotalItems}</div>
+            </li>
             <li className="flex-1 p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
               <div className="text-gray-500 text-md mb-1">거래후기</div>
-              <div className="text-black text-xl font-normal min-w-[60px]">5</div>
-            </li>
-            
-            {/* 화상거래 */}
-            <li className="flex-1 p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
-              <div className="text-gray-500 text-sm mb-1">화상거래</div>
-              <div className="text-black text-xl font-normal min-w-[60px]">1</div>
-            </li>
-            
-            {/* 포인트 */}
-            <li className="flex-2 p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
-              <div className="text-gray-500 text-md mb-1">포인트</div>
-              <div className="text-black text-xl font-normal min-w-[90px]">1,600 P</div>
+              <div className="text-black text-xl font-normal min-w-[60px]">{user.reviewCount ?? 0}</div>
             </li>
           </ul>
         </div>
@@ -83,20 +110,30 @@ export default function SellerShopInfo({ params }: { params: { id: string } }) {
       {/* 판매 물품 섹션 */}
       <section className="">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-2xl font-bold">판매 물품</h3>
+          <h3 className="text-2xl font-bold">판매 물품 ({productsTotalItems}개)</h3>
         </div>
         {sellerProducts.length > 0 ? (
-          <ul className="grid grid-cols-4 gap-6 gap-y-12">
-            {sellerProducts.slice(0, 4).map((item: ProductWithSeller) => {
-              if (!item.product?.id) return null;
-              const cardData = transformToProductCardData(item);
-              return (
-                <li key={item.product.id}>
-                  <ProductCard item={cardData} height={240} />
-                </li>
-              );
-            })}
-          </ul>
+          // ✨ ul과 Pagination을 감싸는 div 추가
+          <div>
+            <ul className="grid grid-cols-4 gap-6 gap-y-12">
+              {sellerProducts.map((item: ActivityProduct) => {
+                if (!item.product?.id) return null;
+                const cardData = transformToProductCardData(item);
+                return (
+                  <li key={item.product.id}>
+                    <ProductCard item={cardData} height={240} />
+                  </li>
+                );
+              })}
+            </ul>
+            
+            <Pagination
+              currentPage={currentPage}
+              totalPages={productsTotalPages}
+              onPageChange={handlePageChange}
+              pageRangeDisplayed={5}
+            />
+          </div>
         ) : (
           <div className="text-center text-gray-500 py-12">판매중인 상품이 없습니다.</div>
         )}

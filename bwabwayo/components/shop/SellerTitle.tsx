@@ -7,7 +7,7 @@ export interface Seller {
   rating: number;
   score: number;
   bio: string;
-  dealCount: number;
+  dealCount: number | null;
   reviewCount?: number | string; // 선택적 속성, 필요에 따라 추가
 }
 

@@ -1,5 +1,6 @@
 import { ProductWithSeller } from '@/stores/product/productStore';
 import { ProductCardUIData } from '@/stores/product/productStore';
+import {ActivityProduct} from '@/stores/mypage/myActivityStore'
 
 export const transformToProductCardData = (item: ProductWithSeller): ProductCardUIData => {
   // 핵심 데이터는 item.product 안에 있습니다.
