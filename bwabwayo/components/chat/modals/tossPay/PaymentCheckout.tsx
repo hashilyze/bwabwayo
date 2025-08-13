@@ -184,7 +184,7 @@ export function PaymentCheckoutPage({ onClose, amount, orderName, roomId, produc
           },
           orderId: generateRandomString(),
           orderName: orderName,
-          successUrl: window.location.origin + `${process.env.NEXT_PUBLIC_PUBLIC_URL}/chat/${roomId}&productId=${productId}`,
+          successUrl: window.location.origin + `${process.env.NEXT_PUBLIC_PUBLIC_URL}/chat/${roomId}?productId=${productId}`,
           failUrl: window.location.origin + "/fail",
           customerEmail: "customer123@gmail.com",
           customerName: userData?.nickname || "사용자",
