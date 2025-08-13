@@ -17,12 +17,12 @@ function PaymentSuccessContent() {
 
   useEffect(() => {
     async function confirm() {
-      const requestData = {
-        orderId: searchParams.get("orderId"),
-        amount: searchParams.get("amount"),
-        paymentKey: searchParams.get("paymentKey"),
-        productId: searchParams.get("productId"),
-      };
+             const requestData = {
+         orderId: searchParams.get("orderId"),
+         amount: searchParams.get("amount"),
+         paymentKey: searchParams.get("paymentKey"),
+         productId: parseInt(searchParams.get("productId") || "0"),
+       };
 
       // https://i13e202.p.ssafy.io/be/api/payments/confirm
       // http://localhost:8081/api/payments/confirm
