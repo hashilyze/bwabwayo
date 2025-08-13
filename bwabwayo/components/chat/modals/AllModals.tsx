@@ -376,8 +376,10 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
       alert('유효한 금액을 입력해주세요.')
       return
     }
-    setFinalPrice(Number(finalPrice))
-    price(chatInfo?.roomId || 0, Number(finalPrice))
+    const priceNumber = Number(finalPrice)
+    console.log('StartTradeModal - setting finalPrice:', priceNumber)
+    setFinalPrice(priceNumber)
+    price(chatInfo?.roomId || 0, priceNumber)
     setOpen(false)
   }
 
@@ -482,13 +484,50 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
   const handleStart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     console.log('결제 요청');
+    
+    // 결제 금액이 유효한지 확인
+    if (!paymentAmount || paymentAmount <= 0) {
+      alert('유효한 결제 금액이 설정되지 않았습니다. 판매자에게 문의해주세요.');
+      return;
+    }
+    
     setIsPaymentModalOpen(true);
   }
 
   // store의 finalPrice를 우선 사용하고, 없으면 message.content에서 추출
-  const amount = finalPrice ? finalPrice.toString() : message.content.replace(/[^\d]/g, '');
+  // message.content에서 숫자만 추출하는 정규식 개선
+  const extractAmountFromMessage = (content: string) => {
+    // 여러 패턴으로 가격 추출 시도
+    const patterns = [
+      /(\d{1,3}(,\d{3})*|\d+)\s*원/, // "100,000원" 형태
+      /가격[:\s]*(\d{1,3}(,\d{3})*|\d+)/, // "가격: 100,000" 형태
+      /(\d{1,3}(,\d{3})*|\d+)/, // 일반적인 숫자
+    ];
+    
+    for (const pattern of patterns) {
+      const match = content.match(pattern);
+      if (match) {
+        return match[1] ? match[1].replace(/,/g, '') : match[0].replace(/,/g, '');
+      }
+    }
+    return '';
+  };
+
+  // finalPrice가 있으면 사용, 없으면 message.content에서 추출
+  let amount = '';
+  if (finalPrice && finalPrice > 0) {
+    amount = finalPrice.toString();
+  } else {
+    amount = extractAmountFromMessage(message.content);
+  }
+  
   const formattedAmount = amount ? Number(amount).toLocaleString() + '원' : '0원';
   const paymentAmount = amount ? Number(amount) : 0;
+
+  console.log('RequestDepositeModal - finalPrice from store:', finalPrice);
+  console.log('RequestDepositeModal - message.content:', message.content);
+  console.log('RequestDepositeModal - extracted amount:', amount);
+  console.log('RequestDepositeModal - paymentAmount:', paymentAmount);
 
   // buyer인지 확인
   const isBuyer = chatInfo?.isCurrentUserBuyer;
