@@ -131,12 +131,9 @@ export default function ChatRoomPage() {
   // 메시지 히스토리를 2초마다 업데이트
   useEffect(() => {
     if (!isInitialized || !roomId) return;
-
-    console.log('⏰ 메시지 히스토리 자동 업데이트 시작 (2초마다)');
-    
     const intervalId = setInterval(async () => {
       try {
-        console.log('🔄 메시지 히스토리 업데이트 중...');
+        // console.log('🔄 메시지 히스토리 업데이트 중...');
         await getMessageHistory(roomId);
       } catch (error) {
         console.error('❌ 메시지 히스토리 업데이트 실패:', error);
@@ -145,7 +142,7 @@ export default function ChatRoomPage() {
 
     // 컴포넌트 언마운트 시 인터벌 정리
     return () => {
-      console.log('⏰ 메시지 히스토리 자동 업데이트 중지');
+      // console.log('⏰ 메시지 히스토리 자동 업데이트 중지');
       clearInterval(intervalId);
     };
   }, [isInitialized, roomId, getMessageHistory]);
@@ -156,15 +153,15 @@ export default function ChatRoomPage() {
       // DOM 업데이트 완료 후 스크롤
       const scrollToBottom = () => {
         if (messagesEndRef.current) {
+          // 부드러운 스크롤 대신 즉시 스크롤하여 깜빡임 방지
           messagesEndRef.current.scrollIntoView({ 
-            // behavior: 'smooth',
             block: 'end' 
           });
         }
       };
       
       // 약간의 지연을 두어 DOM 업데이트 완료 후 스크롤
-      setTimeout(scrollToBottom, 50);
+      setTimeout(scrollToBottom, 10);
     }
   }, [messages]);
 

@@ -310,15 +310,15 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 return state;
             }
             
-            // 중복 메시지 방지: 같은 내용, 같은 senderId, 같은 시간대의 메시지는 추가하지 않음
+            // 중복 메시지 방지: 더 엄격한 체크
             const isDuplicate = currentMessages.some(existingMsg => 
                 existingMsg.content === msg.content && 
                 existingMsg.senderId === msg.senderId &&
-                Math.abs(new Date(existingMsg.createdAt).getTime() - new Date(msg.createdAt).getTime()) < 3000 // 3초 이내
+                Math.abs(new Date(existingMsg.createdAt).getTime() - new Date(msg.createdAt).getTime()) < 10000 // 10초 이내
             );
             
             if (isDuplicate) {
-                console.log('🔄 중복 메시지 감지, 추가하지 않음:', msg.content);
+                console.log('🔄 중복 메시지 감지, 추가하지 않음:', msg.content, 'from:', msg.senderId);
                 return state;
             }
 
@@ -354,6 +354,12 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                     return { messages: newMessages };
                 }
                 
+                // 새로운 메시지가 기존 메시지보다 많으면 전체 교체 (페이지 새로고침 등)
+                if (newMessages.length > currentMessages.length + 5) {
+                    console.log('📝 메시지 히스토리 전체 교체 (새로운 메시지가 많음)');
+                    return { messages: newMessages };
+                }
+                
                 // 기존 메시지와 새로운 메시지를 비교하여 중복 제거
                 const existingMessageIds = new Set(
                     currentMessages.map(msg => `${msg.senderId}-${msg.content}-${msg.createdAt}`)
@@ -365,12 +371,12 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 
                 if (uniqueNewMessages.length > 0) {
                     console.log('📝 새로운 메시지 발견:', uniqueNewMessages.length, '개');
-                    return { 
-                        messages: [...currentMessages, ...uniqueNewMessages] 
-                    };
+                    // 새로운 메시지를 기존 메시지에 추가
+                    const updatedMessages = [...currentMessages, ...uniqueNewMessages];
+                    return { messages: updatedMessages };
                 }
                 
-                // 새로운 메시지가 없으면 기존 상태 유지
+                // 새로운 메시지가 없으면 기존 상태 유지 (깜빡임 방지)
                 return state;
             });
         } catch (error) {
@@ -445,21 +451,6 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                         reject(new Error('receiverId를 결정할 수 없습니다.'))
                         return
                     }
-
-                    // 즉시 UI에 반영할 메시지 객체 생성
-                    const immediateMessage: ChatMessage = {
-                        roomId: roomId,
-                        senderId: currentUserId || '',
-                        receiverId: receiverId || '',
-                        content: content.trim(),
-                        type: type,
-                        createdAt: new Date().toISOString(),
-                        isRead: false
-                    }
-
-                    // 즉시 로컬 메시지 목록에 추가 (낙관적 업데이트)
-                    console.log('📝 즉시 메시지 추가 (낙관적 업데이트):', immediateMessage)
-                    get().appendMessage(immediateMessage, true)
 
                     // STOMP 메시지 형식
                     const stompMessage = {
