@@ -793,8 +793,8 @@ const InputTrackingAddressModal = ({ message }: { message: ChatMessage }) => {
              const { currentSelectedRoom } = useChatRoomStore.getState();
              const { invoice } = useSendTypeMessageStore.getState();
              if (currentSelectedRoom) {
-               // invoice 함수 호출 (택배사명과 송장번호 전달)
-               invoice(currentSelectedRoom.roomId, v.carrier, v.trackingNumber);
+                            // invoice 함수 호출 (택배사 코드와 송장번호 전달)
+             invoice(currentSelectedRoom.roomId, v.carrier.courier_code, v.trackingNumber);
              }
              
              setOpenTracking(false)
@@ -854,7 +854,7 @@ const StartDeliveryModal = ({ message }: { message: ChatMessage }) => {
               {/* 택배사와 송장번호 정보 표시 */}
               {deliveryInfo && (
                 <div className="mt-2 text-md text-gray-600">
-                  <p><strong>택배사:</strong> {deliveryInfo.carrier}</p>
+                  <p><strong>택배사:</strong> {deliveryInfo.carrier.name || deliveryInfo.carrier}</p>
                   <p><strong>송장번호:</strong> {deliveryInfo.trackingNumber}</p>
                 </div>
               )}

@@ -2,8 +2,40 @@
 import { useEffect, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 
-const CARRIERS = ['CJ대한통운', '롯데택배', '우체국택배', '한진택배', '로젠택배', '대신택배', '기타'] as const
-type Carrier = typeof CARRIERS[number]
+const CARRIERS = [
+  {
+    name:'CJ대한통운',
+    courier_code:'04'
+  },
+  {
+    name:'롯데택배',
+    courier_code:'08'
+  },
+  {
+    name:'우체국택배',
+    courier_code:'01'
+  },
+  {
+    name:'한진택배',
+    courier_code:'05'
+  },
+  {
+    name:'로젠택배',
+    courier_code:'06'
+  },
+  {
+    name:'대신택배',
+    courier_code:'22'
+  },
+  {
+    name:'기타',
+    courier_code:'99'
+  }
+]
+type Carrier = {
+  name: string;
+  courier_code: string;
+}
 
 export default function TrackingNumberModal({
   onClose,
@@ -82,7 +114,7 @@ export default function TrackingNumberModal({
           aria-expanded={isCarrierDropdownOpen}
           aria-haspopup="listbox"
         >
-          {selectedCarrier || '택배사선택'}
+          {selectedCarrier ? selectedCarrier.name : '택배사선택'}
           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
             ▾
           </span>
@@ -95,7 +127,7 @@ export default function TrackingNumberModal({
             aria-label="택배사 목록"
           >
             {CARRIERS.map((carrier) => (
-              <li key={carrier}>
+              <li key={carrier.name}>
                 <button
                   type="button"
                   onClick={() => handleCarrierSelect(carrier)}
@@ -103,7 +135,7 @@ export default function TrackingNumberModal({
                   role="option"
                   aria-selected={selectedCarrier === carrier}
                 >
-                  {carrier}
+                  {carrier.name}
                 </button>
               </li>
             ))}
