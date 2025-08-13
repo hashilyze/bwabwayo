@@ -10,16 +10,7 @@ import { useNotificationStore } from '@/stores/notificationStore';
 import Category from '@/components/Category';
 import NewCategory from '@/components/NewCategory';
 import NotificationDropdown from './NotificationDropdown';
-import { EventSourcePolyfill } from 'event-source-polyfill';
 
-// EventSource 타입 정의
-interface NotificationEvent {
-    data: string;
-}
-
-interface EventSourceError {
-    error: unknown;
-}
 
 // 새로운 카테고리
 export default function Navbar() {
@@ -27,7 +18,7 @@ export default function Navbar() {
     const [showMyPageMenu, setShowMyPageMenu] = useState(false); // 내상점 메뉴 상태
     const [showCategory, setShowCategory] = useState(false); // 카테고리 표시 상태
     const [showNotifications, setShowNotifications] = useState(false); // 알림 드롭다운 상태
-    const [useSSE, setUseSSE] = useState(false); // SSE 사용 여부 (기본값: true)
+
     const { isLoggedIn, logout, initializeAuth, authenticatedFetch, getToken } = useAuthStore(); // 새로운 authStore 사용
     const { openLoginModal } = useModalStore();
     const { unreadCount, fetchNotifications, startPolling, stopPolling, isPolling } = useNotificationStore();
@@ -47,55 +38,19 @@ export default function Navbar() {
         initializeAuth();
     }, [initializeAuth]);
 
-    // EventSource 또는 폴링을 사용하여 알림 수신
+    // 폴링을 사용하여 알림 수신
     useEffect(() => {
         const token = getToken();
         if (!token) return;
 
-        if (useSSE) {
-            // SSE 사용 시 폴링 중지
+        // 폴링 사용
+        startPolling(token, 10000); // 10초 간격
+        
+        // 컴포넌트 언마운트 시 폴링 중지
+        return () => {
             stopPolling();
-            
-            // EventSource 연결
-            const eventSource = new EventSourcePolyfill('https://i13e202.p.ssafy.io/be/api/notifications/stream', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            eventSource.addEventListener("notification", (event: NotificationEvent) => {
-                try {
-                    const notificationData = JSON.parse(event.data);
-                    console.log("notification: Notification Event:", notificationData);
-                    // SSE로 알림을 받으면 알림 목록을 새로고침
-                    fetchNotifications(token);
-                } catch (error) {
-                    console.error("Failed to parse notification data:", error);
-                }
-            });
-
-            eventSource.onmessage = (event: NotificationEvent) => {
-                console.log('global:Notification received:', event.data);
-            };
-
-            eventSource.onerror = (error: EventSourceError) => {
-                console.error('error: EventSource error:', error);
-            };
-
-            // 컴포넌트 언마운트 시 EventSource 정리
-            return () => {
-                eventSource.close();
-            };
-        } else {
-            // 폴링 사용 시 EventSource 연결하지 않음
-            startPolling(token, 10000); // 10초 간격
-            
-            // 컴포넌트 언마운트 시 폴링 중지
-            return () => {
-                stopPolling();
-            };
-        }
-    }, [isLoggedIn, getToken, useSSE, startPolling, stopPolling, fetchNotifications]);
+        };
+    }, [isLoggedIn, getToken, startPolling, stopPolling, fetchNotifications]);
 
     // 스크롤 이벤트 리스너 추가
     useEffect(() => {
