@@ -64,6 +64,7 @@ public class SaleService {
                     .productId(product.getId())
                     .thumbnail(storageService.getUrlFromKey(product.getThumbnail()))
                     .title(product.getTitle())
+                    .createdAt(sale.getCreatedAt())
                     .price(product.getPrice())
                     .deliveryStatus(deliveryStatus)
                     .courierName(courierName)
