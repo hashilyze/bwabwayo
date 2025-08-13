@@ -14,6 +14,7 @@ interface ReportModalProps {
 
 export const ReportModal = ({ isOpen, onClose, sellerNickname, sellerId }: ReportModalProps) => {
   const router = useRouter();
+  const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [imgFiles, setImgFiles] = useState<File[]>([]);
   const [imgPreviews, setImgPreviews] = useState<string[]>([]);
@@ -24,6 +25,7 @@ export const ReportModal = ({ isOpen, onClose, sellerNickname, sellerId }: Repor
   // 모달이 열릴 때마다 데이터 초기화
   useEffect(() => {
     if (isOpen) {
+      setTitle('');
       setDescription('');
       setImgFiles([]);
       setImgPreviews([]);
@@ -120,6 +122,10 @@ export const ReportModal = ({ isOpen, onClose, sellerNickname, sellerId }: Repor
   };
 
   const handleSubmit = async () => {
+    if (!title.trim()) {
+      alert('신고 제목을 입력해주세요.');
+      return;
+    }
     if (!description.trim()) {
       alert('신고 내용을 입력해주세요.');
       return;
@@ -133,7 +139,7 @@ export const ReportModal = ({ isOpen, onClose, sellerNickname, sellerId }: Repor
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          title: `신고: ${sellerNickname}`,
+          title: title,
           description: description,
           targetId: sellerId,
           imageUrlList: uploadedImageKeys
@@ -197,6 +203,42 @@ export const ReportModal = ({ isOpen, onClose, sellerNickname, sellerId }: Repor
           <p className="text-[16px] font-medium text-[#7C7C7C] font-['SUITE'] leading-[1.248] text-left">
             {sellerNickname}
           </p>
+        </div>
+
+        {/* 신고 제목 입력 */}
+        <div className="px-[49px] pb-[8px]">
+          <h3 className="text-[12px] font-semibold text-black font-['SUITE'] leading-[1.248]">
+            신고 제목
+          </h3>
+        </div>
+
+        {/* 신고 제목 입력 필드 */}
+        <div className="px-[48px] pb-[8px]">
+          <div className="w-[380px] h-[46px] border-[0.7px] border-[#A2A2A2] rounded-[20px] p-[13px] relative">
+            <textarea
+              value={title}
+              onChange={(e) => {
+                if (e.target.value.length <= 50) {
+                  setTitle(e.target.value);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                }
+              }}
+              placeholder="신고 제목을 입력해주세요."
+              className="w-full h-full resize-none border-none outline-none text-[14px] font-medium text-black font-['SUITE'] leading-[1.248] placeholder-[#A2A2A2] placeholder:text-[12px] placeholder:font-semibold"
+              style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}
+              rows={1}
+              maxLength={50}
+            />
+            <div className="absolute bottom-2 right-2">
+              <span className="text-[12px] text-[#A2A2A2] font-['SUITE']">
+                {title.length}/50
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* 신고 내용 */}
