@@ -377,34 +377,34 @@ export default function ChatRoomPage() {
         ) : (
           <>
             {messages && messages.filter(message => message && typeof message === 'object').map((message, index) => {
-              // 내가 보낸 메시지인지 판단 (senderId와 내 사용자 ID 비교)
-              const isMine = myUserId ? String(message.senderId) === String(myUserId) : false
-
-              // 공지글 타입 구분
-              let noticeType = '';
-              if (message.content.startsWith('화상채팅예약')) {
-                noticeType = 'video'; // 화상 채팅 예약
-              } else if (message.content.startsWith('거래시작')) {
-                noticeType = 'start'; // 거래 시작
-              } else if (message.content.startsWith('입금확인')) {
-                noticeType = 'check'; // 입금 확인
-              } else if (message.content.startsWith('배송지계좌')) {
-                noticeType = 'lotation'; // 배송지계좌
-              } else if (message.content.startsWith('배송조회')) {
-                noticeType = 'delivery'; // 배송 조회
-              }
-
-              // 공지글인 경우 특별한 디자인 적용
+              // 공지글인 경우 즉시 표시 (myUserId 확인 불필요)
               if (message.type != "TEXT") {
                 return (
                   <div
-                    key={index}
+                    key={`${message.type}-${index}-${message.createdAt}`}
                     className="w-full flex justify-center my-6"  // ← 가운데 정렬, 위아래 마진
                   >
                     <AllModals message={message} type={message.type} />
                   </div>
                 );
               }
+
+              // 일반 텍스트 메시지인 경우 myUserId 확인 후 표시
+              if (!myUserId) {
+                return (
+                  <div
+                    key={`loading-${index}`}
+                    className="mb-4 flex items-end gap-2 justify-start"
+                  >
+                    <div className="max-w-xs lg:max-w-md px-4 py-2 rounded-full bg-gray-200 animate-pulse">
+                      <div className="text-md text-transparent">메시지를 불러오는 중...</div>
+                    </div>
+                  </div>
+                );
+              }
+
+              // 내가 보낸 메시지인지 판단 (senderId와 내 사용자 ID 비교)
+              const isMine = String(message.senderId) === String(myUserId)
 
               // 일반 메시지
               return (
@@ -438,10 +438,10 @@ export default function ChatRoomPage() {
         <div ref={messagesEndRef} />
       </div>
 
-             {/* 예약 모달 조건부 렌더링 */}
+      {/* 예약 모달 조건부 렌더링 */}
        {isReservationModalOpen && <ReservationModal onClose={closeReservationModal} chatRoomId={roomId} />}
 
-               {/* 신고 모달 조건부 렌더링 */}
+      {/* 신고 모달 조건부 렌더링 */}
         {isReportModalOpen && (
           <ReportModal 
             isOpen={isReportModalOpen} 

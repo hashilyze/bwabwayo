@@ -56,10 +56,19 @@ const CreateRoomModal = ({ message }: { message: ChatMessage }) => {
   const [isButtonHovered, setIsButtonHovered] = useState(false);
   const chatInfo = useChatRoomInfo(); // 전역 정보 사용
 
+  // 로딩 상태일 때도 기본적인 메시지 표시
   if (!chatInfo) {
     return (
-      <article className="w-[400px] h-[242px] bg-white rounded-[30px] overflow-hidden border-2 border-solid border-black flex items-center justify-center">
-        <p className="text-gray-500">채팅방 정보를 불러오는 중...</p>
+      <article className="w-[400px] p-6 rounded-[30px] border-2 border-black">
+        <div className="flex flex-col items-center justify-between">
+          <header className="flex items-center gap-3 mb-2">
+            <div className="w-[60px] h-[60px] bg-gray-200 rounded-[10px] animate-pulse"></div>
+            <p className="text-md text-gray-500">채팅방이 생성되었습니다.</p>
+          </header>
+          <div className="text-[#7c7c7c] text-md w-full mb-2">
+            <p>채팅방 정보를 불러오는 중...</p>
+          </div>
+        </div>
       </article>
     );
   }
@@ -126,6 +135,23 @@ const ReserveVideoCallModal = ({ message }: { message: ChatMessage }) => {
   const handleCancel = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     console.log('취소하기');
+  }
+
+  // 로딩 상태일 때도 기본적인 메시지 표시
+  if (!chatInfo) {
+    return (
+      <div className="w-[400px] p-6 rounded-[30px] border-2 border-black">
+        <div className="flex flex-col items-center justify-between">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div className="w-[70px] h-[70px] bg-gray-200 rounded animate-pulse"></div>
+            <div className="flex flex-col items-start gap-1.5">
+              <p className="text-md text-gray-500">화상 거래가 예약되었습니다.</p>
+              <div className="text-[#7c7c7c] text-md">예약 정보를 불러오는 중...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -347,6 +373,11 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
     setOpen(false)
   }
 
+  // seller가 아니면 모달을 보이지 않음
+  if (!isSeller) {
+    return null;
+  }
+
   return (
     <>
     <div className="w-[400px] p-6 rounded-[30px] border-2 border-black">
@@ -367,16 +398,9 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
         <button
           type="button"
           onClick={handleOpen}
-          onMouseEnter={() => isSeller && setIsButtonHovered(true)}
+          onMouseEnter={() => setIsButtonHovered(true)}
           onMouseLeave={() => setIsButtonHovered(false)}
-          disabled={!isSeller}
-          aria-disabled={!isSeller}
-          className={[
-            'py-2 px-6 rounded-[20px] border-2 border-black transition-all duration-200',
-            isSeller
-              ? `bg-[#fce94f] ${isButtonHovered ? 'scale-105 shadow-lg' : ''}`
-              : 'bg-gray-300 cursor-not-allowed'
-          ].join(' ')}
+          className={`py-2 px-6 bg-[#fce94f] rounded-[20px] border-2 border-black transition-all duration-200 ${isButtonHovered ? 'scale-105 shadow-lg' : ''}`}
           aria-label="최종 거래 가격 설정하기"
         >
           <span className="font-bold text-md text-black">
@@ -426,6 +450,14 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
   const formattedAmount = amount ? Number(amount).toLocaleString() + '원' : '0원';
   const paymentAmount = amount ? Number(amount) : 0;
 
+  // buyer인지 확인
+  const isBuyer = chatInfo?.isCurrentUserBuyer;
+
+  // buyer가 아니면 모달을 보이지 않음
+  if (!isBuyer) {
+    return null;
+  }
+
   return (
     <>
       <div className="w-[400px] p-6 rounded-[30px] border-2 border-black">
@@ -443,16 +475,16 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
             </div>
           </div>
           <button
-            className={`py-2 px-6 bg-[#fce94f] rounded-[20px] border-2 border-black cursor-pointer transition-all duration-200 ${isButtonHovered ? "transform scale-105 shadow-lg" : ""
-              }`}
-            onClick={(e) => handleStart(e)}
+            type="button"
+            onClick={handleStart}
             onMouseEnter={() => setIsButtonHovered(true)}
             onMouseLeave={() => setIsButtonHovered(false)}
+            className={`py-2 px-6 bg-[#fce94f] rounded-[20px] border-2 border-black transition-all duration-200 ${isButtonHovered ? 'scale-105 shadow-lg' : ''}`}
             aria-label="결제하기"
           >
-            <div className="font-bold text-center text-md">
+            <span className="font-bold text-md text-black">
               결제하기
-            </div>
+            </span>
           </button>
         </div>
       </div>
@@ -489,6 +521,8 @@ const InputDeliveryAddressModal = ({ message }: { message: ChatMessage }) => {
   const [open, setOpen] = useState(false)
   const { addresses, loading, error, fetchAddresses } = useMyAddressStore();
   const { sendMessage, currentSelectedRoom } = useChatRoomStore();
+  const chatInfo = useChatRoomInfo();
+  const isBuyer = chatInfo?.isCurrentUserBuyer;
 
   // 컴포넌트 마운트 시 주소 목록 가져오기
   useEffect(() => {
@@ -521,6 +555,11 @@ const InputDeliveryAddressModal = ({ message }: { message: ChatMessage }) => {
     setOpen(true);
   }
 
+  // buyer가 아니면 모달을 보이지 않음
+  if (!isBuyer) {
+    return null;
+  }
+
   return (
     <>
     <div className="w-[400px] p-6 rounded-[30px] border-2 border-black">
@@ -539,16 +578,16 @@ const InputDeliveryAddressModal = ({ message }: { message: ChatMessage }) => {
 
           </div>
           <button
-            className={`py-2 px-6 mt-3 bg-[#fce94f] rounded-[20px] border-2 border-black cursor-pointer transition-all duration-200 ${isButtonHovered ? "transform scale-105 shadow-lg" : ""
-              }`}
+            type="button"
             onClick={() => setOpen(true)}
             onMouseEnter={() => setIsButtonHovered(true)}
             onMouseLeave={() => setIsButtonHovered(false)}
+            className={`py-2 px-6 mt-3 bg-[#fce94f] rounded-[20px] border-2 border-black transition-all duration-200 ${isButtonHovered ? 'scale-105 shadow-lg' : ''}`}
             aria-label="배송지 입력"
           >
-            <div className="font-bold text-center text-md">
+            <span className="font-bold text-md text-black">
               배송지 입력하기
-            </div>
+            </span>
           </button>
 
           <OverlayPortal open={open} onClose={() => setOpen(false)}>
@@ -598,6 +637,8 @@ const InputDeliveryAddressModal = ({ message }: { message: ChatMessage }) => {
 const InputTrackingAddressModal = ({ message }: { message: ChatMessage }) => {
   const [isButtonHovered, setIsButtonHovered] = useState(false);
   const [openTracking, setOpenTracking] = useState(false)
+  const chatInfo = useChatRoomInfo();
+  const isSeller = chatInfo?.isCurrentUserSeller;
   
   // 메시지에서 배송지 정보 파싱
   const parseDeliveryInfo = () => {
@@ -617,6 +658,10 @@ const InputTrackingAddressModal = ({ message }: { message: ChatMessage }) => {
   
   const deliveryInfo = parseDeliveryInfo();
 
+  // seller가 아니면 모달을 보이지 않음
+  if (!isSeller) {
+    return null;
+  }
 
   return (
     <>
@@ -639,62 +684,62 @@ const InputTrackingAddressModal = ({ message }: { message: ChatMessage }) => {
               <p><strong>수령인:</strong> {deliveryInfo.detail}</p>
             </div>
           )}
-
         </div>
+
         <button
-          className={`bg-[#fce94f] rounded-[20px] border-2 border-solid border-black cursor-pointer transition-all duration-200 ${isButtonHovered ? "transform scale-105 shadow-lg" : ""
-            }`}
-          onClick={(e) => setOpenTracking(true)}
-          onMouseEnter={() => setIsButtonHovered(true)}
-          onMouseLeave={() => setIsButtonHovered(false)}
-          aria-label="송장번호 입력하기"
-        >
-          <div className="py-2 px-6 text-md font-bold">
-            송장번호 입력하기
-          </div>
-        </button>
-      </div>
-      <OverlayPortal open={openTracking} onClose={() => setOpenTracking(false)}>
-        <TrackingNumberModal
-          onClose={() => setOpenTracking(false)}
-          onSubmit={(v) => {
-            console.log('송장 등록 값:', v)
-            
-            // START_DELIVERY 타입의 메시지 전송
-            const { sendMessage, currentSelectedRoom } = useChatRoomStore.getState();
-            if (currentSelectedRoom) {
-              const deliveryMessage = JSON.stringify({
-                carrier: v.carrier,
-                trackingNumber: v.trackingNumber
-              });
-              
-              // START_DELIVERY 메시지 전송
-              sendMessage(currentSelectedRoom.roomId, deliveryMessage, 'START_DELIVERY');
-              
-              // 1초 후 CONFIRM_PURCHASE 메시지 전송
-              setTimeout(() => {
-                sendMessage(currentSelectedRoom.roomId, '구매 확정을 요청합니다.', 'CONFIRM_PURCHASE');
-              }, 1000);
-            }
-            
-            setOpenTracking(false)
-          }}
-        />
-      </OverlayPortal>
-    </div>
-      {/* 시간 표시 */}
-      <div className="my-3 text-md text-[#666666] text-center">
-        <span className="">
-          {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-          })}
-        </span>
-      </div>
-    </>
-  );
-};
+           type="button"
+           onClick={() => setOpenTracking(true)}
+           onMouseEnter={() => setIsButtonHovered(true)}
+           onMouseLeave={() => setIsButtonHovered(false)}
+           className={`py-2 px-6 bg-[#fce94f] rounded-[20px] border-2 border-black transition-all duration-200 ${isButtonHovered ? 'scale-105 shadow-lg' : ''}`}
+           aria-label="송장번호 입력하기"
+         >
+           <span className="font-bold text-md text-black">
+             송장번호 입력하기
+           </span>
+         </button>
+       </div>
+       <OverlayPortal open={openTracking} onClose={() => setOpenTracking(false)}>
+         <TrackingNumberModal
+           onClose={() => setOpenTracking(false)}
+           onSubmit={(v) => {
+             console.log('송장 등록 값:', v)
+             
+             // START_DELIVERY 타입의 메시지 전송
+             const { sendMessage, currentSelectedRoom } = useChatRoomStore.getState();
+             if (currentSelectedRoom) {
+               const deliveryMessage = JSON.stringify({
+                 carrier: v.carrier,
+                 trackingNumber: v.trackingNumber
+               });
+               
+               // START_DELIVERY 메시지 전송
+               sendMessage(currentSelectedRoom.roomId, deliveryMessage, 'START_DELIVERY');
+               
+               // 1초 후 CONFIRM_PURCHASE 메시지 전송
+               setTimeout(() => {
+                 sendMessage(currentSelectedRoom.roomId, '구매 확정을 요청합니다.', 'CONFIRM_PURCHASE');
+               }, 1000);
+             }
+             
+             setOpenTracking(false)
+           }}
+         />
+       </OverlayPortal>
+     </div>
+       {/* 시간 표시 */}
+       <div className="my-3 text-md text-[#666666] text-center">
+         <span className="">
+           {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
+             hour: 'numeric',
+             minute: '2-digit',
+             hour12: true
+           })}
+         </span>
+       </div>
+     </>
+   );
+ };
 
 //START_DELIVERY,     // 배송 시작 - 송장번호 입력 후 전송
 const StartDeliveryModal = ({ message }: { message: ChatMessage }) => {
@@ -761,6 +806,8 @@ const StartDeliveryModal = ({ message }: { message: ChatMessage }) => {
 const ConfirmPurchaseModal = ({ message }: { message: ChatMessage }) => {
   const [isButtonHovered, setIsButtonHovered] = useState(false);
   const [showPurchaseConfirm, setShowPurchaseConfirm] = useState(false);
+  const chatInfo = useChatRoomInfo(); // 전역 정보 사용
+  const isBuyer = chatInfo?.isCurrentUserBuyer;
 
   const handleStart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -784,7 +831,10 @@ const ConfirmPurchaseModal = ({ message }: { message: ChatMessage }) => {
     setShowPurchaseConfirm(false);
   }
 
-  const chatInfo = useChatRoomInfo(); // 전역 정보 사용
+  // buyer가 아니면 모달을 보이지 않음
+  if (!isBuyer) {
+    return null;
+  }
 
   return (
     <>
@@ -805,16 +855,16 @@ const ConfirmPurchaseModal = ({ message }: { message: ChatMessage }) => {
           </div>
         </div>
         <button
-          className={`mt-4 py-2 px-6 bg-[#fce94f] rounded-[20px] border-2 border-black cursor-pointer transition-all duration-200 ${isButtonHovered ? "transform scale-105 shadow-lg" : ""
-            }`}
-          onClick={(e) => handleStart(e)}
+          type="button"
+          onClick={handleStart}
           onMouseEnter={() => setIsButtonHovered(true)}
           onMouseLeave={() => setIsButtonHovered(false)}
+          className={`mt-4 py-2 px-6 bg-[#fce94f] rounded-[20px] border-2 border-black transition-all duration-200 ${isButtonHovered ? 'scale-105 shadow-lg' : ''}`}
           aria-label="구매 확정하기"
         >
-          <div className="font-bold text-center text-md">
+          <span className="font-bold text-md text-black">
             구매 확정하기
-          </div>
+          </span>
         </button>
       </div>
           </div>

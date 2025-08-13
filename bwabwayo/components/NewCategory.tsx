@@ -91,7 +91,7 @@ export default function NewCategory({ showCategory }: NewCategoryProps) {
                 ))}
               </div>
             ) : (
-              <div className="flex items-center justify-center h-64" onClick={handleContainerClick}>
+              <div className="flex w-full items-center justify-center h-64" onClick={handleContainerClick}>
                 <div className="text-lg text-gray-500">
                   왼쪽에서 카테고리를 선택해주세요
                 </div>
