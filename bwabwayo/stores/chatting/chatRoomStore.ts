@@ -349,11 +349,11 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 return state;
             }
             
-            // 중복 메시지 방지: 더 정확한 체크
+            // 중복 메시지 방지: 더 정확한 체크 (시간 범위를 5초로 확장)
             const isDuplicate = currentMessages.some(existingMsg => 
                 existingMsg.content === msg.content && 
                 existingMsg.senderId === msg.senderId &&
-                Math.abs(new Date(existingMsg.createdAt).getTime() - new Date(msg.createdAt).getTime()) < 1000 // 1초 이내
+                Math.abs(new Date(existingMsg.createdAt).getTime() - new Date(msg.createdAt).getTime()) < 5000 // 5초 이내
             );
             
             if (isDuplicate) {
@@ -399,14 +399,16 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                     return { messages: newMessages };
                 }
                 
-                // 기존 메시지와 새로운 메시지를 비교하여 중복 제거
-                const existingMessageIds = new Set(
-                    currentMessages.map(msg => `${msg.senderId}-${msg.content}-${msg.createdAt}`)
-                );
-                
-                const uniqueNewMessages = newMessages.filter(msg => 
-                    !existingMessageIds.has(`${msg.senderId}-${msg.content}-${msg.createdAt}`)
-                );
+                // 기존 메시지와 새로운 메시지를 비교하여 중복 제거 (더 정확한 체크)
+                const uniqueNewMessages = newMessages.filter(newMsg => {
+                    // 기존 메시지 중에서 같은 내용, 같은 발신자, 5초 이내의 메시지가 있는지 확인
+                    const isDuplicate = currentMessages.some(existingMsg => 
+                        existingMsg.content === newMsg.content && 
+                        existingMsg.senderId === newMsg.senderId &&
+                        Math.abs(new Date(existingMsg.createdAt).getTime() - new Date(newMsg.createdAt).getTime()) < 5000
+                    );
+                    return !isDuplicate;
+                });
                 
                 if (uniqueNewMessages.length > 0) {
                     console.log('📝 새로운 메시지 발견:', uniqueNewMessages.length, '개');

@@ -152,12 +152,7 @@ export default function ChatRoomPage() {
     if (!isInitialized || !roomId) return;
     
     const intervalId = setInterval(async () => {
-      try {
-        console.log('📨 메시지 히스토리 확인...');
-        await getMessageHistory(roomId);
-      } catch (error) {
-        console.error('❌ 메시지 히스토리 확인 실패:', error);
-      }
+      await getMessageHistory(roomId);
     }, 1000); // 1초마다 확인
 
     return () => {
@@ -333,7 +328,10 @@ export default function ChatRoomPage() {
           </div>
         ) : (
           <>
-            {messages && messages.filter(message => message && typeof message === 'object').map((message, index) => {
+            {messages && messages
+              .filter(message => message && typeof message === 'object')
+              .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) // 시간순 정렬
+              .map((message, index) => {
               // 공지글인 경우 즉시 표시 (myUserId 확인 불필요)
               if (message.type != "TEXT") {
                 return (
