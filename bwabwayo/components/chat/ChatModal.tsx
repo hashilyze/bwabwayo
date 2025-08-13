@@ -56,14 +56,21 @@ const ChatInputActive: React.FC<ChatInputActiveProps> = ({ onOpenReservationModa
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
+      e.stopPropagation();
       handleSendMessage();
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleSendMessage();
   };
 
   return (
     <div className="w-full bg-white">
       {/* 하단 입력창 */}
-      <div className="h-[90px] bg-white border-t border-gray-200 flex items-center px-8">
+      <form onSubmit={handleSubmit} className="h-[90px] bg-white border-t border-gray-200 flex items-center px-8">
         {/* 첨부 버튼 */}
         <div
           className="w-[30px] h-[30px] border border-gray-500 rounded-full flex items-center justify-center mr-4 cursor-pointer transition-transform duration-200 hover:rotate-90"
@@ -90,17 +97,18 @@ const ChatInputActive: React.FC<ChatInputActiveProps> = ({ onOpenReservationModa
 
         {/* 전송 버튼 */}
         <button
+          type="button"
           onClick={handleSendMessage}
           disabled={!messageInput.trim()}
           className={`ml-3 px-5 h-[52px] rounded-full text-md font-medium transition-colors ${
             messageInput.trim()
-              ? 'bg-[#0047A5] text-white hover:bg-[#003d8f]'
+              ? 'bg-[#fce94f] text-black border-2 border-black hover:scale-105 transition-all duration-200'
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           }`}
         >
           전송
         </button>
-      </div>
+      </form>
 
       {/* 하단 +버튼 확장 메뉴 */}
       {isMenuOpen && (
