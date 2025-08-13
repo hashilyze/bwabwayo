@@ -14,11 +14,12 @@ interface ReviewModalProps {
   buyerId: number
   sellerId: number
   productId: number
+  saleId: number
   onConfirm: () => void
   onCancel: () => void
 }
 
-export default function ReviewModal({ roomId, buyerId, sellerId, productId, onConfirm, onCancel }: ReviewModalProps) {
+export default function ReviewModal({ roomId, buyerId, sellerId, productId, saleId, onConfirm, onCancel }: ReviewModalProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [rating, setRating] = useState(0)
   const [reviewTags, setReviewTags] = useState<ReviewTag[]>([])
@@ -89,7 +90,8 @@ export default function ReviewModal({ roomId, buyerId, sellerId, productId, onCo
           sellerId,
           rating,
           evaluationItemsId: selectedTags,
-          productId: productId
+          productId: productId,
+          saleId: saleId
         }),
       })
 

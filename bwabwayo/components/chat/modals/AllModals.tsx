@@ -976,6 +976,7 @@ const ConfirmPurchaseModal = ({ message }: { message: ChatMessage }) => {
 const EndTradeModal = ({ message }: { message: ChatMessage }) => {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const chatInfo = useChatRoomInfo(); // 전역 정보 사용
+  const saleId = Number(message.content);
 
   const handleReviewConfirm = () => {
     console.log('리뷰 등록 완료');
@@ -1025,13 +1026,14 @@ const EndTradeModal = ({ message }: { message: ChatMessage }) => {
           buyerId={chatInfo?.buyer.id || 0}
           sellerId={chatInfo?.seller.id || 0}
           productId={chatInfo?.product.id || 0}
+          saleId={saleId || 0}
           onConfirm={handleReviewConfirm}
           onCancel={handleReviewCancel}
         />
       </OverlayPortal>
 
       {/* 시간 표시 */}
-      <div className="my-4 text-md text-[#666666] text-center">
+      {/* <div className="my-4 text-md text-[#666666] text-center">
         <span className="">
           {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
             hour: 'numeric',
@@ -1039,7 +1041,7 @@ const EndTradeModal = ({ message }: { message: ChatMessage }) => {
             hour12: true
           })}
         </span>
-      </div>
+      </div> */}
     </>
   )
 }
