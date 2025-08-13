@@ -9,6 +9,7 @@ import AllModals from '@/components/chat/modals/AllModals'
 import VideoPortal from '@/components/openvidu/VideoPortal'
 import ReservationModal from '@/components/chat/ReservationModal'
 import { ReportModal } from '@/components/chat/modals/ReportModal'
+import Link from 'next/link'
 
 // 전역에서 사용할 채팅방 정보 가져오는 함수 (AllModals.tsx와 동일)
 const useChatRoomInfo = () => {
@@ -128,7 +129,7 @@ export default function ChatRoomPage() {
     }
   }, [currentSelectedRoom, roomId, getMessageHistory, connectStomp, isInitialized])
 
-  // 메시지 히스토리를 2초마다 업데이트
+  // 메시지 히스토리를 1초마다 업데이트
   useEffect(() => {
     if (!isInitialized || !roomId) return;
     const intervalId = setInterval(async () => {
@@ -138,7 +139,7 @@ export default function ChatRoomPage() {
       } catch (error) {
         console.error('❌ 메시지 히스토리 업데이트 실패:', error);
       }
-    }, 2000); // 2초마다 실행
+    }, 1000); // 1초마다 실행
 
     // 컴포넌트 언마운트 시 인터벌 정리
     return () => {
@@ -150,18 +151,27 @@ export default function ChatRoomPage() {
   // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동 (개선된 버전)
   useEffect(() => {
     if (messagesEndRef.current && messages && messages.length > 0) {
-      // DOM 업데이트 완료 후 스크롤
-      const scrollToBottom = () => {
-        if (messagesEndRef.current) {
-          // 부드러운 스크롤 대신 즉시 스크롤하여 깜빡임 방지
-          messagesEndRef.current.scrollIntoView({ 
-            block: 'end' 
-          });
-        }
-      };
+      // 현재 스크롤 위치 확인
+      const chatContainer = chatContainerRef.current;
+      if (!chatContainer) return;
       
-      // 약간의 지연을 두어 DOM 업데이트 완료 후 스크롤
-      setTimeout(scrollToBottom, 10);
+      const isNearBottom = chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < 100;
+      
+      // 사용자가 맨 아래 근처에 있거나 새로운 메시지가 추가된 경우에만 스크롤
+      if (isNearBottom) {
+        // DOM 업데이트 완료 후 스크롤
+        const scrollToBottom = () => {
+          if (messagesEndRef.current) {
+            // 부드러운 스크롤 대신 즉시 스크롤하여 깜빡임 방지
+            messagesEndRef.current.scrollIntoView({ 
+              block: 'end' 
+            });
+          }
+        };
+        
+        // 약간의 지연을 두어 DOM 업데이트 완료 후 스크롤
+        setTimeout(scrollToBottom, 10);
+      }
     }
   }, [messages]);
 
@@ -232,7 +242,7 @@ export default function ChatRoomPage() {
             />
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-md text-gray-500">{chatInfo.product.title}</span>
+            <Link className="text-md text-gray-500" href={`/product/${chatInfo.product.id}`}>{chatInfo.product.title}</Link>
             <span className="text-md font-semibold text-black">{chatInfo.product.formattedPrice}</span>
           </div>
         </div>
