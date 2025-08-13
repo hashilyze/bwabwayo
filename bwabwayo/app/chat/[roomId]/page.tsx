@@ -128,6 +128,28 @@ export default function ChatRoomPage() {
     }
   }, [currentSelectedRoom, roomId, getMessageHistory, connectStomp, isInitialized])
 
+  // 메시지 히스토리를 2초마다 업데이트
+  useEffect(() => {
+    if (!isInitialized || !roomId) return;
+
+    console.log('⏰ 메시지 히스토리 자동 업데이트 시작 (2초마다)');
+    
+    const intervalId = setInterval(async () => {
+      try {
+        console.log('🔄 메시지 히스토리 업데이트 중...');
+        await getMessageHistory(roomId);
+      } catch (error) {
+        console.error('❌ 메시지 히스토리 업데이트 실패:', error);
+      }
+    }, 2000); // 2초마다 실행
+
+    // 컴포넌트 언마운트 시 인터벌 정리
+    return () => {
+      console.log('⏰ 메시지 히스토리 자동 업데이트 중지');
+      clearInterval(intervalId);
+    };
+  }, [isInitialized, roomId, getMessageHistory]);
+
   // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동 (개선된 버전)
   useEffect(() => {
     if (messagesEndRef.current && messages && messages.length > 0) {
@@ -135,7 +157,7 @@ export default function ChatRoomPage() {
       const scrollToBottom = () => {
         if (messagesEndRef.current) {
           messagesEndRef.current.scrollIntoView({ 
-            behavior: 'smooth',
+            // behavior: 'smooth',
             block: 'end' 
           });
         }

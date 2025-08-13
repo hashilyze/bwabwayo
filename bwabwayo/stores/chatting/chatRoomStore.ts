@@ -343,10 +343,39 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
             const response = await useAuthStore.getState().authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/chatrooms/${roomId}?page=0`);
             const data = await response.json();
             console.log('📥 메시지 히스토리 수신:', data);
-            set({ messages: data })
+            
+            // 기존 메시지와 새로운 메시지를 비교하여 중복 방지
+            set(state => {
+                const currentMessages = Array.isArray(state.messages) ? state.messages : [];
+                const newMessages = Array.isArray(data) ? data : [];
+                
+                if (currentMessages.length === 0) {
+                    // 첫 로드인 경우 모든 메시지 설정
+                    return { messages: newMessages };
+                }
+                
+                // 기존 메시지와 새로운 메시지를 비교하여 중복 제거
+                const existingMessageIds = new Set(
+                    currentMessages.map(msg => `${msg.senderId}-${msg.content}-${msg.createdAt}`)
+                );
+                
+                const uniqueNewMessages = newMessages.filter(msg => 
+                    !existingMessageIds.has(`${msg.senderId}-${msg.content}-${msg.createdAt}`)
+                );
+                
+                if (uniqueNewMessages.length > 0) {
+                    console.log('📝 새로운 메시지 발견:', uniqueNewMessages.length, '개');
+                    return { 
+                        messages: [...currentMessages, ...uniqueNewMessages] 
+                    };
+                }
+                
+                // 새로운 메시지가 없으면 기존 상태 유지
+                return state;
+            });
         } catch (error) {
             console.error(`❌ 채팅방 ${roomId} 메시지 히스토리 로드 실패:`, error);
-            set({ messages: [] });
+            // 에러 발생 시에도 기존 메시지는 유지
         }
     },
 
