@@ -141,23 +141,23 @@ export const ReportModal = ({ isOpen, onClose, sellerNickname, sellerId }: Repor
   return (
     <OverlayPortal open={isOpen} onClose={onClose}>
       <div className="bg-white rounded-[30px] w-[476px] max-h-[90vh] overflow-y-auto shadow-[2px_4px_18px_0px_rgba(0,0,0,0.12)]">
-                 {/* 헤더 */}
-         <div className="relative pt-[50px] pb-[15px]">
+        {/* 헤더 */}
+        <div className="relative pt-[50px] pb-[15px]">
           <div className="flex flex-col items-center">
-                                                                             <div className="flex items-center gap-2 mb-[15px]">
-                <h2 className="text-[24px] font-bold text-black font-['SUITE'] leading-[1.248]">
-                  신고하기
-                </h2>
-                <img 
-                  src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/report-icon.png`} 
-                  alt="신고 아이콘" 
-                  className="w-[25px] h-[25px] -mt-1"
-                />
-              </div>
-             <p className="text-[12px] font-medium text-black font-['SUITE'] leading-[1.248] text-center max-w-[226px]">
-               거래 중 불쾌하거나 수상한 사용자가 있으신가요?<br />
-               안전한 거래 환경을 위해 신고해 주세요!
-             </p>
+            <div className="flex items-center gap-2 mb-[15px]">
+              <h2 className="text-[24px] font-bold text-black font-['SUITE'] leading-[1.248]">
+                신고하기
+              </h2>
+              <img 
+                src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/report-icon.png`} 
+                alt="신고 아이콘" 
+                className="w-[25px] h-[25px] -mt-1"
+              />
+            </div>
+            <p className="text-[12px] font-medium text-black font-['SUITE'] leading-[1.248] text-center max-w-[226px]">
+              거래 중 불쾌하거나 수상한 사용자가 있으신가요?<br />
+              안전한 거래 환경을 위해 신고해 주세요!
+            </p>
           </div>
           <button
             onClick={onClose}
@@ -169,42 +169,43 @@ export const ReportModal = ({ isOpen, onClose, sellerNickname, sellerId }: Repor
           </button>
         </div>
 
-                                             {/* 신고할 상점명 */}
-          <div className="px-[49px] pb-[8px]">
-            <h3 className="text-[12px] font-semibold text-black font-['SUITE'] leading-[1.248]">
-              신고할 상점명
-            </h3>
-          </div>
+        {/* 신고할 상점명 */}
+        <div className="px-[49px] pb-[8px]">
+          <h3 className="text-[12px] font-semibold text-black font-['SUITE'] leading-[1.248]">
+            신고할 상점명
+          </h3>
+        </div>
 
-                                {/* 판매자 닉네임 */}
-            <div className="px-[55px] pb-[8px]">
-              <p className="text-[16px] font-medium text-[#7C7C7C] font-['SUITE'] leading-[1.248] text-left">
-                {sellerNickname}
-              </p>
-            </div>
+        {/* 판매자 닉네임 */}
+        <div className="px-[55px] pb-[8px]">
+          <p className="text-[16px] font-medium text-[#7C7C7C] font-['SUITE'] leading-[1.248] text-left">
+            {sellerNickname}
+          </p>
+        </div>
 
-                    {/* 신고 내용 */}
-          <div className="px-[49px] pb-[8px]">
+        {/* 신고 내용 */}
+        <div className="px-[49px] pb-[8px]">
           <h3 className="text-[12px] font-semibold text-black font-['SUITE'] leading-[1.248]">
             신고 내용
           </h3>
         </div>
 
-                 {/* 신고 내용 입력 */}
-         <div className="px-[48px] pb-[15px]">
+        {/* 신고 내용 입력 */}
+        <div className="px-[48px] pb-[15px]">
           <div className="w-[380px] h-[152px] border-[0.7px] border-[#A2A2A2] rounded-[20px] p-[13px] relative">
-                         <textarea
-               value={description}
-               onChange={(e) => {
-                 if (e.target.value.length <= 255) {
-                   setDescription(e.target.value);
-                 }
-               }}
-               placeholder="정확한 답변을 위해 신고 내용을 자세히 작성해 주세요."
-               className="w-full h-full resize-none border-none outline-none text-[14px] font-medium text-black font-['SUITE'] leading-[1.248] placeholder-[#A2A2A2]"
-               rows={8}
-               maxLength={255}
-             />
+            <textarea
+              value={description}
+              onChange={(e) => {
+                if (e.target.value.length <= 255) {
+                  setDescription(e.target.value);
+                }
+              }}
+              placeholder="정확한 답변을 위해 신고 내용을 자세히 작성해 주세요."
+              className="w-full h-full resize-none border-none outline-none text-[14px] font-medium text-black font-['SUITE'] leading-[1.248] placeholder-[#A2A2A2]"
+              style={{ whiteSpace: 'pre-wrap' }}
+              rows={8}
+              maxLength={255}
+            />
             <div className="absolute bottom-2 right-2">
               <span className="text-[12px] text-[#A2A2A2] font-['SUITE']">
                 {description.length}/255
@@ -213,11 +214,11 @@ export const ReportModal = ({ isOpen, onClose, sellerNickname, sellerId }: Repor
           </div>
         </div>
 
-                 {/* 사진 첨부 */}
-         <div className="px-[48px] pb-[20px]">
-                     <h3 className="text-[12px] font-semibold text-black font-['SUITE'] leading-[1.248] mb-[8px]">
-             사진 첨부
-           </h3>
+        {/* 사진 첨부 */}
+        <div className="px-[48px] pb-[20px]">
+          <h3 className="text-[12px] font-semibold text-black font-['SUITE'] leading-[1.248] mb-[8px]">
+            사진 첨부
+          </h3>
           <div className="flex items-center space-x-4 overflow-x-auto pb-4">
             <div
               onClick={handleUploadClick}
@@ -231,8 +232,8 @@ export const ReportModal = ({ isOpen, onClose, sellerNickname, sellerId }: Repor
               ) : (
                 <>
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                   <span className="text-xs text-gray-500 mt-1">{imgPreviews.length}/10</span>
                 </>
@@ -258,7 +259,7 @@ export const ReportModal = ({ isOpen, onClose, sellerNickname, sellerId }: Repor
                   aria-label="이미지 삭제"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
@@ -266,8 +267,8 @@ export const ReportModal = ({ isOpen, onClose, sellerNickname, sellerId }: Repor
           </div>
         </div>
 
-                 {/* 신고하기 버튼 */}
-         <div className="px-[63px] pb-[31px]">
+        {/* 신고하기 버튼 */}
+        <div className="px-[63px] pb-[31px]">
           <button
             onClick={handleSubmit}
             className="w-[352px] h-[46px] bg-[#FFAE00] border-[1.5px] border-black rounded-[30px] text-[18px] font-semibold text-black font-['SUITE'] leading-[1.248] hover:bg-[#FF9500] transition-colors"

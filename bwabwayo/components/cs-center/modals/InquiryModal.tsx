@@ -10,7 +10,6 @@ interface InquiryModalProps {
 }
 
 export const InquiryModal = ({ isOpen, onClose }: InquiryModalProps) => {
-  const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [imgFiles, setImgFiles] = useState<File[]>([]);
   const [imgPreviews, setImgPreviews] = useState<string[]>([]);
@@ -138,7 +137,7 @@ export const InquiryModal = ({ isOpen, onClose }: InquiryModalProps) => {
 
   return (
     <OverlayPortal open={isOpen} onClose={onClose}>
-             <div className="bg-white rounded-[30px] w-[550px] max-h-[90vh] overflow-y-auto shadow-[2px_4px_18px_0px_rgba(0,0,0,0.12)]">
+      <div className="bg-white rounded-[30px] w-[550px] max-h-[90vh] overflow-y-auto shadow-[2px_4px_18px_0px_rgba(0,0,0,0.12)]">
         {/* 헤더 */}
         <div className="relative pt-[41px] pb-[20px]">
           <h2 className="text-[24px] font-bold text-black text-center font-['SUITE'] leading-[1.248]">
@@ -162,8 +161,8 @@ export const InquiryModal = ({ isOpen, onClose }: InquiryModalProps) => {
         </div>
 
         {/* 문의 내용 입력 */}
-                 <div className="px-[48px] pb-[10px]">
-           <div className="w-[450px] h-[140px] border-[0.7px] border-[#A2A2A2] rounded-[20px] p-[13px] relative">
+        <div className="px-[48px] pb-[10px]">
+          <div className="w-[450px] h-[140px] border-[0.7px] border-[#A2A2A2] rounded-[20px] p-[13px] relative">
             <textarea
               value={description}
               onChange={(e) => {
@@ -173,6 +172,7 @@ export const InquiryModal = ({ isOpen, onClose }: InquiryModalProps) => {
               }}
               placeholder="정확한 답변을 위해 문의 내용을 자세히 작성해 주세요."
               className="w-full h-full resize-none border-none outline-none text-[14px] font-medium text-black font-['SUITE'] leading-[1.248] placeholder-[#A2A2A2] placeholder:text-[12px] placeholder:font-semibold"
+              style={{ whiteSpace: 'pre-wrap' }}
               rows={8}
               maxLength={255}
             />
@@ -184,86 +184,86 @@ export const InquiryModal = ({ isOpen, onClose }: InquiryModalProps) => {
           </div>
         </div>
 
-                  {/* 사진 첨부 */}
-           <div className="px-[48px] pb-[0px]">
-             <h3 className="text-[14px] font-semibold text-black font-['SUITE'] leading-[1.248] mb-[12px]">
-               사진 첨부
-             </h3>
-            <div className="flex items-center space-x-4 overflow-x-auto pb-4">
-              <div
-                onClick={handleUploadClick}
-                className={`flex-shrink-0 w-16 h-16 bg-gray-100 rounded-lg flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 hover:bg-gray-200 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                {isUploading ? (
-                  <div className="flex flex-col items-center">
-                    <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mb-1"></div>
-                    <span className="text-xs text-gray-500">업로드 중...</span>
-                  </div>
-                ) : (
-                  <>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span className="text-xs text-gray-500 mt-1">{imgPreviews.length}/10</span>
-                  </>
-                )}
-              </div>
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                disabled={isUploading}
-                className="hidden"
-              />
-              {imgPreviews.map((preview, index) => (
-                <div key={preview} className="relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden">
-                  <img src={preview} alt={`이미지 미리보기 ${index + 1}`} className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteImage(index)}
-                    disabled={isUploading}
-                    className="absolute top-1 right-1 bg-black bg-opacity-50 text-white rounded-full p-0.5 hover:bg-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed"
-                    aria-label="이미지 삭제"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-                                             {/* 유의사항 */}
-                      <div className="px-[45px] pb-[8px] pt-[0px]">
-             <div className="w-[450px] bg-[#F6F8F9] rounded-[20px] p-[20px] relative">
-              <h3 className="text-[14px] font-semibold text-black font-['SUITE'] leading-[1.248] mb-[8px]">
-                문의 작성 시 유의사항
-              </h3>
-              {/* 구분선 */}
-              <div className="w-full h-[0.5px] bg-[#ACADB0] mb-[12px]"></div>
-              <div className="text-[12px] font-medium text-[#A2A2A2] font-['SUITE'] leading-[1.4] space-y-[8px]">
-                <p>• 상담에 필요한 정보 외 개인정보를 포함하지 않도록 주의해주세요.</p>
-                <p>• 산업안전 보건법에 따라 고객응대 근로자 보호조치를 시행하고 있어요.</p>
-                <p>• 욕설 또는 폭언을 하지 말아주세요.</p>
-                <p>• 자주묻는질문을 확인하면 답변을 빨리 받을 수 있어요.</p>
-                <p>• 접수는 24시간 가능하지만, 답변은 9시 - 18시 사이에 순차적으로 받을 수 있어요.</p>
-              </div>
-            </div>
-          </div>
-
-                                    {/* 저장하기 버튼 */}
-                     <div className="px-[48px] pb-[30px]">
-                             <button 
-                    onClick={handleSubmit}
-              className="w-[450px] h-[46px] bg-[#FFAE00] border-[1.5px] border-black rounded-[30px] text-[18px] font-semibold text-black font-['SUITE'] leading-[1.248] hover:bg-[#FF9500] transition-colors"
+        {/* 사진 첨부 */}
+        <div className="px-[48px] pb-[0px]">
+          <h3 className="text-[14px] font-semibold text-black font-['SUITE'] leading-[1.248] mb-[12px]">
+            사진 첨부
+          </h3>
+          <div className="flex items-center space-x-4 overflow-x-auto pb-4">
+            <div
+              onClick={handleUploadClick}
+              className={`flex-shrink-0 w-16 h-16 bg-gray-100 rounded-lg flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 hover:bg-gray-200 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-             저장하기
-           </button>
-         </div>
+              {isUploading ? (
+                <div className="flex flex-col items-center">
+                  <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mb-1"></div>
+                  <span className="text-xs text-gray-500">업로드 중...</span>
+                </div>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span className="text-xs text-gray-500 mt-1">{imgPreviews.length}/10</span>
+                </>
+              )}
+            </div>
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              disabled={isUploading}
+              className="hidden"
+            />
+            {imgPreviews.map((preview, index) => (
+              <div key={preview} className="relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden">
+                <img src={preview} alt={`이미지 미리보기 ${index + 1}`} className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => handleDeleteImage(index)}
+                  disabled={isUploading}
+                  className="absolute top-1 right-1 bg-black bg-opacity-50 text-white rounded-full p-0.5 hover:bg-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="이미지 삭제"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 유의사항 */}
+        <div className="px-[45px] pb-[8px] pt-[0px]">
+          <div className="w-[450px] bg-[#F6F8F9] rounded-[20px] p-[20px] relative">
+            <h3 className="text-[14px] font-semibold text-black font-['SUITE'] leading-[1.248] mb-[8px]">
+              문의 작성 시 유의사항
+            </h3>
+            {/* 구분선 */}
+            <div className="w-full h-[0.5px] bg-[#ACADB0] mb-[12px]"></div>
+            <div className="text-[12px] font-medium text-[#A2A2A2] font-['SUITE'] leading-[1.4] space-y-[8px]">
+              <p>• 상담에 필요한 정보 외 개인정보를 포함하지 않도록 주의해주세요.</p>
+              <p>• 산업안전 보건법에 따라 고객응대 근로자 보호조치를 시행하고 있어요.</p>
+              <p>• 욕설 또는 폭언을 하지 말아주세요.</p>
+              <p>• 자주묻는질문을 확인하면 답변을 빨리 받을 수 있어요.</p>
+              <p>• 접수는 24시간 가능하지만, 답변은 9시 - 18시 사이에 순차적으로 받을 수 있어요.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* 저장하기 버튼 */}
+        <div className="px-[48px] pb-[30px]">
+          <button 
+            onClick={handleSubmit}
+            className="w-[450px] h-[46px] bg-[#FFAE00] border-[1.5px] border-black rounded-[30px] text-[18px] font-semibold text-black font-['SUITE'] leading-[1.248] hover:bg-[#FF9500] transition-colors"
+          >
+            저장하기
+          </button>
+        </div>
       </div>
     </OverlayPortal>
   );
