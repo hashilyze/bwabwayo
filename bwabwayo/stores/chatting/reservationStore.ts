@@ -48,22 +48,6 @@ export const useReservationStore = create<ReservationState>((set) => ({
         method: 'POST',
         body: JSON.stringify(scheduleData),
       });
-
-      /*if (response.ok) {
-        // 예약 완료 후 채팅방에 공지글 전송
-        const { sendMessage } = useChatRoomStore.getState();
-        const formattedDate = startAt.toLocaleDateString('ko-KR', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-        
-        //const noticeMessage = `📅 화상 채팅이 예약되었습니다!\n\n📆 예약 일시: ${formattedDate}\n\n⏰ 예약된 시간에 맞춰 화상 채팅을 시작해주세요.`;
-        
-        //sendMessage(chatRoomId, noticeMessage);
-      }*/
     }
     catch (error) {
       console.error('Failed to add schedule', error)

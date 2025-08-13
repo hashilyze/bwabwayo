@@ -57,7 +57,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ onClose, chatRoomId
           scheduleId: Date.now() // 임시 ID (실제로는 서버에서 받아야 함)
         });
         
-        await sendMessage(chatRoomId, reservationMessage, "RESERVE_VIDEOCALL");
+        // await sendMessage(chatRoomId, reservationMessage, "RESERVE_VIDEOCALL");
         
         alert("예약되었습니다.");
         onClose(); // 모달 닫기
