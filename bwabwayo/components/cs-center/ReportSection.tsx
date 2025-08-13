@@ -3,10 +3,107 @@
 import { useReportStore } from "@/stores/cs-store/reportStore";
 import { useEffect, useState } from "react";
 import Pagination from "@/components/common/Pagination";
+import { OverlayPortal } from "@/components/chat/modals/OverlayPortal";
+
+interface ImageModalContentProps {
+    images: string[];
+    currentIndex: number;
+    onClose: () => void;
+    onNext: () => void;
+    onPrev: () => void;
+}
+
+const ImageModalContent = ({ images, currentIndex, onClose, onNext, onPrev }: ImageModalContentProps) => {
+    // 키보드 이벤트 처리
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                onPrev();
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                onNext();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                onClose();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onPrev, onNext, onClose]);
+
+    return (
+        <div className="relative max-w-4xl max-h-[90vh] p-4">
+            {/* 이미지 - 애니메이션 추가 */}
+            <div className="transition-all duration-300 ease-in-out">
+                <img 
+                    src={images[currentIndex]} 
+                    alt={`이미지 ${currentIndex + 1}`}
+                    className="max-w-full max-h-full object-contain"
+                    key={currentIndex} // 키 변경으로 애니메이션 트리거
+                />
+            </div>
+            
+            {/* 네비게이션 화살표 - 화면 좌우에서 10% 간격으로 고정 */}
+            {images.length > 1 && (
+                <>
+                    <button 
+                        onClick={onPrev}
+                        className={`fixed left-[10%] top-1/2 transform -translate-y-1/2 text-black hover:text-gray-700 w-24 h-24 flex items-center justify-center transition-all duration-200 z-50 ${
+                            currentIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'opacity-100'
+                        }`}
+                        disabled={currentIndex === 0}
+                    >
+                        <svg 
+                            className="w-20 h-20" 
+                            fill="currentColor" 
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                        >
+                            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                        </svg>
+                    </button>
+                    <button 
+                        onClick={onNext}
+                        className={`fixed right-[10%] top-1/2 transform -translate-y-1/2 text-black hover:text-gray-700 w-24 h-24 flex items-center justify-center transition-all duration-200 z-50 ${
+                            currentIndex === images.length - 1 ? 'opacity-30 cursor-not-allowed' : 'opacity-100'
+                        }`}
+                        disabled={currentIndex === images.length - 1}
+                    >
+                        <svg 
+                            className="w-20 h-20" 
+                            fill="currentColor" 
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                        >
+                            <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                        </svg>
+                    </button>
+                </>
+            )}
+            
+            {/* 이미지 인덱스 표시 - 화면 하단에 고정 */}
+            <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 text-white bg-black bg-opacity-50 px-3 py-1 rounded-full text-sm z-10">
+                {currentIndex + 1} / {images.length}
+            </div>
+        </div>
+    );
+};
 
 export const ReportSection = () => {
     const { reports, loading, error, getReports, totalPages, currentPage } = useReportStore();
     
+    const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
+    const [imageModal, setImageModal] = useState<{
+        isOpen: boolean;
+        images: string[];
+        currentIndex: number;
+    }>({
+        isOpen: false,
+        images: [],
+        currentIndex: 0
+    });
     const [currentPageState, setCurrentPageState] = useState(1);
     const pageSize = 10;
 
@@ -16,6 +113,50 @@ export const ReportSection = () => {
 
     const handlePageChange = (page: number) => {
         setCurrentPageState(page);
+    };
+
+    const toggleItem = (id: number) => {
+        const newExpandedItems = new Set(expandedItems);
+        if (newExpandedItems.has(id)) {
+            newExpandedItems.delete(id);
+        } else {
+            newExpandedItems.add(id);
+        }
+        setExpandedItems(newExpandedItems);
+    };
+
+    const openImageModal = (images: string[], startIndex: number = 0) => {
+        setImageModal({
+            isOpen: true,
+            images,
+            currentIndex: startIndex
+        });
+    };
+
+    const closeImageModal = () => {
+        setImageModal({
+            isOpen: false,
+            images: [],
+            currentIndex: 0
+        });
+    };
+
+    const nextImage = () => {
+        if (imageModal.currentIndex < imageModal.images.length - 1) {
+            setImageModal(prev => ({
+                ...prev,
+                currentIndex: prev.currentIndex + 1
+            }));
+        }
+    };
+
+    const prevImage = () => {
+        if (imageModal.currentIndex > 0) {
+            setImageModal(prev => ({
+                ...prev,
+                currentIndex: prev.currentIndex - 1
+            }));
+        }
     };
 
     const formatDate = (dateString: string) => {
@@ -108,34 +249,102 @@ export const ReportSection = () => {
                     </div>
                 ) : (
                     <div>
-                        {reports.map((report, index) => (
-                            <div key={report.id}>
-                                {/* 신고 항목 */}
-                                <div className="h-[100px] flex items-center px-5">
-                                    <div className="flex justify-between items-center w-full">
-                                        <div className="w-[250px] text-base font-medium text-gray-800">
-                                            {formatDate(report.createdAt)}
-                                        </div>
-                                        <div className="w-[420px] text-base font-medium text-gray-800">
-                                            {report.targetName}
-                                        </div>
-                                        <div className="w-[420px] text-base font-medium text-gray-800 truncate">
-                                            {report.title}
-                                        </div>
-                                        <div className="w-[150px]">
-                                            <span className="text-base font-medium text-gray-800">
-                                                {report.reply ? '답변완료' : '검토중'}
-                                            </span>
+                        {reports.map((report, index) => {
+                            const imageUrls = report.images?.map(img => img.imageUrl) || [];
+                            const hasImages = imageUrls.length > 0;
+                            
+                            return (
+                                <div key={report.id}>
+                                    {/* 신고 항목 */}
+                                    <div 
+                                        className="h-[100px] flex items-center px-5 cursor-pointer hover:bg-[#F9FAFB] transition-colors"
+                                        onClick={() => toggleItem(report.id)}
+                                    >
+                                        <div className="flex justify-between items-center w-full">
+                                            <div className="w-[250px] text-base font-medium text-gray-800">
+                                                {formatDate(report.createdAt)}
+                                            </div>
+                                            <div className="w-[420px] text-base font-medium text-gray-800">
+                                                {report.targetName}
+                                            </div>
+                                            <div className="w-[420px] text-base font-medium text-gray-800 truncate">
+                                                {report.title}
+                                            </div>
+                                            <div className="w-[150px] flex items-center gap-2">
+                                                <span className="text-base font-medium text-gray-800">
+                                                    {report.reply ? '답변완료' : '검토중'}
+                                                </span>
+                                                {/* 회전하는 화살표 */}
+                                                <div className={`w-4 h-4 transition-transform duration-200 ${
+                                                    expandedItems.has(report.id) ? 'rotate-90' : ''
+                                                }`}>
+                                                    <svg 
+                                                        className="w-4 h-4 text-[#9CA3AF]" 
+                                                        fill="none" 
+                                                        stroke="currentColor" 
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                                    </svg>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
+                                    
+                                    {/* 확장된 내용 */}
+                                    <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                                        expandedItems.has(report.id) ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                                    }`}>
+                                        <div className="px-5 py-4 space-y-4 bg-[#F9FAFB]">
+                                            {/* 신고 내용과 이미지 섹션 */}
+                                            <div className="flex gap-4 ml-4">
+                                                {/* 신고할 때 넣은 이미지 */}
+                                                {hasImages && (
+                                                    <div className="relative w-20 h-20 flex-shrink-0">
+                                                        <img 
+                                                            src={imageUrls[0]}
+                                                            alt="신고 이미지"
+                                                            className="w-full h-full object-cover rounded-lg cursor-pointer"
+                                                            onClick={() => openImageModal(imageUrls, 0)}
+                                                        />
+                                                        {/* 이미지 개수 표시 */}
+                                                        {imageUrls.length > 1 && (
+                                                            <div className="absolute bottom-0 right-0 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded-tl-lg">
+                                                                +{imageUrls.length - 1}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                
+                                                {/* 신고할 내용 */}
+                                                <div className="flex-1">
+                                                    <div className="text-[14px] text-[#374151] leading-[1.6]" style={{ whiteSpace: 'pre-wrap' }}>
+                                                        {report.description}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* 답변 섹션 - 회색 박스 */}
+                                            {report.reply && (
+                                                <div className="bg-[#F3F4F6] rounded-lg p-4 mt-4">
+                                                    <div className="text-[14px] font-medium text-[#111827] mb-2">
+                                                        답변
+                                                    </div>
+                                                    <div className="text-[14px] text-[#374151] leading-[1.6]" style={{ whiteSpace: 'pre-wrap' }}>
+                                                        {report.reply}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    
+                                    {/* 구분선 (마지막 항목 제외) */}
+                                    {index < reports.length - 1 && (
+                                        <div className="h-[1px] bg-gray-200 mx-5"></div>
+                                    )}
                                 </div>
-                                
-                                {/* 구분선 (마지막 항목 제외) */}
-                                {index < reports.length - 1 && (
-                                    <div className="h-[1px] bg-gray-200 mx-5"></div>
-                                )}
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>
@@ -150,6 +359,17 @@ export const ReportSection = () => {
                     />
                 </div>
             )}
+            
+            {/* 이미지 모달 */}
+            <OverlayPortal open={imageModal.isOpen} onClose={closeImageModal}>
+                <ImageModalContent
+                    images={imageModal.images}
+                    currentIndex={imageModal.currentIndex}
+                    onClose={closeImageModal}
+                    onNext={nextImage}
+                    onPrev={prevImage}
+                />
+            </OverlayPortal>
         </div>
     );
 };
