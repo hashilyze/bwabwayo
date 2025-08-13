@@ -61,11 +61,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   const { 
     roomList, 
     getRoomList, 
-    addChatRoom, 
     setCurrentSelectedRoom, 
-    isVideoChatOpen, 
-    videoRoomId, 
-    closeVideoChat,
     connectStomp,
     disconnectStomp,
     isConnected
@@ -118,9 +114,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     const intervalId = setInterval(async () => {
       try {
         await getRoomList();
-        // console.log('📋 2초마다 채팅방 목록 폴링 완료');
       } catch (error) {
-        // console.error('📋 채팅방 목록 폴링 실패:', error);
       }
     }, 2000);
 

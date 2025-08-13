@@ -168,7 +168,6 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         try{
             const response = await useAuthStore.getState().authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/chatrooms`)
             const data = await response.json()
-            console.log('📋 채팅방 목록 수신:', data)
             set({ roomList: data })
             
             // 현재 URL의 roomId와 일치하는 채팅방을 찾아서 currentSelectedRoom 설정
@@ -176,7 +175,6 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
             if (currentRoomId && data && Array.isArray(data)) {
                 const matchingRoom = data.find((room: ChatRoom) => room.roomId.toString() === currentRoomId);
                 if (matchingRoom) {
-                    console.log('🎯 현재 채팅방 설정:', matchingRoom);
                     set({ currentSelectedRoom: matchingRoom });
                 }
             }

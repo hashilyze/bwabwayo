@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { useChatRoomStore } from "@/stores/chatting/chatRoomStore";
 
 const jwtToken =
@@ -11,6 +11,7 @@ const jwtToken =
 export function PaymentSuccessPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const params = useParams();
   const [responseData, setResponseData] = useState(null);
   const { sendMessage } = useChatRoomStore();
 
@@ -49,11 +50,17 @@ export function PaymentSuccessPage() {
         setResponseData(data);
         
         // 결제 성공 후 채팅방에 배송지 입력 메시지 전송
-        const roomId = searchParams.get("roomId");
+        const roomId = params.roomId || searchParams.get("roomId");
         if (roomId) {
-          // INPUT_DELIVERY_ADDRESS 타입 메시지 전송
-          sendMessage(parseInt(roomId), "배송지 입력이 필요합니다.", "INPUT_DELIVERY_ADDRESS");
-          console.log("✅ 배송지 입력 메시지 전송 완료");
+          try {
+            // INPUT_DELIVERY_ADDRESS 타입 메시지 전송
+            sendMessage(parseInt(roomId.toString()), "입금이 완료되었어요. 배송지를 입력해 주세요!", "INPUT_DELIVERY_ADDRESS");
+            console.log("✅ 배송지 입력 메시지 전송 완료 - roomId:", roomId);
+          } catch (error) {
+            console.error("❌ 배송지 입력 메시지 전송 실패:", error);
+          }
+        } else {
+          console.error("❌ roomId를 찾을 수 없습니다.");
         }
         
         // 새창을 바로 종료

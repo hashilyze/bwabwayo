@@ -128,22 +128,6 @@ export default function ChatRoomPage() {
     }
   }, [currentSelectedRoom, roomId, getMessageHistory, connectStomp, isInitialized])
 
-  // STOMP 연결 상태 모니터링
-  useEffect(() => {
-    console.log('🔌 STOMP 연결 상태:', isConnected);
-    if (isConnected && stompClient) {
-      console.log('✅ STOMP 클라이언트 연결됨');
-    }
-  }, [isConnected, stompClient]);
-
-  // 메시지 실시간 업데이트 감지
-  useEffect(() => {
-    console.log('📝 메시지 업데이트 감지:', messages?.length, '개');
-    if (messages && messages.length > 0) {
-      console.log('📨 최신 메시지:', messages[messages.length - 1]);
-    }
-  }, [messages]);
-
   // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동 (개선된 버전)
   useEffect(() => {
     if (messagesEndRef.current && messages && messages.length > 0) {
