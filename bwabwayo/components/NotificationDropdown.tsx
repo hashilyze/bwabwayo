@@ -116,13 +116,20 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
                         >
                             <div className="flex gap-3">
                                 <div className="flex-shrink-0">
-                                    <Image
+                                    {/* <Image
                                         src={notification.thumbnail}
                                         alt="상품 썸네일"
                                         width={48}
                                         height={48}
                                         className="w-12 h-12 object-cover rounded-lg"
-                                    />
+                                    /> */}
+                                    <img
+                                        // className="w-full h-full object-cover hover:scale-105 transition-all duration-300"
+                                        className="w-12 h-12 object-cover rounded-lg"
+                                        src={notification.thumbnail || '/image/no-image.jpg'}
+                                        alt={notification.title}
+                                        style={{ height: `${48}px`, width: `${48}px` }}
+                                        />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-start justify-between">
