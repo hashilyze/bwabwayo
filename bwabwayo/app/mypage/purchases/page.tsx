@@ -1,77 +1,47 @@
 // 파일 경로: app/shop/[id]/purchases/page.tsx
-'use client'; // '구매확정' 버튼 등 상호작용이 있으므로 클라이언트 컴포넌트로 선언합니다.
+'use client';
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useMyActivityStore, myPurchaseProduct } from "@/stores/mypage/myActivityStore"; // Zustand 스토어를 import 합니다.
-import Pagination from "@/components/common/Pagination"; // 페이지네이션 컴포넌트를 import 합니다.
+import { useMyActivityStore, myPurchaseProduct } from "@/stores/mypage/myActivityStore";
+import Pagination from "@/components/common/Pagination";
+import { useSearchParams, useRouter } from "next/navigation";
 
-// 더미 데이터
-const dummyPurchaseData: myPurchaseProduct[] = [
-  {
-    id: 1,
-    title: "아이폰 15 Pro Max 256GB 티타늄 아주좋은 티타늄 부서지지 않아요 대나무행주 대나무행주 흡수력이 좋아요 대나무행주 대나무행주 튼튼하니 좋아요",
-    thumbnail: "/image/no-image.jpg",
-    price: 2100000000,
-    deliveryStatus: "배송중",
-    courierName: "CJ대한통운",
-    trackingNumber: "1234567890",
-    purchaseStatus: 1, // 구매확정 가능한 상태
-  },
-  {
-    id: 2,
-    title: "삼성 갤럭시 S24 Ultra 512GB",
-    thumbnail: "/image/no-image.jpg",
-    price: 1800000,
-    deliveryStatus: "배송완료",
-    courierName: "한진택배",
-    trackingNumber: "9876543210",
-    purchaseStatus: 2, // 구매확정완료 상태
-  },
-  {
-    id: 3,
-    title: "애플 에어팟 프로 2세대",
-    thumbnail: "/image/no-image.jpg",
-    price: 350000,
-    deliveryStatus: "직거래",
-    courierName: "",
-    trackingNumber: "",
-    purchaseStatus: 1, // 구매확정 불가능한 상태
-  }
-];
-
-export default function MyPagePurchase() {
+// Suspense 내부에서 실제 로직을 처리할 컴포넌트
+function PurchaseContent() {
   const {
     purchaseList,
+    purchaseTotalPages,
     loading: purchaseListLoading,
     error: purchaseListError,
     fetchPurchases,
   } = useMyActivityStore();
+  
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  console.log('🛍️ [구매내역 페이지] Zustand 스토어에서 받은 구매 목록:', purchaseList);
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // 한 페이지에 5개의 구매 내역을 표시합니다.
+  // URL 쿼리 파라미터에서 현재 페이지를 가져옵니다. 없으면 1로 설정.
+  const currentPage = Number(searchParams.get('page')) || 1;
 
   useEffect(() => {
-    // 전체 구매 목록을 가져옵니다.
-    // 참고: 현재 fetchPurchases가 페이지별로 데이터를 가져온다면,
-    // 모든 데이터를 한 번에 가져오는 새로운 함수가 스토어에 필요할 수 있습니다.
-    // 여기서는 fetchPurchases(0)가 모든 데이터를 가져온다고 가정하고 진행합니다.
-    fetchPurchases(0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 마운트 시 한 번만 실행
-
-  // 페이지네이션을 위한 로직
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  // 더미 데이터와 실제 데이터를 합쳐서 사용
-  const allItems = [...dummyPurchaseData, ...(purchaseList || [])];
-  const currentItems = allItems.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(allItems.length / itemsPerPage);
+    // API는 페이지를 0부터 시작하므로, UI 페이지(1부터 시작)에서 1을 빼서 요청합니다.
+    fetchPurchases(currentPage - 1);
+  }, [currentPage, fetchPurchases]);
 
   const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
+    // 현재 경로를 유지하면서 page 쿼리 파라미터만 변경합니다.
+    router.push(`?page=${pageNumber}`);
+  };
+
+  // 날짜 포맷팅 함수 (예시)
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '날짜 정보 없음';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
   };
 
   return (
@@ -91,29 +61,48 @@ export default function MyPagePurchase() {
       
       {/* 상품 리스트 */}
       <div className="space-y-4">
-        {currentItems.length === 0 && !purchaseListLoading && (
+        {purchaseList.length === 0 && !purchaseListLoading && (
           <div className="text-center text-gray-500 py-20">
             구매 내역이 없습니다.
           </div>
         )}
         {purchaseListError && <div className="text-center text-red-500 py-20">에러: {purchaseListError}</div>}
 
-        {currentItems.map((item: myPurchaseProduct) => (
+        {purchaseList.map((item: myPurchaseProduct) => (
           <div key={item.id} className="bg-white rounded-[30px] border border-[#d9d9d9] p-6">
             <div className="flex items-center gap-6">
               {/* 상품 이미지 */}
-              <div className="w-[118px] h-[118px] bg-gray-200 rounded-xl overflow-hidden flex-shrink-0">
-                <img src={item.thumbnail} alt={item.title} className="object-cover w-full h-full" />
-              </div>
+              {/* ✨ 수정: relative 클래스 추가 */}
+              <div className="relative w-[118px] h-[118px] bg-gray-200 rounded-xl overflow-hidden flex-shrink-0">
+  <img 
+    src={item.thumbnail} 
+    alt={item.title} 
+    className="object-cover w-full h-full transition-all" 
+  />
+  {/* 테스트용 후에    {item.purchaseStatus=== 2로 반드시 변경 !!*/}
+  {/* ✨ 이미지 위 반투명 어두운 오버레이 */}
+  {item.purchaseStatus === 0 && (
+    <div className="absolute inset-0 bg-black/35" />
+  )}
+
+  {/* ✨ 구매완료 텍스트 오버레이 */}
+  {item.purchaseStatus === 0 && (
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className="w-20 h-20 rounded-full border-2 border-white flex items-center justify-center bg-black/35">
+        <span className="text-white text-lg font-bold">구매완료</span>
+      </div>
+    </div>
+  )}
+</div>
+
+
 
               {/* 제품명 */}
               <div className="flex flex-col gap-2 flex-1">
-                {/* 날짜 */}
                 <div className="text-[#7c7c7c] text-sm font-normal">
-                  등록일자 : 2025.08.06 14:00
+                  {/* 등록일자 등 추가 정보 */}
                 </div>
                 
-                {/* 상품명 */}
                 <Link href={`/product/${item.id}`} className="group">
                   <div className="text-black text-xl font-semibold leading-[25px]">
                     {item.title.length > 50 ? `${item.title.substring(0, 50)}...` : item.title}
@@ -128,22 +117,29 @@ export default function MyPagePurchase() {
 
               {/* 배송 상태 */}
               <div className="text-black text-base font-normal leading-[20px] w-28 text-center">
-                {item.deliveryStatus === '직거래' ? '직거래' : item.deliveryStatus}
+                {item.deliveryStatus || '배송 정보 없음'}
               </div>
 
               {/* 구매상태 (구매확정 버튼) */}
               <div className="w-32 text-center">
-                {item.purchaseStatus === 1 && (
+                {item.purchaseStatus === 0 && (
                   <button
-                    className="px-6 py-2 rounded-[20px] border border-black bg-[#ffae00] text-white text-base font-extrabold"
+                    className="w-full truncate px-4 py-2 rounded-[20px] border border-black bg-[#ffae00] text-white text-base font-extrabold"
                   >
                     구매중
                   </button>
                 )}
-
+                {item.purchaseStatus === 1 && (
+                  <button
+                    className="w-full truncate px-4 py-2 rounded-[20px] border border-black bg-[#ffae00] text-white text-base font-extrabold"
+                    // onClick={() => handleConfirmPurchase(item.id)}
+                  >
+                    구매확정대기
+                  </button>
+                )}
                 {item.purchaseStatus === 2 && (
                   <button
-                    className="px-6 py-2 rounded-[20px] border border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed text-base font-medium"
+                    className="w-full truncate px-4 py-2 rounded-[20px] border border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed text-base font-medium"
                     disabled
                   >
                     구매완료
@@ -158,9 +154,18 @@ export default function MyPagePurchase() {
       {/* 페이지네이션 */}
       <Pagination
         currentPage={currentPage}
-        totalPages={totalPages}
+        totalPages={purchaseTotalPages}
         onPageChange={handlePageChange}
       />
     </div>
+  );
+}
+
+// 최종적으로 내보내는 페이지 컴포넌트
+export default function MyPagePurchases() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center h-screen">페이지를 불러오는 중...</div>}>
+      <PurchaseContent />
+    </Suspense>
   );
 }
