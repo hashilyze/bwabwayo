@@ -24,12 +24,13 @@ interface Product {
   canDirect: boolean
   canDelivery: boolean
   shippingFee: number
-  saleStatus?: number
+  saleStatus?: string
   canVideoCall: boolean
   createdAt?: string
   canNegotiate: boolean
   description: string
   images: string[]
+  saleStatusCode?: number
 }
 // UI를 위한 상품 카드 데이터 타입
 export interface ProductCardUIData {
@@ -42,6 +43,7 @@ export interface ProductCardUIData {
   isLike: boolean;
   canVideoCall?: boolean; // 화상통화 가능 여부
   createdAt?: string; // 생성일
+  saleStatusCode?: number // 판매상태
   // ... 카드 표시에 필요한 다른 필드가 있다면 추가
 }
 
@@ -120,6 +122,7 @@ function adaptProductWithSeller(apiData: ProductWithSeller): ProductCardUIData {
     wishCount: Number(product.wishCount ?? 0), // string일 수 있으므로 숫자로 변환
     viewCount: Number(product.viewCount ?? 0),
     isLike: product.isLike ?? false,
+    saleStatusCode: product.saleStatusCode
   };
 }
 
