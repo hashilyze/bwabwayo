@@ -538,9 +538,9 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
   const isBuyer = chatInfo?.isCurrentUserBuyer;
 
   // chatInfo가 로드되지 않았거나 buyer가 아니면 모달을 보이지 않음
-  if (!chatInfo || !isBuyer) {
-    return null;
-  }
+  // if (!chatInfo || !isBuyer) {
+  //   return null;
+  // }
 
   return (
     <>

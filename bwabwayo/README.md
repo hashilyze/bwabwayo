@@ -5,6 +5,7 @@
 ### 전체 플로우
 
 채팅 모달 시스템은 거래 시작부터 완료까지의 전체 과정을 단계별로 관리하는 시스템입니다.
+모든 모달은 components/chat/modals/AllModals.tsx에 있습니다.
 
 ### 1. 거래 시작 (StartTradeModal)
 - **트리거**: ChatModal에서 "거래시작" 버튼 클릭
