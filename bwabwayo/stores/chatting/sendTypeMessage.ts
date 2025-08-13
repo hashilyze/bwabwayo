@@ -3,7 +3,7 @@ import { useAuthStore } from '@/stores/auth/authStore'
 
 interface SendTypeMessageStore {
     negotiation: (roomId: number) => Promise<void>
-    price: (roomId: number, finalPrice: number) => Promise<void>
+    price: (roomId: number, price: number) => Promise<void>
     invoice: (roomId: number, courier_name: string, tracking_number: string) => Promise<void>
 }
 
@@ -26,14 +26,14 @@ const useSendTypeMessageStore = create<SendTypeMessageStore>((set) => ({
     },
 
     // 최종 가격 설정
-    price: async (roomId: number, finalPrice: number) => {
+    price: async (roomId: number, price: number) => {
         try{
             const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/api/chatrooms/${roomId}/price`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ finalPrice })
+                body: JSON.stringify({ price })
             })
             console.log(response)
         } catch (error) {
