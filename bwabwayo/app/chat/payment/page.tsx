@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useChatRoomStore } from "@/stores/chatting/chatRoomStore";
 
 const jwtToken =
   "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI0Mzc1MTI2ODM0Iiwicm9sZSI6IlVTRVIiLCJ0b2tlblR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTQzMjk4OTEsImV4cCI6MzMyNDY3OTM4OTF9.Ri8aEdsV2_37aZ9As4npi_kBvWv0ccQlUzyKweE4B-opos4h-4Ceb7OO4LQUFJp7";
@@ -12,6 +13,7 @@ export default function PaymentSuccessPage() {
   const searchParams = useSearchParams();
   const [responseData, setResponseData] = useState(null);
   const [hasMessageSent, setHasMessageSent] = useState(false);
+  const { sendMessage } = useChatRoomStore();
 
   useEffect(() => {
     async function confirm() {
@@ -45,9 +47,25 @@ export default function PaymentSuccessPage() {
 
     confirm()
       .then((data) => {
-        
+        setResponseData(data);
+
+        // 결제 성공 후 채팅방에 배송지 입력 메시지 전송
+        const roomId = searchParams.get("roomId");
+        if (roomId && !hasMessageSent) {
+          console.log("💰 결제 성공! 배송지 입력 메시지 전송 시작...");
+          
+          // 약간의 지연 후 메시지 전송 (결제 확인 완료 후)
+          setTimeout(() => {
+            sendMessage(parseInt(roomId), "배송지 입력이 필요합니다.", "INPUT_DELIVERY_ADDRESS");
+            console.log("✅ 배송지 입력 메시지 전송 완료");
+            setHasMessageSent(true);
+          }, 500);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
       });
-  }, [searchParams, router, hasMessageSent]);
+}, [searchParams, router, sendMessage, hasMessageSent]);
 
   return (
     <div className="min-h-screen bg-[#e8f3ff] font-['Toss_Product_Sans',-apple-system,BlinkMacSystemFont,'Bazier_Square','Noto_Sans_KR','Segoe_UI','Apple_SD_Gothic_Neo',Roboto,'Helvetica_Neue',Arial,sans-serif]">

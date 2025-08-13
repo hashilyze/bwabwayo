@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-
+import { useChatRoomStore } from "@/stores/chatting/chatRoomStore";
 
 const jwtToken =
   "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI0Mzc1MTI2ODM0Iiwicm9sZSI6IlVTRVIiLCJ0b2tlblR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTQzMjk4OTEsImV4cCI6MzMyNDY3OTM4OTF9.Ri8aEdsV2_37aZ9As4npi_kBvWv0ccQlUzyKweE4B-opos4h-4Ceb7OO4LQUFJp7";
@@ -13,6 +13,7 @@ export function PaymentSuccessPage() {
   const searchParams = useSearchParams();
   const [responseData, setResponseData] = useState(null);
   const [hasMessageSent, setHasMessageSent] = useState(false);
+  const { sendMessage } = useChatRoomStore();
 
   useEffect(() => {
     async function confirm() {
@@ -53,76 +54,23 @@ export function PaymentSuccessPage() {
         if (roomId && !hasMessageSent) {
           console.log("💰 결제 성공! 배송지 입력 메시지 전송 시작...");
           
-          // 직접 API를 통해 메시지 전송
-          setTimeout(async () => {
-            try {
-              const response = await fetch("https://i13e202.p.ssafy.io/be/api/chat/messages", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${jwtToken}`,
-                },
-                body: JSON.stringify({
-                  roomId: parseInt(roomId),
-                  content: "배송지 입력이 필요합니다.",
-                  type: "INPUT_DELIVERY_ADDRESS"
-                }),
-              });
-
-              if (response.ok) {
-                console.log("✅ 배송지 입력 메시지 전송 완료");
-                setHasMessageSent(true);
-              } else {
-                console.error("❌ 배송지 입력 메시지 전송 실패");
-              }
-            } catch (error) {
-              console.error("❌ 배송지 입력 메시지 전송 오류:", error);
-            }
-          }, 500);
-        }
-      })
-      .catch((error) => {
-        // router.push(`/fail?code=${error.code}&message=${error.message}`);
-        
-        // 결재 실패해도 배송지 입력 메시지 전송
-        const roomId = searchParams.get("roomId");
-        if (roomId && !hasMessageSent) {
-          console.log("💰 결제 실패 시에도 배송지 입력 메시지 전송 시작...");
-          
-          // 직접 API를 통해 메시지 전송
-          setTimeout(async () => {
-            try {
-              const response = await fetch("https://i13e202.p.ssafy.io/be/api/chat/messages", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${jwtToken}`,
-                },
-                body: JSON.stringify({
-                  roomId: parseInt(roomId),
-                  content: "배송지 입력이 필요합니다.",
-                  type: "INPUT_DELIVERY_ADDRESS"
-                }),
-              });
-
-              if (response.ok) {
-                console.log("✅ 배송지 입력 메시지 전송 완료");
-                setHasMessageSent(true);
-              } else {
-                console.error("❌ 배송지 입력 메시지 전송 실패");
-              }
-            } catch (error) {
-              console.error("❌ 배송지 입력 메시지 전송 오류:", error);
-            }
+          // 약간의 지연 후 메시지 전송 (결제 확인 완료 후)
+          setTimeout(() => {
+            sendMessage(parseInt(roomId), "배송지 입력이 필요합니다.", "INPUT_DELIVERY_ADDRESS");
+            console.log("✅ 배송지 입력 메시지 전송 완료");
+            setHasMessageSent(true);
           }, 500);
         }
         
         // 새창을 바로 종료
-        // setTimeout(() => {
-        //   window.close();
-        // }, 1000);
+        setTimeout(() => {
+          window.close();
+        }, 1000); // 1초 후 창 닫기
+      })
+      .catch((error) => {
+        router.push(`/fail?code=${error.code}&message=${error.message}`);
       });
-  }, [searchParams, router, hasMessageSent]);
+  }, [searchParams, router, sendMessage, hasMessageSent]);
 
   return (
     <div className="min-h-screen bg-[#e8f3ff] font-['Toss_Product_Sans',-apple-system,BlinkMacSystemFont,'Bazier_Square','Noto_Sans_KR','Segoe_UI','Apple_SD_Gothic_Neo',Roboto,'Helvetica_Neue',Arial,sans-serif]">
