@@ -2,7 +2,6 @@
 
 import { useRef, useEffect, useState } from 'react';
 import { useNotificationStore, Notification } from '@/stores/notificationStore';
-import { useAuthStore } from '@/stores/auth/authStore';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
@@ -13,7 +12,6 @@ interface NotificationDropdownProps {
 
 export default function NotificationDropdown({ isOpen, onClose }: NotificationDropdownProps) {
     const { notifications, unreadCount, markAsRead, fetchNotifications, isLoading } = useNotificationStore();
-    const { getToken } = useAuthStore();
     const router = useRouter();
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [isVisible, setIsVisible] = useState(false);
@@ -22,15 +20,12 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
         if (isOpen) {
             setIsVisible(true);
             // 드롭다운이 열릴 때 알림 목록을 가져옴
-            const token = getToken();
-            if (token) {
-                fetchNotifications(token);
-            }
+            fetchNotifications();
         } else {
             const timer = setTimeout(() => setIsVisible(false), 200);
             return () => clearTimeout(timer);
         }
-    }, [isOpen, fetchNotifications, getToken]);
+    }, [isOpen, fetchNotifications]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -50,10 +45,7 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
         markAsRead(notification.id);
         
         // 알림 목록을 다시 로딩하여 최신 상태로 업데이트
-        const token = getToken();
-        if (token) {
-            await fetchNotifications(token);
-        }
+        await fetchNotifications();
         
         // chatroomId와 productId의 유무에 따라 페이지 이동
         if (notification.chatroomId) {
