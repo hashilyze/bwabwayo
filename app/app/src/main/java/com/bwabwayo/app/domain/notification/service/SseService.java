@@ -98,7 +98,7 @@ public class SseService {
 
         notificationService.upsertChat(receiverId, chatId, message, 1);
 
-        pushEvent(receiverId);
+//        pushEvent(receiverId);
     }
 
     public void upsertProductNotification(Long productId, UpsertRequest request){
@@ -107,11 +107,11 @@ public class SseService {
 
         notificationService.upsertProduct(receiverId, productId, message);
 
-        pushEvent(receiverId);
+//        pushEvent(receiverId);
     }
 
     public void handleMessage(MessageDTO message){
-        if(true) return;
+//        if(true) return;
         String contnet = message.getContent();
         switch (message.getType()){
             case TEXT: {
