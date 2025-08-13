@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { useReservationStore } from "@/stores/chatting/reservationStore";
+import { useChatRoomStore } from "@/stores/chatting/chatRoomStore";
 
 interface ReservationModalProps {
   onClose: () => void;
@@ -19,6 +20,8 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ onClose, chatRoomId
     resetReservation,
     addSchedule,
   } = useReservationStore();
+
+  const { sendMessage } = useChatRoomStore();
 
   // Cleanup reservation state on unmount
   useEffect(() => {
@@ -46,9 +49,20 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ onClose, chatRoomId
       
       try {
         await addSchedule(startAt, chatRoomId);
+        
+        // 예약 완료 후 채팅방에 예약 정보 메시지 전송
+        const reservationMessage = JSON.stringify({
+          startAt: startAt.toISOString(),
+          points: 1000, // 기본 포인트
+          scheduleId: Date.now() // 임시 ID (실제로는 서버에서 받아야 함)
+        });
+        
+        await sendMessage(chatRoomId, reservationMessage, "RESERVE_VIDEOCALL");
+        
         alert("예약되었습니다.");
         onClose(); // 모달 닫기
       } catch (error) {
+        console.error("예약 중 오류:", error);
         alert("예약 중 오류가 발생했습니다.");
       }
     } else {

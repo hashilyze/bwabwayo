@@ -128,6 +128,50 @@ const ReserveVideoCallModal = ({ message }: { message: ChatMessage }) => {
   const [isCancelButtonHovered, setIsCancelButtonHovered] = useState(false);
   const chatInfo = useChatRoomInfo(); // 전역 정보 사용
 
+  // 메시지에서 예약 정보 파싱
+  const parseReservationInfo = () => {
+    try {
+      // 메시지 content가 JSON 형태인지 확인
+      if (message.content && typeof message.content === 'string') {
+        const reservationData = JSON.parse(message.content);
+        return {
+          startAt: reservationData.startAt ? new Date(reservationData.startAt) : null,
+          points: reservationData.points || 1000,
+          scheduleId: reservationData.scheduleId
+        };
+      }
+    } catch (error) {
+      console.log('예약 정보 파싱 실패, 기본값 사용:', error);
+    }
+    return {
+      startAt: null,
+      points: 1000,
+      scheduleId: null
+    };
+  };
+
+  const reservationInfo = parseReservationInfo();
+
+  // 예약 시간 포맷팅
+  const formatReservationTime = (date: Date | null) => {
+    if (!date) return '예약 시간 정보 없음';
+    
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    
+    const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+    const weekday = weekdays[date.getDay()];
+    
+    const ampm = hours < 12 ? '오전' : '오후';
+    const displayHours = hours < 12 ? hours : hours - 12;
+    const displayMinutes = minutes.toString().padStart(2, '0');
+    
+    return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}(${weekday}) ${ampm} ${displayHours}:${displayMinutes}`;
+  };
+
   const handleReservationList = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     console.log('화상예약목록보기');
@@ -174,7 +218,7 @@ const ReserveVideoCallModal = ({ message }: { message: ChatMessage }) => {
 
                 <div className="flex flex-col items-start gap-1">
                   <div className="text-[#7c7c7c] text-md">
-                    일정: 2025-08-06(수) 오전 10:00
+                    일정: {formatReservationTime(reservationInfo.startAt)}
                   </div>
 
                   <div className="text-[#7c7c7c] text-md">
