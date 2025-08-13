@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useChatRoomStore } from "@/stores/chatting/chatRoomStore";
 
 const jwtToken =
   "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI0Mzc1MTI2ODM0Iiwicm9sZSI6IlVTRVIiLCJ0b2tlblR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTQzMjk4OTEsImV4cCI6MzMyNDY3OTM4OTF9.Ri8aEdsV2_37aZ9As4npi_kBvWv0ccQlUzyKweE4B-opos4h-4Ceb7OO4LQUFJp7";
@@ -12,8 +11,6 @@ export function PaymentSuccessPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [responseData, setResponseData] = useState(null);
-  const [hasMessageSent, setHasMessageSent] = useState(false);
-  const { sendMessage } = useChatRoomStore();
 
   useEffect(() => {
     async function confirm() {
@@ -21,7 +18,7 @@ export function PaymentSuccessPage() {
         orderId: searchParams.get("orderId"),
         amount: searchParams.get("amount"),
         paymentKey: searchParams.get("paymentKey"),
-        productId: searchParams.get("productId"),
+        roomId: searchParams.get("roomId"),
       };
 
       // https://i13e202.p.ssafy.io/be/api/payments/confirm

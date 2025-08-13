@@ -147,26 +147,23 @@ export default function ChatRoomPage() {
   }, [isConnected, stompClient, isConnecting, roomId, connectStomp]);
 
 
-  // 백업: STOMP 실패 시를 대비한 주기적 메시지 히스토리 확인
+  // 1초마다 메시지 히스토리 확인
   useEffect(() => {
     if (!isInitialized || !roomId) return;
     
     const intervalId = setInterval(async () => {
       try {
-        // STOMP가 연결되지 않았거나 메시지가 오지 않는 경우에만 히스토리 확인
-        if (!isConnected) {
-          console.log('🔄 STOMP 연결 없음, 메시지 히스토리 확인...');
-          await getMessageHistory(roomId);
-        }
+        console.log('📨 메시지 히스토리 확인...');
+        await getMessageHistory(roomId);
       } catch (error) {
-        console.error('❌ 백업 메시지 히스토리 확인 실패:', error);
+        console.error('❌ 메시지 히스토리 확인 실패:', error);
       }
-    }, 5000); // 5초마다 확인
+    }, 1000); // 1초마다 확인
 
     return () => {
       clearInterval(intervalId);
     };
-  }, [isInitialized, roomId, isConnected, getMessageHistory]);
+  }, [isInitialized, roomId, getMessageHistory]);
 
   // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동 (개선된 버전)
   useEffect(() => {
