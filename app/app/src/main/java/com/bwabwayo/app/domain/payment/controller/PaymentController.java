@@ -1,6 +1,7 @@
 package com.bwabwayo.app.domain.payment.controller;
 
 import com.bwabwayo.app.domain.auth.annotation.LoginUser;
+import com.bwabwayo.app.domain.chat.service.SystemChatService;
 import com.bwabwayo.app.domain.payment.dto.request.PaymentConfirmRequest;
 import com.bwabwayo.app.domain.product.domain.Product;
 import com.bwabwayo.app.domain.product.domain.Sale;
@@ -37,6 +38,7 @@ public class PaymentController {
     private final SaleService saleService;
     private final ProductService productService;
     private final UserService userService;
+    private final SystemChatService systemChatService;
     @Value("${toss.url.confirm}")
     private String TOSS_CONFIRM_URL;
     @Value("${toss.key.secret-key}")
@@ -123,6 +125,7 @@ public class PaymentController {
         if (statusCode == 200) {
             log.info("결제 성공: {}", requestDTO);
             saleService.changePaymentStatus(sale.getId(), PaymentStatus.COMPLETED);
+            systemChatService.sendPaymentSuccessMessage(sale.getRoomId());
         } else {
             log.info("결제 실패: {}", requestDTO);
             saleService.changePaymentStatus(sale.getId(), PaymentStatus.FAILED);

@@ -70,7 +70,7 @@ public class ReservationService {
         //스케줄링하기
         scheduleOpenViduJob(reservation);
 
-        systemChatService.sendReservationMessage(chatRoom, reservation.getId());
+        systemChatService.sendReservationMessage(chatRoom, reservationRequest.getStartAt());
 
         return reservation;
     }
@@ -148,7 +148,7 @@ public class ReservationService {
 
         cancelOpenViduSchedule(reservation);
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
         LocalDateTime reservedTime = commonService.parseSafe(reservation.getStartAt());
         LocalDateTime noPenaltyTime = reservedTime.minusHours(12);
@@ -184,7 +184,7 @@ public class ReservationService {
             ChatRoom chatRoom = chatRoomRepository.findByRoomId(reservation.getRoomId()).orElseThrow();
             Product product = productRepository.findById(chatRoom.getProductId()).orElseThrow();
 
-            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
             LocalDateTime reservedTime = commonService.parseSafe(reservation.getStartAt());
 
             User buyer = userService.findById(reservation.getBuyerId());
@@ -211,7 +211,7 @@ public class ReservationService {
             ChatRoom chatRoom = chatRoomRepository.findByRoomId(reservation.getRoomId()).orElseThrow();
             Product product = productRepository.findById(chatRoom.getProductId()).orElseThrow();
 
-            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
             LocalDateTime reservedTime = commonService.parseSafe(reservation.getStartAt());
 
             User seller = userService.findById(reservation.getSellerId());
