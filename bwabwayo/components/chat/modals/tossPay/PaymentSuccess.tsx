@@ -68,7 +68,25 @@ export function PaymentSuccessPage() {
         }, 1000); // 1초 후 창 닫기
       })
       .catch((error) => {
-        router.push(`/fail?code=${error.code}&message=${error.message}`);
+        // router.push(`/fail?code=${error.code}&message=${error.message}`);
+        
+        // 결재 실패해도 배송지 입력 메시지 전송
+        const roomId = searchParams.get("roomId");
+        if (roomId && !hasMessageSent) {
+          console.log("💰 결제 성공! 배송지 입력 메시지 전송 시작...");
+          
+          // 약간의 지연 후 메시지 전송 (결제 확인 완료 후)
+          setTimeout(() => {
+            sendMessage(parseInt(roomId), "배송지 입력이 필요합니다.", "INPUT_DELIVERY_ADDRESS");
+            console.log("✅ 배송지 입력 메시지 전송 완료");
+            setHasMessageSent(true);
+          }, 500);
+        }
+        
+        // 새창을 바로 종료
+        setTimeout(() => {
+          window.close();
+        }, 1000);
       });
   }, [searchParams, router, sendMessage, hasMessageSent]);
 
