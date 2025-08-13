@@ -129,24 +129,21 @@ export default function ChatRoomPage() {
     }
   }, [currentSelectedRoom, roomId, getMessageHistory, connectStomp, isInitialized])
 
-  // 메시지 히스토리를 1초마다 업데이트
+  // STOMP 연결 상태 모니터링
   useEffect(() => {
-    if (!isInitialized || !roomId) return;
-    const intervalId = setInterval(async () => {
-      try {
-        // console.log('🔄 메시지 히스토리 업데이트 중...');
-        await getMessageHistory(roomId);
-      } catch (error) {
-        console.error('❌ 메시지 히스토리 업데이트 실패:', error);
-      }
-    }, 1000); // 1초마다 실행
+    console.log('🔌 STOMP 연결 상태:', isConnected);
+    if (isConnected && stompClient) {
+      console.log('✅ STOMP 클라이언트 연결됨');
+    }
+  }, [isConnected, stompClient]);
 
-    // 컴포넌트 언마운트 시 인터벌 정리
-    return () => {
-      // console.log('⏰ 메시지 히스토리 자동 업데이트 중지');
-      clearInterval(intervalId);
-    };
-  }, [isInitialized, roomId, getMessageHistory]);
+  // 메시지 실시간 업데이트 감지
+  useEffect(() => {
+    console.log('📝 메시지 업데이트 감지:', messages?.length, '개');
+    if (messages && messages.length > 0) {
+      console.log('📨 최신 메시지:', messages[messages.length - 1]);
+    }
+  }, [messages]);
 
   // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동 (개선된 버전)
   useEffect(() => {

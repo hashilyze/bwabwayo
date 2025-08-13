@@ -215,7 +215,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 connectHeaders: {
                     Authorization: `Bearer ${accessToken}`,
                 },
-                reconnectDelay: 5000, // 5초 후 재연결 시도
+                reconnectDelay: 1000, // 1초 후 재연결 시도 (더 빠르게)
                 heartbeatIncoming: 4000,
                 heartbeatOutgoing: 4000,
                 });
@@ -272,11 +272,11 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 console.error('❌ STOMP: 연결 오류', error)
                 set({ isConnected: false, isConnecting: false, stompClient: null })
                 
-                // 연결 실패 시 3초 후 재연결 시도
+                // 연결 실패 시 1초 후 재연결 시도 (더 빠르게)
                 setTimeout(() => {
                     console.log('🔄 STOMP 재연결 시도...')
                     get().connectStomp(roomId)
-                }, 3000)
+                }, 1000)
             }
             
             client.onWebSocketError = (error) => {
@@ -310,11 +310,11 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 return state;
             }
             
-            // 중복 메시지 방지: 더 엄격한 체크
+            // 중복 메시지 방지: 더 정확한 체크
             const isDuplicate = currentMessages.some(existingMsg => 
                 existingMsg.content === msg.content && 
                 existingMsg.senderId === msg.senderId &&
-                Math.abs(new Date(existingMsg.createdAt).getTime() - new Date(msg.createdAt).getTime()) < 10000 // 10초 이내
+                Math.abs(new Date(existingMsg.createdAt).getTime() - new Date(msg.createdAt).getTime()) < 1000 // 1초 이내
             );
             
             if (isDuplicate) {
@@ -322,7 +322,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 return state;
             }
 
-            console.log('📝 새 메시지 추가 (실시간):', msg.content, 'from:', msg.senderId);
+            console.log('📝 새 메시지 추가 (실시간):', msg.content, 'from:', msg.senderId, 'isMine:', isMine);
             
             // 새 메시지를 추가하고 즉시 UI 업데이트
             const updatedMessages = [...currentMessages, msg];
@@ -451,6 +451,21 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                         reject(new Error('receiverId를 결정할 수 없습니다.'))
                         return
                     }
+
+                    // 즉시 UI에 반영할 메시지 객체 생성 (낙관적 업데이트)
+                    const immediateMessage: ChatMessage = {
+                        roomId: roomId,
+                        senderId: currentUserId || '',
+                        receiverId: receiverId || '',
+                        content: content.trim(),
+                        type: type,
+                        createdAt: new Date().toISOString(),
+                        isRead: false
+                    }
+
+                    // 즉시 로컬 메시지 목록에 추가 (낙관적 업데이트)
+                    console.log('📝 즉시 메시지 추가 (낙관적 업데이트):', immediateMessage)
+                    get().appendMessage(immediateMessage, true)
 
                     // STOMP 메시지 형식
                     const stompMessage = {
