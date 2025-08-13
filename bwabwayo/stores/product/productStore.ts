@@ -8,7 +8,7 @@ interface Seller {
   score: number
   rating: number
   bio?: string
-  dealcount?: number
+  dealCount?: number
   otherProducts?: Product[]
 }
 

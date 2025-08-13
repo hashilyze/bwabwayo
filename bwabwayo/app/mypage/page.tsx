@@ -74,7 +74,7 @@ export default function MyPage() {
   return (
     <div className="flex flex-col gap-15">
       <div className="flex gap-10">
-        {userData && <SellerTitle seller={sellerDataForTitle} />}
+        {userData && <SellerTitle seller={sellerDataForTitle} disableLink={true} />}
 
         <div className="flex-6">
           {/* 상품 등록 섹션 */}

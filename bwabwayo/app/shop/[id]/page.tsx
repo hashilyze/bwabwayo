@@ -96,7 +96,7 @@ export default function SellerShopInfo({ params }: { params: { id: string } }) {
    return (
     <div className="flex flex-col gap-12 container-default m-auto pt-20 pb-40">
       <div className="flex gap-10">
-        <SellerTitle seller={user} /> 
+        <SellerTitle seller={user} disableLink={true} /> 
 
         <div className="flex-4">
           <div className="rounded-xl p-6 mb-4 bg-[#F7F9FA]">
