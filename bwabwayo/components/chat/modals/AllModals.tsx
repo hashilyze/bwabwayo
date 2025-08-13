@@ -12,6 +12,7 @@ import PurchaseConfirm from '@/components/chat/modals/PurchaseConfirm'
 
 import AddressSelectModal, { AddressItem } from '@/components/chat/modals/DeliverySelectForm'
 import Link from 'next/link';
+import ReviewModal from './ReviewModal';
 
 interface ChatMessage {
   content: string;
@@ -34,8 +35,11 @@ const useChatRoomInfo = () => {
   const partner = isCurrentUserBuyer ? seller : buyer;
 
   return {
+    seller: seller,
+    buyer: buyer,
     product: {
       ...product,
+      id: product.id,
       formattedPrice: product.price?.toLocaleString() + '원',
       formattedShippingFee: product.shippingFee?.toLocaleString() + '원',
       deliveryMethods: [
@@ -965,6 +969,17 @@ const ConfirmPurchaseModal = ({ message }: { message: ChatMessage }) => {
 //END_TRADE // 구매확정 거래 종료 - 구매 확정 후 전송
 const EndTradeModal = ({ message }: { message: ChatMessage }) => {
   const chatInfo = useChatRoomInfo(); // 전역 정보 사용
+  const [showReviewModal, setShowReviewModal] = useState(false);
+
+  const handleReviewConfirm = () => {
+    console.log('리뷰 등록 완료');
+    setShowReviewModal(false);
+  }
+
+  const handleReviewCancel = () => {
+    console.log('리뷰 등록 취소');
+    setShowReviewModal(false);
+  }
 
   return (
     <>
@@ -982,8 +997,37 @@ const EndTradeModal = ({ message }: { message: ChatMessage }) => {
           </div>
         </div>
       </div>
+
+      <div className="text-md text-gray-600 mt-4 text-center flex flex-col items-center justify-center">
+        <p>
+          '{chatInfo?.partner.nickname}'님과의 거래가 마음에 드셨나요?<br/>
+          거래 후기를 남겨주세요!
+        </p>
+        <button
+          type="button"
+          onClick={() => setShowReviewModal(true)}
+          className="text-gray-600 cursor-pointer mt-2 underline"
+        >
+          후기 남기기
+        </button>
+      </div>
+
+      {/* ReviewModal */}
+      <OverlayPortal open={showReviewModal} onClose={() => setShowReviewModal(false)}>
+        <ReviewModal
+          roomId={chatInfo?.roomId || 0}
+          buyerId={chatInfo?.buyer.id || 0}
+          sellerId={chatInfo?.seller.id || 0}
+          productId={chatInfo?.product.id || 0}
+          onConfirm={handleReviewConfirm}
+          onCancel={handleReviewCancel}
+
+        />
+      </OverlayPortal>
+
+
       {/* 시간 표시 */}
-      <div className="my-4 text-md text-[#666666] text-center">
+      {/* <div className="my-4 text-md text-[#666666] text-center">
         <span className="">
           {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
             hour: 'numeric',
@@ -991,7 +1035,7 @@ const EndTradeModal = ({ message }: { message: ChatMessage }) => {
             hour12: true
           })}
         </span>
-      </div>
+      </div> */}
     </>
   )
 }
