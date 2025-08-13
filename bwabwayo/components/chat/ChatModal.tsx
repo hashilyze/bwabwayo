@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore';
 import useSendTypeMessageStore from '@/stores/chatting/sendTypeMessage';
 import { useParams } from 'next/navigation';
@@ -17,6 +17,7 @@ const ChatInputActive: React.FC<ChatInputActiveProps> = ({ onOpenReservationModa
   const { negotiation } = useSendTypeMessageStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [messageInput, setMessageInput] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // seller인지 확인
   const currentUserId = currentSelectedRoom?.userId.toString();
@@ -27,10 +28,28 @@ const ChatInputActive: React.FC<ChatInputActiveProps> = ({ onOpenReservationModa
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (messageInput.trim()) {
-      sendMessage(roomId, messageInput);
-      setMessageInput('');
+      try {
+        console.log('📤 메시지 전송 시도:', messageInput);
+        await sendMessage(roomId, messageInput);
+        setMessageInput('');
+        
+        // 메시지 전송 후 입력창에 포커스 유지
+        setTimeout(() => {
+          if (inputRef.current) {
+            inputRef.current.focus();
+          }
+        }, 100);
+        
+        console.log('✅ 메시지 전송 완료');
+      } catch (error) {
+        console.error('❌ 메시지 전송 실패:', error);
+        // 에러 발생 시에도 입력창 포커스 유지
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }
     }
   };
 
@@ -58,12 +77,14 @@ const ChatInputActive: React.FC<ChatInputActiveProps> = ({ onOpenReservationModa
         {/* 입력창 */}
         <div className="flex-1 h-[52px] bg-gray-50 rounded-[38px] flex items-center px-5">
           <input
+            ref={inputRef}
             type="text"
             value={messageInput}
             onChange={(e) => setMessageInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="메세지를 입력하세요."
             className="flex-1 bg-transparent text-md text-gray-500 outline-none placeholder-gray-500"
+            autoComplete="off"
           />
         </div>
 

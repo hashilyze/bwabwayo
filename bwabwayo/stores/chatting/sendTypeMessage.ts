@@ -27,7 +27,6 @@ const useSendTypeMessageStore = create<SendTypeMessageStore>((set) => ({
 
     // 최종 가격 설정
     price: async (roomId: number, price: number) => {
-        console.log('sendTypeMessage - price function called with:', { roomId, price });
         try{
             const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/api/chatrooms/${roomId}/price`, {
                 method: 'PUT',
@@ -36,13 +35,7 @@ const useSendTypeMessageStore = create<SendTypeMessageStore>((set) => ({
                 },
                 body: JSON.stringify({ price })
             })
-            console.log('sendTypeMessage - price response:', response);
-            
-            if (response.ok) {
-                console.log('sendTypeMessage - price request successful');
-            } else {
-                console.error('sendTypeMessage - price request failed:', response.status, response.statusText);
-            }
+            console.log(response)
         } catch (error) {
             console.error('Failed to send price message', error)
         }

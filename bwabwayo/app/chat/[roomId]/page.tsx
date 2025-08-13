@@ -45,9 +45,20 @@ export default function ChatRoomPage() {
   const params = useParams()
   const router = useRouter()
   const roomId = Number(params.roomId)
-  const { messages, getMessageHistory, connectStomp, currentSelectedRoom, sendMessage, getRoomList } = useChatRoomStore()
+  const { 
+    messages, 
+    getMessageHistory, 
+    connectStomp, 
+    currentSelectedRoom, 
+    sendMessage, 
+    getRoomList,
+    setCurrentSelectedRoom,
+    isConnected,
+    stompClient
+  } = useChatRoomStore()
   const { closePaymentModal } = useModalStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const chatContainerRef = useRef<HTMLDivElement>(null)
 
   // 전역 채팅방 정보 가져오기
   const chatInfo = useChatRoomInfo();
@@ -55,6 +66,7 @@ export default function ChatRoomPage() {
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
   const [isHeaderModalOpen, setIsHeaderModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const openReservationModal = () => setIsReservationModalOpen(true);
   const closeReservationModal = () => setIsReservationModalOpen(false);
@@ -77,53 +89,86 @@ export default function ChatRoomPage() {
     openVideoChat(roomId);
   };
 
-  // 채팅 초기화
+  // 채팅방 목록 로드 및 currentSelectedRoom 설정
   useEffect(() => {
-    const initializeChat = async () => {
+    const loadRoomList = async () => {
       try {
-        console.log('🚀 채팅 초기화 시작...');
-        
-        // 1. 채팅방 목록 로드 (currentSelectedRoom 설정을 위해)
-        await getRoomList()
-        
-        // 2. 메시지 히스토리 로드
-        await getMessageHistory(roomId)
-
-        // 3. STOMP 연결 (채팅방별 구독)
-        connectStomp(roomId)
-        
-        console.log('✅ 채팅 초기화 완료');
+        console.log('📋 채팅방 목록 로드 시작...');
+        await getRoomList();
+        console.log('✅ 채팅방 목록 로드 완료');
       } catch (error) {
-        console.error('❌ 채팅 초기화 실패:', error)
+        console.error('❌ 채팅방 목록 로드 실패:', error);
       }
-    }
+    };
 
-    initializeChat()
+    loadRoomList();
+  }, [getRoomList]);
 
-    // 컴포넌트가 언마운트될 때 STOMP 연결을 해제합니다.
-    return () => {
-      const { disconnectStomp } = useChatRoomStore.getState()
-      disconnectStomp()
+  // currentSelectedRoom이 설정되면 해당 채팅방으로 초기화
+  useEffect(() => {
+    if (currentSelectedRoom && currentSelectedRoom.roomId === roomId && !isInitialized) {
+      const initializeChat = async () => {
+        try {
+          console.log('🚀 채팅 초기화 시작...', roomId);
+          
+          // 1. 메시지 히스토리 로드
+          await getMessageHistory(roomId)
+
+          // 2. STOMP 연결 (채팅방별 구독)
+          connectStomp(roomId)
+          
+          setIsInitialized(true);
+          console.log('✅ 채팅 초기화 완료');
+        } catch (error) {
+          console.error('❌ 채팅 초기화 실패:', error)
+        }
+      }
+
+      initializeChat()
     }
-  }, [roomId, getMessageHistory, connectStomp, getRoomList])
+  }, [currentSelectedRoom, roomId, getMessageHistory, connectStomp, isInitialized])
+
+  // STOMP 연결 상태 모니터링
+  useEffect(() => {
+    console.log('🔌 STOMP 연결 상태:', isConnected);
+    if (isConnected && stompClient) {
+      console.log('✅ STOMP 클라이언트 연결됨');
+    }
+  }, [isConnected, stompClient]);
 
   // 메시지 실시간 업데이트 감지
   useEffect(() => {
     console.log('📝 메시지 업데이트 감지:', messages?.length, '개');
+    if (messages && messages.length > 0) {
+      console.log('📨 최신 메시지:', messages[messages.length - 1]);
+    }
   }, [messages]);
 
-  // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동
+  // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동 (개선된 버전)
   useEffect(() => {
-    if (messagesEndRef.current) {
+    if (messagesEndRef.current && messages && messages.length > 0) {
+      // DOM 업데이트 완료 후 스크롤
+      const scrollToBottom = () => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'end' 
+          });
+        }
+      };
+      
       // 약간의 지연을 두어 DOM 업데이트 완료 후 스크롤
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ 
-          behavior: 'smooth',
-          block: 'end' 
-        })
-      }, 100)
+      setTimeout(scrollToBottom, 50);
     }
-  }, [messages])
+  }, [messages]);
+
+  // 컴포넌트가 언마운트될 때 STOMP 연결을 해제합니다.
+  useEffect(() => {
+    return () => {
+      const { disconnectStomp } = useChatRoomStore.getState()
+      disconnectStomp()
+    }
+  }, [])
 
   // URL 파라미터에서 현재 사용자 ID 결정
   const getMyUserId = () => {
@@ -210,7 +255,7 @@ export default function ChatRoomPage() {
       )}
 
       {/* 메인 콘텐츠 영역 */}
-      <div className="chat-container overflow-y-auto p-4 pt-[160px]">
+      <div ref={chatContainerRef} className="chat-container overflow-y-auto p-4 pt-[160px] flex-1">
         <div className="mb-10 flex flex-col gap-2 items-center">
           <div className="w-[100px] h-[100px] bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
             <img
@@ -287,7 +332,7 @@ export default function ChatRoomPage() {
               // 일반 메시지
               return (
                 <div
-                  key={index}
+                  key={`${message.senderId}-${index}-${message.createdAt}`}
                   className={`mb-4 flex items-end gap-2 justify-start ${isMine ? 'flex-row-reverse' : ''}`}
                 >
                   <div

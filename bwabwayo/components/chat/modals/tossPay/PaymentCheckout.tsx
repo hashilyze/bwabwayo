@@ -33,17 +33,10 @@ export function PaymentCheckoutPage({ onClose, amount, orderName, roomId, produc
   const [customerKey, setCustomerKey] = useState("");
   const { userData, fetchUserData } = useMyStore();
 
-  console.log('PaymentCheckoutPage - received amount:', amount);
-  console.log('PaymentCheckoutPage - received orderName:', orderName);
-  console.log('PaymentCheckoutPage - received roomId:', roomId);
-  console.log('PaymentCheckoutPage - received productId:', productId);
-
   const paymentAmount = {
     currency: "KRW",
     value: amount,
   };
-
-  console.log('PaymentCheckoutPage - paymentAmount object:', paymentAmount);
 
   function selectPaymentMethod(method: PaymentMethod) {
     setSelectedPaymentMethod(method);

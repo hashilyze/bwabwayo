@@ -132,14 +132,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     // 거래 가격 관련 상태
     finalPrice: null,
     
-    setFinalPrice: (price: number | null) => {
-      console.log('chatRoomStore - setFinalPrice called with:', price);
-      console.log('chatRoomStore - price type:', typeof price);
-      console.log('chatRoomStore - previous finalPrice:', get().finalPrice);
-      set({ finalPrice: price });
-      console.log('chatRoomStore - finalPrice set to:', price);
-      console.log('chatRoomStore - current state finalPrice:', get().finalPrice);
-    },
+    setFinalPrice: (price: number | null) => set({ finalPrice: price }),
     setVideoSessionId: (id: string | null) => set({ videoSessionId: id }),
 
     addChatRoom: async (addRoom: addRoom) => {
@@ -175,8 +168,18 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         try{
             const response = await useAuthStore.getState().authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/chatrooms`)
             const data = await response.json()
-            console.log(data)
+            console.log('📋 채팅방 목록 수신:', data)
             set({ roomList: data })
+            
+            // 현재 URL의 roomId와 일치하는 채팅방을 찾아서 currentSelectedRoom 설정
+            const currentRoomId = window.location.pathname.split('/').pop();
+            if (currentRoomId && data && Array.isArray(data)) {
+                const matchingRoom = data.find((room: ChatRoom) => room.roomId.toString() === currentRoomId);
+                if (matchingRoom) {
+                    console.log('🎯 현재 채팅방 설정:', matchingRoom);
+                    set({ currentSelectedRoom: matchingRoom });
+                }
+            }
         } catch (error) {
             console.error('Error getting room list:', error)
         }
@@ -239,7 +242,13 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                     client.subscribe(`/sub/chat/room/${roomId}`, (messageOutput) => {
                         try {
                             const msg = JSON.parse(messageOutput.body)
-                            console.log('📨 메시지 수신:', msg.type, msg.content);
+                            console.log('📨 메시지 수신:', msg);
+                            
+                            // 메시지 유효성 검사
+                            if (!msg || !msg.content || !msg.senderId) {
+                                console.warn('⚠️ 유효하지 않은 메시지 수신:', msg);
+                                return;
+                            }
                             
                             // START_VIDEOCALL 타입 메시지인 경우 세션ID 저장
                             if (msg.type === 'START_VIDEOCALL' && msg.content) {
@@ -251,7 +260,9 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                             get().appendMessage(msg, false)
                             
                             // 메시지 수신 시 즉시 채팅방 목록 업데이트
-                            get().getRoomList();
+                            setTimeout(() => {
+                                get().getRoomList();
+                            }, 100);
                         } catch (error) {
                             console.error('❌ 메시지 파싱 오류:', error);
                         }
@@ -295,11 +306,17 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         set(state => {
             const currentMessages = Array.isArray(state.messages) ? state.messages : []
             
+            // 메시지 유효성 검사
+            if (!msg || !msg.content || !msg.senderId) {
+                console.warn('⚠️ 유효하지 않은 메시지:', msg);
+                return state;
+            }
+            
             // 중복 메시지 방지: 같은 내용, 같은 senderId, 같은 시간대의 메시지는 추가하지 않음
             const isDuplicate = currentMessages.some(existingMsg => 
                 existingMsg.content === msg.content && 
                 existingMsg.senderId === msg.senderId &&
-                Math.abs(new Date(existingMsg.createdAt).getTime() - new Date(msg.createdAt).getTime()) < 5000 // 5초 이내로 완화
+                Math.abs(new Date(existingMsg.createdAt).getTime() - new Date(msg.createdAt).getTime()) < 3000 // 3초 이내
             );
             
             if (isDuplicate) {
@@ -307,7 +324,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 return state;
             }
 
-            console.log('📝 새 메시지 추가 (실시간):', msg.content);
+            console.log('📝 새 메시지 추가 (실시간):', msg.content, 'from:', msg.senderId);
             
             // 새 메시지를 추가하고 즉시 UI 업데이트
             const updatedMessages = [...currentMessages, msg];

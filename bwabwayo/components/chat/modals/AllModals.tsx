@@ -358,7 +358,6 @@ const StartVideoCallModal = ({ message }: { message: ChatMessage }) => {
 const StartTradeModal = ({ message }: { message: ChatMessage }) => {
   const chatInfo = useChatRoomInfo()
   const isSeller = !!chatInfo?.isCurrentUserSeller
-  const { setFinalPrice } = useChatRoomStore()
   const { price } = useSendTypeMessageStore()
 
   const [open, setOpen] = useState(false)
@@ -376,12 +375,6 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
       alert('유효한 금액을 입력해주세요.')
       return
     }
-    console.log('StartTradeModal - setting finalPrice:', finalPrice)
-    console.log('StartTradeModal - roomId:', chatInfo?.roomId)
-    console.log('StartTradeModal - finalPrice type:', typeof finalPrice)
-    
-    // 스토어에 finalPrice 설정
-    setFinalPrice(finalPrice)
     
     // 백엔드 API 호출
     price(chatInfo?.roomId || 0, finalPrice)
@@ -484,43 +477,11 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
 const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
   const [isButtonHovered, setIsButtonHovered] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [paymentAmount, setPaymentAmount] = useState(0);
   const chatInfo = useChatRoomInfo();
-  const { finalPrice } = useChatRoomStore();
-
-  // 컴포넌트 마운트 시 로깅
-  useEffect(() => {
-    console.log('RequestDepositeModal - component mounted');
-    console.log('RequestDepositeModal - initial finalPrice:', finalPrice);
-    console.log('RequestDepositeModal - initial finalPrice type:', typeof finalPrice);
-    console.log('RequestDepositeModal - initial paymentAmount:', paymentAmount);
-  }, []);
-
-  // finalPrice가 변경될 때마다 paymentAmount 업데이트
-  useEffect(() => {
-    console.log('RequestDepositeModal - finalPrice changed:', finalPrice);
-    console.log('RequestDepositeModal - finalPrice type:', typeof finalPrice);
-    if (finalPrice && finalPrice > 0) {
-      setPaymentAmount(finalPrice);
-      console.log('RequestDepositeModal - paymentAmount set to:', finalPrice);
-    }
-  }, [finalPrice]);
-
-  const formattedAmount = paymentAmount > 0 ? paymentAmount.toLocaleString() + '원' : '0원';
-
-  console.log('RequestDepositeModal - current finalPrice from store:', finalPrice);
-  console.log('RequestDepositeModal - current paymentAmount:', paymentAmount);
+  const formattedAmount = Number(message.content);
 
   const handleStart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    console.log('결제 요청 - paymentAmount:', paymentAmount);
-    
-    // 결제 금액이 유효한지 확인
-    if (!paymentAmount || paymentAmount <= 0) {
-      alert('유효한 결제 금액이 설정되지 않았습니다. 판매자에게 문의해주세요.');
-      return;
-    }
-    
     setIsPaymentModalOpen(true);
   }
 
@@ -544,7 +505,7 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
             />
             <div className="flex flex-col text-md">
               <p>최종 거래 가격이 설정되었어요</p>
-              <p className="font-bold my-1">{formattedAmount}</p>
+              <p className="font-bold my-1">{formattedAmount}원</p>
               <p>결제를 진행해 주세요!</p>
             </div>
           </div>
@@ -575,14 +536,14 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
 
       {/* PaymentCheckout 모달 */}
       <OverlayPortal open={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)}>
-        <PaymentCheckoutPage
-          onClose={() => setIsPaymentModalOpen(false)}
-          amount={paymentAmount}
-          orderName={chatInfo?.product?.title || "상품"}
-          roomId={chatInfo?.roomId || 0}
-          productId={chatInfo?.product?.id || 0}
-        />
-      </OverlayPortal>
+         <PaymentCheckoutPage
+           onClose={() => setIsPaymentModalOpen(false)}
+           amount={formattedAmount}
+           orderName={chatInfo?.product?.title || "상품"}
+           roomId={chatInfo?.roomId || 0}
+           productId={chatInfo?.product?.id || 0}
+         />
+       </OverlayPortal>
     </>
   );
 };
