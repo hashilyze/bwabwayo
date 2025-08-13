@@ -225,7 +225,6 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 set({ isConnected: true, isConnecting: false, stompClient: client })
                 
                 // 채팅방 목록 구독
-                console.log('📡 STOMP: 채팅방 목록(/user/sub/chat/roomlist) 구독 시작');
                 client.subscribe('/user/sub/chat/roomlist', (messageOutput) => {
                     try {
                         const updatedRoomList = JSON.parse(messageOutput.body) as ChatRoom[];
