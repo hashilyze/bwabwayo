@@ -1,11 +1,9 @@
 package com.bwabwayo.app.domain.payment.controller;
 
 import com.bwabwayo.app.domain.auth.annotation.LoginUser;
-import com.bwabwayo.app.domain.chat.domain.ChatRoom;
 import com.bwabwayo.app.domain.chat.service.ChatRoomService;
 import com.bwabwayo.app.domain.chat.service.SystemChatService;
 import com.bwabwayo.app.domain.payment.dto.request.PaymentConfirmRequest;
-import com.bwabwayo.app.domain.product.domain.Product;
 import com.bwabwayo.app.domain.product.domain.Sale;
 import com.bwabwayo.app.domain.product.enums.PaymentStatus;
 import com.bwabwayo.app.domain.product.service.ProductService;
@@ -13,7 +11,6 @@ import com.bwabwayo.app.domain.product.service.SaleService;
 import com.bwabwayo.app.domain.user.domain.User;
 import com.bwabwayo.app.domain.user.service.UserService;
 import com.bwabwayo.app.global.exception.BadRequestException;
-import com.bwabwayo.app.global.exception.NotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +28,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -38,10 +36,7 @@ import java.util.Base64;
 @RequestMapping("/api/payments")
 public class PaymentController {
     private final SaleService saleService;
-    private final ProductService productService;
-    private final UserService userService;
     private final SystemChatService systemChatService;
-    private final ChatRoomService chatRoomService;
     @Value("${toss.url.confirm}")
     private String TOSS_CONFIRM_URL;
     @Value("${toss.key.secret-key}")
@@ -88,41 +83,18 @@ public class PaymentController {
     @PostMapping("/confirm")
     public ResponseEntity<?> confirmPayment(@RequestBody PaymentConfirmRequest requestDTO, @LoginUser User loginUser) throws IOException {
         log.info("confirmPayment를 호출: {}, loginUserId={}", requestDTO, loginUser.getId());
-//        log.info("loginUser.ID={}", loginUser.getId());
-//        String buyerId = loginUser.getId();
-//        Long productId = requestDTO.getProductId();
         Long roomId = requestDTO.getRoomId();
 
-//        User buyer = userService.findById(buyerId);
-//        Product product = productService.findById(productId);
-//        ChatRoom chatRoom = chatRoomService.findByRoomId(roomId).orElseThrow(() -> new NotFoundException("존재하지 않는 채팅방입니다."));
-
-        Sale sale = null;
+        Sale sale;
         try {
-//            sale = saleService.findByProductId(productId);
-//            sale = saleService.findByBuyerIdAndProductId(buyerId, productId);
             sale = saleService.findByRoomId(roomId);
-            if(sale.getPaymentStatus() == PaymentStatus.COMPLETED){
-                log.warn("이미 완료된 요청입니다: saleId={}", sale.getId());
-//                throw new BadRequestException("중복 결제 요청입니다.");
+            if(sale.getPaymentStatus() != PaymentStatus.PENDING && sale.getPaymentStatus() != PaymentStatus.FAILED){
+                log.warn("중복결제요청입니다: saleId={}", sale.getId());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("result", "중복결제요청입니다"));
             }
         } catch (IllegalArgumentException e) {
-
-//            log.warn("사전에 등록되지 않은 거래에 대한 결제 요청 입니다: productId={}, sellerId={}, buyerId={}, amount={}, error={}",
-//                    product.getId(),
-//                    product.getSeller().getId(),
-//                    buyerId,
-//                    requestDTO.getAmount(), e.getMessage()
-//            );
-//
-//            sale = Sale.builder()
-//                    .product(product)
-//                    .buyerId(buyerId)
-//                    .sellerId(product.getSeller().getId())
-//                    .salePrice(requestDTO.getAmount())
-//                    .build();
-//            saleService.saveSale(sale);
-            throw new NotFoundException(e.getMessage());
+            log.warn("등록되지 않은 거래에 대한 결제요청입니다: roomId={}", roomId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("result", "등록되지 않은 거래에 대한 결제요청입니다: roomId="+roomId));
         }
 
         String jsonBody = serialize(requestDTO);
