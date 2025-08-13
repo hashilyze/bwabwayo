@@ -74,26 +74,28 @@ function PurchaseContent() {
               {/* 상품 이미지 */}
               {/* ✨ 수정: relative 클래스 추가 */}
               <div className="relative w-[118px] h-[118px] bg-gray-200 rounded-xl overflow-hidden flex-shrink-0">
-  <img 
-    src={item.thumbnail} 
-    alt={item.title} 
-    className="object-cover w-full h-full transition-all" 
-  />
-  {/* 테스트용 후에    {item.purchaseStatus=== 2로 반드시 변경 !!*/}
-  {/* ✨ 이미지 위 반투명 어두운 오버레이 */}
-  {item.purchaseStatus === 0 && (
+                <img 
+                  src={item.thumbnail} 
+                  alt={item.title} 
+                  className="object-cover w-full h-full transition-all" 
+                />
+                {/* 테스트용 후에    {item.purchaseStatus=== 2로 반드시 변경 !!*/}
+                {/* ✨ 이미지 위 반투명 어두운 오버레이 */}
+                {item.purchaseStatus === 0 && (
+  <div className="absolute inset-0">
+    {/* 반투명 오버레이 */}
     <div className="absolute inset-0 bg-black/35" />
-  )}
-
-  {/* ✨ 구매완료 텍스트 오버레이 */}
-  {item.purchaseStatus === 0 && (
+    
+    {/* 텍스트 오버레이 */}
     <div className="absolute inset-0 flex items-center justify-center">
       <div className="w-20 h-20 rounded-full border-2 border-white flex items-center justify-center bg-black/35">
         <span className="text-white text-lg font-bold">구매완료</span>
       </div>
     </div>
-  )}
-</div>
+  </div>
+)}
+
+              </div>
 
 
 

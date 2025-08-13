@@ -69,6 +69,19 @@ export default function ProductCard({ item, height = 300 }: Props) {
            alt={product.title}
            style={{ height: `${height}px` }}
          />
+         {/* 판매완료 오버레이 */}
+         {/* 반투명 오버레이 */}
+         {/* 텍스트 오버레이 */}
+         {/* {product.saleStatusCode === 2 && (
+           <>
+             <div className="absolute inset-0 bg-black/35" />
+             <div className="absolute inset-0 flex items-center justify-center">
+               <div className="w-20 h-20 rounded-full border-2 border-white flex items-center justify-center bg-black/35">
+                 <span className="text-white text-lg font-bold">판매완료</span>
+               </div>
+             </div>
+           </>
+         )} */}
        </div>
       
       {/* 상품 정보 */}
