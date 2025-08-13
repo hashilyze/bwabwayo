@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
 
@@ -12,7 +11,6 @@ function PaymentSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [responseData, setResponseData] = useState(null);
-  const [hasMessageSent, setHasMessageSent] = useState(false);
 
   useEffect(() => {
     async function confirm() {
@@ -20,7 +18,6 @@ function PaymentSuccessContent() {
          orderId: searchParams.get("orderId"),
          amount: searchParams.get("amount"),
          paymentKey: searchParams.get("paymentKey"),
-         productId: parseInt(searchParams.get("productId") || "0"),
          roomId: parseInt(searchParams.get("roomId") || "0"),
        };
 
@@ -63,7 +60,7 @@ function PaymentSuccessContent() {
            window.close();
          }, 500);
        });
-  }, [searchParams, router, hasMessageSent]);
+  }, [searchParams, router]);
 
   return (
     <div className="min-h-screen bg-[#e8f3ff] font-['Toss_Product_Sans',-apple-system,BlinkMacSystemFont,'Bazier_Square','Noto_Sans_KR','Segoe_UI','Apple_SD_Gothic_Neo',Roboto,'Helvetica_Neue',Arial,sans-serif]">
