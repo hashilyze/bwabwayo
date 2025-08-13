@@ -63,9 +63,9 @@ export function PaymentSuccessPage() {
         }
         
         // 새창을 바로 종료
-        setTimeout(() => {
-          window.close();
-        }, 1000); // 1초 후 창 닫기
+        // setTimeout(() => {
+        //   window.close();
+        // }, 1000); // 1초 후 창 닫기
       })
       .catch((error) => {
         // router.push(`/fail?code=${error.code}&message=${error.message}`);
@@ -84,9 +84,9 @@ export function PaymentSuccessPage() {
         }
         
         // 새창을 바로 종료
-        setTimeout(() => {
-          window.close();
-        }, 1000);
+        // setTimeout(() => {
+        //   window.close();
+        // }, 1000);
       });
   }, [searchParams, router, sendMessage, hasMessageSent]);
 
