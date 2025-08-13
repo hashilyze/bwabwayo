@@ -40,6 +40,12 @@ export const useNotificationStore = create<NotificationStore>((set, get) => {
         isPolling: false,
         
         fetchNotifications: async (token: string) => {
+            // 토큰이 없으면 요청하지 않음
+            if (!token) {
+                console.log('❌ 토큰이 없어서 알림을 요청할 수 없습니다.');
+                return;
+            }
+            
             try {
                 set({ isLoading: true });
                 const response = await fetch('https://i13e202.p.ssafy.io/be/api/notifications', {
@@ -55,6 +61,9 @@ export const useNotificationStore = create<NotificationStore>((set, get) => {
                         notifications: data.results,
                         unreadCount: totalUnread
                     });
+                } else if (response.status === 401) {
+                    console.log('❌ 토큰이 만료되어 폴링을 중지합니다.');
+                    get().stopPolling();
                 }
             } catch (error) {
                 console.error('Failed to fetch notifications:', error);
@@ -64,16 +73,30 @@ export const useNotificationStore = create<NotificationStore>((set, get) => {
         },
         
         startPolling: (token: string, interval: number = 10000) => {
+            // 토큰이 없으면 폴링 시작하지 않음
+            if (!token) {
+                console.log('❌ 토큰이 없어서 알림 폴링을 시작할 수 없습니다.');
+                return;
+            }
+            
             // 기존 폴링 중지
             if (pollingInterval) {
                 clearInterval(pollingInterval);
             }
+            
+            console.log('🚀 알림 폴링 시작');
             
             // 즉시 한 번 실행
             get().fetchNotifications(token);
             
             // 주기적으로 실행
             pollingInterval = setInterval(() => {
+                // 폴링 중에도 토큰 유효성 재확인
+                if (!token) {
+                    console.log('❌ 토큰이 만료되어 폴링을 중지합니다.');
+                    get().stopPolling();
+                    return;
+                }
                 get().fetchNotifications(token);
             }, interval);
             
