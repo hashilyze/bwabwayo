@@ -131,8 +131,14 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     videoSessionId: null,  // 세션ID 저장용
     // 거래 가격 관련 상태
     finalPrice: null,
+    
     setFinalPrice: (price: number | null) => {
+      console.log('chatRoomStore - setFinalPrice called with:', price);
+      console.log('chatRoomStore - price type:', typeof price);
+      console.log('chatRoomStore - previous finalPrice:', get().finalPrice);
       set({ finalPrice: price });
+      console.log('chatRoomStore - finalPrice set to:', price);
+      console.log('chatRoomStore - current state finalPrice:', get().finalPrice);
     },
     setVideoSessionId: (id: string | null) => set({ videoSessionId: id }),
 

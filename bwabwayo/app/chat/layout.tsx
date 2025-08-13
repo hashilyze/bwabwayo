@@ -176,8 +176,8 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
             ) : !Array.isArray(roomList) || roomList.length === 0 ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
-                  <p className="text-gray-500 mb-2">아직 채팅방이 없습니다</p>
-                  <p className="text-xs text-gray-400">상품을 구매하거나 판매하면 채팅방이 생성됩니다</p>
+                  <p className="text-lg text-gray-500 mb-2">아직 채팅방이 없습니다</p>
+                  <p className="text-md text-gray-400">상품을 구매하거나 판매하면 채팅방이 생성됩니다</p>
                 </div>
               </div>
             ) : (

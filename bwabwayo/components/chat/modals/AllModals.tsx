@@ -363,7 +363,7 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
 
   const [open, setOpen] = useState(false)
   const [isButtonHovered, setIsButtonHovered] = useState(false)
-  const [finalPrice, setFinalPriceLocal] = useState('')
+  const [finalPrice, setFinalPriceLocal] = useState<number | ''>('')
 
   const handleOpen = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
@@ -372,18 +372,19 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
   }
 
   const handleRequest = () => {
-    if (!finalPrice || Number(finalPrice) <= 0) {
+    if (!finalPrice || finalPrice <= 0) {
       alert('유효한 금액을 입력해주세요.')
       return
     }
-    const priceNumber = Number(finalPrice)
-    console.log('StartTradeModal - setting finalPrice:', priceNumber)
+    console.log('StartTradeModal - setting finalPrice:', finalPrice)
+    console.log('StartTradeModal - roomId:', chatInfo?.roomId)
+    console.log('StartTradeModal - finalPrice type:', typeof finalPrice)
     
     // 스토어에 finalPrice 설정
-    setFinalPrice(priceNumber)
+    setFinalPrice(finalPrice)
     
     // 백엔드 API 호출
-    price(chatInfo?.roomId || 0, priceNumber)
+    price(chatInfo?.roomId || 0, finalPrice)
     
     setOpen(false)
   }
@@ -426,7 +427,7 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
 
       {/* 🔽 포탈로 finalPriceForm 띄우기 */}
       <OverlayPortal open={open} onClose={() => setOpen(false)}>
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-[20px] border-2 border-black w-[400px]">
             <div className="flex flex-col items-center gap-4">
               <h3 className="text-lg font-bold text-black">최종 거래 가격 설정</h3>
@@ -437,7 +438,7 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
                 <input
                   type="number"
                   value={finalPrice}
-                  onChange={(e) => setFinalPriceLocal(e.target.value)}
+                  onChange={(e) => setFinalPriceLocal(e.target.value === '' ? '' : Number(e.target.value))}
                   placeholder="가격을 입력하세요"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -483,19 +484,36 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
 const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
   const [isButtonHovered, setIsButtonHovered] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState(0);
   const chatInfo = useChatRoomInfo();
   const { finalPrice } = useChatRoomStore();
 
-  // 스토어에서 finalPrice 가져오기
-  const paymentAmount = finalPrice || 0;
+  // 컴포넌트 마운트 시 로깅
+  useEffect(() => {
+    console.log('RequestDepositeModal - component mounted');
+    console.log('RequestDepositeModal - initial finalPrice:', finalPrice);
+    console.log('RequestDepositeModal - initial finalPrice type:', typeof finalPrice);
+    console.log('RequestDepositeModal - initial paymentAmount:', paymentAmount);
+  }, []);
+
+  // finalPrice가 변경될 때마다 paymentAmount 업데이트
+  useEffect(() => {
+    console.log('RequestDepositeModal - finalPrice changed:', finalPrice);
+    console.log('RequestDepositeModal - finalPrice type:', typeof finalPrice);
+    if (finalPrice && finalPrice > 0) {
+      setPaymentAmount(finalPrice);
+      console.log('RequestDepositeModal - paymentAmount set to:', finalPrice);
+    }
+  }, [finalPrice]);
+
   const formattedAmount = paymentAmount > 0 ? paymentAmount.toLocaleString() + '원' : '0원';
 
-  console.log('RequestDepositeModal - finalPrice from store:', finalPrice);
-  console.log('RequestDepositeModal - paymentAmount:', paymentAmount);
+  console.log('RequestDepositeModal - current finalPrice from store:', finalPrice);
+  console.log('RequestDepositeModal - current paymentAmount:', paymentAmount);
 
   const handleStart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    console.log('결제 요청');
+    console.log('결제 요청 - paymentAmount:', paymentAmount);
     
     // 결제 금액이 유효한지 확인
     if (!paymentAmount || paymentAmount <= 0) {
