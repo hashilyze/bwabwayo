@@ -355,32 +355,37 @@ const StartVideoCallModal = ({ message }: { message: ChatMessage }) => {
 };
 
 // START_TRADE,           // 거래 시작 - 거래 시작 버튼 클릭 시 전송
-const StartTradeModal = ({ message }: { message: ChatMessage }) => {
-  const chatInfo = useChatRoomInfo()
-  const isSeller = !!chatInfo?.isCurrentUserSeller
-  const { price } = useSendTypeMessageStore()
+  const StartTradeModal = ({ message }: { message: ChatMessage }) => {
+    const chatInfo = useChatRoomInfo()
+    const isSeller = !!chatInfo?.isCurrentUserSeller
+    const { price } = useSendTypeMessageStore()
 
-  const [open, setOpen] = useState(false)
-  const [isButtonHovered, setIsButtonHovered] = useState(false)
-  const [finalPrice, setFinalPriceLocal] = useState<number | ''>('')
+    const [open, setOpen] = useState(false)
+    const [isButtonHovered, setIsButtonHovered] = useState(false)
+    const [finalPrice, setFinalPriceLocal] = useState<number | ''>('')
 
-  const handleOpen = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault()
-    if (!isSeller) return
-    setOpen(true)
-  }
-
-  const handleRequest = () => {
-    if (!finalPrice || finalPrice <= 0) {
-      alert('유효한 금액을 입력해주세요.')
-      return
+    const handleOpen = (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault()
+      if (!isSeller) return
+      setOpen(true)
     }
-    
-    // 백엔드 API 호출
-    price(chatInfo?.roomId || 0, finalPrice)
-    
-    setOpen(false)
-  }
+
+    const handleClose = () => {
+      setOpen(false)
+      setFinalPriceLocal('') // Reset input field when modal closes
+    }
+
+    const handleRequest = () => {
+      if (!finalPrice || finalPrice <= 0) {
+        alert('유효한 금액을 입력해주세요.')
+        return
+      }
+      
+      // 백엔드 API 호출
+      price(chatInfo?.roomId || 0, finalPrice)
+      
+      handleClose()
+    }
 
   // chatInfo가 로드되지 않았거나 seller가 아니면 모달을 보이지 않음
   if (!chatInfo || !isSeller) {
@@ -419,7 +424,7 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
       </div>
 
       {/* 🔽 포탈로 finalPriceForm 띄우기 */}
-      <OverlayPortal open={open} onClose={() => setOpen(false)}>
+      <OverlayPortal open={open} onClose={handleClose}>
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-[20px] border-2 border-black w-[400px]">
             <div className="flex flex-col items-center gap-4">
@@ -438,7 +443,7 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
               </div>
               <div className="flex gap-3 w-full">
                 <button
-                  onClick={() => setOpen(false)}
+                  onClick={handleClose}
                   className="flex-1 py-2 px-4 bg-gray-300 text-black rounded-lg hover:bg-gray-400 transition-colors"
                 >
                   취소
