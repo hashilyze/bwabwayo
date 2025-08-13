@@ -381,7 +381,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         try {
             const response = await useAuthStore.getState().authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/chatrooms/${roomId}?page=0`);
             const data = await response.json();
-            console.log('📥 메시지 히스토리 수신:', data);
+            // console.log('📥 메시지 히스토리 수신:', data);
             
             // 기존 메시지와 새로운 메시지를 비교하여 중복 방지
             set(state => {

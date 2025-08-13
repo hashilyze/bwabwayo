@@ -97,7 +97,7 @@ export default function ChatRoomPage() {
   useEffect(() => {
     const loadRoomList = async () => {
       try {
-        console.log('📋 채팅방 목록 로드 시작...');
+        // console.log('📋 채팅방 목록 로드 시작...');
         await getRoomList();
         console.log('✅ 채팅방 목록 로드 완료');
       } catch (error) {
@@ -108,12 +108,20 @@ export default function ChatRoomPage() {
     loadRoomList();
   }, [getRoomList]);
 
+  // roomId가 변경될 때마다 메시지 초기화
+  useEffect(() => {
+    // console.log('🔄 채팅방 변경 감지:', roomId);
+    const { clearMessages } = useChatRoomStore.getState();
+    clearMessages();
+    setIsInitialized(false);
+  }, [roomId]);
+
   // currentSelectedRoom이 설정되면 해당 채팅방으로 초기화
   useEffect(() => {
     if (currentSelectedRoom && currentSelectedRoom.roomId === roomId && !isInitialized) {
       const initializeChat = async () => {
         try {
-          console.log('🚀 채팅 초기화 시작...', roomId);
+          // console.log('🚀 채팅 초기화 시작...', roomId);
           
           // 1. 메시지 히스토리 로드
           await getMessageHistory(roomId)
@@ -122,7 +130,7 @@ export default function ChatRoomPage() {
           connectStomp(roomId)
           
           setIsInitialized(true);
-          console.log('✅ 채팅 초기화 완료');
+          // console.log('✅ 채팅 초기화 완료');
         } catch (error) {
           console.error('❌ 채팅 초기화 실패:', error)
         }
@@ -134,7 +142,7 @@ export default function ChatRoomPage() {
 
   // STOMP 연결 상태 모니터링
   useEffect(() => {
-    console.log('🔌 STOMP 연결 상태:', isConnected);
+    // console.log('🔌 STOMP 연결 상태:', isConnected);
     if (isConnected && stompClient) {
       console.log('✅ STOMP 클라이언트 연결됨');
     } else if (!isConnected && !isConnecting && roomId) {
