@@ -6,17 +6,31 @@ import Link from 'next/link'
 import { useCategoryStore } from '@/stores/categoryStore';
 import { useAuthStore } from '@/stores/auth/authStore';
 import { useModalStore } from '@/stores/modalStore';
+import { useNotificationStore } from '@/stores/notificationStore';
 import Category from '@/components/Category';
 import NewCategory from '@/components/NewCategory';
+import NotificationDropdown from '@/components/NotificationDropdown';
+import { EventSourcePolyfill } from 'event-source-polyfill';
 
+// EventSource 타입 정의
+interface NotificationEvent {
+    data: string;
+}
+
+interface EventSourceError {
+    error: unknown;
+}
 
 // 새로운 카테고리
 export default function Navbar() {
     const [title, setTitle] = useState('')
     const [showMyPageMenu, setShowMyPageMenu] = useState(false); // 내상점 메뉴 상태
     const [showCategory, setShowCategory] = useState(false); // 카테고리 표시 상태
+    const [showNotifications, setShowNotifications] = useState(false); // 알림 드롭다운 상태
+    const [useSSE, setUseSSE] = useState(false); // SSE 사용 여부 (기본값: true)
     const { isLoggedIn, logout, initializeAuth, authenticatedFetch, getToken } = useAuthStore(); // 새로운 authStore 사용
     const { openLoginModal } = useModalStore();
+    const { unreadCount, fetchNotifications, startPolling, stopPolling, isPolling } = useNotificationStore();
     const [isScrolled, setIsScrolled] = useState(false) // 스크롤 상태 추가
     const myPageMenuRef = useRef<HTMLDivElement>(null); // 내상점 메뉴 참조
     const categoryRef = useRef<HTMLDivElement>(null); // 카테고리 참조
@@ -32,6 +46,56 @@ export default function Navbar() {
     useEffect(() => {
         initializeAuth();
     }, [initializeAuth]);
+
+    // EventSource 또는 폴링을 사용하여 알림 수신
+    useEffect(() => {
+        const token = getToken();
+        if (!token) return;
+
+        if (useSSE) {
+            // SSE 사용 시 폴링 중지
+            stopPolling();
+            
+            // EventSource 연결
+            const eventSource = new EventSourcePolyfill('https://i13e202.p.ssafy.io/be/api/notifications/stream', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            eventSource.addEventListener("notification", (event: NotificationEvent) => {
+                try {
+                    const notificationData = JSON.parse(event.data);
+                    console.log("notification: Notification Event:", notificationData);
+                    // SSE로 알림을 받으면 알림 목록을 새로고침
+                    fetchNotifications(token);
+                } catch (error) {
+                    console.error("Failed to parse notification data:", error);
+                }
+            });
+
+            eventSource.onmessage = (event: NotificationEvent) => {
+                console.log('global:Notification received:', event.data);
+            };
+
+            eventSource.onerror = (error: EventSourceError) => {
+                console.error('error: EventSource error:', error);
+            };
+
+            // 컴포넌트 언마운트 시 EventSource 정리
+            return () => {
+                eventSource.close();
+            };
+        } else {
+            // 폴링 사용 시 EventSource 연결하지 않음
+            startPolling(token, 10000); // 10초 간격
+            
+            // 컴포넌트 언마운트 시 폴링 중지
+            return () => {
+                stopPolling();
+            };
+        }
+    }, [isLoggedIn, getToken, useSSE, startPolling, stopPolling, fetchNotifications]);
 
     // 스크롤 이벤트 리스너 추가
     useEffect(() => {
@@ -87,13 +151,45 @@ export default function Navbar() {
         <nav className={`bg-white border-b-2 border-black fixed top-0 left-0 right-0 z-98 transition-shadow duration-200 ${isScrolled ? 'shadow' : ''}`}>
             <header className="w-[1280px] mx-auto">
                 {/* 유틸리티 바 */}
-                <div className="py-4 flex justify-end items-center gap-4">
-                    <span 
-                        className="text-md text-gray-700 cursor-pointer hover:text-black"
-                        onClick={() => console.log('알림 버튼이 클릭되었습니다!')}
-                    >
-                        알림
-                    </span>
+                <div className="py-4 flex justify-end items-center gap-4 relative">
+                    <div className="flex items-center gap-2">
+                        {/* SSE/폴링 토글 - 임시로 숨김 */}
+                        {/* 
+                        <div className="flex items-center gap-2 text-xs">
+                            <span className="text-gray-600">알림 방식:</span>
+                            <button
+                                onClick={() => setUseSSE(!useSSE)}
+                                className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                                    useSSE 
+                                        ? 'bg-blue-500 text-white' 
+                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                }`}
+                            >
+                                {useSSE ? 'SSE' : '폴링'}
+                            </button>
+                            {!useSSE && isPolling && (
+                                <span className="text-green-500 text-xs">●</span>
+                            )}
+                        </div>
+                        */}
+                        
+                        {/* 알림 버튼 */}
+                        <span 
+                            className="text-md text-gray-700 cursor-pointer hover:text-black relative"
+                            onClick={() => setShowNotifications(!showNotifications)}
+                        >
+                            알림
+                            {unreadCount > 0 && (
+                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                                    {unreadCount > 9 ? '9+' : unreadCount}
+                                </span>
+                            )}
+                        </span>
+                        <NotificationDropdown 
+                            isOpen={showNotifications} 
+                            onClose={() => setShowNotifications(false)} 
+                        />
+                    </div>
                     {isLoggedIn ? (
                         <button onClick={handleLogout} className="text-md text-gray-700 cursor-pointer hover:text-black">
                             로그아웃
