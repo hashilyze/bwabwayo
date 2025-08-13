@@ -358,15 +358,29 @@ const StartVideoCallModal = ({ message }: { message: ChatMessage }) => {
 const StartTradeModal = ({ message }: { message: ChatMessage }) => {
   const chatInfo = useChatRoomInfo()
   const isSeller = !!chatInfo?.isCurrentUserSeller
+  const { setFinalPrice } = useChatRoomStore()
+  const { price } = useSendTypeMessageStore()
 
   const [open, setOpen] = useState(false)
   const [isButtonHovered, setIsButtonHovered] = useState(false)
+  const [finalPrice, setFinalPriceLocal] = useState('')
 
   const handleOpen = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     if (!isSeller) return
     setOpen(true)
   }
+
+  const handleRequest = () => {
+    if (!finalPrice || Number(finalPrice) <= 0) {
+      alert('유효한 금액을 입력해주세요.')
+      return
+    }
+    setFinalPrice(Number(finalPrice))
+    price(chatInfo?.roomId || 0, Number(finalPrice))
+    setOpen(false)
+  }
+
   // chatInfo가 로드되지 않았거나 seller가 아니면 모달을 보이지 않음
   if (!chatInfo || !isSeller) {
     return null;
@@ -405,10 +419,42 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
 
       {/* 🔽 포탈로 finalPriceForm 띄우기 */}
       <OverlayPortal open={open} onClose={() => setOpen(false)}>
-        <FinalPriceModal
-          onClose={() => setOpen(false)}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-[20px] border-2 border-black w-[400px]">
+            <div className="flex flex-col items-center gap-4">
+              <h3 className="text-lg font-bold text-black">최종 거래 가격 설정</h3>
+              <div className="w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  거래 가격 (원)
+                </label>
+                <input
+                  type="number"
+                  value={finalPrice}
+                  onChange={(e) => setFinalPriceLocal(e.target.value)}
+                  placeholder="가격을 입력하세요"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => setOpen(false)}
+                  className="flex-1 py-2 px-4 bg-gray-300 text-black rounded-lg hover:bg-gray-400 transition-colors"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleRequest}
+                  className="flex-1 py-2 px-4 bg-[#fce94f] text-black rounded-lg hover:bg-yellow-400 transition-colors font-bold"
+                >
+                  요청하기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </OverlayPortal>
+
+
     </div>
       {/* 시간 표시 */}
       <div className="my-3 text-md text-[#666666] text-center">
@@ -431,6 +477,7 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
   const [isButtonHovered, setIsButtonHovered] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const chatInfo = useChatRoomInfo();
+  const { finalPrice } = useChatRoomStore();
 
   const handleStart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -438,8 +485,8 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
     setIsPaymentModalOpen(true);
   }
 
-  // message.content에서 금액 추출 (숫자만)
-  const amount = message.content.replace(/[^\d]/g, '');
+  // store의 finalPrice를 우선 사용하고, 없으면 message.content에서 추출
+  const amount = finalPrice ? finalPrice.toString() : message.content.replace(/[^\d]/g, '');
   const formattedAmount = amount ? Number(amount).toLocaleString() + '원' : '0원';
   const paymentAmount = amount ? Number(amount) : 0;
 

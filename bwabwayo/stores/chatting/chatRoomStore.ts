@@ -94,6 +94,9 @@ interface ChatRoomStore{
     isVideoChatOpen: boolean
     videoRoomId: number | null
     videoSessionId: string | null  // 세션ID 저장용
+    // 거래 가격 관련 상태
+    finalPrice: number | null
+    setFinalPrice: (price: number | null) => void
     addChatRoom: (addRoom: addRoom) => Promise<RoomInfo | null>
     getRoomInfo: (roomId: number) => Promise<RoomInfo | null>
     getRoomList: () => void
@@ -126,6 +129,9 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     isVideoChatOpen: false,
     videoRoomId: null,
     videoSessionId: null,  // 세션ID 저장용
+    // 거래 가격 관련 상태
+    finalPrice: null,
+    setFinalPrice: (price: number | null) => set({ finalPrice: price }),
     setVideoSessionId: (id: string | null) => set({ videoSessionId: id }),
 
     addChatRoom: async (addRoom: addRoom) => {
