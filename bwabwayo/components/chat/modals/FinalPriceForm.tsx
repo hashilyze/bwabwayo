@@ -2,64 +2,29 @@
 import { useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import { useParams } from 'next/navigation'
-import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
+import useSendTypeMessageStore from '@/stores/chatting/sendTypeMessage'
 
 export default function FinalPriceModal({
   onClose,
-  onSubmit,
 }: {
   onClose: () => void
-  onSubmit: (v: { finalPrice: number }) => void
 }) {
   const [finalPrice, setFinalPrice] = useState<number | ''>('') 
   const [error, setError] = useState('')
   const boxRef = useRef<HTMLDivElement>(null)
   const params = useParams()
   const roomId = Number(params.roomId)
-  const { sendMessage, appendMessage, currentSelectedRoom } = useChatRoomStore()
+  const { price } = useSendTypeMessageStore()
 
   const handleSubmit = () => {
     if (finalPrice === '' || isNaN(Number(finalPrice)) || Number(finalPrice) <= 0) {
       return setError('최종 가격을 올바르게 입력해 주세요.')
     }
     setError('')
-    
-    // 최종 가격을 콘솔에 출력
     console.log('최종 거래 가격:', Number(finalPrice))
     
-    // REQUEST_DEPOSIT 메시지 전송 (금액을 content에 포함)
-    sendMessage(roomId, Number(finalPrice).toString(), "REQUEST_DEPOSIT")
-    
-    // 로컬에서 즉시 메시지 추가 (채팅방에 바로 표시되도록)
-    const currentUserId = currentSelectedRoom?.userId.toString();
-    const sellerId = currentSelectedRoom?.seller.id.toString();
-    const buyerId = currentSelectedRoom?.buyer.id.toString();
-    
-    // receiverId 결정
-    let receiverId = null;
-    if (currentUserId === sellerId) {
-      receiverId = buyerId;
-    } else if (currentUserId === buyerId) {
-      receiverId = sellerId;
-    } else {
-      receiverId = sellerId;
-    }
-    
-    const localMessage = {
-      roomId: roomId,
-      senderId: currentUserId || '',
-      receiverId: receiverId || '',
-      content: Number(finalPrice).toString(),
-      type: "REQUEST_DEPOSIT",
-      createdAt: new Date().toISOString(),
-      isRead: false
-    };
-    
-    // 로컬에 메시지 추가 (isMine: true로 설정하여 내가 보낸 메시지임을 표시)
-    appendMessage(localMessage, true);
-    
-    // 부모 컴포넌트에 결과 전달
-    onSubmit({ finalPrice: Number(finalPrice) })
+    price(roomId, Number(finalPrice))
+    onClose()
   }
 
   return (

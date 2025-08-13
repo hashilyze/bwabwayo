@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useChatRoomStore } from "@/stores/chatting/chatRoomStore"
 import { useMyAddressStore } from "@/stores/mypage/myAddressStore"
+import useSendTypeMessageStore from '@/stores/chatting/sendTypeMessage'
 import { OverlayPortal } from "@/components/chat/modals/OverlayPortal"
 import TrackingNumberModal from '@/components/chat/modals/TrackingForm'
 import FinalPriceModal from '@/components/chat/modals/FinalPriceForm'
@@ -366,13 +367,6 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
     if (!isSeller) return
     setOpen(true)
   }
-
-  const handleSubmitFinalPrice = ({ finalPrice }: { finalPrice: number }) => {
-    console.log('최종 거래 가격:', finalPrice)
-    // TODO: 서버 전송 / STOMP 공지 등 처리
-    setOpen(false)
-  }
-
   // chatInfo가 로드되지 않았거나 seller가 아니면 모달을 보이지 않음
   if (!chatInfo || !isSeller) {
     return null;
@@ -413,7 +407,6 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
       <OverlayPortal open={open} onClose={() => setOpen(false)}>
         <FinalPriceModal
           onClose={() => setOpen(false)}
-          onSubmit={handleSubmitFinalPrice}
         />
       </OverlayPortal>
     </div>
@@ -705,21 +698,12 @@ const InputTrackingAddressModal = ({ message }: { message: ChatMessage }) => {
            onSubmit={(v) => {
              console.log('송장 등록 값:', v)
              
-             // START_DELIVERY 타입의 메시지 전송
-             const { sendMessage, currentSelectedRoom } = useChatRoomStore.getState();
+             // invoice 함수 호출
+             const { currentSelectedRoom } = useChatRoomStore.getState();
+             const { invoice } = useSendTypeMessageStore.getState();
              if (currentSelectedRoom) {
-               const deliveryMessage = JSON.stringify({
-                 carrier: v.carrier,
-                 trackingNumber: v.trackingNumber
-               });
-               
-               // START_DELIVERY 메시지 전송
-               sendMessage(currentSelectedRoom.roomId, deliveryMessage, 'START_DELIVERY');
-               
-               // 1초 후 CONFIRM_PURCHASE 메시지 전송
-               setTimeout(() => {
-                 sendMessage(currentSelectedRoom.roomId, '구매 확정을 요청합니다.', 'CONFIRM_PURCHASE');
-               }, 1000);
+               // invoice 함수 호출 (택배사명과 송장번호 전달)
+               invoice(currentSelectedRoom.roomId, v.carrier, v.trackingNumber);
              }
              
              setOpenTracking(false)
