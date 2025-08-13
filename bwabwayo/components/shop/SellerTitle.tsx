@@ -6,25 +6,28 @@ export interface Seller {
   profileImage: string | null;
   rating: number;
   score: number;
-  bio: string;
+  bio: string | null;
   dealCount: number | null;
   reviewCount?: number | string; // 선택적 속성, 필요에 따라 추가
 }
 
 interface SellerTitleProps {
-  seller: any;
+  seller: Seller;
+  disableLink?: boolean;
 }
 
-export default function SellerTitle({ seller }: SellerTitleProps) {
-    const trustScore = seller?.score || 0;
+export default function SellerTitle({ seller, disableLink = false }: SellerTitleProps) {
+    const trustScore = seller.score || 0;
     const trustPercentage = (trustScore / 1000) * 100;
-    const sellerName = seller?.nickname || "판매자";
-    const sellerRating = seller?.rating || 0;
-    const sellerImage = seller?.profileImage; // 기본 프로필 이미지 경로
-    const bio = seller?.bio || "상점에 대한 설명이 없습니다.";
-    const dealCount = seller?.dealCount || 0;
-    const reviewCount = seller?.reviewCount || 0;
+    const sellerName = seller.nickname || "판매자";
+    const sellerRating = seller.rating || 0;
+    const sellerImage = seller.profileImage; // 기본 프로필 이미지 경로
+    const bio = seller.bio || "상점에 대한 설명이 없습니다.";
+    const dealCount = seller.dealCount || 0;
+    const reviewCount = seller.reviewCount || 0;
     // console.log(trustPercentage, trustScore, sellerName, sellerRating, sellerImage, bio, dealCount, reviewCount);
+
+    const titleElement = <h3 className="text-xl font-bold">{sellerName}님의 상점</h3>;
 
     return (
         <div className="w-full flex-4">
@@ -35,9 +38,13 @@ export default function SellerTitle({ seller }: SellerTitleProps) {
                 </div>
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-col items-start">
-                        <Link href={`/shop/${seller?.id}`}><h3 className="text-xl font-bold">{sellerName}님의 상점</h3></Link>
+                        {disableLink || !seller.id ? (
+                            titleElement
+                        ) : (
+                            <Link href={`/shop/${seller.id}`}>{titleElement}</Link>
+                        )}
                         <div className="flex items-center gap-1">
-                            <span className="text-gray-400 text-base font-light">{sellerRating === 0 ? '0.0' : sellerRating}</span>
+                            <span className="text-gray-400 text-base font-light">{sellerRating.toFixed(1)}</span>
                             <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/star-on.svg`} alt="별점" className="w-4 h-4" />
                             <span className="text-gray-400 text-base font-light">({reviewCount})</span>
                         </div>
