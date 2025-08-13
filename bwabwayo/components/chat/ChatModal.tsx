@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore';
+import useSendTypeMessageStore from '@/stores/chatting/sendTypeMessage';
 import { useParams } from 'next/navigation';
 
 interface ChatInputActiveProps {
@@ -13,6 +14,7 @@ const ChatInputActive: React.FC<ChatInputActiveProps> = ({ onOpenReservationModa
   const params = useParams();
   const roomId = Number(params.roomId);
   const { sendMessage, currentSelectedRoom } = useChatRoomStore();
+  const { negotiation } = useSendTypeMessageStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [messageInput, setMessageInput] = useState('');
 
@@ -87,8 +89,7 @@ const ChatInputActive: React.FC<ChatInputActiveProps> = ({ onOpenReservationModa
             className={`flex flex-col items-center ${isSeller ? 'cursor-pointer' : 'cursor-not-allowed'}`}
             onClick={() => {
               if (isSeller) {
-                // START_TRADE 타입의 메시지 전송
-                sendMessage(roomId, "거래시작", "START_TRADE");
+                negotiation(roomId);
                 setIsMenuOpen(false); // 메뉴 닫기
               }
             }}

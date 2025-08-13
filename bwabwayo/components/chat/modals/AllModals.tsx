@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useChatRoomStore } from "@/stores/chatting/chatRoomStore"
 import { useMyAddressStore } from "@/stores/mypage/myAddressStore"
+import useSendTypeMessageStore from '@/stores/chatting/sendTypeMessage'
 import { OverlayPortal } from "@/components/chat/modals/OverlayPortal"
 import TrackingNumberModal from '@/components/chat/modals/TrackingForm'
 import FinalPriceModal from '@/components/chat/modals/FinalPriceForm'
@@ -357,9 +358,12 @@ const StartVideoCallModal = ({ message }: { message: ChatMessage }) => {
 const StartTradeModal = ({ message }: { message: ChatMessage }) => {
   const chatInfo = useChatRoomInfo()
   const isSeller = !!chatInfo?.isCurrentUserSeller
+  const { setFinalPrice } = useChatRoomStore()
+  const { price } = useSendTypeMessageStore()
 
   const [open, setOpen] = useState(false)
   const [isButtonHovered, setIsButtonHovered] = useState(false)
+  const [finalPrice, setFinalPriceLocal] = useState('')
 
   const handleOpen = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
@@ -367,14 +371,36 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
     setOpen(true)
   }
 
-  const handleSubmitFinalPrice = ({ finalPrice }: { finalPrice: number }) => {
-    console.log('최종 거래 가격:', finalPrice)
-    // TODO: 서버 전송 / STOMP 공지 등 처리
+  const handleRequest = () => {
+    if (!finalPrice || Number(finalPrice) <= 0) {
+      alert('유효한 금액을 입력해주세요.')
+      return
+    }
+    const priceNumber = Number(finalPrice)
+    console.log('StartTradeModal - setting finalPrice:', priceNumber)
+    console.log('StartTradeModal - roomId:', chatInfo?.roomId)
+    
+    // 스토어에 finalPrice 설정 (즉시 설정)
+    setFinalPrice(priceNumber)
+    
+    // 설정 후 즉시 확인
+    const currentFinalPrice = useChatRoomStore.getState().finalPrice
+    console.log('StartTradeModal - finalPrice immediately after setting:', currentFinalPrice)
+    
+    // 메시지 전송 (백엔드 API + 채팅 메시지)
+    price(chatInfo?.roomId || 0, priceNumber)
+    
+    // 추가 확인을 위한 지연 로그
+    setTimeout(() => {
+      const delayedFinalPrice = useChatRoomStore.getState().finalPrice
+      console.log('StartTradeModal - finalPrice after 100ms:', delayedFinalPrice)
+    }, 100)
+    
     setOpen(false)
   }
 
-  // seller가 아니면 모달을 보이지 않음
-  if (!isSeller) {
+  // chatInfo가 로드되지 않았거나 seller가 아니면 모달을 보이지 않음
+  if (!chatInfo || !isSeller) {
     return null;
   }
 
@@ -411,11 +437,42 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
 
       {/* 🔽 포탈로 finalPriceForm 띄우기 */}
       <OverlayPortal open={open} onClose={() => setOpen(false)}>
-        <FinalPriceModal
-          onClose={() => setOpen(false)}
-          onSubmit={handleSubmitFinalPrice}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-[20px] border-2 border-black w-[400px]">
+            <div className="flex flex-col items-center gap-4">
+              <h3 className="text-lg font-bold text-black">최종 거래 가격 설정</h3>
+              <div className="w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  거래 가격 (원)
+                </label>
+                <input
+                  type="number"
+                  value={finalPrice}
+                  onChange={(e) => setFinalPriceLocal(e.target.value)}
+                  placeholder="가격을 입력하세요"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => setOpen(false)}
+                  className="flex-1 py-2 px-4 bg-gray-300 text-black rounded-lg hover:bg-gray-400 transition-colors"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleRequest}
+                  className="flex-1 py-2 px-4 bg-[#fce94f] text-black rounded-lg hover:bg-yellow-400 transition-colors font-bold"
+                >
+                  요청하기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </OverlayPortal>
+
+
     </div>
       {/* 시간 표시 */}
       <div className="my-3 text-md text-[#666666] text-center">
@@ -438,23 +495,90 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
   const [isButtonHovered, setIsButtonHovered] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const chatInfo = useChatRoomInfo();
+  const { finalPrice } = useChatRoomStore();
 
   const handleStart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     console.log('결제 요청');
+    
+    // 결제 금액이 유효한지 확인
+    if (!paymentAmount || paymentAmount <= 0) {
+      alert('유효한 결제 금액이 설정되지 않았습니다. 판매자에게 문의해주세요.');
+      return;
+    }
+    
     setIsPaymentModalOpen(true);
   }
 
-  // message.content에서 금액 추출 (숫자만)
-  const amount = message.content.replace(/[^\d]/g, '');
+  // store의 finalPrice를 우선 사용하고, 없으면 message.content에서 추출
+  // message.content에서 숫자만 추출하는 정규식 개선
+  const extractAmountFromMessage = (content: string) => {
+    if (!content || content.trim() === '') {
+      console.log('extractAmountFromMessage - content is empty');
+      return '';
+    }
+    
+    console.log('extractAmountFromMessage - extracting from:', content);
+    
+    // 여러 패턴으로 가격 추출 시도
+    const patterns = [
+      /최종\s*거래\s*가격[:\s]*(\d{1,3}(,\d{3})*|\d+)\s*원/, // "최종 거래 가격: 100,000원" 형태
+      /(\d{1,3}(,\d{3})*|\d+)\s*원/, // "100,000원" 형태
+      /가격[:\s]*(\d{1,3}(,\d{3})*|\d+)/, // "가격: 100,000" 형태
+      /(\d{1,3}(,\d{3})*|\d+)/, // 일반적인 숫자
+    ];
+    
+    for (const pattern of patterns) {
+      const match = content.match(pattern);
+      if (match) {
+        const extracted = match[1] ? match[1].replace(/,/g, '') : match[0].replace(/,/g, '');
+        console.log('extractAmountFromMessage - extracted:', extracted, 'from pattern:', pattern);
+        return extracted;
+      }
+    }
+    console.log('extractAmountFromMessage - no amount found');
+    return '';
+  };
+
+  // 금액 결정 로직 개선
+  let amount = '';
+  
+  // 1. 스토어에서 finalPrice 확인 (가장 우선순위)
+  const storeFinalPrice = useChatRoomStore.getState().finalPrice;
+  console.log('RequestDepositeModal - storeFinalPrice (direct):', storeFinalPrice);
+  
+  if (finalPrice && finalPrice > 0) {
+    amount = finalPrice.toString();
+    console.log('RequestDepositeModal - using finalPrice from props:', finalPrice);
+  } else if (storeFinalPrice && storeFinalPrice > 0) {
+    amount = storeFinalPrice.toString();
+    console.log('RequestDepositeModal - using storeFinalPrice:', storeFinalPrice);
+  } else if (message.content && message.content.trim() !== '') {
+    // 2. message.content에서 추출 시도
+    amount = extractAmountFromMessage(message.content);
+    console.log('RequestDepositeModal - using extracted amount from message:', amount);
+  } else {
+    // 3. 모든 방법이 실패한 경우
+    console.log('RequestDepositeModal - no amount found from any source');
+    amount = '';
+  }
+  
   const formattedAmount = amount ? Number(amount).toLocaleString() + '원' : '0원';
   const paymentAmount = amount ? Number(amount) : 0;
+
+  console.log('RequestDepositeModal - finalPrice from store:', finalPrice);
+  console.log('RequestDepositeModal - message.content:', message.content);
+  console.log('RequestDepositeModal - message.content length:', message.content?.length);
+  console.log('RequestDepositeModal - message.content type:', typeof message.content);
+  console.log('RequestDepositeModal - extracted amount:', amount);
+  console.log('RequestDepositeModal - paymentAmount:', paymentAmount);
+  console.log('RequestDepositeModal - chatInfo roomId:', chatInfo?.roomId);
 
   // buyer인지 확인
   const isBuyer = chatInfo?.isCurrentUserBuyer;
 
-  // buyer가 아니면 모달을 보이지 않음
-  if (!isBuyer) {
+  // chatInfo가 로드되지 않았거나 buyer가 아니면 모달을 보이지 않음
+  if (!chatInfo || !isBuyer) {
     return null;
   }
 
@@ -555,8 +679,8 @@ const InputDeliveryAddressModal = ({ message }: { message: ChatMessage }) => {
     setOpen(true);
   }
 
-  // buyer가 아니면 모달을 보이지 않음
-  if (!isBuyer) {
+  // chatInfo가 로드되지 않았거나 buyer가 아니면 모달을 보이지 않음
+  if (!chatInfo || !isBuyer) {
     return null;
   }
 
@@ -658,8 +782,8 @@ const InputTrackingAddressModal = ({ message }: { message: ChatMessage }) => {
   
   const deliveryInfo = parseDeliveryInfo();
 
-  // seller가 아니면 모달을 보이지 않음
-  if (!isSeller) {
+  // chatInfo가 로드되지 않았거나 seller가 아니면 모달을 보이지 않음
+  if (!chatInfo || !isSeller) {
     return null;
   }
 
@@ -705,21 +829,12 @@ const InputTrackingAddressModal = ({ message }: { message: ChatMessage }) => {
            onSubmit={(v) => {
              console.log('송장 등록 값:', v)
              
-             // START_DELIVERY 타입의 메시지 전송
-             const { sendMessage, currentSelectedRoom } = useChatRoomStore.getState();
+             // invoice 함수 호출
+             const { currentSelectedRoom } = useChatRoomStore.getState();
+             const { invoice } = useSendTypeMessageStore.getState();
              if (currentSelectedRoom) {
-               const deliveryMessage = JSON.stringify({
-                 carrier: v.carrier,
-                 trackingNumber: v.trackingNumber
-               });
-               
-               // START_DELIVERY 메시지 전송
-               sendMessage(currentSelectedRoom.roomId, deliveryMessage, 'START_DELIVERY');
-               
-               // 1초 후 CONFIRM_PURCHASE 메시지 전송
-               setTimeout(() => {
-                 sendMessage(currentSelectedRoom.roomId, '구매 확정을 요청합니다.', 'CONFIRM_PURCHASE');
-               }, 1000);
+               // invoice 함수 호출 (택배사명과 송장번호 전달)
+               invoice(currentSelectedRoom.roomId, v.carrier, v.trackingNumber);
              }
              
              setOpenTracking(false)
@@ -831,8 +946,8 @@ const ConfirmPurchaseModal = ({ message }: { message: ChatMessage }) => {
     setShowPurchaseConfirm(false);
   }
 
-  // buyer가 아니면 모달을 보이지 않음
-  if (!isBuyer) {
+  // chatInfo가 로드되지 않았거나 buyer가 아니면 모달을 보이지 않음
+  if (!chatInfo || !isBuyer) {
     return null;
   }
 
@@ -929,6 +1044,20 @@ const EndTradeModal = ({ message }: { message: ChatMessage }) => {
 
 
 export default function AllModals({ message, type }: { message: ChatMessage, type: string }) {
+  const chatInfo = useChatRoomInfo();
+  
+  // chatInfo가 로드되지 않았을 때는 로딩 상태 표시
+  if (!chatInfo) {
+    return (
+      <div className="w-[400px] p-6 rounded-[30px] border-2 border-black">
+        <div className="flex flex-col items-center justify-center">
+          <div className="w-16 h-16 bg-gray-200 rounded-full animate-pulse mb-4"></div>
+          <p className="text-md text-gray-500">메시지를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       {type === 'CREATE_ROOM' && <CreateRoomModal message={message} />}

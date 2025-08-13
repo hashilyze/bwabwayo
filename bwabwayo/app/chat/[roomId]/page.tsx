@@ -87,7 +87,7 @@ export default function ChatRoomPage() {
         // 2. 메시지 히스토리 로드
         await getMessageHistory(roomId)
 
-        // 3. STOMP 연결
+        // 3. STOMP 연결 (채팅방별 구독)
         connectStomp(roomId)
       } catch (error) {
         console.error('채팅 초기화 실패:', error)
@@ -102,6 +102,11 @@ export default function ChatRoomPage() {
       disconnectStomp()
     }
   }, [roomId, getMessageHistory, connectStomp, getRoomList])
+
+  // 메시지 실시간 업데이트 감지
+  useEffect(() => {
+    console.log('📝 메시지 업데이트 감지:', messages?.length, '개');
+  }, [messages]);
 
   // 결제 성공 처리
   useEffect(() => {

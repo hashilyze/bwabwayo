@@ -94,6 +94,9 @@ interface ChatRoomStore{
     isVideoChatOpen: boolean
     videoRoomId: number | null
     videoSessionId: string | null  // 세션ID 저장용
+    // 거래 가격 관련 상태
+    finalPrice: number | null
+    setFinalPrice: (price: number | null) => void
     addChatRoom: (addRoom: addRoom) => Promise<RoomInfo | null>
     getRoomInfo: (roomId: number) => Promise<RoomInfo | null>
     getRoomList: () => void
@@ -126,6 +129,12 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     isVideoChatOpen: false,
     videoRoomId: null,
     videoSessionId: null,  // 세션ID 저장용
+    // 거래 가격 관련 상태
+    finalPrice: null,
+    setFinalPrice: (price: number | null) => {
+      console.log('chatRoomStore - setting finalPrice:', price);
+      set({ finalPrice: price });
+    },
     setVideoSessionId: (id: string | null) => set({ videoSessionId: id }),
 
     addChatRoom: async (addRoom: addRoom) => {
@@ -220,19 +229,19 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                     console.log(`📡 STOMP: 채팅방 ${roomId} 구독 시작`)
                     client.subscribe(`/sub/chat/room/${roomId}`, (messageOutput) => {
                         const msg = JSON.parse(messageOutput.body)
-                        console.log('메세지' +  msg.type);
-                        console.log('내용 ' + msg.content);
+                        console.log('📨 메시지 수신:', msg.type, msg.content);
+                        
                         // START_VIDEOCALL 타입 메시지인 경우 세션ID 저장
                         if (msg.type === 'START_VIDEOCALL' && msg.content) {
                             console.log('📹 화상채팅 세션ID 저장:', msg.content);
                             set({ videoSessionId: msg.content });
                         }
-                        get().appendMessage(msg, false) // isMine은 appendMessage에서 결정하도록 변경 가능
                         
-                        // 메시지 수신 시 채팅방 목록 업데이트
-                        setTimeout(() => {
-                            get().getRoomList();
-                        }, 500); // 약간의 지연을 두어 서버에서 처리될 시간을 줌
+                        // 메시지 추가 (실시간 업데이트)
+                        get().appendMessage(msg, false)
+                        
+                        // 메시지 수신 시 즉시 채팅방 목록 업데이트
+                        get().getRoomList();
                     })
                 }
             }
@@ -274,9 +283,13 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 return state;
             }
 
-            console.log('📝 새 메시지 추가:', msg.content);
+            console.log('📝 새 메시지 추가 (실시간):', msg.content);
+            
+            // 새 메시지를 추가하고 즉시 UI 업데이트
+            const updatedMessages = [...currentMessages, msg];
+            
             return { 
-                messages: [...currentMessages, msg] 
+                messages: updatedMessages 
             }
         })
     },
@@ -354,7 +367,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 }
 
                 // 즉시 로컬 메시지 목록에 추가 (낙관적 업데이트)
-                console.log('📝 즉시 메시지 추가:', immediateMessage)
+                console.log('📝 즉시 메시지 추가 (낙관적 업데이트):', immediateMessage)
                 get().appendMessage(immediateMessage, true)
 
                 // STOMP 메시지 형식
@@ -377,6 +390,12 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 })
 
                 console.log('✅ STOMP 메시지 전송 완료')
+                
+                // 메시지 전송 후 채팅방 목록도 즉시 업데이트
+                setTimeout(() => {
+                    get().getRoomList();
+                }, 100);
+                
                 resolve()
             } catch (error) {
                 console.error('❌ 메시지 전송 실패:', error)
