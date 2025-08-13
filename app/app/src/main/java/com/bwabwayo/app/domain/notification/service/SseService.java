@@ -112,6 +112,8 @@ public class SseService {
     }
 
     public void handleMessage(MessageDTO message){
+        if(true) return;
+
         String contnet = message.getContent();
         switch (message.getType()){
             case TEXT: {
@@ -131,7 +133,6 @@ public class SseService {
             case CONFIRM_PURCHASE: contnet = "구매가 확정되었습니다."; break;
             case END_TRADE: contnet = "거래가 종료됩니다."; break;
         }
-
         upsertChatNotification(message.getRoomId(), UpsertRequest.of(message.getReceiverId(), contnet));
         upsertChatNotification(message.getRoomId(), UpsertRequest.of(message.getSenderId(), contnet));
     }
