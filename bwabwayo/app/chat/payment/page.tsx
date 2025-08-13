@@ -49,10 +49,10 @@ function PaymentSuccessContent() {
           setResponseData(data);
           console.log("✅ 결제 확인 완료");
           
-          // 바로 창 닫기
-          setTimeout(() => {
-            window.close();
-          }, 2000);
+                     // 1초 뒤 창 닫기
+           setTimeout(() => {
+             window.close();
+           }, 1000);
         })
        .catch((error) => {
          console.log(error);

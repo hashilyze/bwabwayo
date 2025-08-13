@@ -48,11 +48,10 @@ export function PaymentSuccessPage() {
     confirm()
       .then((data) => {
         setResponseData(data);
-        
-        // 새창을 바로 종료
+
         setTimeout(() => {
-          window.close();
-        }, 2000); // 2초 후 창 닫기
+          router.push(`/chat/${searchParams.get("roomId")}`);
+        }, 1000);
       })
       .catch((error) => {
         console.log(error);
@@ -60,7 +59,7 @@ export function PaymentSuccessPage() {
   }, [searchParams, router]);
 
   return (
-    <div className="min-h-screen bg-[#e8f3ff] font-['Toss_Product_Sans',-apple-system,BlinkMacSystemFont,'Bazier_Square','Noto_Sans_KR','Segoe_UI','Apple_SD_Gothic_Neo',Roboto,'Helvetica_Neue',Arial,sans-serif]">
+    <div className="font-['Toss_Product_Sans',-apple-system,BlinkMacSystemFont,'Bazier_Square','Noto_Sans_KR','Segoe_UI','Apple_SD_Gothic_Neo',Roboto,'Helvetica_Neue',Arial,sans-serif]">
       <div className="max-w-[800px] mx-auto pt-8">
         {/* 성공 메시지 섹션 */}
         <div className="bg-white rounded-[10px] shadow-[0_10px_20px_rgba(0,0,0,0.01),0_6px_6px_rgba(0,0,0,0.06)] p-[50px] mt-[30px] text-center">
