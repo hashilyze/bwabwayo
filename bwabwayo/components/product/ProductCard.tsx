@@ -13,6 +13,17 @@ type Props = {
 export default function ProductCard({ item, height = 300 }: Props) {
   const router = useRouter();
   const product = item;
+  
+  // 디버깅: 전체 product 객체와 saleStatusCode 값 확인
+  console.log('ProductCard 전체 product:', product);
+  console.log('ProductCard saleStatusCode:', product.saleStatusCode, 'type:', typeof product.saleStatusCode);
+  console.log('ProductCard saleStatusCode > 0:', (product.saleStatusCode || 0) > 0);
+  console.log('ProductCard 조건문 결과:', product.saleStatusCode !== undefined && product.saleStatusCode !== null && product.saleStatusCode > 0);
+  
+  // saleStatusCode가 없을 때를 대비한 기본값 설정
+  const saleStatusCode = product.saleStatusCode || 0;
+  console.log('ProductCard 최종 saleStatusCode:', saleStatusCode);
+  
   // console.log(product)
 
   const handleCardClick = (e: MouseEvent<HTMLDivElement>, productId: number) => {
@@ -69,19 +80,22 @@ export default function ProductCard({ item, height = 300 }: Props) {
            alt={product.title}
            style={{ height: `${height}px` }}
          />
-         {/* 판매완료 오버레이 */}
-         {/* 반투명 오버레이 */}
-         {/* 텍스트 오버레이 */}
-         {/* {product.saleStatusCode === 2 && (
-           <>
-             <div className="absolute inset-0 bg-black/35" />
-             <div className="absolute inset-0 flex items-center justify-center">
-               <div className="w-20 h-20 rounded-full border-2 border-white flex items-center justify-center bg-black/35">
-                 <span className="text-white text-lg font-bold">판매완료</span>
-               </div>
-             </div>
-           </>
-         )} */}
+         
+         {/* 판매 상태 오버레이 */}
+         {saleStatusCode > 0 && (
+            <>
+              {/* 반투명 검은 배경 - 피그마 디자인과 일치 */}
+              <div className="absolute inset-0 bg-black/35" />
+              {/* 중앙 동그라미 - 피그마 디자인과 일치 (100x100px) */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-[100px] h-[100px] rounded-full border-2 border-white flex items-center justify-center bg-transparent">
+                  <span className="text-white text-xl font-bold">
+                    {saleStatusCode === 1 ? '거래 중' : '판매완료'}
+                  </span>
+                </div>
+              </div>
+            </>
+          )}
        </div>
       
       {/* 상품 정보 */}

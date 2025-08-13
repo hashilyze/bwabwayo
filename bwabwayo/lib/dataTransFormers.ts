@@ -27,5 +27,6 @@ export const transformToProductCardData = (item: ProductWithSeller): ProductCard
     // 옵셔널(?) 필드는 그대로 전달합니다. 값이 없으면 undefined가 됩니다.
     canVideoCall: product.canVideoCall,
     createdAt: product.createdAt,
+    saleStatusCode: product.saleStatusCode,
   };
 };
