@@ -2,7 +2,7 @@
 
 import ChatModal from '@/components/chat/ChatModal'
 import { useEffect, useRef, useState } from 'react'
-import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
 import { useModalStore } from '@/stores/modalStore'
 import AllModals from '@/components/chat/modals/AllModals'
@@ -46,7 +46,7 @@ export default function ChatRoomPage() {
   const params = useParams()
   const router = useRouter()
   const roomId = Number(params.roomId)
-  const searchParams = useSearchParams()
+
   const { 
     messages, 
     getMessageHistory, 
@@ -70,7 +70,7 @@ export default function ChatRoomPage() {
   const [isHeaderModalOpen, setIsHeaderModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [hasPaymentSuccessMessageSent, setHasPaymentSuccessMessageSent] = useState(false);
+
 
   const openReservationModal = () => setIsReservationModalOpen(true);
   const closeReservationModal = () => setIsReservationModalOpen(false);
@@ -204,27 +204,7 @@ export default function ChatRoomPage() {
     }
   }, [isInitialized]);
 
-  // 결제 성공 시 배송지 입력 메시지 전송
-  useEffect(() => {
-    const productId = searchParams.get("productId");
-    
-    // productId가 URL 파라미터에 있고, 아직 메시지를 보내지 않았다면
-    if (productId && !hasPaymentSuccessMessageSent && isInitialized && currentSelectedRoom) {
-      console.log("💰 결제 성공 감지! 배송지 입력 메시지 전송 시작...");
-      
-      // 약간의 지연 후 메시지 전송 (페이지 로딩 완료 후)
-      setTimeout(() => {
-        sendMessage(roomId, "배송지 입력이 필요합니다.", "INPUT_DELIVERY_ADDRESS");
-        console.log("✅ 배송지 입력 메시지 전송 완료");
-        setHasPaymentSuccessMessageSent(true);
-        
-        // URL에서 productId 파라미터 제거 (브라우저 히스토리 정리)
-        const newUrl = new URL(window.location.href);
-        newUrl.searchParams.delete("productId");
-        window.history.replaceState({}, "", newUrl.toString());
-      }, 1000);
-    }
-  }, [searchParams, hasPaymentSuccessMessageSent, isInitialized, currentSelectedRoom, roomId, sendMessage]);
+
 
   // 컴포넌트가 언마운트될 때 STOMP 연결을 해제합니다.
   useEffect(() => {
