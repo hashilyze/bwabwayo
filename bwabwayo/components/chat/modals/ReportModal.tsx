@@ -192,14 +192,24 @@ export const ReportModal = ({ isOpen, onClose, sellerNickname, sellerId }: Repor
 
                  {/* 신고 내용 입력 */}
          <div className="px-[48px] pb-[15px]">
-          <div className="w-[380px] h-[152px] border-[0.7px] border-[#A2A2A2] rounded-[20px] p-[13px]">
+          <div className="w-[380px] h-[152px] border-[0.7px] border-[#A2A2A2] rounded-[20px] p-[13px] relative">
                          <textarea
                value={description}
-               onChange={(e) => setDescription(e.target.value)}
+               onChange={(e) => {
+                 if (e.target.value.length <= 255) {
+                   setDescription(e.target.value);
+                 }
+               }}
                placeholder="정확한 답변을 위해 신고 내용을 자세히 작성해 주세요."
                className="w-full h-full resize-none border-none outline-none text-[14px] font-medium text-black font-['SUITE'] leading-[1.248] placeholder-[#A2A2A2]"
                rows={8}
+               maxLength={255}
              />
+            <div className="absolute bottom-2 right-2">
+              <span className="text-[12px] text-[#A2A2A2] font-['SUITE']">
+                {description.length}/255
+              </span>
+            </div>
           </div>
         </div>
 
