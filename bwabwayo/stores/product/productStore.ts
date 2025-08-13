@@ -148,9 +148,9 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       }
       
       // API URL 구성
-      const url = queryParams.toString() 
+      const url = (queryParams.toString() 
         ? `${baseUrl}/products?${queryParams.toString()}`
-        : `${baseUrl}/products`;
+        : `${baseUrl}/products`) + '&sortBy=latest_and_related';
       
       const response = await useAuthStore.getState().authenticatedFetch(url)
       const data = await response.json()
