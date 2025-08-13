@@ -378,8 +378,24 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
     }
     const priceNumber = Number(finalPrice)
     console.log('StartTradeModal - setting finalPrice:', priceNumber)
+    console.log('StartTradeModal - roomId:', chatInfo?.roomId)
+    
+    // 스토어에 finalPrice 설정 (즉시 설정)
     setFinalPrice(priceNumber)
+    
+    // 설정 후 즉시 확인
+    const currentFinalPrice = useChatRoomStore.getState().finalPrice
+    console.log('StartTradeModal - finalPrice immediately after setting:', currentFinalPrice)
+    
+    // 메시지 전송 (백엔드 API + 채팅 메시지)
     price(chatInfo?.roomId || 0, priceNumber)
+    
+    // 추가 확인을 위한 지연 로그
+    setTimeout(() => {
+      const delayedFinalPrice = useChatRoomStore.getState().finalPrice
+      console.log('StartTradeModal - finalPrice after 100ms:', delayedFinalPrice)
+    }, 100)
+    
     setOpen(false)
   }
 
@@ -497,8 +513,16 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
   // store의 finalPrice를 우선 사용하고, 없으면 message.content에서 추출
   // message.content에서 숫자만 추출하는 정규식 개선
   const extractAmountFromMessage = (content: string) => {
+    if (!content || content.trim() === '') {
+      console.log('extractAmountFromMessage - content is empty');
+      return '';
+    }
+    
+    console.log('extractAmountFromMessage - extracting from:', content);
+    
     // 여러 패턴으로 가격 추출 시도
     const patterns = [
+      /최종\s*거래\s*가격[:\s]*(\d{1,3}(,\d{3})*|\d+)\s*원/, // "최종 거래 가격: 100,000원" 형태
       /(\d{1,3}(,\d{3})*|\d+)\s*원/, // "100,000원" 형태
       /가격[:\s]*(\d{1,3}(,\d{3})*|\d+)/, // "가격: 100,000" 형태
       /(\d{1,3}(,\d{3})*|\d+)/, // 일반적인 숫자
@@ -507,18 +531,36 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
     for (const pattern of patterns) {
       const match = content.match(pattern);
       if (match) {
-        return match[1] ? match[1].replace(/,/g, '') : match[0].replace(/,/g, '');
+        const extracted = match[1] ? match[1].replace(/,/g, '') : match[0].replace(/,/g, '');
+        console.log('extractAmountFromMessage - extracted:', extracted, 'from pattern:', pattern);
+        return extracted;
       }
     }
+    console.log('extractAmountFromMessage - no amount found');
     return '';
   };
 
-  // finalPrice가 있으면 사용, 없으면 message.content에서 추출
+  // 금액 결정 로직 개선
   let amount = '';
+  
+  // 1. 스토어에서 finalPrice 확인 (가장 우선순위)
+  const storeFinalPrice = useChatRoomStore.getState().finalPrice;
+  console.log('RequestDepositeModal - storeFinalPrice (direct):', storeFinalPrice);
+  
   if (finalPrice && finalPrice > 0) {
     amount = finalPrice.toString();
-  } else {
+    console.log('RequestDepositeModal - using finalPrice from props:', finalPrice);
+  } else if (storeFinalPrice && storeFinalPrice > 0) {
+    amount = storeFinalPrice.toString();
+    console.log('RequestDepositeModal - using storeFinalPrice:', storeFinalPrice);
+  } else if (message.content && message.content.trim() !== '') {
+    // 2. message.content에서 추출 시도
     amount = extractAmountFromMessage(message.content);
+    console.log('RequestDepositeModal - using extracted amount from message:', amount);
+  } else {
+    // 3. 모든 방법이 실패한 경우
+    console.log('RequestDepositeModal - no amount found from any source');
+    amount = '';
   }
   
   const formattedAmount = amount ? Number(amount).toLocaleString() + '원' : '0원';
@@ -526,8 +568,11 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
 
   console.log('RequestDepositeModal - finalPrice from store:', finalPrice);
   console.log('RequestDepositeModal - message.content:', message.content);
+  console.log('RequestDepositeModal - message.content length:', message.content?.length);
+  console.log('RequestDepositeModal - message.content type:', typeof message.content);
   console.log('RequestDepositeModal - extracted amount:', amount);
   console.log('RequestDepositeModal - paymentAmount:', paymentAmount);
+  console.log('RequestDepositeModal - chatInfo roomId:', chatInfo?.roomId);
 
   // buyer인지 확인
   const isBuyer = chatInfo?.isCurrentUserBuyer;
