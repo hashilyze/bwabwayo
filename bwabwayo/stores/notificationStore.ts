@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { useAuthStore } from './auth/authStore';
+import { registerRefreshCallback, unregisterRefreshCallback } from './auth/authStore';
 
 export interface Notification {
     id: number;
@@ -22,8 +24,8 @@ interface NotificationStore {
     unreadCount: number;
     isLoading: boolean;
     isPolling: boolean;
-    fetchNotifications: (token: string) => Promise<void>;
-    startPolling: (token: string, interval?: number) => void;
+    fetchNotifications: () => Promise<void>;
+    startPolling: (interval?: number) => void;
     stopPolling: () => void;
     markAsRead: (id: number) => void;
     clearAll: () => void;
@@ -32,6 +34,17 @@ interface NotificationStore {
 
 export const useNotificationStore = create<NotificationStore>((set, get) => {
     let pollingInterval: NodeJS.Timeout | null = null;
+    let currentInterval: number = 10000; // 현재 폴링 간격 저장
+    
+    // 토큰 갱신 성공 시 폴링 재시작 콜백
+    const restartPollingCallback = () => {
+        const { isPolling } = get();
+        if (isPolling) {
+            console.log('🔄 토큰 갱신 성공, 알림 폴링 재시작');
+            // 현재 폴링 간격으로 재시작
+            get().startPolling(currentInterval);
+        }
+    };
     
     return {
         notifications: [],
@@ -39,21 +52,13 @@ export const useNotificationStore = create<NotificationStore>((set, get) => {
         isLoading: false,
         isPolling: false,
         
-        fetchNotifications: async (token: string) => {
-            // 토큰이 없으면 요청하지 않음
-            if (!token) {
-                console.log('❌ 토큰이 없어서 알림을 요청할 수 없습니다.');
-                return;
-            }
-            
+        fetchNotifications: async () => {
             try {
                 set({ isLoading: true });
-                const response = await fetch('https://i13e202.p.ssafy.io/be/api/notifications', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
+                
+                // authenticatedFetch를 사용하여 토큰 자동 갱신 처리
+                const response = await useAuthStore.getState().authenticatedFetch('https://i13e202.p.ssafy.io/be/api/notifications');
+                
                 if (response.ok) {
                     const data: NotificationResponse = await response.json();
                     const totalUnread = data.results.reduce((sum, notif) => sum + notif.unreadCount, 0);
@@ -67,40 +72,35 @@ export const useNotificationStore = create<NotificationStore>((set, get) => {
                 }
             } catch (error) {
                 console.error('Failed to fetch notifications:', error);
+                // 에러 발생 시에도 폴링은 계속 유지 (토큰 갱신 후 재시도)
             } finally {
                 set({ isLoading: false });
             }
         },
         
-        startPolling: (token: string, interval: number = 10000) => {
-            // 토큰이 없으면 폴링 시작하지 않음
-            if (!token) {
-                console.log('❌ 토큰이 없어서 알림 폴링을 시작할 수 없습니다.');
-                return;
-            }
-            
+        startPolling: (interval: number = 10000) => {
             // 기존 폴링 중지
             if (pollingInterval) {
                 clearInterval(pollingInterval);
             }
             
+            // 현재 간격 저장
+            currentInterval = interval;
+            
             console.log('🚀 알림 폴링 시작');
             
             // 즉시 한 번 실행
-            get().fetchNotifications(token);
+            get().fetchNotifications();
             
             // 주기적으로 실행
             pollingInterval = setInterval(() => {
-                // 폴링 중에도 토큰 유효성 재확인
-                if (!token) {
-                    console.log('❌ 토큰이 만료되어 폴링을 중지합니다.');
-                    get().stopPolling();
-                    return;
-                }
-                get().fetchNotifications(token);
+                get().fetchNotifications();
             }, interval);
             
             set({ isPolling: true });
+            
+            // 토큰 갱신 콜백 등록 (폴링 시작 시에만)
+            registerRefreshCallback(restartPollingCallback);
         },
         
         stopPolling: () => {
@@ -109,6 +109,9 @@ export const useNotificationStore = create<NotificationStore>((set, get) => {
                 pollingInterval = null;
             }
             set({ isPolling: false });
+            
+            // 폴링 중지 시 콜백 제거
+            unregisterRefreshCallback(restartPollingCallback);
         },
         
         markAsRead: (id) => set((state) => {

@@ -31,8 +31,9 @@ interface AuthStore {
 // 토큰 갱신 관련 전역 상태
 let isRefreshing = false
 let failedQueue: FailedRequest[] = []
+let refreshCallbacks: (() => void)[] = [] // 토큰 갱신 성공 시 실행할 콜백들
 
-const processQueue = (error: Error | null, token: string | null = null) => {
+const processQueue = (error: Error | null, token: string | null) => {
   failedQueue.forEach(async (request) => {
     if (error) {
       request.reject(error)
@@ -55,7 +56,33 @@ const processQueue = (error: Error | null, token: string | null = null) => {
     }
   })
   failedQueue = []
+  
+  // 토큰 갱신 성공 시 등록된 콜백들 실행
+  if (token && refreshCallbacks.length > 0) {
+    console.log('🔄 토큰 갱신 성공, 등록된 콜백들 실행:', refreshCallbacks.length);
+    refreshCallbacks.forEach(callback => {
+      try {
+        callback();
+      } catch (error) {
+        console.error('토큰 갱신 콜백 실행 중 오류:', error);
+      }
+    });
+    refreshCallbacks = []; // 콜백 실행 후 초기화
+  }
 }
+
+// 토큰 갱신 성공 시 실행할 콜백 등록 함수
+export const registerRefreshCallback = (callback: () => void) => {
+  refreshCallbacks.push(callback);
+};
+
+// 토큰 갱신 콜백 제거 함수
+export const unregisterRefreshCallback = (callback: () => void) => {
+  const index = refreshCallbacks.indexOf(callback);
+  if (index > -1) {
+    refreshCallbacks.splice(index, 1);
+  }
+};
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
   token: null,
