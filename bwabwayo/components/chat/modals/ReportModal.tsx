@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { OverlayPortal } from '@/components/chat/modals/OverlayPortal';
 import { useAuthStore } from '@/stores/auth/authStore';
 
@@ -12,12 +13,27 @@ interface ReportModalProps {
 }
 
 export const ReportModal = ({ isOpen, onClose, sellerNickname, sellerId }: ReportModalProps) => {
+  const router = useRouter();
   const [description, setDescription] = useState('');
   const [imgFiles, setImgFiles] = useState<File[]>([]);
   const [imgPreviews, setImgPreviews] = useState<string[]>([]);
   const [uploadedImageKeys, setUploadedImageKeys] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 모달이 열릴 때마다 데이터 초기화
+  useEffect(() => {
+    if (isOpen) {
+      setDescription('');
+      setImgFiles([]);
+      setImgPreviews([]);
+      setUploadedImageKeys([]);
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }, [isOpen]);
 
   const handleUploadClick = () => {
     if (imgFiles.length >= 10) {

@@ -105,7 +105,7 @@ export const InquirySection = () => {
     });
     
     const [currentPageState, setCurrentPageState] = useState(1);
-    const pageSize = 10;
+    const pageSize = 5;
 
     useEffect(() => {
         getInquiries(currentPageState - 1, pageSize); // API는 0-based index를 사용

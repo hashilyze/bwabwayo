@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { OverlayPortal } from '@/components/chat/modals/OverlayPortal';
 import { useAuthStore } from '@/stores/auth/authStore';
+import { useInquiryStore } from '@/stores/cs-store/inquiryStore';
 
 interface InquiryModalProps {
   isOpen: boolean;
@@ -10,12 +12,28 @@ interface InquiryModalProps {
 }
 
 export const InquiryModal = ({ isOpen, onClose }: InquiryModalProps) => {
+  const router = useRouter();
+  const { getInquiries } = useInquiryStore();
   const [description, setDescription] = useState('');
   const [imgFiles, setImgFiles] = useState<File[]>([]);
   const [imgPreviews, setImgPreviews] = useState<string[]>([]);
   const [uploadedImageKeys, setUploadedImageKeys] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 모달이 열릴 때마다 데이터 초기화
+  useEffect(() => {
+    if (isOpen) {
+      setDescription('');
+      setImgFiles([]);
+      setImgPreviews([]);
+      setUploadedImageKeys([]);
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }, [isOpen]);
 
   const handleUploadClick = () => {
     if (imgFiles.length >= 10) {
@@ -127,6 +145,11 @@ export const InquiryModal = ({ isOpen, onClose }: InquiryModalProps) => {
 
       alert('문의가 성공적으로 저장되었습니다.');
       onClose();
+      
+      // 문의내역 탭으로 이동하고 문의 목록 갱신
+      router.push('/cs-center?tab=inquiry');
+      // 문의 목록을 다시 불러와서 저장된 내용 갱신
+      await getInquiries();
     } catch (error) {
       console.error('문의 저장 오류:', error);
       alert('문의 저장에 실패했습니다.');
