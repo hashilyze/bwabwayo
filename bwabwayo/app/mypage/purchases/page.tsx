@@ -48,6 +48,8 @@ export default function MyPagePurchase() {
     fetchPurchases,
   } = useMyActivityStore();
 
+  console.log('🛍️ [구매내역 페이지] Zustand 스토어에서 받은 구매 목록:', purchaseList);
+
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5; // 한 페이지에 5개의 구매 내역을 표시합니다.
 

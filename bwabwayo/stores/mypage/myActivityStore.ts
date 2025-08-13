@@ -351,6 +351,7 @@ export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
     try {
       const response = await useAuthStore.getState().authenticatedFetch(requestUrl);
       const data: PurchaseProductsResponse | ErrorResponse = await response.json();
+      console.log('📦 [구매내역] API 응답 데이터:', data);
       if (!response.ok) {
         throw new Error((data as ErrorResponse).message || '구매 내역을 가져오는데 실패했습니다.');
       }
