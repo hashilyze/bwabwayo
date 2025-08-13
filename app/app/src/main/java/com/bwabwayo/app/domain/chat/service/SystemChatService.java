@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
@@ -35,21 +36,21 @@ public class SystemChatService {
                 .receiverId(chatRoom.getBuyerId())
                 .roomId(chatRoom.getRoomId())
                 .read(false)
-                .createdAt(LocalDateTime.now().toString())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString())
                 .type(MessageType.START_VIDEOCALL)
                 .build();
 
         chatService.sendChatMessage(messageDTO);
     }
 
-    public void sendReservationMessage(ChatRoom chatRoom, Long id){
+    public void sendReservationMessage(ChatRoom chatRoom, String startAt){
         MessageDTO messageDTO = MessageDTO.builder()
-                .content(id.toString())
+                .content(startAt)
                 .senderId(chatRoom.getSellerId())
                 .receiverId(chatRoom.getBuyerId())
                 .roomId(chatRoom.getRoomId())
                 .read(false)
-                .createdAt(LocalDateTime.now().toString())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString())
                 .type(MessageType.RESERVE_VIDEOCALL)
                 .build();
 
@@ -63,8 +64,24 @@ public class SystemChatService {
                 .receiverId(chatRoom.getBuyerId())
                 .roomId(chatRoom.getRoomId())
                 .read(false)
-                .createdAt(LocalDateTime.now().toString())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString())
                 .type(MessageType.CANCEL_VIDEOCALL)
+                .build();
+
+        chatService.sendChatMessage(messageDTO);
+    }
+
+
+    public void sendPaymentSuccessMessage(Long roomId){
+        ChatRoom chatRoom = chatRoomService.findByRoomId(roomId).orElseThrow(() -> new IllegalArgumentException("해당 채팅방이 존재하지 않습니다"));
+        MessageDTO messageDTO = MessageDTO.builder()
+                .content("")
+                .senderId(chatRoom.getSellerId())
+                .receiverId(chatRoom.getBuyerId())
+                .roomId(chatRoom.getRoomId())
+                .read(false)
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString())
+                .type(MessageType.INPUT_DELIVERY_ADDRESS)
                 .build();
 
         chatService.sendChatMessage(messageDTO);
@@ -83,7 +100,7 @@ public class SystemChatService {
                 .receiverId(chatRoom.getBuyerId())
                 .roomId(roomId)
                 .read(false)
-                .createdAt(LocalDateTime.now().toString())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString())
                 .type(MessageType.START_DELIVERY)
                 .build();
 
@@ -96,7 +113,7 @@ public class SystemChatService {
                 .receiverId(chatRoom.getBuyerId())
                 .roomId(roomId)
                 .read(false)
-                .createdAt(LocalDateTime.now().toString())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString())
                 .type(MessageType.CONFIRM_PURCHASE)
                 .build();
 
@@ -115,7 +132,7 @@ public class SystemChatService {
                 .receiverId(chatRoom.getBuyerId())
                 .roomId(roomId)
                 .read(false)
-                .createdAt(LocalDateTime.now().toString())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString())
                 .type(MessageType.REQUEST_DEPOSIT)
                 .build();
 
@@ -148,7 +165,7 @@ public class SystemChatService {
                 .receiverId(chatRoom.getBuyerId())
                 .roomId(roomId)
                 .read(false)
-                .createdAt(LocalDateTime.now().toString())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString())
                 .type(MessageType.START_TRADE)
                 .build();
 
@@ -178,7 +195,7 @@ public class SystemChatService {
                 .receiverId(chatRoom.getBuyerId())
                 .roomId(roomId)
                 .read(false)
-                .createdAt(LocalDateTime.now().toString())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString())
                 .type(MessageType.END_TRADE)
                 .build();
 
