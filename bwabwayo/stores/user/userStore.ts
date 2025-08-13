@@ -17,6 +17,8 @@ interface User {
     rating: number;
     reviewCount: number;
     evaluation: Evaluation[];
+    dealCount: number;
+
 }
 
 interface UserStore {

@@ -437,8 +437,7 @@ export default function ProductDetailPage() {
   
                 {/* 판매물품 */}
                 <div className="mt-10">
-                  <h3 className="text-2xl font-bold mb-4">'{product?.seller?.nickname || '판매자'}'님의 다른 상품</h3>
-                  <ul className="flex flex-col gap-4">
+                    <h3 className="text-2xl font-bold mb-4">&#39;{product?.seller?.nickname || '판매자'}&#39;님의 다른 상품</h3>                  <ul className="flex flex-col gap-4">
                     {(product?.seller?.otherProducts as OtherProduct[])?.map((otherProduct: OtherProduct) => (
                       <li key={otherProduct.id}>
                         <Link href={`/product/${otherProduct.id}`} className="flex flex-row items-center gap-5">
