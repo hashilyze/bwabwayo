@@ -21,6 +21,7 @@ interface ProductSummary {
 }
 
 export interface myPurchaseProduct {
+  saleId: number;
   id: number;
   thumbnail: string;
   title: string;
@@ -343,11 +344,12 @@ export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
 
   // 내 구매내역 불러오기
   fetchPurchases: async (page = 0) => {
-    // 이미 로딩 중이거나 더 이상 페이지가 없으면 요청하지 않음
-    if (get().loading || (page > 0 && !get().purchaseHasMore)) return;
+    // 이미 로딩 중이면 요청하지 않음
+    if (get().loading) return;
 
     set({ loading: true, error: null });
-    const requestUrl = `${baseUrl}/users/orders?page=${page}&size=10`; // 페이지와 사이즈 파라미터 추가
+    // 페이지당 5개의 아이템을 가져오도록 size를 5로 설정
+    const requestUrl = `${baseUrl}/users/orders?page=${page}&size=5`;
     try {
       const response = await useAuthStore.getState().authenticatedFetch(requestUrl);
       const data: PurchaseProductsResponse | ErrorResponse = await response.json();
@@ -359,6 +361,7 @@ export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
 
       // API 응답 데이터를 myPurchaseProduct[] 타입으로 변환
       const formattedPurchases: myPurchaseProduct[] = responseData.content.map((item: RawPurchaseProduct) => ({
+        saleId: item.saleId, // saleId 추가
         id: item.productId, // productId를 id로 매핑
         thumbnail: item.thumbnail,
         title: item.title,
@@ -369,13 +372,13 @@ export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
         purchaseStatus: item.purchaseConfirmStatus, // purchaseConfirmStatus를 purchaseStatus로 매핑
       }));
 
-      set(state => ({
-        purchaseList: page === 0 ? formattedPurchases : [...state.purchaseList, ...formattedPurchases],
+      set({
+        purchaseList: formattedPurchases, // 페이지 이동 시 새로운 데이터로 교체
         purchasePage: responseData.number,
         purchaseTotalPages: responseData.totalPages,
         purchaseHasMore: !responseData.last,
         loading: false,
-      }));
+      });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
       set({ error: errorMessage, loading: false, purchaseList: [] });
