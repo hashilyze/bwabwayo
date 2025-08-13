@@ -21,7 +21,7 @@ public class Sale {
     private Long id;
 
     // 1:1 Product
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
