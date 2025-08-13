@@ -373,8 +373,8 @@ const StartTradeModal = ({ message }: { message: ChatMessage }) => {
     setOpen(false)
   }
 
-  // seller가 아니면 모달을 보이지 않음
-  if (!isSeller) {
+  // chatInfo가 로드되지 않았거나 seller가 아니면 모달을 보이지 않음
+  if (!chatInfo || !isSeller) {
     return null;
   }
 
@@ -453,8 +453,8 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
   // buyer인지 확인
   const isBuyer = chatInfo?.isCurrentUserBuyer;
 
-  // buyer가 아니면 모달을 보이지 않음
-  if (!isBuyer) {
+  // chatInfo가 로드되지 않았거나 buyer가 아니면 모달을 보이지 않음
+  if (!chatInfo || !isBuyer) {
     return null;
   }
 
@@ -555,8 +555,8 @@ const InputDeliveryAddressModal = ({ message }: { message: ChatMessage }) => {
     setOpen(true);
   }
 
-  // buyer가 아니면 모달을 보이지 않음
-  if (!isBuyer) {
+  // chatInfo가 로드되지 않았거나 buyer가 아니면 모달을 보이지 않음
+  if (!chatInfo || !isBuyer) {
     return null;
   }
 
@@ -658,8 +658,8 @@ const InputTrackingAddressModal = ({ message }: { message: ChatMessage }) => {
   
   const deliveryInfo = parseDeliveryInfo();
 
-  // seller가 아니면 모달을 보이지 않음
-  if (!isSeller) {
+  // chatInfo가 로드되지 않았거나 seller가 아니면 모달을 보이지 않음
+  if (!chatInfo || !isSeller) {
     return null;
   }
 
@@ -831,8 +831,8 @@ const ConfirmPurchaseModal = ({ message }: { message: ChatMessage }) => {
     setShowPurchaseConfirm(false);
   }
 
-  // buyer가 아니면 모달을 보이지 않음
-  if (!isBuyer) {
+  // chatInfo가 로드되지 않았거나 buyer가 아니면 모달을 보이지 않음
+  if (!chatInfo || !isBuyer) {
     return null;
   }
 
@@ -929,6 +929,20 @@ const EndTradeModal = ({ message }: { message: ChatMessage }) => {
 
 
 export default function AllModals({ message, type }: { message: ChatMessage, type: string }) {
+  const chatInfo = useChatRoomInfo();
+  
+  // chatInfo가 로드되지 않았을 때는 로딩 상태 표시
+  if (!chatInfo) {
+    return (
+      <div className="w-[400px] p-6 rounded-[30px] border-2 border-black">
+        <div className="flex flex-col items-center justify-center">
+          <div className="w-16 h-16 bg-gray-200 rounded-full animate-pulse mb-4"></div>
+          <p className="text-md text-gray-500">메시지를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       {type === 'CREATE_ROOM' && <CreateRoomModal message={message} />}
