@@ -146,13 +146,6 @@ export default function ChatRoomPage() {
     }
   }, [isConnected, stompClient, isConnecting, roomId, connectStomp]);
 
-  // 메시지 실시간 업데이트 감지
-  useEffect(() => {
-    console.log('📝 메시지 업데이트 감지:', messages?.length, '개');
-    if (messages && messages.length > 0) {
-      console.log('📨 최신 메시지:', messages[messages.length - 1]);
-    }
-  }, [messages]);
 
   // 백업: STOMP 실패 시를 대비한 주기적 메시지 히스토리 확인
   useEffect(() => {

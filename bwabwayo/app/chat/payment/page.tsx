@@ -44,48 +44,16 @@ function PaymentSuccessContent() {
       return json;
     }
 
-         confirm()
-       .then((data) => {
-         setResponseData(data);
-
-         // 결제 성공 후 채팅방에 배송지 입력 메시지 전송
-         const roomId = searchParams.get("roomId");
-         if (roomId && !hasMessageSent) {
-           console.log("💰 결제 성공! 배송지 입력 메시지 전송 시작...");
-           
-           // 직접 API를 통해 메시지 전송
-           setTimeout(async () => {
-             try {
-               const response = await fetch("https://i13e202.p.ssafy.io/be/api/chat/messages", {
-                 method: "POST",
-                 headers: {
-                   "Content-Type": "application/json",
-                   Authorization: `Bearer ${jwtToken}`,
-                 },
-                 body: JSON.stringify({
-                   roomId: parseInt(roomId),
-                   content: "배송지 입력이 필요합니다.",
-                   type: "INPUT_DELIVERY_ADDRESS"
-                 }),
-               });
-
-               if (response.ok) {
-                 console.log("✅ 배송지 입력 메시지 전송 완료");
-                 setHasMessageSent(true);
-                 
-                 // 메시지 전송 완료 후 .5초 뒤 창 닫기
-                 setTimeout(() => {
-                   window.close();
-                 }, 500);
-               } else {
-                 console.error("❌ 배송지 입력 메시지 전송 실패");
-               }
-             } catch (error) {
-               console.error("❌ 배송지 입력 메시지 전송 오류:", error);
-             }
-           }, 500);
-         }
-       })
+        confirm()
+        .then((data) => {
+          setResponseData(data);
+          console.log("✅ 결제 확인 완료");
+          
+          // 바로 창 닫기
+          setTimeout(() => {
+            window.close();
+          }, 2000);
+        })
        .catch((error) => {
          console.log(error);
          
@@ -131,7 +99,7 @@ function PaymentSuccessContent() {
             </div>
           </div>
           
-          <div className="flex justify-center gap-4 mt-8">
+          {/* <div className="flex justify-center gap-4 mt-8">
             <Link href="https://docs.tosspayments.com/guides/v2/payment-widget/integration">
               <button className="bg-[#3182f6] text-[#f9fafb] font-semibold text-[15px] px-4 py-[11px] rounded-[7px] border-0 cursor-pointer transition-all duration-200 hover:bg-[#1b64da] w-[250px]">
                 연동 문서
@@ -142,11 +110,11 @@ function PaymentSuccessContent() {
                 실시간 문의
               </button>
             </Link>
-          </div>
+          </div> */}
         </div>
 
         {/* Response Data 섹션 */}
-        <div className="bg-white rounded-[10px] shadow-[0_10px_20px_rgba(0,0,0,0.01),0_6px_6px_rgba(0,0,0,0.06)] p-[50px] mt-[30px] text-left">
+        {/* <div className="bg-white rounded-[10px] shadow-[0_10px_20px_rgba(0,0,0,0.01),0_6px_6px_rgba(0,0,0,0.06)] p-[50px] mt-[30px] text-left">
           <div className="font-semibold text-[#4e5968] mb-4">Response Data :</div>
           <div className="bg-[#f2f4f6] p-4 rounded-[6px] break-all">
             {responseData && (
@@ -155,7 +123,7 @@ function PaymentSuccessContent() {
               </pre>
             )}
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

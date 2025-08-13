@@ -49,28 +49,15 @@ export function PaymentSuccessPage() {
       .then((data) => {
         setResponseData(data);
         
-        // 결제 성공 후 채팅방에 배송지 입력 메시지 전송
-        const roomId = searchParams.get("roomId");
-        if (roomId && !hasMessageSent) {
-          console.log("💰 결제 성공! 배송지 입력 메시지 전송 시작...");
-          
-          // 약간의 지연 후 메시지 전송 (결제 확인 완료 후)
-          setTimeout(() => {
-            sendMessage(parseInt(roomId), "배송지 입력이 필요합니다.", "INPUT_DELIVERY_ADDRESS");
-            console.log("✅ 배송지 입력 메시지 전송 완료");
-            setHasMessageSent(true);
-          }, 500);
-        }
-        
         // 새창을 바로 종료
         setTimeout(() => {
           window.close();
-        }, 500); // .5초 후 창 닫기
+        }, 2000); // 2초 후 창 닫기
       })
       .catch((error) => {
-        router.push(`/fail?code=${error.code}&message=${error.message}`);
+        console.log(error);
       });
-  }, [searchParams, router, sendMessage, hasMessageSent]);
+  }, [searchParams, router]);
 
   return (
     <div className="min-h-screen bg-[#e8f3ff] font-['Toss_Product_Sans',-apple-system,BlinkMacSystemFont,'Bazier_Square','Noto_Sans_KR','Segoe_UI','Apple_SD_Gothic_Neo',Roboto,'Helvetica_Neue',Arial,sans-serif]">
