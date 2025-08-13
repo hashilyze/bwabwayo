@@ -81,7 +81,7 @@ function PurchaseContent() {
                 />
                 {/* 테스트용 후에    {item.purchaseStatus=== 2로 반드시 변경 !!*/}
                 {/* ✨ 이미지 위 반투명 어두운 오버레이 */}
-                {item.purchaseStatus === 0 && (
+                {item.purchaseStatus === 2 && (
   <div className="absolute inset-0">
     {/* 반투명 오버레이 */}
     <div className="absolute inset-0 bg-black/35" />
