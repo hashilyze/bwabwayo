@@ -21,6 +21,7 @@ function PaymentSuccessContent() {
          amount: searchParams.get("amount"),
          paymentKey: searchParams.get("paymentKey"),
          productId: parseInt(searchParams.get("productId") || "0"),
+         roomId: parseInt(searchParams.get("roomId") || "0"),
        };
 
       // https://i13e202.p.ssafy.io/be/api/payments/confirm
