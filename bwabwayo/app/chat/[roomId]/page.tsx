@@ -2,7 +2,7 @@
 
 import ChatModal from '@/components/chat/ChatModal'
 import { useEffect, useRef, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
 import { useModalStore } from '@/stores/modalStore'
 import AllModals from '@/components/chat/modals/AllModals'
@@ -46,6 +46,7 @@ export default function ChatRoomPage() {
   const params = useParams()
   const router = useRouter()
   const roomId = Number(params.roomId)
+  const searchParams = useSearchParams()
   const { 
     messages, 
     getMessageHistory, 
@@ -55,7 +56,8 @@ export default function ChatRoomPage() {
     getRoomList,
     setCurrentSelectedRoom,
     isConnected,
-    stompClient
+    stompClient,
+    isConnecting
   } = useChatRoomStore()
   const { closePaymentModal } = useModalStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -68,6 +70,7 @@ export default function ChatRoomPage() {
   const [isHeaderModalOpen, setIsHeaderModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [hasPaymentSuccessMessageSent, setHasPaymentSuccessMessageSent] = useState(false);
 
   const openReservationModal = () => setIsReservationModalOpen(true);
   const closeReservationModal = () => setIsReservationModalOpen(false);
@@ -134,8 +137,14 @@ export default function ChatRoomPage() {
     console.log('🔌 STOMP 연결 상태:', isConnected);
     if (isConnected && stompClient) {
       console.log('✅ STOMP 클라이언트 연결됨');
+    } else if (!isConnected && !isConnecting && roomId) {
+      console.log('🔄 STOMP 연결이 끊어짐, 재연결 시도...');
+      // 연결이 끊어졌을 때 자동 재연결
+      setTimeout(() => {
+        connectStomp(roomId);
+      }, 1000);
     }
-  }, [isConnected, stompClient]);
+  }, [isConnected, stompClient, isConnecting, roomId, connectStomp]);
 
   // 메시지 실시간 업데이트 감지
   useEffect(() => {
@@ -145,32 +154,77 @@ export default function ChatRoomPage() {
     }
   }, [messages]);
 
+  // 백업: STOMP 실패 시를 대비한 주기적 메시지 히스토리 확인
+  useEffect(() => {
+    if (!isInitialized || !roomId) return;
+    
+    const intervalId = setInterval(async () => {
+      try {
+        // STOMP가 연결되지 않았거나 메시지가 오지 않는 경우에만 히스토리 확인
+        if (!isConnected) {
+          console.log('🔄 STOMP 연결 없음, 메시지 히스토리 확인...');
+          await getMessageHistory(roomId);
+        }
+      } catch (error) {
+        console.error('❌ 백업 메시지 히스토리 확인 실패:', error);
+      }
+    }, 5000); // 5초마다 확인
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [isInitialized, roomId, isConnected, getMessageHistory]);
+
   // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동 (개선된 버전)
   useEffect(() => {
-    if (messagesEndRef.current && messages && messages.length > 0) {
-      // 현재 스크롤 위치 확인
-      const chatContainer = chatContainerRef.current;
-      if (!chatContainer) return;
+    if (messages && messages.length > 0 && chatContainerRef.current) {
+      const container = chatContainerRef.current;
+      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
       
-      const isNearBottom = chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < 100;
-      
-      // 사용자가 맨 아래 근처에 있거나 새로운 메시지가 추가된 경우에만 스크롤
       if (isNearBottom) {
-        // DOM 업데이트 완료 후 스크롤
-        const scrollToBottom = () => {
-          if (messagesEndRef.current) {
-            // 부드러운 스크롤 대신 즉시 스크롤하여 깜빡임 방지
-            messagesEndRef.current.scrollIntoView({ 
-              block: 'end' 
-            });
+        // 즉시 맨 아래로 스크롤 (부드럽게 하지 않음)
+        setTimeout(() => {
+          if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
           }
-        };
-        
-        // 약간의 지연을 두어 DOM 업데이트 완료 후 스크롤
-        setTimeout(scrollToBottom, 10);
+        }, 10);
       }
     }
   }, [messages]);
+
+  // 채팅방 진입 시 즉시 맨 아래로 스크롤
+  useEffect(() => {
+    if (isInitialized && chatContainerRef.current) {
+      // 채팅방 진입 시 즉시 맨 아래로 스크롤
+      setTimeout(() => {
+        if (chatContainerRef.current) {
+          chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+      }, 100);
+    }
+  }, [isInitialized]);
+
+  // 결제 성공 시 배송지 입력 메시지 전송
+  useEffect(() => {
+    const productId = searchParams.get("productId");
+    
+    // productId가 URL 파라미터에 있고, 아직 메시지를 보내지 않았다면
+    if (productId && !hasPaymentSuccessMessageSent && isInitialized && currentSelectedRoom) {
+      console.log("💰 결제 성공 감지! 배송지 입력 메시지 전송 시작...");
+      
+      // 약간의 지연 후 메시지 전송 (페이지 로딩 완료 후)
+      setTimeout(() => {
+        sendMessage(roomId, "배송지 입력이 필요합니다.", "INPUT_DELIVERY_ADDRESS");
+        console.log("✅ 배송지 입력 메시지 전송 완료");
+        setHasPaymentSuccessMessageSent(true);
+        
+        // URL에서 productId 파라미터 제거 (브라우저 히스토리 정리)
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete("productId");
+        window.history.replaceState({}, "", newUrl.toString());
+      }, 1000);
+    }
+  }, [searchParams, hasPaymentSuccessMessageSent, isInitialized, currentSelectedRoom, roomId, sendMessage]);
 
   // 컴포넌트가 언마운트될 때 STOMP 연결을 해제합니다.
   useEffect(() => {

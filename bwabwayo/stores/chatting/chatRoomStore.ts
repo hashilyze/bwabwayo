@@ -221,10 +221,10 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 });
 
             client.onConnect = (frame) => {
-                console.log('✅ STOMP: 연결 성공!')
+                console.log('✅ STOMP: 연결 성공!', frame)
                 set({ isConnected: true, isConnecting: false, stompClient: client })
                 
-                console.log('📡 STOMP: 채팅방 목록(/user/chat/roomlist) 구독 시작');
+                // 채팅방 목록 구독
                 client.subscribe('/user/sub/chat/roomlist', (messageOutput) => {
                     try {
                         const updatedRoomList = JSON.parse(messageOutput.body) as ChatRoom[];
@@ -235,12 +235,16 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                     }
                 });
 
+                // 특정 채팅방 메시지 구독
                 if (roomId) {
                     console.log(`📡 STOMP: 채팅방 ${roomId} 구독 시작`)
-                    client.subscribe(`/sub/chat/room/${roomId}`, (messageOutput) => {
+                    
+                    // 채팅방 메시지 구독 (여러 경로 시도)
+                    const subscription1 = client.subscribe(`/sub/chat/room/${roomId}`, (messageOutput) => {
                         try {
+                            console.log('📨 원시 메시지 수신 (경로1):', messageOutput.body);
                             const msg = JSON.parse(messageOutput.body)
-                            console.log('📨 메시지 수신:', msg);
+                            console.log('📨 파싱된 메시지:', msg);
                             
                             // 메시지 유효성 검사
                             if (!msg || !msg.content || !msg.senderId) {
@@ -255,6 +259,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                             }
                             
                             // 메시지 추가 (실시간 업데이트)
+                            console.log('📝 메시지를 UI에 추가합니다:', msg.content);
                             get().appendMessage(msg, false)
                             
                             // 메시지 수신 시 즉시 채팅방 목록 업데이트
@@ -262,9 +267,43 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                                 get().getRoomList();
                             }, 100);
                         } catch (error) {
-                            console.error('❌ 메시지 파싱 오류:', error);
+                            console.error('❌ 메시지 파싱 오류:', error, '원시 데이터:', messageOutput.body);
                         }
-                    })
+                    });
+                    
+                    // 대체 구독 경로 (백엔드에 따라 다를 수 있음)
+                    const subscription2 = client.subscribe(`/user/sub/chat/room/${roomId}`, (messageOutput) => {
+                        try {
+                            console.log('📨 원시 메시지 수신 (경로2):', messageOutput.body);
+                            const msg = JSON.parse(messageOutput.body)
+                            console.log('📨 파싱된 메시지 (경로2):', msg);
+                            
+                            // 메시지 유효성 검사
+                            if (!msg || !msg.content || !msg.senderId) {
+                                console.warn('⚠️ 유효하지 않은 메시지 수신 (경로2):', msg);
+                                return;
+                            }
+                            
+                            // START_VIDEOCALL 타입 메시지인 경우 세션ID 저장
+                            if (msg.type === 'START_VIDEOCALL' && msg.content) {
+                                console.log('📹 화상채팅 세션ID 저장:', msg.content);
+                                set({ videoSessionId: msg.content });
+                            }
+                            
+                            // 메시지 추가 (실시간 업데이트)
+                            console.log('📝 메시지를 UI에 추가합니다 (경로2):', msg.content);
+                            get().appendMessage(msg, false)
+                            
+                            // 메시지 수신 시 즉시 채팅방 목록 업데이트
+                            setTimeout(() => {
+                                get().getRoomList();
+                            }, 100);
+                        } catch (error) {
+                            console.error('❌ 메시지 파싱 오류 (경로2):', error, '원시 데이터:', messageOutput.body);
+                        }
+                    });
+                    
+                    console.log('✅ 채팅방 구독 완료:', subscription1, subscription2);
                 }
             }
             
