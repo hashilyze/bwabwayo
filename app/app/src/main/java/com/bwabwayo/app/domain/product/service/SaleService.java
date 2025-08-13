@@ -92,6 +92,12 @@ public class SaleService {
         return sales.get(0);
     }
 
+    public Sale findByRoomId(Long roomId){
+        List<Sale> sales = saleRepository.findByRoomId(roomId);
+        if(sales == null || sales.isEmpty()) throw new IllegalArgumentException("판매 내역이 존재하지 않습니다: roomId="+roomId);
+        return sales.get(0);
+    }
+
     public Sale findByProductId(Long productId){
         List<Sale> sales = saleRepository.findByProductId(productId);
         if(sales == null || sales.isEmpty()) throw new IllegalArgumentException("판매 내역이 존재하지 않습니다: productId="+productId);
@@ -111,5 +117,4 @@ public class SaleService {
     public void saveSale(Sale sale){
         saleRepository.save(sale);
     }
-
 }

@@ -21,4 +21,6 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
     List<Sale> findByBuyerIdAndProductId(String buyerId, Long productId);
 
     List<Sale> findByProductId(Long productId);
+
+    List<Sale> findByRoomId(Long roomId);
 }

@@ -1,6 +1,8 @@
 package com.bwabwayo.app.domain.payment.controller;
 
 import com.bwabwayo.app.domain.auth.annotation.LoginUser;
+import com.bwabwayo.app.domain.chat.domain.ChatRoom;
+import com.bwabwayo.app.domain.chat.service.ChatRoomService;
 import com.bwabwayo.app.domain.chat.service.SystemChatService;
 import com.bwabwayo.app.domain.payment.dto.request.PaymentConfirmRequest;
 import com.bwabwayo.app.domain.product.domain.Product;
@@ -39,6 +41,7 @@ public class PaymentController {
     private final ProductService productService;
     private final UserService userService;
     private final SystemChatService systemChatService;
+    private final ChatRoomService chatRoomService;
     @Value("${toss.url.confirm}")
     private String TOSS_CONFIRM_URL;
     @Value("${toss.key.secret-key}")
@@ -85,38 +88,41 @@ public class PaymentController {
     @PostMapping("/confirm")
     public ResponseEntity<?> confirmPayment(@RequestBody PaymentConfirmRequest requestDTO, @LoginUser User loginUser) throws IOException {
         log.info("confirmPayment를 호출: {}, loginUserId={}", requestDTO, loginUser.getId());
-        log.info("loginUser.ID={}", loginUser.getId());
-        String buyerId = loginUser.getId();
-        Long productId = requestDTO.getProductId();
+//        log.info("loginUser.ID={}", loginUser.getId());
+//        String buyerId = loginUser.getId();
+//        Long productId = requestDTO.getProductId();
+        Long roomId = requestDTO.getRoomId();
 
 //        User buyer = userService.findById(buyerId);
-        Product product = productService.findById(productId);
+//        Product product = productService.findById(productId);
+//        ChatRoom chatRoom = chatRoomService.findByRoomId(roomId).orElseThrow(() -> new NotFoundException("존재하지 않는 채팅방입니다."));
 
         Sale sale = null;
         try {
 //            sale = saleService.findByProductId(productId);
-            sale = saleService.findByBuyerIdAndProductId(buyerId, productId);
+//            sale = saleService.findByBuyerIdAndProductId(buyerId, productId);
+            sale = saleService.findByRoomId(roomId);
             if(sale.getPaymentStatus() == PaymentStatus.COMPLETED){
                 log.warn("이미 완료된 요청입니다: saleId={}", sale.getId());
 //                throw new BadRequestException("중복 결제 요청입니다.");
             }
         } catch (IllegalArgumentException e) {
-            log.warn("사전에 등록되지 않은 거래에 대한 결제 요청 입니다: productId={}, sellerId={}, buyerId={}, amount={}, error={}",
-                    product.getId(),
-                    product.getSeller().getId(),
-                    buyerId,
-                    requestDTO.getAmount(), e.getMessage()
-            );
 
-            sale = Sale.builder()
-                    .product(product)
-                    .buyerId(buyerId)
-                    .sellerId(product.getSeller().getId())
-                    .salePrice(requestDTO.getAmount())
-                    .build();
-
-            saleService.saveSale(sale);
-//            throw new NotFoundException(e.getMessage());
+//            log.warn("사전에 등록되지 않은 거래에 대한 결제 요청 입니다: productId={}, sellerId={}, buyerId={}, amount={}, error={}",
+//                    product.getId(),
+//                    product.getSeller().getId(),
+//                    buyerId,
+//                    requestDTO.getAmount(), e.getMessage()
+//            );
+//
+//            sale = Sale.builder()
+//                    .product(product)
+//                    .buyerId(buyerId)
+//                    .sellerId(product.getSeller().getId())
+//                    .salePrice(requestDTO.getAmount())
+//                    .build();
+//            saleService.saveSale(sale);
+            throw new NotFoundException(e.getMessage());
         }
 
         String jsonBody = serialize(requestDTO);
