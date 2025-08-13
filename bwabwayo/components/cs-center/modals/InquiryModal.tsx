@@ -14,6 +14,7 @@ interface InquiryModalProps {
 export const InquiryModal = ({ isOpen, onClose }: InquiryModalProps) => {
   const router = useRouter();
   const { getInquiries } = useInquiryStore();
+  const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [imgFiles, setImgFiles] = useState<File[]>([]);
   const [imgPreviews, setImgPreviews] = useState<string[]>([]);
@@ -24,6 +25,7 @@ export const InquiryModal = ({ isOpen, onClose }: InquiryModalProps) => {
   // 모달이 열릴 때마다 데이터 초기화
   useEffect(() => {
     if (isOpen) {
+      setTitle('');
       setDescription('');
       setImgFiles([]);
       setImgPreviews([]);
@@ -120,6 +122,10 @@ export const InquiryModal = ({ isOpen, onClose }: InquiryModalProps) => {
   };
 
   const handleSubmit = async () => {
+    if (!title.trim()) {
+      alert('문의 제목을 입력해주세요.');
+      return;
+    }
     if (!description.trim()) {
       alert('문의 내용을 입력해주세요.');
       return;
@@ -133,7 +139,7 @@ export const InquiryModal = ({ isOpen, onClose }: InquiryModalProps) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          title: description.substring(0, 50), // description의 앞부분을 title로 사용
+          title: title,
           description: description,
           imageUrlList: uploadedImageKeys
         })
@@ -146,10 +152,10 @@ export const InquiryModal = ({ isOpen, onClose }: InquiryModalProps) => {
       alert('문의가 성공적으로 저장되었습니다.');
       onClose();
       
-      // 문의내역 탭으로 이동하고 문의 목록 갱신
-      router.push('/cs-center?tab=inquiry');
-      // 문의 목록을 다시 불러와서 저장된 내용 갱신
-      await getInquiries();
+             // 문의내역 탭으로 이동하고 문의 목록 갱신
+       router.push('/cs-center');
+       // 문의 목록을 다시 불러와서 저장된 내용 갱신
+       await getInquiries();
     } catch (error) {
       console.error('문의 저장 오류:', error);
       alert('문의 저장에 실패했습니다.');
@@ -183,8 +189,43 @@ export const InquiryModal = ({ isOpen, onClose }: InquiryModalProps) => {
           </p>
         </div>
 
+        {/* 문의 제목 입력 */}
+        <div className="px-[48px] pb-[10px]">
+          <h3 className="text-[14px] font-semibold text-black font-['SUITE'] leading-[1.248] mb-[12px]">
+            문의 제목
+          </h3>
+          <div className="w-[450px] h-[46px] border-[0.7px] border-[#A2A2A2] rounded-[20px] p-[13px] relative">
+                         <textarea
+               value={title}
+               onChange={(e) => {
+                 if (e.target.value.length <= 50) {
+                   setTitle(e.target.value);
+                 }
+               }}
+               onKeyDown={(e) => {
+                 if (e.key === 'Enter') {
+                   e.preventDefault();
+                 }
+               }}
+               placeholder="문의 제목을 입력해주세요."
+               className="w-full h-full resize-none border-none outline-none text-[14px] font-medium text-black font-['SUITE'] leading-[1.248] placeholder-[#A2A2A2] placeholder:text-[12px] placeholder:font-semibold"
+               style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}
+               rows={1}
+               maxLength={50}
+             />
+            <div className="absolute bottom-2 right-2">
+              <span className="text-[12px] text-[#A2A2A2] font-['SUITE']">
+                {title.length}/50
+              </span>
+            </div>
+          </div>
+        </div>
+
         {/* 문의 내용 입력 */}
         <div className="px-[48px] pb-[10px]">
+          <h3 className="text-[14px] font-semibold text-black font-['SUITE'] leading-[1.248] mb-[12px]">
+            문의 내용
+          </h3>
           <div className="w-[450px] h-[140px] border-[0.7px] border-[#A2A2A2] rounded-[20px] p-[13px] relative">
             <textarea
               value={description}
