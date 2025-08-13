@@ -70,16 +70,20 @@ public class NotificationService {
                 .id(notification.getId())
                 .message(notification.getMessage())
                 .unreadCount(notification.getUnreadCount())
-                .createdAt(notification.getUpdatedAt());
+                .createdAt(notification.getUpdatedAt())
+                .receiverId(receiver.getId());
 
         if(chatRoom != null){ // 채팅
             User other = userService.findById(chatRoom.getOtherUserId(receiver.getId()));
             if(product == null) product = productService.findById(chatRoom.getProductId());
-            builder.title(product.getTitle() + " from. " + other.getNickname())
-                    .thumbnail(storageService.getUrlFromKey(product.getThumbnail()));
+            builder.title(product.getTitle() + " from " + other.getNickname())
+                    .thumbnail(storageService.getUrlFromKey(product.getThumbnail()))
+                    .productId(product.getId())
+                    .chatroomId(chatRoom.getRoomId());
         } else if(product != null){ // 상품
             builder.title(product.getTitle())
-                .thumbnail(storageService.getUrlFromKey(product.getThumbnail()));
+                .thumbnail(storageService.getUrlFromKey(product.getThumbnail()))
+                .productId(product.getId());
         } else{ // 사용자
             builder.title("to. " + receiver.getNickname())
                     .thumbnail(storageService.getUrlFromKey(receiver.getProfileImage()));

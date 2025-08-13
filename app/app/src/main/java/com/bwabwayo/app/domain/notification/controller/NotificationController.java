@@ -32,10 +32,6 @@ public class NotificationController {
 
     private final SseService sseService;
     private final NotificationService notificationService;
-    private final ChatRoomRepository chatRoomRepository;
-    private final UserRepository userRepository;
-    private final NotificationRepository notificationRepository;
-    private final ProductRepository productRepository;
 
     @Operation(summary = "SSE 알림 구독", description = "로그인한 사용자가 SSE를 통해 실시간 알림을 구독합니다.")
     @ApiResponse(
@@ -43,7 +39,7 @@ public class NotificationController {
             , description = "SSE 연결 성공"
             , content = @Content(mediaType = MediaType.TEXT_EVENT_STREAM_VALUE)
     )
-    @GetMapping(value="/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @GetMapping(value="/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(
             @RequestHeader(value = "Last-Event-ID", required = false) String lastEventId,
             @LoginUser User user

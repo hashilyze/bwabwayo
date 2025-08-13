@@ -1,21 +1,15 @@
 package com.bwabwayo.app.domain.notification.service;
 
-import com.bwabwayo.app.domain.chat.domain.ChatRoom;
 import com.bwabwayo.app.domain.chat.dto.MessageDTO;
 import com.bwabwayo.app.domain.chat.repository.ChatRoomRepository;
 import com.bwabwayo.app.domain.notification.domain.Notification;
 import com.bwabwayo.app.domain.notification.dto.request.UpsertRequest;
-import com.bwabwayo.app.domain.notification.dto.response.NotificationDTO;
 import com.bwabwayo.app.domain.notification.repository.NotificationRepository;
-import com.bwabwayo.app.domain.product.domain.Product;
 import com.bwabwayo.app.domain.product.repository.ProductRepository;
-import com.bwabwayo.app.domain.user.domain.User;
 import com.bwabwayo.app.domain.user.repository.UserRepository;
-import com.bwabwayo.app.global.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

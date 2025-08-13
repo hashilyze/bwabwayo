@@ -1,5 +1,6 @@
 package com.bwabwayo.app.domain.notification.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -8,6 +9,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class NotificationDTO {
 
     private Long id;
@@ -21,4 +23,10 @@ public class NotificationDTO {
     private String thumbnail; // 상품의 썸네일
 
     private Integer unreadCount;
+
+    private String receiverId;
+
+    private Long productId;
+
+    private Long chatroomId;
 }
