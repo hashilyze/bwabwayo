@@ -132,7 +132,6 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     // 거래 가격 관련 상태
     finalPrice: null,
     setFinalPrice: (price: number | null) => {
-      console.log('chatRoomStore - setting finalPrice:', price);
       set({ finalPrice: price });
     },
     setVideoSessionId: (id: string | null) => set({ videoSessionId: id }),

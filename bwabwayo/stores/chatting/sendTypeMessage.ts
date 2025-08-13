@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import { useAuthStore } from '@/stores/auth/authStore'
-import { useChatRoomStore } from './chatRoomStore'
 
 interface SendTypeMessageStore {
     negotiation: (roomId: number) => Promise<void>
@@ -30,7 +29,6 @@ const useSendTypeMessageStore = create<SendTypeMessageStore>((set) => ({
     price: async (roomId: number, price: number) => {
         console.log('sendTypeMessage - price function called with:', { roomId, price });
         try{
-            // 백엔드 API 호출
             const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/api/chatrooms/${roomId}/price`, {
                 method: 'PUT',
                 headers: {
@@ -42,12 +40,6 @@ const useSendTypeMessageStore = create<SendTypeMessageStore>((set) => ({
             
             if (response.ok) {
                 console.log('sendTypeMessage - price request successful');
-                
-                // 채팅 메시지로도 금액 전송
-                const { sendMessage } = useChatRoomStore.getState();
-                const priceMessage = `최종 거래 가격: ${price.toLocaleString()}원`;
-                await sendMessage(roomId, priceMessage);
-                console.log('sendTypeMessage - price message sent:', priceMessage);
             } else {
                 console.error('sendTypeMessage - price request failed:', response.status, response.statusText);
             }

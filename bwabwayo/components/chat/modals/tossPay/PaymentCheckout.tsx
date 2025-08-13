@@ -33,20 +33,10 @@ export function PaymentCheckoutPage({ onClose, amount, orderName, roomId, produc
   const [customerKey, setCustomerKey] = useState("");
   const { userData, fetchUserData } = useMyStore();
 
-  console.log('PaymentCheckoutPage - received amount:', amount);
-  console.log('PaymentCheckoutPage - amount type:', typeof amount);
-
-  // amount가 0이거나 유효하지 않은 경우 경고
-  if (!amount || amount <= 0) {
-    console.warn('PaymentCheckoutPage - Invalid amount:', amount);
-  }
-
   const paymentAmount = {
     currency: "KRW",
     value: amount,
   };
-
-  console.log('PaymentCheckoutPage - paymentAmount:', paymentAmount);
 
   function selectPaymentMethod(method: PaymentMethod) {
     setSelectedPaymentMethod(method);
