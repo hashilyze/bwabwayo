@@ -258,54 +258,59 @@ export default function ProductDetailPage() {
                     홈 &gt; {product?.categories?.[0]?.name || '대분류'} &gt; {product?.categories?.[1]?.name || '소분류'}
                   </p>
 
-                  {/* 톱니바퀴 버튼 - isMine이 true일 때만 표시 */}
-                  {product.isMine && (
-                    <div className="absolute top-10 right-10" ref={dropdownRef}>
-                      <button
-                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                        className="w-12 h-12 text-black rounded-lg flex items-center justify-center transition-colors cursor-pointer"
-                      >
-                        <svg 
-                          className={`w-6 h-6 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`}
-                          fill="none" 
-                          stroke="currentColor" 
-                          viewBox="0 0 24 24"
-                        >
-                          <path 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            strokeWidth={2} 
-                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" 
-                          />
-                          <path 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            strokeWidth={2} 
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" 
-                          />
-                        </svg>
-                      </button>
-                      
-                      {/* 드롭다운 메뉴 */}
-                      {isDropdownOpen && (
-                        <div className="absolute right-0 -mt-1 w-36 bg-white border-2 border-black rounded-lg shadow-lg z-50">
-                          <Link
-                            href={`/product/${productId}/edit`}
-                            className="block px-5 py-3 text-base text-gray-700 hover:bg-gray-100 rounded-t-lg border-b border-black"
-                            onClick={() => setIsDropdownOpen(false)}
-                          >
-                            수정
-                          </Link>
-                          <button
-                            onClick={openDeleteModal}
-                            className="block w-full text-left px-5 py-3 text-base text-red-600 hover:bg-gray-100 rounded-b-lg"
-                          >
-                            삭제
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                                     {/* 톱니바퀴 버튼 - isMine이 true일 때 표시, saleStatus에 따라 메뉴 다름 */}
+                   {product.isMine && (
+                     <div className="absolute top-10 right-10" ref={dropdownRef}>
+                       <button
+                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                         className="w-12 h-12 text-black rounded-lg flex items-center justify-center transition-colors cursor-pointer"
+                       >
+                         <svg 
+                           className={`w-6 h-6 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`}
+                           fill="none" 
+                           stroke="currentColor" 
+                           viewBox="0 0 24 24"
+                         >
+                           <path 
+                             strokeLinecap="round" 
+                             strokeLinejoin="round" 
+                             strokeWidth={2} 
+                             d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" 
+                           />
+                           <path 
+                             strokeLinecap="round" 
+                             strokeLinejoin="round" 
+                             strokeWidth={2} 
+                             d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" 
+                           />
+                         </svg>
+                       </button>
+                       
+                                               {/* 드롭다운 메뉴 */}
+                        {isDropdownOpen && (
+                          <div className="absolute right-0 -mt-1 w-36 bg-white border-2 border-black rounded-lg shadow-lg z-50">
+                            <Link
+                              href={`/product/${productId}/edit`}
+                              className={`block px-5 py-3 text-base text-gray-700 hover:bg-gray-100 rounded-t-lg ${
+                                product.saleStatus === 0 ? 'border-b border-black' : 'rounded-b-lg'
+                              }`}
+                              onClick={() => setIsDropdownOpen(false)}
+                            >
+                              수정
+                            </Link>
+                            {/* saleStatus가 0일 때만 삭제 버튼 표시 */}
+                            {product.saleStatus === 0 && (
+                              <button
+                                onClick={openDeleteModal}
+                                className="block w-full text-left px-5 py-3 text-base text-red-600 hover:bg-gray-100 rounded-b-lg"
+                              >
+                                삭제
+                              </button>
+                            )}
+                          </div>
+                        )}
+                     </div>
+                   )}
                   
                   <div className="flex flex-col mt-6 mb-4 gap-2">
                     <h1 className="text-2xl">{product?.title || '상품명'}</h1>
@@ -364,11 +369,19 @@ export default function ProductDetailPage() {
                       찜하기
                     </button>
 
-                    {/* 1:1 채팅 버튼 - isMine이 true이면 비활성화 */}
+                    {/* 1:1 채팅 버튼 - isMine이 true이면 비활성화, saleStatus에 따른 조건부 비활성화 */}
                     <button
                       onClick={() => {
                         if (product.isMine) {
                           alert('자신의 상품에는 채팅할 수 없습니다.');
+                          return;
+                        }
+                        if (product.saleStatus === 1) {
+                          alert('거래중인 상품입니다.');
+                          return;
+                        }
+                        if (product.saleStatus === 2) {
+                          alert('판매완료된 상품입니다.');
                           return;
                         }
                         if (isLoggedIn) {
@@ -377,14 +390,21 @@ export default function ProductDetailPage() {
                           openLoginModal()
                         }
                       }}
-                      disabled={product.isMine}
+                      disabled={product.isMine || product.saleStatus === 1 || product.saleStatus === 2}
                       className={`flex-1 border-2 border-black py-4 flex items-center justify-center gap-2 rounded-lg py-3 font-bold cursor-not-allowed text-xl ${
-                        product.isMine 
+                        product.isMine || product.saleStatus === 1 || product.saleStatus === 2
                           ? 'bg-gray-300 text-gray-500' 
                           : 'bg-[#FFAE00] hover:bg-[#FF9500] transition-colors cursor-pointer'
                       }`}
                     >
-                      {product.isMine ? '내 상품입니다' : '1:1 채팅하기'}
+                      {product.isMine 
+                        ? '내 상품입니다' 
+                        : product.saleStatus === 1 
+                          ? '거래중입니다' 
+                          : product.saleStatus === 2 
+                            ? '판매완료된 상품입니다' 
+                            : '1:1 채팅하기'
+                      }
                     </button>
                   </div>
                 </div>
