@@ -9,6 +9,7 @@ import TrackingNumberModal from '@/components/chat/modals/TrackingForm'
 import FinalPriceModal from '@/components/chat/modals/FinalPriceForm'
 import { PaymentCheckoutPage } from '@/components/chat/modals/tossPay/PaymentCheckout'
 import PurchaseConfirm from '@/components/chat/modals/PurchaseConfirm'
+import ReviewModal from '@/components/chat/modals/ReviewModal'
 
 import AddressSelectModal, { AddressItem } from '@/components/chat/modals/DeliverySelectForm'
 import Link from 'next/link';
@@ -34,8 +35,11 @@ const useChatRoomInfo = () => {
   const partner = isCurrentUserBuyer ? seller : buyer;
 
   return {
+    seller: seller,
+    buyer: buyer,
     product: {
       ...product,
+      id: product.id,
       formattedPrice: product.price?.toLocaleString() + '원',
       formattedShippingFee: product.shippingFee?.toLocaleString() + '원',
       deliveryMethods: [
@@ -829,7 +833,7 @@ const StartDeliveryModal = ({ message }: { message: ChatMessage }) => {
         trackingNumber: deliveryData.trackingNumber
       };
     } catch (error) {
-      console.error('배송 정보 파싱 실패:', error);
+      // console.error('배송 정보 파싱 실패:', error);
       return null;
     }
   };
@@ -970,7 +974,18 @@ const ConfirmPurchaseModal = ({ message }: { message: ChatMessage }) => {
 
 //END_TRADE // 구매확정 거래 종료 - 구매 확정 후 전송
 const EndTradeModal = ({ message }: { message: ChatMessage }) => {
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const chatInfo = useChatRoomInfo(); // 전역 정보 사용
+
+  const handleReviewConfirm = () => {
+    console.log('리뷰 등록 완료');
+    setShowReviewModal(false);
+  }
+
+  const handleReviewCancel = () => {
+    console.log('리뷰 등록 취소');
+    setShowReviewModal(false);
+  }
 
   return (
     <>
@@ -988,6 +1003,33 @@ const EndTradeModal = ({ message }: { message: ChatMessage }) => {
           </div>
         </div>
       </div>
+
+      <div className="text-md text-gray-600 mt-4 text-center flex flex-col items-center justify-center">
+        <p>
+          '{chatInfo?.partner.nickname}'님과의 거래가 마음에 드셨나요?<br/>
+          거래 후기를 남겨주세요!
+        </p>
+        <button
+          type="button"
+          onClick={() => setShowReviewModal(true)}
+          className="text-gray-600 cursor-pointer mt-2 underline"
+        >
+          후기 남기기
+        </button>
+      </div>
+
+      {/* ReviewModal */}
+      <OverlayPortal open={showReviewModal} onClose={() => setShowReviewModal(false)}>
+        <ReviewModal 
+          roomId={chatInfo?.roomId || 0}
+          buyerId={chatInfo?.buyer.id || 0}
+          sellerId={chatInfo?.seller.id || 0}
+          productId={chatInfo?.product.id || 0}
+          onConfirm={handleReviewConfirm}
+          onCancel={handleReviewCancel}
+        />
+      </OverlayPortal>
+
       {/* 시간 표시 */}
       <div className="my-4 text-md text-[#666666] text-center">
         <span className="">
@@ -1007,16 +1049,16 @@ export default function AllModals({ message, type }: { message: ChatMessage, typ
   const chatInfo = useChatRoomInfo();
   
   // chatInfo가 로드되지 않았을 때는 로딩 상태 표시
-  if (!chatInfo) {
-    return (
-      <div className="w-[400px] p-6 rounded-[30px] border-2 border-black">
-        <div className="flex flex-col items-center justify-center">
-          <div className="w-16 h-16 bg-gray-200 rounded-full animate-pulse mb-4"></div>
-          <p className="text-md text-gray-500">메시지를 불러오는 중...</p>
-        </div>
-      </div>
-    );
-  }
+  // if (!chatInfo) {
+  //   return (
+  //     <div className="w-[400px] p-6 rounded-[30px] border-2 border-black">
+  //       <div className="flex flex-col items-center justify-center">
+  //         <div className="w-16 h-16 bg-gray-200 rounded-full animate-pulse mb-4"></div>
+  //         <p className="text-md text-gray-500">메시지를 불러오는 중...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div>

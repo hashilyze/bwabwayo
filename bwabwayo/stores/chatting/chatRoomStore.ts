@@ -168,6 +168,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         try{
             const response = await useAuthStore.getState().authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/chatrooms`)
             const data = await response.json()
+            console.log('🔄 채팅방 목록 수신:', data);
             set({ roomList: data })
             
             // 현재 URL의 roomId와 일치하는 채팅방을 찾아서 currentSelectedRoom 설정
@@ -504,7 +505,6 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                     }
 
                     // 즉시 로컬 메시지 목록에 추가 (낙관적 업데이트)
-                    console.log('📝 즉시 메시지 추가 (낙관적 업데이트):', immediateMessage)
                     get().appendMessage(immediateMessage, true)
 
                     // STOMP 메시지 형식
@@ -518,7 +518,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                         type: type
                     }
 
-                    console.log('📤 STOMP 메시지 전송 시도:', stompMessage)
+                    // console.log('📤 STOMP 메시지 전송 시도:', stompMessage)
                     
                     // STOMP를 통해 메시지 전송
                     currentState.stompClient!.publish({
@@ -526,7 +526,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                         body: JSON.stringify(stompMessage)
                     })
 
-                    console.log('✅ STOMP 메시지 전송 완료')
+                    // console.log('✅ STOMP 메시지 전송 완료')
                     
                     // 메시지 전송 후 채팅방 목록도 즉시 업데이트
                     setTimeout(() => {
