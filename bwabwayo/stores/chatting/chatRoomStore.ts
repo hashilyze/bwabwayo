@@ -242,9 +242,9 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                     // 채팅방 메시지 구독 (여러 경로 시도)
                     const subscription1 = client.subscribe(`/sub/chat/room/${roomId}`, (messageOutput) => {
                         try {
-                            console.log('📨 원시 메시지 수신 (경로1):', messageOutput.body);
+                            // console.log('📨 원시 메시지 수신 (경로1):', messageOutput.body);
                             const msg = JSON.parse(messageOutput.body)
-                            console.log('📨 파싱된 메시지:', msg);
+                            // console.log('📨 파싱된 메시지:', msg);
                             
                             // 메시지 유효성 검사
                             if (!msg || !msg.content || !msg.senderId) {
@@ -254,12 +254,11 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                             
                             // START_VIDEOCALL 타입 메시지인 경우 세션ID 저장
                             if (msg.type === 'START_VIDEOCALL' && msg.content) {
-                                console.log('📹 화상채팅 세션ID 저장:', msg.content);
+                                // console.log('📹 화상채팅 세션ID 저장:', msg.content);
                                 set({ videoSessionId: msg.content });
                             }
                             
                             // 메시지 추가 (실시간 업데이트)
-                            console.log('📝 메시지를 UI에 추가합니다:', msg.content);
                             get().appendMessage(msg, false)
                             
                             // 메시지 수신 시 즉시 채팅방 목록 업데이트
@@ -357,11 +356,11 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
             );
             
             if (isDuplicate) {
-                console.log('🔄 중복 메시지 감지, 추가하지 않음:', msg.content, 'from:', msg.senderId);
+                // console.log('🔄 중복 메시지 감지, 추가하지 않음:', msg.content, 'from:', msg.senderId);
                 return state;
             }
 
-            console.log('📝 새 메시지 추가 (실시간):', msg.content, 'from:', msg.senderId, 'isMine:', isMine);
+            // console.log('📝 새 메시지 추가 (실시간):', msg.content, 'from:', msg.senderId, 'isMine:', isMine);
             
             // 새 메시지를 추가하고 즉시 UI 업데이트
             const updatedMessages = [...currentMessages, msg];
@@ -395,7 +394,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 
                 // 새로운 메시지가 기존 메시지보다 많으면 전체 교체 (페이지 새로고침 등)
                 if (newMessages.length > currentMessages.length + 5) {
-                    console.log('📝 메시지 히스토리 전체 교체 (새로운 메시지가 많음)');
+                    // console.log('📝 메시지 히스토리 전체 교체 (새로운 메시지가 많음)');
                     return { messages: newMessages };
                 }
                 

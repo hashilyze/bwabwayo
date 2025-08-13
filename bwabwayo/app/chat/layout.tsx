@@ -175,14 +175,24 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
                 </div>
               </div>
             ) : (
-              roomList.map((room) => (
-                <ChatRoomItem 
-                  key={`room-${room.roomId}-${room.lastMessage?.createdAt || 'no-msg'}`} // 키에 lastMessage 시간 포함으로 리렌더링 보장
-                  roomData={room}
-                  onSelect={handleChatRoomSelect}
-                  isSelected={currentRoomId === room.roomId}
-                />
-              ))
+              roomList
+                .sort((a, b) => {
+                  // lastMessage가 없는 경우 맨 아래로
+                  if (!a.lastMessage && !b.lastMessage) return 0;
+                  if (!a.lastMessage) return 1;
+                  if (!b.lastMessage) return -1;
+                  
+                  // lastMessage.createdAt 기준으로 최신순 정렬 (내림차순)
+                  return new Date(b.lastMessage.createdAt).getTime() - new Date(a.lastMessage.createdAt).getTime();
+                })
+                .map((room) => (
+                  <ChatRoomItem 
+                    key={`room-${room.roomId}-${room.lastMessage?.createdAt || 'no-msg'}`} // 키에 lastMessage 시간 포함으로 리렌더링 보장
+                    roomData={room}
+                    onSelect={handleChatRoomSelect}
+                    isSelected={currentRoomId === room.roomId}
+                  />
+                ))
             )}
           </div>
         </div>
