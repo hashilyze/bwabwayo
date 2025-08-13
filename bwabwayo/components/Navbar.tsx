@@ -9,7 +9,7 @@ import { useModalStore } from '@/stores/modalStore';
 import { useNotificationStore } from '@/stores/notificationStore';
 import Category from '@/components/Category';
 import NewCategory from '@/components/NewCategory';
-import NotificationDropdown from '@/components/NotificationDropdown';
+import NotificationDropdown from './NotificationDropdown';
 import { EventSourcePolyfill } from 'event-source-polyfill';
 
 // EventSource 타입 정의
