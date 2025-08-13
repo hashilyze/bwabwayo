@@ -293,9 +293,9 @@ export const ReportSection = () => {
                                     
                                     {/* 확장된 내용 */}
                                     <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                                        expandedItems.has(report.id) ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                                        expandedItems.has(report.id) ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
                                     }`}>
-                                        <div className="px-5 py-4 space-y-4 bg-[#F9FAFB]">
+                                        <div className="px-[24px] py-[20px] space-y-4">
                                             {/* 신고 내용과 이미지 섹션 */}
                                             <div className="flex gap-4 ml-4">
                                                 {/* 신고할 때 넣은 이미지 */}
