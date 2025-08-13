@@ -50,6 +50,7 @@ export default function CreateProductPage() {
   const [majorCategory, setMajorCategory] = useState<string | null>(null);
   const [minorCategory, setMinorCategory] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // 중복 제출 방지 상태
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -57,7 +58,12 @@ export default function CreateProductPage() {
   const handleGenerateAiTemplate = async () => {
     const getCategoryId = (): number | null => {
         const selectedMajor = categories.find(cat => cat.categoryName === majorCategory);
-        // 소분류가 선택되었을 때만 ID를 반환합니다.
+        
+        // '기타' 카테고리 예외 처리
+        if (selectedMajor?.categoryName === '기타') {
+          return selectedMajor.categoryId;
+        }
+
         if (!selectedMajor || !minorCategory) return null;
 
         const selectedMinor = selectedMajor.subCategories.find(sub => sub.categoryName === minorCategory);
@@ -208,21 +214,30 @@ export default function CreateProductPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isSubmitting) return; // 중복 제출 방지
 
     if (!termsAgreed) { alert('판매 정보 동의 약관에 체크해주세요.'); return; }
     if (uploadedImageUrls.length === 0) { alert('이미지를 1개 이상 등록해주세요.'); return; }
     if (!productName.trim()) { alert('상품명을 입력해주세요.'); return; }
-    if (!majorCategory || !minorCategory) { alert('카테고리를 모두 선택해주세요.'); return; }
+    
+    // '기타'가 아닐 때만 소분류 선택 여부 확인
+    if (majorCategory !== '기타' && (!majorCategory || !minorCategory)) {
+      alert('카테고리를 모두 선택해주세요.');
+      return;
+    }
 
     // *** 카테고리 이름을 ID로 변환 ***
     const getCategoryId = (): number | null => {
       const selectedMajor = categories.find(cat => cat.categoryName === majorCategory);
-      if (!selectedMajor || !minorCategory) return null;
+      if (!selectedMajor) return null;
 
-      const selectedMinor = selectedMajor.subCategories.find(sub => sub.categoryName === minorCategory);
-      return selectedMinor ? selectedMinor.categoryId : null;
+      if (selectedMajor.categoryName === '기타') {
+        return selectedMajor.categoryId;
+      }
+
+      return selectedMajor.subCategories.find(sub => sub.categoryName === minorCategory)?.categoryId || null;
     };
-
+    
     const categoryId = getCategoryId();
     if (!categoryId) { // 이중 확인
       alert('선택된 카테고리를 찾을 수 없습니다.');
@@ -286,6 +301,7 @@ export default function CreateProductPage() {
     }
 
     try {
+      setIsSubmitting(true); // 제출 시작
       console.log('--- 🛒 상품 등록 API 호출 시작 ---');
 
       const newProductId = await addProduct(requestData);
@@ -307,6 +323,8 @@ export default function CreateProductPage() {
       }
 
       alert(`상품 등록에 실패했습니다.\\n\\n다음을 확인해주세요:\\n• 모든 필수 항목이 입력되었는지\\n• 이미지가 정상적으로 업로드되었는지\\n• 네트워크 연결 상태\\n\\n콘솔에서 자세한 오류를 확인할 수 있습니다.`);
+    } finally {
+      setIsSubmitting(false); // 제출 완료 (성공/실패 무관)
     }
   };
 
@@ -405,7 +423,7 @@ export default function CreateProductPage() {
               <button
                 type="button"
                 onClick={handleGenerateAiTemplate}
-                disabled={aiLoading || !minorCategory}
+                disabled={aiLoading || (!minorCategory && majorCategory !== '기타')}
                 className="w-full bg-blue-600 text-white font-bold px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 {aiLoading ? 'AI가 생성 중...' : 'AI 템플릿 생성'}
@@ -480,7 +498,7 @@ export default function CreateProductPage() {
               <div className="flex items-center h-5"><input id="terms" type="checkbox" checked={termsAgreed} onChange={(e) => setTermsAgreed(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-white" /></div>
               <div className="ml-3 text-sm"><label htmlFor="terms" className="font-medium text-gray-700 flex items-center"><CheckIcon className="w-5 h-5 text-green-500 mr-1" />판매 정보가 실제 상품과 다를 경우, 책임은 판매자에게 있음을 동의합니다.</label></div>
             </div>
-            <button type="submit" className="w-full bg-blue-600 text-white font-bold py-4 px-6 rounded-lg hover:bg-blue-700 transition text-lg disabled:bg-gray-400" disabled={!termsAgreed}>판매글 등록</button>
+            <button type="submit" className="w-full bg-blue-600 text-white font-bold py-4 px-6 rounded-lg hover:bg-blue-700 transition text-lg disabled:bg-gray-400" disabled={!termsAgreed || isSubmitting}>{isSubmitting ? '등록 중...' : '판매글 등록'}</button>
           </section>
         </form>
       </main>
