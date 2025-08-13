@@ -48,7 +48,7 @@ export default function ProductDetailPage() {
     rating: product?.seller.rating || 0,
     score: product?.seller.score || 0,
     bio: (product?.seller as { bio?: string })?.bio || '',
-    dealCount: product?.seller.dealcount || 0,
+    dealCount: product?.seller.dealCount || 0,
   }
 
   // --- 찜하기 기능 로직 통합 ---
