@@ -131,10 +131,8 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     videoSessionId: null,  // 세션ID 저장용
     // 거래 가격 관련 상태
     finalPrice: null,
-    setFinalPrice: (price: number | null) => {
-      console.log('chatRoomStore - setting finalPrice:', price);
-      set({ finalPrice: price });
-    },
+    
+    setFinalPrice: (price: number | null) => set({ finalPrice: price }),
     setVideoSessionId: (id: string | null) => set({ videoSessionId: id }),
 
     addChatRoom: async (addRoom: addRoom) => {
@@ -170,8 +168,16 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         try{
             const response = await useAuthStore.getState().authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/chatrooms`)
             const data = await response.json()
-            console.log(data)
             set({ roomList: data })
+            
+            // 현재 URL의 roomId와 일치하는 채팅방을 찾아서 currentSelectedRoom 설정
+            const currentRoomId = window.location.pathname.split('/').pop();
+            if (currentRoomId && data && Array.isArray(data)) {
+                const matchingRoom = data.find((room: ChatRoom) => room.roomId.toString() === currentRoomId);
+                if (matchingRoom) {
+                    set({ currentSelectedRoom: matchingRoom });
+                }
+            }
         } catch (error) {
             console.error('Error getting room list:', error)
         }
@@ -184,7 +190,7 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
     connectStomp: (roomId?: number) => {
         // 이미 연결되었거나 연결 중이면 중복 실행 방지
         if (get().isConnected || get().isConnecting) {
-            // console.log('STOMP: 이미 연결되었거나 연결이 진행 중입니다.');
+            console.log('STOMP: 이미 연결되었거나 연결이 진행 중입니다.');
             return;
         }
 
@@ -193,8 +199,14 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         
         const serverUrl = 'https://i13e202.p.ssafy.io/be/ws-stomp'
    
-        //const accessToken = localStorage.getItem('accessToken')
-        const accessToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI0Mzc1MTI2ODM0Iiwicm9sZSI6IlVTRVIiLCJ0b2tlblR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTQzMjk4OTEsImV4cCI6MzMyNDY3OTM4OTF9.Ri8aEdsV2_37aZ9As4npi_kBvWv0ccQlUzyKweE4B-opos4h-4Ceb7OO4LQUFJp7'
+        // 실제 사용자 토큰 사용
+        const accessToken = localStorage.getItem('accessToken')
+        
+        if (!accessToken) {
+            console.error('❌ STOMP: 액세스 토큰이 없습니다.');
+            set({ isConnected: false, isConnecting: false });
+            return;
+        }
   
         try {
             const socket = new SockJS(serverUrl)
@@ -203,19 +215,18 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                 connectHeaders: {
                     Authorization: `Bearer ${accessToken}`,
                 },
-                reconnectDelay: 0,
+                reconnectDelay: 5000, // 5초 후 재연결 시도
                 heartbeatIncoming: 4000,
                 heartbeatOutgoing: 4000,
                 });
 
             client.onConnect = (frame) => {
-                // console.log('✅ STOMP: 연결 성공!')
+                console.log('✅ STOMP: 연결 성공!')
                 set({ isConnected: true, isConnecting: false, stompClient: client })
                 
-                // console.log('📡 STOMP: 채팅방 목록(/user/chat/roomlist) 구독 시작');
+                console.log('📡 STOMP: 채팅방 목록(/user/chat/roomlist) 구독 시작');
                 client.subscribe('/user/sub/chat/roomlist', (messageOutput) => {
                     try {
-                        // console.log(messageOutput.body)
                         const updatedRoomList = JSON.parse(messageOutput.body) as ChatRoom[];
                         console.log('📋 채팅방 목록 업데이트 수신:', updatedRoomList);
                         get().updateRoomList(updatedRoomList);
@@ -224,30 +235,52 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
                     }
                 });
 
-
                 if (roomId) {
                     console.log(`📡 STOMP: 채팅방 ${roomId} 구독 시작`)
                     client.subscribe(`/sub/chat/room/${roomId}`, (messageOutput) => {
-                        const msg = JSON.parse(messageOutput.body)
-                        console.log('📨 메시지 수신:', msg.type, msg.content);
-                        
-                        // START_VIDEOCALL 타입 메시지인 경우 세션ID 저장
-                        if (msg.type === 'START_VIDEOCALL' && msg.content) {
-                            console.log('📹 화상채팅 세션ID 저장:', msg.content);
-                            set({ videoSessionId: msg.content });
+                        try {
+                            const msg = JSON.parse(messageOutput.body)
+                            console.log('📨 메시지 수신:', msg);
+                            
+                            // 메시지 유효성 검사
+                            if (!msg || !msg.content || !msg.senderId) {
+                                console.warn('⚠️ 유효하지 않은 메시지 수신:', msg);
+                                return;
+                            }
+                            
+                            // START_VIDEOCALL 타입 메시지인 경우 세션ID 저장
+                            if (msg.type === 'START_VIDEOCALL' && msg.content) {
+                                console.log('📹 화상채팅 세션ID 저장:', msg.content);
+                                set({ videoSessionId: msg.content });
+                            }
+                            
+                            // 메시지 추가 (실시간 업데이트)
+                            get().appendMessage(msg, false)
+                            
+                            // 메시지 수신 시 즉시 채팅방 목록 업데이트
+                            setTimeout(() => {
+                                get().getRoomList();
+                            }, 100);
+                        } catch (error) {
+                            console.error('❌ 메시지 파싱 오류:', error);
                         }
-                        
-                        // 메시지 추가 (실시간 업데이트)
-                        get().appendMessage(msg, false)
-                        
-                        // 메시지 수신 시 즉시 채팅방 목록 업데이트
-                        get().getRoomList();
                     })
                 }
             }
             
             client.onStompError = (error) => {
                 console.error('❌ STOMP: 연결 오류', error)
+                set({ isConnected: false, isConnecting: false, stompClient: null })
+                
+                // 연결 실패 시 3초 후 재연결 시도
+                setTimeout(() => {
+                    console.log('🔄 STOMP 재연결 시도...')
+                    get().connectStomp(roomId)
+                }, 3000)
+            }
+            
+            client.onWebSocketError = (error) => {
+                console.error('❌ WebSocket 오류:', error)
                 set({ isConnected: false, isConnecting: false, stompClient: null })
             }
             
@@ -271,19 +304,25 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         set(state => {
             const currentMessages = Array.isArray(state.messages) ? state.messages : []
             
-            // 중복 메시지 방지: 같은 내용, 같은 시간대의 메시지는 추가하지 않음
+            // 메시지 유효성 검사
+            if (!msg || !msg.content || !msg.senderId) {
+                console.warn('⚠️ 유효하지 않은 메시지:', msg);
+                return state;
+            }
+            
+            // 중복 메시지 방지: 더 엄격한 체크
             const isDuplicate = currentMessages.some(existingMsg => 
                 existingMsg.content === msg.content && 
                 existingMsg.senderId === msg.senderId &&
-                Math.abs(new Date(existingMsg.createdAt).getTime() - new Date(msg.createdAt).getTime()) < 1000 // 1초 이내
+                Math.abs(new Date(existingMsg.createdAt).getTime() - new Date(msg.createdAt).getTime()) < 10000 // 10초 이내
             );
             
             if (isDuplicate) {
-                console.log('🔄 중복 메시지 감지, 추가하지 않음:', msg.content);
+                console.log('🔄 중복 메시지 감지, 추가하지 않음:', msg.content, 'from:', msg.senderId);
                 return state;
             }
 
-            console.log('📝 새 메시지 추가 (실시간):', msg.content);
+            console.log('📝 새 메시지 추가 (실시간):', msg.content, 'from:', msg.senderId);
             
             // 새 메시지를 추가하고 즉시 UI 업데이트
             const updatedMessages = [...currentMessages, msg];
@@ -303,11 +342,46 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         try {
             const response = await useAuthStore.getState().authenticatedFetch(`https://i13e202.p.ssafy.io/be/api/chatrooms/${roomId}?page=0`);
             const data = await response.json();
-            // console.log('📥 메시지 히스토리 수신:', data);
-            set({ messages: data })
+            console.log('📥 메시지 히스토리 수신:', data);
+            
+            // 기존 메시지와 새로운 메시지를 비교하여 중복 방지
+            set(state => {
+                const currentMessages = Array.isArray(state.messages) ? state.messages : [];
+                const newMessages = Array.isArray(data) ? data : [];
+                
+                if (currentMessages.length === 0) {
+                    // 첫 로드인 경우 모든 메시지 설정
+                    return { messages: newMessages };
+                }
+                
+                // 새로운 메시지가 기존 메시지보다 많으면 전체 교체 (페이지 새로고침 등)
+                if (newMessages.length > currentMessages.length + 5) {
+                    console.log('📝 메시지 히스토리 전체 교체 (새로운 메시지가 많음)');
+                    return { messages: newMessages };
+                }
+                
+                // 기존 메시지와 새로운 메시지를 비교하여 중복 제거
+                const existingMessageIds = new Set(
+                    currentMessages.map(msg => `${msg.senderId}-${msg.content}-${msg.createdAt}`)
+                );
+                
+                const uniqueNewMessages = newMessages.filter(msg => 
+                    !existingMessageIds.has(`${msg.senderId}-${msg.content}-${msg.createdAt}`)
+                );
+                
+                if (uniqueNewMessages.length > 0) {
+                    console.log('📝 새로운 메시지 발견:', uniqueNewMessages.length, '개');
+                    // 새로운 메시지를 기존 메시지에 추가
+                    const updatedMessages = [...currentMessages, ...uniqueNewMessages];
+                    return { messages: updatedMessages };
+                }
+                
+                // 새로운 메시지가 없으면 기존 상태 유지 (깜빡임 방지)
+                return state;
+            });
         } catch (error) {
             console.error(`❌ 채팅방 ${roomId} 메시지 히스토리 로드 실패:`, error);
-            set({ messages: [] });
+            // 에러 발생 시에도 기존 메시지는 유지
         }
     },
 
@@ -315,92 +389,104 @@ export const useChatRoomStore = create<ChatRoomStore>((set, get) => ({
         return new Promise<void>((resolve, reject) => {
             const { stompClient, isConnected } = get()
             
-            if (!stompClient || !isConnected) {
-                console.error('❌ STOMP 클라이언트가 연결되지 않았습니다.')
-                reject(new Error('STOMP 클라이언트가 연결되지 않았습니다.'))
-                return
-            }
-
             if (!content.trim()) {
                 console.warn('⚠️ 빈 메시지는 전송할 수 없습니다.')
                 reject(new Error('빈 메시지는 전송할 수 없습니다.'))
                 return
             }
 
-            try {
-                const { currentSelectedRoom } = get();
-                const currentUserId = currentSelectedRoom?.userId.toString();
-
-                // receiverId 결정: 현재 사용자가 판매자인지 구매자인지 판단
-                let receiverId = null;
-                const sellerId = currentSelectedRoom?.seller.id.toString();
-                const buyerId = currentSelectedRoom?.buyer.id.toString();
+            // STOMP 연결 상태 확인 및 재연결 시도
+            const attemptSend = async (retryCount = 0) => {
+                const currentState = get()
                 
-                // 현재 사용자가 판매자인 경우 구매자에게 전송
-                if (currentUserId === sellerId) {
-                    receiverId = buyerId;
-                }
-                // 현재 사용자가 구매자인 경우 판매자에게 전송
-                else if (currentUserId === buyerId) {
-                    receiverId = sellerId;
-                }
-                // 그 외의 경우 (예상치 못한 상황)
-                else {
-                    receiverId = sellerId;
-                }
-
-                if (!receiverId) {
-                    console.error('❌ receiverId를 결정할 수 없습니다.')
-                    reject(new Error('receiverId를 결정할 수 없습니다.'))
-                    return
-                }
-
-                // 즉시 UI에 반영할 메시지 객체 생성
-                const immediateMessage: ChatMessage = {
-                    roomId: roomId,
-                    senderId: currentUserId || '',
-                    receiverId: receiverId || '',
-                    content: content.trim(),
-                    type: type,
-                    createdAt: new Date().toISOString(),
-                    isRead: false
+                if (!currentState.stompClient || !currentState.isConnected) {
+                    if (retryCount < 3) {
+                        console.log(`🔄 STOMP 연결 시도 ${retryCount + 1}/3...`)
+                        try {
+                            currentState.connectStomp(roomId)
+                            // 연결 대기
+                            await new Promise(resolve => setTimeout(resolve, 2000))
+                            
+                            // 재귀적으로 다시 시도
+                            attemptSend(retryCount + 1)
+                            return
+                        } catch (error) {
+                            console.error(`❌ STOMP 재연결 실패 (시도 ${retryCount + 1}):`, error)
+                            if (retryCount === 2) {
+                                reject(new Error('STOMP 연결에 실패했습니다.'))
+                                return
+                            }
+                        }
+                    } else {
+                        console.error('❌ STOMP 클라이언트가 연결되지 않았습니다.')
+                        reject(new Error('STOMP 클라이언트가 연결되지 않았습니다.'))
+                        return
+                    }
                 }
 
-                // 즉시 로컬 메시지 목록에 추가 (낙관적 업데이트)
-                console.log('📝 즉시 메시지 추가 (낙관적 업데이트):', immediateMessage)
-                get().appendMessage(immediateMessage, true)
+                try {
+                    const { currentSelectedRoom } = get();
+                    const currentUserId = currentSelectedRoom?.userId.toString();
 
-                // STOMP 메시지 형식
-                const stompMessage = {
-                    roomId: roomId,
-                    senderId: currentUserId, // myUserId를 senderId로 사용
-                    receiverId: receiverId,
-                    content: content.trim(),
-                    isRead: false,
-                    createdAt: new Date(),
-                    type: type
+                    // receiverId 결정: 현재 사용자가 판매자인지 구매자인지 판단
+                    let receiverId = null;
+                    const sellerId = currentSelectedRoom?.seller.id.toString();
+                    const buyerId = currentSelectedRoom?.buyer.id.toString();
+                    
+                    // 현재 사용자가 판매자인 경우 구매자에게 전송
+                    if (currentUserId === sellerId) {
+                        receiverId = buyerId;
+                    }
+                    // 현재 사용자가 구매자인 경우 판매자에게 전송
+                    else if (currentUserId === buyerId) {
+                        receiverId = sellerId;
+                    }
+                    // 그 외의 경우 (예상치 못한 상황)
+                    else {
+                        receiverId = sellerId;
+                    }
+
+                    if (!receiverId) {
+                        console.error('❌ receiverId를 결정할 수 없습니다.')
+                        reject(new Error('receiverId를 결정할 수 없습니다.'))
+                        return
+                    }
+
+                    // STOMP 메시지 형식
+                    const stompMessage = {
+                        roomId: roomId,
+                        senderId: currentUserId, // myUserId를 senderId로 사용
+                        receiverId: receiverId,
+                        content: content.trim(),
+                        isRead: false,
+                        createdAt: new Date(),
+                        type: type
+                    }
+
+                    console.log('📤 STOMP 메시지 전송 시도:', stompMessage)
+                    
+                    // STOMP를 통해 메시지 전송
+                    currentState.stompClient!.publish({
+                        destination: "/pub/chat/message",
+                        body: JSON.stringify(stompMessage)
+                    })
+
+                    console.log('✅ STOMP 메시지 전송 완료')
+                    
+                    // 메시지 전송 후 채팅방 목록도 즉시 업데이트
+                    setTimeout(() => {
+                        get().getRoomList();
+                    }, 100);
+                    
+                    resolve()
+                } catch (error) {
+                    console.error('❌ 메시지 전송 실패:', error)
+                    reject(error)
                 }
-
-                console.log('📤 STOMP 메시지 전송 시도:', stompMessage)
-                
-                // STOMP를 통해 메시지 전송
-                stompClient.publish({
-                    destination: "/pub/chat/message",
-                    body: JSON.stringify(stompMessage)
-                })
-
-                console.log('✅ STOMP 메시지 전송 완료')
-                
-                // 메시지 전송 후 채팅방 목록도 즉시 업데이트
-                setTimeout(() => {
-                    get().getRoomList();
-                }, 100);
-                
-                resolve()
-            } catch (error) {
-                console.error('❌ 메시지 전송 실패:', error)
-                reject(error)
             }
+
+            // 메시지 전송 시도 시작
+            attemptSend()
         })
     },
 

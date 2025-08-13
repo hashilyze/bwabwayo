@@ -2,7 +2,7 @@
 
 import ChatModal from '@/components/chat/ChatModal'
 import { useEffect, useRef, useState } from 'react'
-import { useParams, useSearchParams, useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useChatRoomStore } from '@/stores/chatting/chatRoomStore'
 import { useModalStore } from '@/stores/modalStore'
 import AllModals from '@/components/chat/modals/AllModals'
@@ -43,12 +43,22 @@ const useChatRoomInfo = () => {
 
 export default function ChatRoomPage() {
   const params = useParams()
-  const searchParams = useSearchParams()
   const router = useRouter()
   const roomId = Number(params.roomId)
-  const { messages, getMessageHistory, connectStomp, currentSelectedRoom, sendMessage, getRoomList } = useChatRoomStore()
+  const { 
+    messages, 
+    getMessageHistory, 
+    connectStomp, 
+    currentSelectedRoom, 
+    sendMessage, 
+    getRoomList,
+    setCurrentSelectedRoom,
+    isConnected,
+    stompClient
+  } = useChatRoomStore()
   const { closePaymentModal } = useModalStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const chatContainerRef = useRef<HTMLDivElement>(null)
 
   // 전역 채팅방 정보 가져오기
   const chatInfo = useChatRoomInfo();
@@ -56,6 +66,7 @@ export default function ChatRoomPage() {
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
   const [isHeaderModalOpen, setIsHeaderModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const openReservationModal = () => setIsReservationModalOpen(true);
   const closeReservationModal = () => setIsReservationModalOpen(false);
@@ -78,179 +89,89 @@ export default function ChatRoomPage() {
     openVideoChat(roomId);
   };
 
+  // 채팅방 목록 로드 및 currentSelectedRoom 설정
   useEffect(() => {
-    const initializeChat = async () => {
+    const loadRoomList = async () => {
       try {
-        // 1. 채팅방 목록 로드 (currentSelectedRoom 설정을 위해)
-        await getRoomList()
-        
-        // 2. 메시지 히스토리 로드
-        await getMessageHistory(roomId)
-
-        // 3. STOMP 연결 (채팅방별 구독)
-        connectStomp(roomId)
+        console.log('📋 채팅방 목록 로드 시작...');
+        await getRoomList();
+        console.log('✅ 채팅방 목록 로드 완료');
       } catch (error) {
-        console.error('채팅 초기화 실패:', error)
+        console.error('❌ 채팅방 목록 로드 실패:', error);
       }
+    };
+
+    loadRoomList();
+  }, [getRoomList]);
+
+  // currentSelectedRoom이 설정되면 해당 채팅방으로 초기화
+  useEffect(() => {
+    if (currentSelectedRoom && currentSelectedRoom.roomId === roomId && !isInitialized) {
+      const initializeChat = async () => {
+        try {
+          console.log('🚀 채팅 초기화 시작...', roomId);
+          
+          // 1. 메시지 히스토리 로드
+          await getMessageHistory(roomId)
+
+          // 2. STOMP 연결 (채팅방별 구독)
+          connectStomp(roomId)
+          
+          setIsInitialized(true);
+          console.log('✅ 채팅 초기화 완료');
+        } catch (error) {
+          console.error('❌ 채팅 초기화 실패:', error)
+        }
+      }
+
+      initializeChat()
     }
+  }, [currentSelectedRoom, roomId, getMessageHistory, connectStomp, isInitialized])
 
-    initializeChat()
+  // 메시지 히스토리를 2초마다 업데이트
+  useEffect(() => {
+    if (!isInitialized || !roomId) return;
+    const intervalId = setInterval(async () => {
+      try {
+        // console.log('🔄 메시지 히스토리 업데이트 중...');
+        await getMessageHistory(roomId);
+      } catch (error) {
+        console.error('❌ 메시지 히스토리 업데이트 실패:', error);
+      }
+    }, 2000); // 2초마다 실행
 
-    // 컴포넌트가 언마운트될 때 STOMP 연결을 해제합니다.
+    // 컴포넌트 언마운트 시 인터벌 정리
+    return () => {
+      // console.log('⏰ 메시지 히스토리 자동 업데이트 중지');
+      clearInterval(intervalId);
+    };
+  }, [isInitialized, roomId, getMessageHistory]);
+
+  // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동 (개선된 버전)
+  useEffect(() => {
+    if (messagesEndRef.current && messages && messages.length > 0) {
+      // DOM 업데이트 완료 후 스크롤
+      const scrollToBottom = () => {
+        if (messagesEndRef.current) {
+          // 부드러운 스크롤 대신 즉시 스크롤하여 깜빡임 방지
+          messagesEndRef.current.scrollIntoView({ 
+            block: 'end' 
+          });
+        }
+      };
+      
+      // 약간의 지연을 두어 DOM 업데이트 완료 후 스크롤
+      setTimeout(scrollToBottom, 10);
+    }
+  }, [messages]);
+
+  // 컴포넌트가 언마운트될 때 STOMP 연결을 해제합니다.
+  useEffect(() => {
     return () => {
       const { disconnectStomp } = useChatRoomStore.getState()
       disconnectStomp()
     }
-  }, [roomId, getMessageHistory, connectStomp, getRoomList])
-
-  // 메시지 실시간 업데이트 감지
-  useEffect(() => {
-    console.log('📝 메시지 업데이트 감지:', messages?.length, '개');
-  }, [messages]);
-
-  // 결제 성공 처리
-  useEffect(() => {
-    // 클라이언트 사이드에서만 실행
-    if (typeof window === 'undefined') return;
-    
-    const handlePaymentSuccess = async () => {
-      const paymentKey = searchParams.get('paymentKey')
-      const orderId = searchParams.get('orderId')
-      const amount = searchParams.get('amount')
-      const productId = searchParams.get('productId')
-
-      console.log('🔍 결제 파라미터 확인:', { paymentKey, orderId, amount, roomId, productId })
-
-      if (paymentKey && orderId && amount) {
-        try {
-          console.log('📡 결제 확인 API 호출 시작...')
-          
-                     // URL 파라미터에서 productId 가져오기 (우선순위)
-           const productIdFromUrl = searchParams.get('productId')
-           console.log('🔍 URL에서 가져온 productId:', productIdFromUrl)
-           
-           // 서버에 결제 확인 요청
-             const response = await fetch('https://i13e202.p.ssafy.io/be/api/payments/confirm', {
-               method: 'POST',
-               headers: {
-                 'Content-Type': 'application/json',
-                 'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-               },
-               body: JSON.stringify({
-                 paymentKey,
-                 orderId,
-                 amount: parseInt(amount),
-                 productId: productIdFromUrl || productId
-               }),
-             })
-
-          console.log('📡 API 응답 상태:', response.status)
-
-          if (!response.ok) {
-            throw new Error('결제 확인에 실패했습니다.')
-          }
-
-          const result = await response.json()
-          console.log('📡 API 응답 결과:', result)
-
-          if (result.status === 'DONE') {
-            console.log('✅ 결제 성공! 메시지 전송 시작...')
-            
-            // 결제 모달 닫기 (먼저 닫기)
-            closePaymentModal()
-            
-            // STOMP 연결 상태 확인 및 재연결 시도
-            let retryCount = 0;
-            const maxRetries = 3;
-            
-            while (retryCount < maxRetries) {
-              const { stompClient, isConnected, connectStomp } = useChatRoomStore.getState()
-              
-              if (isConnected && stompClient) {
-                console.log('✅ STOMP 연결 상태 정상')
-                break;
-              }
-              
-              console.log(`🔄 STOMP 연결 시도 ${retryCount + 1}/${maxRetries}...`)
-              try {
-                await connectStomp(roomId)
-                // 연결 대기
-                await new Promise(resolve => setTimeout(resolve, 2000))
-                
-                // 연결 상태 재확인
-                const { stompClient: newStompClient, isConnected: newIsConnected } = useChatRoomStore.getState()
-                if (newIsConnected && newStompClient) {
-                  console.log('✅ STOMP 재연결 성공')
-                  break;
-                }
-              } catch (error) {
-                console.error(`❌ STOMP 재연결 실패 (시도 ${retryCount + 1}):`, error)
-              }
-              
-              retryCount++;
-              if (retryCount < maxRetries) {
-                await new Promise(resolve => setTimeout(resolve, 1000))
-              }
-            }
-            
-            if (retryCount >= maxRetries) {
-              console.error('❌ STOMP 연결 실패 - 최대 재시도 횟수 초과')
-            }
-            
-            // 메시지 전송 전 추가 대기
-            await new Promise(resolve => setTimeout(resolve, 1000))
-            
-            // 결제 성공 시 채팅방에 INPUT_DELIVERY_ADDRESS 메시지 전송
-            console.log('📤 sendMessage 호출:', { roomId, message: '입금이 완료되었습니다. 배송지를 입력해 주세요!', type: 'INPUT_DELIVERY_ADDRESS' })
-            
-            try {
-              await sendMessage(roomId, '입금이 완료되었습니다. 배송지를 입력해 주세요!', 'INPUT_DELIVERY_ADDRESS')
-              console.log('✅ 메시지 전송 완료!')
-            } catch (error) {
-              console.error('❌ 메시지 전송 실패:', error)
-              // 메시지 전송 실패 시에도 계속 진행
-            }
-            
-            console.log('✅ URL 정리 중...')
-            
-            // URL에서 결제 파라미터 제거 (약간의 지연 후)
-            setTimeout(() => {
-              try {
-                router.replace(`/chat/${roomId}`)
-                console.log('✅ URL 정리 완료')
-              } catch (error) {
-                console.error('❌ URL 정리 실패:', error)
-              }
-            }, 2000)
-          } else {
-            console.log('❌ 결제 상태가 DONE이 아님:', result.status)
-          }
-        } catch (error) {
-          console.error('❌ 결제 처리 중 오류:', error)
-          // 오류 발생 시에도 URL 정리
-          router.replace(`/chat/${roomId}`)
-        }
-      } else {
-        console.log('🔍 결제 파라미터가 없음 - 일반 채팅방 접속')
-      }
-    }
-
-    handlePaymentSuccess()
-  }, [searchParams, roomId, router, closePaymentModal])
-
-  // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      // 약간의 지연을 두어 DOM 업데이트 완료 후 스크롤
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ 
-          behavior: 'smooth',
-          block: 'end' 
-        })
-      }, 100)
-    }
-  }, [messages])
-
+  }, [])
 
   // URL 파라미터에서 현재 사용자 ID 결정
   const getMyUserId = () => {
@@ -337,7 +258,7 @@ export default function ChatRoomPage() {
       )}
 
       {/* 메인 콘텐츠 영역 */}
-      <div className="chat-container overflow-y-auto p-4 pt-[160px]">
+      <div ref={chatContainerRef} className="chat-container overflow-y-auto p-4 pt-[160px] flex-1">
         <div className="mb-10 flex flex-col gap-2 items-center">
           <div className="w-[100px] h-[100px] bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
             <img
@@ -414,7 +335,7 @@ export default function ChatRoomPage() {
               // 일반 메시지
               return (
                 <div
-                  key={index}
+                  key={`${message.senderId}-${index}-${message.createdAt}`}
                   className={`mb-4 flex items-end gap-2 justify-start ${isMine ? 'flex-row-reverse' : ''}`}
                 >
                   <div

@@ -61,11 +61,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   const { 
     roomList, 
     getRoomList, 
-    addChatRoom, 
     setCurrentSelectedRoom, 
-    isVideoChatOpen, 
-    videoRoomId, 
-    closeVideoChat,
     connectStomp,
     disconnectStomp,
     isConnected
@@ -102,9 +98,9 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
       try {
         setIsLoading(true)
         await getRoomList()
-        console.log('📋 초기 채팅방 목록 로드 완료');
+        // console.log('📋 초기 채팅방 목록 로드 완료');
       } catch (error) {
-        console.error("📋 초기 채팅방 목록 로드 실패:", error)
+        // console.error("📋 초기 채팅방 목록 로드 실패:", error)
       } finally {
         setIsLoading(false)
       }
@@ -118,9 +114,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     const intervalId = setInterval(async () => {
       try {
         await getRoomList();
-        console.log('📋 2초마다 채팅방 목록 폴링 완료');
       } catch (error) {
-        console.error('📋 채팅방 목록 폴링 실패:', error);
       }
     }, 2000);
 
@@ -142,7 +136,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
 
   // roomList 변경 감지 로깅
   useEffect(() => {
-    console.log('📋 roomList 업데이트됨:', roomList?.length, '개');
+    // console.log('📋 roomList 업데이트됨:', roomList?.length, '개');
   }, [roomList]);
 
   return (
@@ -176,8 +170,8 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
             ) : !Array.isArray(roomList) || roomList.length === 0 ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
-                  <p className="text-gray-500 mb-2">아직 채팅방이 없습니다</p>
-                  <p className="text-xs text-gray-400">상품을 구매하거나 판매하면 채팅방이 생성됩니다</p>
+                  <p className="text-lg text-gray-500 mb-2">아직 채팅방이 없습니다</p>
+                  <p className="text-md text-gray-400">상품을 구매하거나 판매하면 채팅방이 생성됩니다</p>
                 </div>
               </div>
             ) : (
