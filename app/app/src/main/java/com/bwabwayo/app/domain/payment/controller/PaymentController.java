@@ -82,6 +82,7 @@ public class PaymentController {
      */
     @PostMapping("/confirm")
     public ResponseEntity<?> confirmPayment(@RequestBody PaymentConfirmRequest requestDTO, @LoginUser User loginUser) throws IOException {
+        log.info("confirmPayment를 호출: {}, loginUserId={}", requestDTO, loginUser.getId());
         log.info("loginUser.ID={}", loginUser.getId());
         String buyerId = loginUser.getId();
         Long productId = requestDTO.getProductId();
