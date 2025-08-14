@@ -6,9 +6,9 @@ import { useMyAddressStore } from "@/stores/mypage/myAddressStore"
 import useSendTypeMessageStore from '@/stores/chatting/sendTypeMessage'
 import { OverlayPortal } from "@/components/chat/modals/OverlayPortal"
 import TrackingNumberModal from '@/components/chat/modals/TrackingForm'
-import FinalPriceModal from '@/components/chat/modals/FinalPriceForm'
 import { PaymentCheckoutPage } from '@/components/chat/modals/tossPay/PaymentCheckout'
 import PurchaseConfirm from '@/components/chat/modals/PurchaseConfirm'
+import { useReservationStore } from '@/stores/chatting/reservationStore'
 
 import AddressSelectModal, { AddressItem } from '@/components/chat/modals/DeliverySelectForm'
 import Link from 'next/link';
@@ -131,8 +131,8 @@ const ReserveVideoCallModal = ({ message }: { message: ChatMessage }) => {
   const [isListButtonHovered, setIsListButtonHovered] = useState(false);
   const [isCancelButtonHovered, setIsCancelButtonHovered] = useState(false);
   const chatInfo = useChatRoomInfo(); // 전역 정보 사용
-  const sechduleTime = message.content
-
+  const { deleteSchedule } = useReservationStore();
+  
   // 메시지에서 예약 정보 파싱
   const parseReservationInfo = () => {
     try {
@@ -184,7 +184,7 @@ const ReserveVideoCallModal = ({ message }: { message: ChatMessage }) => {
 
   const handleCancel = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    console.log('취소하기');
+    deleteSchedule(chatInfo?.roomId || 0, reservationInfo.scheduleId || 0);
   }
 
   // 로딩 상태일 때도 기본적인 메시지 표시
@@ -223,7 +223,7 @@ const ReserveVideoCallModal = ({ message }: { message: ChatMessage }) => {
 
                 <div className="flex flex-col items-start gap-1">
                   <div className="text-[#7c7c7c] text-md">
-                    일정: ${sechduleTime}
+                    일정: ${formatReservationTime(reservationInfo.startAt)}
                   </div>
 
                   <div className="text-[#7c7c7c] text-md">

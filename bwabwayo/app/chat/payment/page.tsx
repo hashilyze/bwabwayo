@@ -47,9 +47,9 @@ function PaymentSuccessContent() {
           setResponseData(data);
           console.log("✅ 결제 확인 완료");
           
-                     // 1초 뒤 창 닫기
+          // 1초 뒤 창 닫기
            setTimeout(() => {
-             window.close();
+              router.push(`/chat/${searchParams.get("roomId")}`);
            }, 1000);
         })
        .catch((error) => {

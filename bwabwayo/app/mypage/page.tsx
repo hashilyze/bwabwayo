@@ -107,7 +107,7 @@ export default function MyPage() {
             {/* 거래후기 */}
             <li className="flex-1 p-6 text-center relative after:content-[''] after:absolute after:right-0 after:top-1/2 after:transform after:-translate-y-1/2 after:w-px after:h-10 after:bg-gray-200 last:after:hidden">
               <div className="text-gray-500 text-md mb-1">거래후기</div>
-              <div className="text-black text-xl font-normal min-w-[60px]">{userData.dealCount ?? 0}</div>
+              <div className="text-black text-xl font-normal min-w-[60px]">{userData.reviewCount ?? 0}</div>
             </li>
             
             {/* 화상거래 */}
