@@ -46,7 +46,7 @@ export default function AdminLayout({
           <div className="flex items-center justify-between px-6 py-4">
             {/* Logo */}
             <div className="flex items-center gap-4">
-              <Link href={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/`}>
+              <Link href={`/`}>
                 <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/logo.png`} alt="logo" className="h-10" />
               </Link>
               <h1 className="text-lg font-bold">관리자 페이지</h1>
@@ -74,8 +74,8 @@ export default function AdminLayout({
               <div className="text-white font-semibold text-lg mb-2"><Link href="/admin">홈</Link></div>
               <div className="text-white font-semibold text-lg mb-2">고객지원</div>
               <div className="text-gray-300 text-md mb-2">
-                <Link href="/admin/inquiries" className="block p-2 hover:bg-blue-700">문의내용</Link>
-                <Link href="/admin/reports" className="block p-2 hover:bg-blue-700">신고내용</Link>
+                <Link href="/admin/inquiries" className="block p-2 hover:">문의내용</Link>
+                <Link href="/admin/reports" className="block p-2 hover:">신고내용</Link>
               </div>
             </div>
           </aside>

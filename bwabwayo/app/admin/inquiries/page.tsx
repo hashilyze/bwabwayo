@@ -22,6 +22,11 @@ export default function InquiriesPage() {
   const [loading, setLoading] = useState(true)
   const [selectedInquiry, setSelectedInquiry] = useState<any>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [filterOptions, setFilterOptions] = useState({
+    전체: false,
+    답변대기: false,
+    답변완료: false
+  })
   const { inquiries, getInquiries, addInquiryReply } = useInquiriesStore()
 
   useEffect(() => {
@@ -50,6 +55,61 @@ export default function InquiriesPage() {
     handleCloseModal()
   }
 
+  // 필터링 및 정렬된 문의 목록
+  const filteredAndSortedInquiries = inquiries
+    .filter((inquiry: any) => {
+      const hasReply = inquiry.reply
+      
+      // 아무것도 선택되지 않았으면 전체 표시
+      if (!filterOptions.전체 && !filterOptions.답변대기 && !filterOptions.답변완료) return true
+      
+      // 전체가 선택되어 있으면 모든 항목 표시
+      if (filterOptions.전체) return true
+      
+      // 개별 옵션에 따라 필터링
+      if (!hasReply && filterOptions.답변대기) return true
+      if (hasReply && filterOptions.답변완료) return true
+      
+      return false
+    })
+    .sort((a: any, b: any) => {
+      // 답변대기를 우선으로 정렬 (답변대기가 위로)
+      const aHasReply = a.reply
+      const bHasReply = b.reply
+      
+      if (!aHasReply && bHasReply) return -1 // a가 답변대기, b가 답변완료
+      if (aHasReply && !bHasReply) return 1  // a가 답변완료, b가 답변대기
+      
+      // 둘 다 같은 상태면 ID 역순으로 정렬 (최신순)
+      return b.id - a.id
+    })
+
+  const handleFilterChange = (option: string) => {
+    setFilterOptions(prev => {
+      const newOptions = { ...prev }
+      
+      if (option === '전체') {
+        // 전체를 클릭하면 답변대기와 답변완료 모두 토글
+        const allChecked = newOptions.전체
+        newOptions.전체 = !allChecked
+        newOptions.답변대기 = !allChecked
+        newOptions.답변완료 = !allChecked
+      } else {
+        // 개별 옵션 토글
+        newOptions[option as keyof typeof newOptions] = !newOptions[option as keyof typeof newOptions]
+        
+        // 답변대기와 답변완료가 모두 선택되어 있으면 전체도 선택
+        if (newOptions.답변대기 && newOptions.답변완료) {
+          newOptions.전체 = true
+        } else {
+          newOptions.전체 = false
+        }
+      }
+      
+      return newOptions
+    })
+  }
+
   if (loading) {
     return (
       <div className="p-6">
@@ -70,34 +130,45 @@ export default function InquiriesPage() {
       {/* Page Title */}
       <h1 className="text-3xl font-bold mb-6">문의내용</h1>
 
-      {/* Search Section */}
-      <div className="bg-gray-50 p-6 rounded-lg mb-6">
-          {/* Search Options */}
-            <div className="grid grid-cols-4 gap-2 text-md">
-              <label className="flex items-center space-x-2">
-                <input type="checkbox" className="rounded" />
-                <span>전체</span>
-              </label>
-              <label className="flex items-center space-x-2">
-                <input type="checkbox" className="rounded" />
-                <span>답변대기</span>
-              </label>
-              <label className="flex items-center space-x-2">
-                <input type="checkbox" defaultChecked className="rounded" />
-                <span>답변완료</span>
-              </label>
-              <label className="flex items-center space-x-2">
-                <input type="checkbox" className="rounded" />
-                <span>검토중</span>
-              </label>
-        </div>
-      </div>
+             {/* Search Section */}
+       <div className="bg-gray-50 p-6 rounded-lg mb-6">
+           {/* Search Options */}
+             <div className="grid grid-cols-3 gap-4 text-md">
+               <label className="flex items-center space-x-2 cursor-pointer">
+                 <input 
+                   type="checkbox" 
+                   className="rounded"
+                   checked={filterOptions.전체}
+                   onChange={() => handleFilterChange('전체')}
+                 />
+                 <span>전체</span>
+               </label>
+               <label className="flex items-center space-x-2 cursor-pointer">
+                 <input 
+                   type="checkbox" 
+                   className="rounded"
+                   checked={filterOptions.답변대기}
+                   onChange={() => handleFilterChange('답변대기')}
+                 />
+                 <span>답변대기</span>
+               </label>
+               <label className="flex items-center space-x-2 cursor-pointer">
+                 <input 
+                   type="checkbox" 
+                   className="rounded"
+                   checked={filterOptions.답변완료}
+                   onChange={() => handleFilterChange('답변완료')}
+                 />
+                 <span>답변완료</span>
+               </label>
+         </div>
+       </div>
 
       {/* Data Table */}
-      <div className="bg-white border rounded-lg">
-        <div className="p-4 border-b">
-          <div className="text-sm text-gray-600">전체 {inquiries.length}건</div>
-        </div>
+       <div className="bg-white border rounded-lg">
+         <div className="p-4 border-b">
+           <div className="text-sm text-gray-600">전체 {filteredAndSortedInquiries.length}건</div>
+         </div>
         
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -112,7 +183,7 @@ export default function InquiriesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              { inquiries && inquiries.map((row: any) => (
+               { filteredAndSortedInquiries.map((row: any) => (
                 <tr key={row.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-md text-gray-900">{row.id}</td>
                   <td className="px-4 py-3 text-md text-gray-900">{row.title}</td>
