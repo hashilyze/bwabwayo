@@ -1,433 +1,295 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useProductStore, ProductWithSeller } from '@/stores/product/productStore';
 import { useCategoryStore } from '@/stores/categoryStore';
 import ProductCard from '@/components/product/ProductCard';
+import Pagination from '@/components/common/Pagination';
 import { transformToProductCardData } from '@/lib/dataTransFormers';
 
-export default function SearchPage({
-    searchParams,
-}: {
-    searchParams: { title?: string, category?: string }
-}) {
-  const router = useRouter();
-  const { products, loading, error, getProducts } = useProductStore();
-  const { categories, getCategories } = useCategoryStore();
-  const [showMajorCategories, setShowMajorCategories] = useState<boolean>(false);
-  const [showMinorCategories, setShowMinorCategories] = useState<boolean>(false);
-  const [selectedMajorCategoryId, setSelectedMajorCategoryId] = useState<number | null>(null);
-  const [selectedMinorCategoryId, setSelectedMinorCategoryId] = useState<number | null>(null);
-  const [selectedCategoryPath, setSelectedCategoryPath] = useState<string>('전체');
-  const [minPrice, setMinPrice] = useState<string>('');
-  const [maxPrice, setMaxPrice] = useState<string>('');
-  const [appliedMinPrice, setAppliedMinPrice] = useState<string>('');
-  const [appliedMaxPrice, setAppliedMaxPrice] = useState<string>('');
+// ✨ useSearchParams를 사용하는 모든 로직을 이 컴포넌트로 분리합니다.
+function SearchResultComponent() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const { products, totalElements, totalPages, loading, error, getProducts } = useProductStore();
+    const { categories, getCategories } = useCategoryStore();
 
-  // 숫자에 콤마 추가하는 함수
-  const formatNumber = (value: string): string => {
-    if (!value) return '';
-    const number = value.replace(/,/g, '');
-    if (isNaN(Number(number))) return value;
-    return Number(number).toLocaleString();
-  };
+    // UI 상태
+    const [showMajorCategories, setShowMajorCategories] = useState(false);
+    const [showMinorCategories, setShowMinorCategories] = useState(false);
+    const [selectedMajorCategoryId, setSelectedMajorCategoryId] = useState<number | null>(null);
+    
+    // 가격 필터 입력 상태
+    const [minPrice, setMinPrice] = useState('');
+    const [maxPrice, setMaxPrice] = useState('');
 
-  // 콤마 제거하는 함수 (API 호출시 사용)
-  const removeCommas = (value: string): string => {
-    return value.replace(/,/g, '');
-  };
+    // URL에서 현재 검색 조건들을 가져옵니다.
+    const titleQuery = searchParams.get('title') || '';
+    const categoryQuery = searchParams.get('category');
+    const minPriceQuery = searchParams.get('minPrice');
+    const maxPriceQuery = searchParams.get('maxPrice');
+    const currentPage = Number(searchParams.get('page')) || 1;
 
-  // 페이지 진입 시 가격 필터 초기화
-  React.useEffect(() => {
-    // 가격 필터 상태 초기화
-    setMinPrice('');
-    setMaxPrice('');
-    setAppliedMinPrice('');
-    setAppliedMaxPrice('');
-  }, []);
-
-  // 초기 데이터 로드
-  useEffect(() => {
-    // 카테고리 데이터 로드
-    getCategories();
-    
-    // 검색 조건에 따른 상품 로드
-    const searchQuery: any = {};
-    
-    if (searchParams.title) {
-      searchQuery.title = searchParams.title;
-    }
-    
-    if (searchParams.category) {
-      searchQuery.category_id = parseInt(searchParams.category);
-    }
-    
-    getProducts(searchQuery);
-  }, [searchParams.title, searchParams.category, getProducts, getCategories]);
-
-  // URL에서 카테고리 정보를 파싱하여 브레드크럼 구성
-  const parseCategoryFromUrl = React.useCallback(() => {
-    if (!searchParams.category) {
-      return {
-        majorCategory: null,
-        minorCategory: null,
-        breadcrumb: '전체',
-        categoryType: 'none'
-      };
-    }
-
-    const categoryId = parseInt(searchParams.category);
-    
-    // 대분류인지 확인
-    const majorCategory = categories.find(cat => cat.categoryId === categoryId);
-    if (majorCategory) {
-      return {
-        majorCategory: majorCategory,
-        minorCategory: null,
-        breadcrumb: `전체 > ${majorCategory.categoryName}`,
-        categoryType: 'major'
-      };
-    }
-    
-    // 소분류인지 확인 (해당 대분류도 함께 찾기)
-    for (const majorCat of categories) {
-      const minorCategory = majorCat.subCategories.find(sub => sub.categoryId === categoryId);
-      if (minorCategory) {
-        return {
-          majorCategory: majorCat,
-          minorCategory: minorCategory,
-          breadcrumb: `전체 > ${majorCat.categoryName} > ${minorCategory.categoryName}`,
-          categoryType: 'minor'
-        };
-      }
-    }
-    
-    // 카테고리를 찾지 못한 경우
-    return {
-      majorCategory: null,
-      minorCategory: null,
-      breadcrumb: '전체',
-      categoryType: 'none'
+    // --- 데이터 포맷팅 함수 ---
+    const formatNumber = (value: string): string => {
+        if (!value) return '';
+        return Number(value.replace(/,/g, '')).toLocaleString();
     };
-  }, [searchParams.category, categories]);
+    const removeCommas = (value: string): string => {
+        return value.replace(/,/g, '');
+    };
 
-  // URL 파라미터 변경 시 브레드크럼 및 상태 업데이트
-  React.useEffect(() => {
-    // 가격 필터 초기화
-    setMinPrice('');
-    setMaxPrice('');
-    setAppliedMinPrice('');
-    setAppliedMaxPrice('');
-    
-    const categoryInfo = parseCategoryFromUrl();
-    
-    // 브레드크럼 및 선택된 카테고리 상태 업데이트
-    setSelectedCategoryPath(categoryInfo.breadcrumb);
-    setSelectedMajorCategoryId(categoryInfo.majorCategory?.categoryId || null);
-    setSelectedMinorCategoryId(categoryInfo.minorCategory?.categoryId || null);
-    
-    // 탭 상태 설정
-    if (categoryInfo.categoryType === 'major') {
-      // 대분류 선택 시: 소분류 탭 열기
-      setShowMajorCategories(false);
-      setShowMinorCategories(true);
-    } else if (categoryInfo.categoryType === 'minor') {
-      // 소분류 선택 시: 모든 탭 닫기
-      setShowMajorCategories(false);
-      setShowMinorCategories(false);
-    } else {
-      // 카테고리 없음: 현재 탭 상태 유지 (전체 클릭 시 대분류 탭이 열려있을 수 있음)
-      setShowMinorCategories(false);
-    }
-  }, [searchParams.category, searchParams.title, parseCategoryFromUrl]);
+    // 모든 데이터 로딩을 이 useEffect에서 통합 관리합니다.
+    useEffect(() => {
+        getCategories();
+        
+        const searchQuery: any = {
+            page: currentPage,
+            size: 12,
+        };
+        
+        if (titleQuery) searchQuery.keyword = titleQuery;
+        if (categoryQuery) searchQuery.categoryId = parseInt(categoryQuery);
+        if (minPriceQuery) searchQuery.minPrice = parseInt(minPriceQuery);
+        if (maxPriceQuery) searchQuery.maxPrice = parseInt(maxPriceQuery);
 
-  // URL 생성 헬퍼 함수
-  const createSearchUrl = (categoryId?: number) => {
-    const params = new URLSearchParams();
-    if (searchParams.title) params.set('title', searchParams.title);
-    if (categoryId) params.set('category', categoryId.toString());
-    return `/search${params.toString() ? `?${params.toString()}` : ''}`;
-  };
+        getProducts(searchQuery);
+    }, [searchParams, getProducts, getCategories]);
 
-  // + 버튼 클릭 시 카테고리 토글
-  const handleShowMajorCategories = () => {
-    if (showMajorCategories) {
-      // 대분류가 열려있으면 닫기
-      setShowMajorCategories(false);
-    } else if (showMinorCategories) {
-      // 소분류가 열려있으면 닫기
-      setShowMinorCategories(false);
-    } else if (selectedMajorCategoryId && !showMinorCategories) {
-      // 대분류가 선택되어 있고 소분류가 닫혀있으면 소분류 열기
-      setShowMinorCategories(true);
-    } else {
-      // 아무것도 열려있지 않으면 대분류 열기
-      setShowMajorCategories(true);
-    }
-  };
+    // --- URL 파라미터 변경 시 UI 상태 업데이트 ---
+    useEffect(() => {
+        const categoryId = categoryQuery ? parseInt(categoryQuery) : null;
+        let majorCat = null;
+        let isMinorSelected = false;
 
-  // 가격 적용
-  const handlePriceApply = () => {
-    const min = minPrice ? parseInt(removeCommas(minPrice)) : undefined;
-    const max = maxPrice ? parseInt(removeCommas(maxPrice)) : undefined;
-    
-    // 적용된 가격 상태 업데이트
-    setAppliedMinPrice(minPrice);
-    setAppliedMaxPrice(maxPrice);
-    
-    // 검색 조건 구성
-    const searchQuery: any = {};
-    
-    if (searchParams.title) {
-      searchQuery.title = searchParams.title;
-    }
-    
-    if (searchParams.category) {
-      searchQuery.category_id = parseInt(searchParams.category);
-    }
-    
-    if (min) searchQuery.minPrice = min;
-    if (max) searchQuery.maxPrice = max;
-    
-    getProducts(searchQuery);
-  };
+        if (categoryId) {
+            for (const cat of categories) {
+                if (cat.categoryId === categoryId) {
+                    majorCat = cat;
+                    break;
+                }
+                const foundMinor = cat.subCategories.find(sub => sub.categoryId === categoryId);
+                if (foundMinor) {
+                    majorCat = cat;
+                    isMinorSelected = true;
+                    break;
+                }
+            }
+        }
+        
+        setSelectedMajorCategoryId(majorCat?.categoryId || null);
+        
+        if (majorCat && !isMinorSelected) {
+            setShowMajorCategories(false);
+            setShowMinorCategories(true);
+        } else {
+            setShowMinorCategories(false);
+        }
+        
+        setMinPrice(minPriceQuery ? formatNumber(minPriceQuery) : '');
+        setMaxPrice(maxPriceQuery ? formatNumber(maxPriceQuery) : '');
 
-  return(
-    <div className="py-12 container-default m-auto">
-      <div className='flex items-center gap-2 mb-4'>
-        <h1 className='text-3xl font-bold text-black'>
-          {searchParams.title ? `'${searchParams.title}'` : ''}검색결과
-        </h1>
-        <span className='text-md text-[#5a5a5a]'>총 {products.length}개</span>
-      </div>
-      <div className="search-category w-full bg-white">
-        <table className="w-full">
-          <tbody>
-            {/* 카테고리 헤더 행 */}
-            <tr className="border-t-2 border-t-[#000000] border-b border-b-[#dadee5]">
-              <td className="flex justify-between items-center w-36 bg-gray-50 px-4 py-5 text-left">
-                <div className="text-lg text-black">카테고리</div>
-                <div
-                  onClick={handleShowMajorCategories}
-                  className="ml-2 text-lg font-light text-gray-500 hover:text-black cursor-pointer"
-                >
-                  {(showMajorCategories || showMinorCategories) ? '-' : '+'}
-                </div>
-              </td>
-              <td className="px-6 py-5 text-left">
-                <div className="flex items-center text-lg">
-                  {selectedCategoryPath === '전체' ? (
-                    <span className="text-lg">{selectedCategoryPath}</span>
-                  ) : (
-                    <ul className="flex items-center gap-2">
-                      <li>
-                        <Link 
-                          href={createSearchUrl()}
-                          className="cursor-pointer hover:text-[#155dfc]"
-                        >
-                          전체
-                        </Link>
-                      </li>
-                      <li className="text-lg leading-5 text-[#9ca3af]">&gt;</li>
-                      <li>
-                        {(() => {
-                          const majorCat = categories.find(cat => cat.categoryId === selectedMajorCategoryId);
-                          return (
-                            <Link 
-                              href={majorCat ? createSearchUrl(majorCat.categoryId) : createSearchUrl()}
-                              className="text-lg cursor-pointer hover:text-[#155dfc]"
-                            >
-                              {majorCat?.categoryName || ''}
-                            </Link>
-                          );
-                        })()}
-                      </li>
-                      {selectedMinorCategoryId && (
-                        <>
-                          <li className="text-sm leading-5 text-[#9ca3af]">&gt;</li>
-                          <li>
-                            {(() => {
-                              const minorCat = categories
-                                .flatMap(cat => cat.subCategories)
-                                .find(sub => sub.categoryId === selectedMinorCategoryId);
-                              return (
-                                <Link 
-                                  href={searchParams.category ? createSearchUrl(parseInt(searchParams.category)) : createSearchUrl()}
-                                  className="text-lg cursor-pointer hover:text-[#155dfc]"
-                                >
-                                  {minorCat?.categoryName || ''}
-                                </Link>
-                              );
-                            })()}
-                          </li>
-                        </>
-                      )}
-                    </ul>
-                  )}
-                </div>
-              </td>
-            </tr>
-            {/* 대분류 선택 행 */}
-            {showMajorCategories && (
-            <tr className="category border-b border-[#dadee5]">
-              <td className="w-36 bg-gray-50 p-4 text-lg">대분류 선택</td>
-              <td className="p-4">
-                <ul className="grid grid-cols-7 gap-2">
-                  {categories.map((category) => (
-                    <li key={category.categoryId}>
-                      <Link 
-                        href={createSearchUrl(category.categoryId)}
-                        className="text-md text-[#5a5a5a] px-3 py-2 hover:text-[#155dfc] cursor-pointer block"
-                      >
-                        {category.categoryName}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </td>
-            </tr>
-            )}
+    }, [categoryQuery, minPriceQuery, maxPriceQuery, categories]);
 
-            {/* 소분류 선택 행 */}
-            {showMinorCategories && selectedMajorCategoryId && (
-            <tr className="category border-b border-[#dadee5]">
-              <td className="w-36 bg-gray-50 p-4 text-lg">소분류 선택</td>
-              <td className="p-4">
-                <ul className="grid grid-cols-7 gap-2">
-                  {categories.find(cat => cat.categoryId === selectedMajorCategoryId)?.subCategories.map((subCategory) => (
-                    <li key={subCategory.categoryId}>
-                      <Link 
-                        href={createSearchUrl(subCategory.categoryId)}
-                        className="text-md text-[#5a5a5a] px-3 py-2 hover:text-[#155dfc] cursor-pointer block"
-                      >
-                        {subCategory.categoryName}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </td>
-            </tr>
-            )}
 
-          {/* 가격 필터 행 */}
-          <tr className="border-b border-[#dadee5]">
-            <td className="w-36 bg-gray-50 p-4">
-              <h3 className="text-lg font-normal text-black">가격</h3>
-            </td>
-            <td className="p-4 flex gap-2 items-center">
-              <div className="flex items-center gap-2">
-                {/* 최소 가격 입력 */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="최소 가격"
-                    value={minPrice}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/,/g, '');
-                      if (value === '' || !isNaN(Number(value))) {
-                        setMinPrice(formatNumber(value));
-                      }
-                    }}
-                    onWheel={(e) => (e.target as HTMLInputElement).blur()}
-                    className="w-36 px-3 py-2 border border-gray-200 rounded-sm text-md text-black focus:outline-none focus:border-[#000000] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                </div>
-                {/* 구분선 */}
-                <span className="text-sm text-black">~</span>
-                {/* 최대 가격 입력 */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="최대 가격"
-                    value={maxPrice}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/,/g, '');
-                      if (value === '' || !isNaN(Number(value))) {
-                        setMaxPrice(formatNumber(value));
-                      }
-                    }}
-                    onWheel={(e) => (e.target as HTMLInputElement).blur()}
-                    className="w-36 px-3 py-2 border border-gray-200 rounded-sm text-md text-black focus:outline-none focus:border-[#000000] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                </div>
+    // URL 생성 헬퍼 함수
+    const createUrlWithParams = (newParams: { [key: string]: string | number | null }) => {
+        const params = new URLSearchParams(searchParams.toString());
+        Object.entries(newParams).forEach(([key, value]) => {
+            if (value === null || value === '') {
+                params.delete(key);
+            } else {
+                params.set(key, String(value));
+            }
+        });
+        if ('category' in newParams || 'minPrice' in newParams || 'maxPrice' in newParams) {
+            params.delete('page');
+        }
+        return `/search?${params.toString()}`;
+    };
 
-                {/* 적용 버튼 */}
-                <button
-                  onClick={handlePriceApply}
-                  className="w-15 h-10 bg-black text-white text-md font-normal rounded-sm cursor-pointer"
-                >
-                  적용
-                </button>
-              </div>
-              <div>
-                {(appliedMinPrice || appliedMaxPrice) && (
-                  <div className="inline-flex items-center bg-gray-100 px-3 py-1 rounded-full text-sm">
-                    <span>{appliedMinPrice || '0'} ~ {appliedMaxPrice || ''}</span>
-                    <button
-                      onClick={() => {
-                        setMinPrice('');
-                        setMaxPrice('');
-                        setAppliedMinPrice('');
-                        setAppliedMaxPrice('');
-                        
-                        // 검색 조건 구성 (가격 제외)
-                        const searchQuery: any = {};
-                        
-                        if (searchParams.title) {
-                          searchQuery.title = searchParams.title;
-                        }
-                        
-                        if (searchParams.category) {
-                          searchQuery.category_id = parseInt(searchParams.category);
-                        }
-                        
-                        getProducts(searchQuery);
-                      }}
-                      className="ml-2 text-gray-500 hover:text-gray-700 cursor-pointer"
-                    >
-                      ×
-                    </button>
-                  </div>
+    // 가격 적용 핸들러
+    const handlePriceApply = () => {
+        router.push(createUrlWithParams({
+            minPrice: removeCommas(minPrice) || null,
+            maxPrice: removeCommas(maxPrice) || null,
+        }));
+    };
+    
+    // 가격 초기화 핸들러
+    const handlePriceReset = () => {
+        router.push(createUrlWithParams({
+            minPrice: null,
+            maxPrice: null,
+        }));
+    };
+
+    // 페이지 변경 핸들러
+    const handlePageChange = (pageNumber: number) => {
+        router.push(createUrlWithParams({ page: pageNumber }));
+    };
+
+    const handleCategoryToggle = () => {
+        if (showMajorCategories) {
+            setShowMajorCategories(false);
+        } else if (showMinorCategories) {
+            setShowMinorCategories(false);
+        } else {
+            setShowMajorCategories(true);
+        }
+    };
+    
+    const breadcrumb = useCallback(() => {
+        if (!categoryQuery) return [{ name: '전체', href: createUrlWithParams({ category: null }) }];
+        const categoryId = parseInt(categoryQuery);
+        for (const cat of categories) {
+            if (cat.categoryId === categoryId) {
+                return [
+                    { name: '전체', href: createUrlWithParams({ category: null }) },
+                    { name: cat.categoryName, href: createUrlWithParams({ category: cat.categoryId }) }
+                ];
+            }
+            const foundMinor = cat.subCategories.find(sub => sub.categoryId === categoryId);
+            if (foundMinor) {
+                return [
+                    { name: '전체', href: createUrlWithParams({ category: null }) },
+                    { name: cat.categoryName, href: createUrlWithParams({ category: cat.categoryId }) },
+                    { name: foundMinor.categoryName, href: createUrlWithParams({ category: foundMinor.categoryId }) }
+                ];
+            }
+        }
+        return [{ name: '전체', href: createUrlWithParams({ category: null }) }];
+    }, [categoryQuery, categories, searchParams]);
+
+    return (
+        <div className="py-12 container-default m-auto">
+            <div className='flex items-center gap-2 mb-4'>
+                <h1 className='text-3xl font-bold text-black'>
+                    {titleQuery ? `'${titleQuery}'` : ''} 검색결과
+                </h1>
+                <span className='text-md text-[#5a5a5a]'>총 {totalElements}개</span>
+            </div>
+            <div className="search-category w-full bg-white">
+                <table className="w-full">
+                    <tbody>
+                        {/* 카테고리 헤더 행 */}
+                        <tr className="border-t-2 border-t-[#000000] border-b border-b-[#dadee5]">
+                            <td className="flex justify-between items-center w-36 bg-gray-50 px-4 py-5 text-left">
+                                <div className="text-lg text-black">카테고리</div>
+                                <div onClick={handleCategoryToggle} className="cursor-pointer text-lg">
+                                    {(showMajorCategories || showMinorCategories) ? '-' : '+'}
+                                </div>
+                            </td>
+                            <td className="px-6 py-5 text-left">
+                                <div className="flex items-center text-lg gap-2">
+                                    {breadcrumb().map((path, index) => {
+                                        const isLast = index === breadcrumb().length - 1;
+                                        return (
+                                            <React.Fragment key={path.name}>
+                                                <Link href={path.href} className={isLast ? 'font-bold' : 'hover:text-[#155dfc]'}>
+                                                    {path.name}
+                                                </Link>
+                                                {!isLast && <span className="text-[#9ca3af]">&gt;</span>}
+                                            </React.Fragment>
+                                        );
+                                    })}
+                                </div>
+                            </td>
+                        </tr>
+                        {/* 대분류 선택 행 */}
+                        {showMajorCategories && (
+                            <tr className="category border-b border-[#dadee5]">
+                                <td className="w-36 bg-gray-50 p-4 text-lg">대분류 선택</td>
+                                <td className="p-4">
+                                    <ul className="grid grid-cols-7 gap-2">
+                                        {categories.map((category) => (
+                                            <li key={category.categoryId}>
+                                                <Link href={createUrlWithParams({ category: category.categoryId })} className="text-md text-[#5a5a5a] px-3 py-2 hover:text-[#155dfc] cursor-pointer block">
+                                                    {category.categoryName}
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </td>
+                            </tr>
+                        )}
+
+                        {/* 소분류 선택 행 */}
+                        {showMinorCategories && selectedMajorCategoryId && (
+                            <tr className="category border-b border-[#dadee5]">
+                                <td className="w-36 bg-gray-50 p-4 text-lg">소분류 선택</td>
+                                <td className="p-4">
+                                    <ul className="grid grid-cols-7 gap-2">
+                                        {categories.find(cat => cat.categoryId === selectedMajorCategoryId)?.subCategories.map((subCategory) => (
+                                            <li key={subCategory.categoryId}>
+                                                <Link href={createUrlWithParams({ category: subCategory.categoryId })} className="text-md text-[#5a5a5a] px-3 py-2 hover:text-[#155dfc] cursor-pointer block">
+                                                    {subCategory.categoryName}
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </td>
+                            </tr>
+                        )}
+
+                        {/* 가격 필터 행 */}
+                        <tr className="border-b border-[#dadee5]">
+                            <td className="w-36 bg-gray-50 p-4">
+                                <h3 className="text-lg font-normal text-black">가격</h3>
+                            </td>
+                            <td className="p-4 flex justify-between items-center">
+                                <div className="flex items-center gap-2">
+                                    <input type="text" placeholder="최소 가격" value={minPrice} onChange={(e) => setMinPrice(formatNumber(e.target.value))} className="w-36 px-3 py-2 border border-gray-200 rounded-sm text-md text-black focus:outline-none focus:border-[#000000]"/>
+                                    <span>~</span>
+                                    <input type="text" placeholder="최대 가격" value={maxPrice} onChange={(e) => setMaxPrice(formatNumber(e.target.value))} className="w-36 px-3 py-2 border border-gray-200 rounded-sm text-md text-black focus:outline-none focus:border-[#000000]"/>
+                                    <button onClick={handlePriceApply} className="w-15 h-10 bg-black text-white text-md font-normal rounded-sm cursor-pointer px-4">적용</button>
+                                </div>
+                                {(minPriceQuery || maxPriceQuery) && (
+                                    <div className="inline-flex items-center bg-gray-100 px-3 py-1 rounded-full text-sm">
+                                        <span>{formatNumber(minPriceQuery || '0')} ~ {formatNumber(maxPriceQuery || '')}</span>
+                                        <button onClick={handlePriceReset} className="ml-2 text-gray-500 hover:text-gray-700 cursor-pointer">×</button>
+                                    </div>
+                                )}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            {/* 제품 리스트 및 페이지네이션 */}
+            <div className='mt-12'>
+                {loading ? ( <div className="text-center py-8">로딩 중...</div> ) 
+                : error ? ( <div className="text-center text-red-500 py-8">에러: {error}</div> ) 
+                : products.length > 0 ? (
+                    <>
+                        <ul className="grid grid-cols-4 gap-8 gap-y-12 items-stretch">
+                            {products.map((item: ProductWithSeller) => (
+                                <li key={item.product.id}>
+                                    <ProductCard item={transformToProductCardData(item)} />
+                                </li>
+                            ))}
+                        </ul>
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={handlePageChange}
+                        />
+                    </>
+                ) : (
+                    <div className="text-center text-gray-500 py-20">검색 결과가 없습니다.</div>
                 )}
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    {/* 제품 warp */}
-    <div className='mt-15'>
-      {loading ? (
-        <div className="flex justify-center items-center py-8">
-          <div className="text-lg">로딩 중...</div>
+            </div>
         </div>
-      ) : error ? (
-        <div className="flex justify-center items-center py-8">
-          <div className="text-lg text-red-500">{error}</div>
-        </div>
-      ) : products.length > 0 ? (
-        <ul className="grid grid-cols-4 gap-8 gap-y-12 items-stretch">
-          {products.map((item: ProductWithSeller) => {
-            if (!item.product?.id) return null;
+    )
+}
 
-            const cardData = transformToProductCardData(item);
-
-            return (
-              <li key={item.product.id}>
-                <ProductCard item={cardData} />
-              </li>
-            );
-          })}
-        </ul>
-      ) : (
-        <div className="flex justify-center items-center py-8">
-          <div className="text-lg text-gray-500">검색 결과가 없습니다.</div>
-        </div>
-      )}
-    </div>
-  </div>
-  )
+// ✨ 메인 페이지 컴포넌트는 Suspense로 감싸는 역할만 합니다.
+export default function SearchPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center h-screen">검색 결과를 불러오는 중...</div>}>
+            <SearchResultComponent />
+        </Suspense>
+    );
 }
