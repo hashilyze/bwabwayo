@@ -34,7 +34,7 @@ interface NotificationStore {
 
 export const useNotificationStore = create<NotificationStore>((set, get) => {
     let pollingInterval: NodeJS.Timeout | null = null;
-    let currentInterval: number = 10000; // 현재 폴링 간격 저장
+    let currentInterval: number = 1500 // 현재 폴링 간격 저장
     
     // 토큰 갱신 성공 시 폴링 재시작 콜백
     const restartPollingCallback = () => {
@@ -78,7 +78,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => {
             }
         },
         
-        startPolling: (interval: number = 10000) => {
+        startPolling: (interval: number = 1500) => {
             // 기존 폴링 중지
             if (pollingInterval) {
                 clearInterval(pollingInterval);

@@ -46,7 +46,7 @@ export default function Navbar() {
         }
 
         // 폴링 사용
-        startPolling(3000); // 3초 간격
+        startPolling(1500); // 1.5초 간격
         
         // 컴포넌트 언마운트 시 폴링 중지
         return () => {
