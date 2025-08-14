@@ -140,7 +140,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   }, [roomList]);
 
   return (
-    <div className="flex h-[700px] bg-white container-default m-auto border border-[#eee]">
+    <div className="flex h-[820px] bg-white container-default m-auto border border-[#eee]">
       {/* 좌측 채팅 목록 */}
       <div className="w-[640px] border-r border-gray-200 relative">
         {/* 연결 상태 표시 (개발용) */}

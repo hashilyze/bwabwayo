@@ -4,8 +4,6 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Chatbot from "@/components/chat/Chatbot";
 import LoginModalWrapper from '@/components/common/LoginModalWrapper';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "봐봐요",
@@ -29,14 +27,11 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </head>
       <body>
-        <Suspense fallback={null}>
-        </Suspense>
-        <Navbar />
+        <Navbar />  
         <LoginModalWrapper />
         <div className="pt-[198px]">
           {children}
         </div>
-        <LoadingSpinner />
         <Chatbot />
         <Footer />
       </body>

@@ -157,6 +157,9 @@ export default function Navbar() {
                     <Link href="/cs-center">
                         <span className="text-md text-gray-700 cursor-pointer hover:text-black">고객센터</span>
                     </Link>
+                    <Link href="/admin">
+                        <span className="text-md text-gray-700 cursor-pointer hover:text-black">관리자</span>
+                    </Link>
                 </div>
 
                 {/* 네비게이션 바 */}

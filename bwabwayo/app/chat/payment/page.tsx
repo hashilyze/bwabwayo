@@ -42,24 +42,21 @@ function PaymentSuccessContent() {
       return json;
     }
 
-        confirm()
-        .then((data) => {
-          setResponseData(data);
-          console.log("✅ 결제 확인 완료");
-          
-          // 1초 뒤 창 닫기
-           setTimeout(() => {
-              router.push(`/chat/${searchParams.get("roomId")}`);
-           }, 1000);
-        })
-       .catch((error) => {
-         console.log(error);
-         
-         // 결제 실패 시에도 창 닫기
-         setTimeout(() => {
-           window.close();
-         }, 500);
-       });
+    confirm()
+      .then((data) => {
+        setResponseData(data);
+        console.log("✅ 결제 확인 완료");
+        
+        router.push(`/chat/${searchParams.get("roomId")}`);
+      })
+      .catch((error) => {
+        console.log(error);
+        
+        // 결제 실패 시에도 창 닫기
+        setTimeout(() => {
+          window.close();
+        }, 500);
+      });
   }, [searchParams, router]);
 
   return (
