@@ -201,10 +201,13 @@ public class ProductService {
     }
 
     private void keywordToCategory(String keyword, List<Long> categoryIds) {
-        for (Category category : categoryRepository.findAll()) {
-            if(keyword.contains(category.getName())){
-                List<Long> temp = CategoryUtils.getSubCategories(category).stream().map(Category::getId).toList();
-                categoryIds.addAll(temp);
+        String[] tokens = keyword.split(" ");
+        for(String token : tokens) {
+            for (Category category : categoryRepository.findAll()) {
+                if (category.getName().contains(token) || token.contains(category.getName())) {
+                    List<Long> temp = CategoryUtils.getSubCategories(category).stream().map(Category::getId).toList();
+                    categoryIds.addAll(temp);
+                }
             }
         }
     }
