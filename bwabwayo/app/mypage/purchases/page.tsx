@@ -103,6 +103,7 @@ function PurchaseContent() {
               <div className="flex flex-col gap-2 flex-1">
                 <div className="text-[#7c7c7c] text-sm font-normal">
                   {/* 등록일자 등 추가 정보 */}
+                  등록일자 : {new Date(item.createdAt).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
                 </div>
                 
                 <Link href={`/product/${item.id}`} className="group">
@@ -120,6 +121,7 @@ function PurchaseContent() {
               {/* 배송 상태 */}
               <div className="text-black text-base font-normal leading-[20px] w-28 text-center">
                 {item.deliveryStatus || '배송 정보 없음'}
+                
               </div>
 
               {/* 구매상태 (구매확정 버튼) */}

@@ -456,13 +456,20 @@ export default function CreateProductPage() {
 
           <section> {/* 게시물 내용 */}
             <label htmlFor="description" className="block text-base font-semibold text-gray-800 mb-2">상품 설명 <span className="text-red-500">*</span></label>
-             <textarea
-                id="description"
-                rows={10}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 bg-white"
-                placeholder="- 상품명(브랜드)&#10;- 구매 시기 (년, 월, 일)&#10;- 착용 기간&#10;- 오염 여부&#10;- 하자 여부&#10;* 실제 촬영한 사진과 함께 상세 정보를 입력해주세요.&#10;* 카카오톡 아이디 첨부 시 게시물 삭제 및 이용제재 처리될 수 있어요."/>
+            <textarea
+              id="description"
+              rows={10}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 bg-white"
+              placeholder={`- 상품명(브랜드)
+            - 구매 시기 (년, 월, 일)
+            - 착용 기간
+            - 오염 여부
+            - 하자 여부
+            * 실제 촬영한 사진과 함께 상세 정보를 입력해주세요.
+            * 카카오톡 아이디 첨부 시 게시물 삭제 및 이용제재 처리될 수 있어요.`}
+            />
           </section>
 
           <section> {/* 거래 방법 */}
