@@ -97,9 +97,18 @@ interface ProductStore {
   hotKeywordProducts: ProductWithSeller[]
   videoCallProducts: ProductWithSeller[]
   similarProducts: ProductWithSeller[]
+  totalElements: number;
+  totalPages: number;
   loading: boolean
   error: string | null
-  getProducts: (options?: { title?: string; category_id?: number; minPrice?: number; maxPrice?: number }) => Promise<void>
+  getProducts: (options?: { 
+    keyword?: string; 
+    categoryId?: number; 
+    minPrice?: number; 
+    maxPrice?: number;
+    page?: number;
+    size?: number;
+  }) => Promise<void>
   addProduct: (product: ProductFormData) => Promise<number>
   updateProduct: (productId: number, productData: ProductFormData) => Promise<any>;
   getHotKewordProducts: (title: string) => Promise<void>
@@ -133,6 +142,8 @@ export const useProductStore = create<ProductStore>((set, get) => ({
   hotKeywordProducts: [],
   videoCallProducts: [],
   similarProducts: [],
+  totalElements: 0,
+  totalPages: 0,
   loading: false,
   error: null,
 
@@ -142,36 +153,26 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       // 쿼리 파라미터 구성
       const queryParams = new URLSearchParams();
       
-      if (options.title) {
-        queryParams.append('keyword', options.title);
-      }
-      
-      if (options.category_id) {
-        queryParams.append('categoryId', options.category_id.toString());
-      }
+      // 모든 옵션을 동적으로 처리
+      Object.entries(options).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, String(value));
+        }
+      });
+
+      // 정렬 옵션 추가
+      queryParams.append('sortBy', 'latest_and_related');
       
       // API URL 구성
-      const url = queryParams.toString() 
-        ? `${baseUrl}/products?${queryParams.toString()} + '&sortBy=latest_and_related`
-        : `${baseUrl}/products` + '?sortBy=latest_and_related';
+      const url = `${baseUrl}/products?${queryParams.toString()}`;
       
       const response = await useAuthStore.getState().authenticatedFetch(url)
       const data = await response.json()
-      let filteredProducts = data.result;
 
-      // 가격 필터링
-      if (options.minPrice || options.maxPrice) {
-        filteredProducts = filteredProducts.filter((item: any) => {
-          const price = parseInt(item.product.price);
-          const minPrice = options.minPrice || 0;
-          const maxPrice = options.maxPrice || Infinity;
-          return price >= minPrice && price <= maxPrice;
-        });
+      if (!response.ok) {
+        throw new Error(data.message || '상품 조회에 실패했습니다.');
       }
-      
-      // 20개만 제한
-      const limitedProducts = filteredProducts.slice(0, 20);
-      set({ products: limitedProducts, loading: false })
+      set({ products: data.result, totalElements: data.totalItems, totalPages: data.totalPages, loading: false })
     } catch (error) {
       console.error('상품 조회 실패:', error)
       set({ 
