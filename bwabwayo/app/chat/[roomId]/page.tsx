@@ -340,7 +340,31 @@ export default function ChatRoomPage() {
               .filter(message => message && typeof message === 'object')
               .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) // 시간순 정렬
               .map((message, index) => {
-              // 공지글인 경우 즉시 표시 (myUserId 확인 불필요)
+              // IMAGE 타입 메시지 처리
+              if (message.type === "IMAGE") {
+                // 내가 보낸 메시지인지 판단 (senderId와 내 사용자 ID 비교)
+                const isMine = String(message.senderId) === String(myUserId);
+                
+                return (
+                  <div
+                    key={`${message.type}-${index}-${message.createdAt}`}
+                    className={`mb-4 flex items-end gap-2 ${isMine ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div className={`max-w-xs lg:max-w-md ${isMine ? 'order-2' : 'order-1'}`}>
+                      <AllModals message={message} type={message.type} />
+                    </div>
+                    <div className={`text-sm text-[#666666] ${isMine ? 'order-1' : 'order-2'}`}>
+                      {new Date(message.createdAt).toLocaleTimeString('ko-KR', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      })}
+                    </div>
+                  </div>
+                );
+              }
+
+              // 기타 공지글인 경우 즉시 표시 (myUserId 확인 불필요)
               if (message.type != "TEXT") {
                 return (
                   <div
