@@ -156,17 +156,17 @@ export default function ChatRoomPage() {
 
 
   // 1초마다 메시지 히스토리 확인
-  useEffect(() => {
-    if (!isInitialized || !roomId) return;
+  // useEffect(() => {
+  //   if (!isInitialized || !roomId) return;
     
-    const intervalId = setInterval(async () => {
-      await getMessageHistory(roomId);
-    }, 1000); // 1초마다 확인
+  //   const intervalId = setInterval(async () => {
+  //     await getMessageHistory(roomId);
+  //   }, 1000); // 1초마다 확인
 
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [isInitialized, roomId, getMessageHistory]);
+  //   return () => {
+  //     clearInterval(intervalId);
+  //   };
+  // }, [isInitialized, roomId, getMessageHistory]);
 
   // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동 (개선된 버전)
   useEffect(() => {
