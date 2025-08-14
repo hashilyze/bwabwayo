@@ -23,6 +23,10 @@ const ChatInputActive: React.FC<ChatInputActiveProps> = ({ onOpenReservationModa
   const currentUserId = currentSelectedRoom?.userId.toString();
   const sellerId = currentSelectedRoom?.seller.id.toString();
   const isSeller = currentUserId === sellerId;
+  
+  // buyer인지 확인
+  const buyerId = currentSelectedRoom?.buyer.id.toString();
+  const isBuyer = currentUserId === buyerId;
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -138,14 +142,27 @@ const ChatInputActive: React.FC<ChatInputActiveProps> = ({ onOpenReservationModa
           </div>
 
           {/* 화상채팅예약 */}
-          <div
-            className="flex flex-col items-center cursor-pointer"
-            onClick={onOpenReservationModal} // 부모로부터 받은 함수 호출
+          <div 
+            className={`flex flex-col items-center ${isBuyer ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+            onClick={() => {
+              if (isBuyer) {
+                onOpenReservationModal(); // 부모로부터 받은 함수 호출
+                setIsMenuOpen(false); // 메뉴 닫기
+              }
+            }}
           >
-            <div className="w-[51px] h-[51px] bg-[#fafafa] border border-[#9b9b9b] rounded-full flex items-center justify-center mb-[7px]">
-              <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/video.svg`} alt="화상채팅예약" className="w-5 h-5" />
+            <div className={`w-[51px] h-[51px] rounded-full flex items-center justify-center mb-[7px] ${
+              isBuyer 
+                ? 'bg-[#fafafa] border border-[#9b9b9b]' 
+                : 'bg-gray-200 border border-gray-300'
+            }`}>
+              <img 
+                src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/video.svg`} 
+                alt="화상채팅예약" 
+                className={`w-5 h-5 ${isBuyer ? '' : 'opacity-50'}`} 
+              />
             </div>
-            <span className="text-xs text-black">화상채팅예약</span>
+            <span className={`text-xs ${isBuyer ? 'text-black' : 'text-gray-400'}`}>화상채팅예약</span>
           </div>
 
           {/* 이미지 첨부 */}
