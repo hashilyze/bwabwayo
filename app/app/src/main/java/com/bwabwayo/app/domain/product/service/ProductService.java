@@ -132,7 +132,7 @@ public class ProductService {
         // 기본 정렬 속성은 '최신순'
         ProductSortType sortType = ProductSortType.from(requestDTO.getSortBy());
         if((sortType == ProductSortType.RELATED || sortType == ProductSortType.LATEST_AND_RELATED)
-                && keyword == null){ // 키워드가 없으면 관련 검색 불가
+                && (keyword == null || keyword.isBlank())){ // 키워드가 없으면 관련 검색 불가
             log.warn("키워드가 없어 관련성 검색이 불가합니다; 기본 검색으로 대체");
             sortType = ProductSortType.LATEST;
         }
@@ -153,12 +153,13 @@ public class ProductService {
                 .minPrice(minPrice)
                 .maxPrice(maxPrice)
 //                .urlPrefix(requestDTO.getUrlPrefix())
+                .onlySaleable(requestDTO.getOnlySalable())
                 .build();
 
         Page<ProductWithIsLikeDTO> pageData;
         if(sortType == ProductSortType.RELATED) {
             pageData = queryWithRelated(queryCondition, pageable, loginUser);
-        } else if(sortType != ProductSortType.LATEST_AND_RELATED || keyword == null || keyword.isBlank()){
+        } else if(sortType != ProductSortType.LATEST_AND_RELATED){
             pageData = productRepository.searchByCondition(queryCondition, pageable);
         } else{
             Page<ProductWithIsLikeDTO> related = queryWithRelated(queryCondition, pageable, loginUser);
