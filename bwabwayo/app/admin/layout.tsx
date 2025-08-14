@@ -68,7 +68,7 @@ export default function AdminLayout({
 
         <div className="flex">
           {/* Left Sidebar */}
-          <aside className="w-64 bg-blue-800 min-h-screen">
+          <aside className="w-64 bg-gray-800 min-h-screen">
             <div className="p-4">
               {/* 대분류: 고객지원 */}
               <div className="text-white font-semibold text-lg mb-2"><Link href="/admin">홈</Link></div>

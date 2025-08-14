@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useInquiriesStore } from '@/stores/admin/inquiriesStore'
+import InquiryDetailModal from './components/InquiryDetailModal'
 
 // 날짜 포맷팅 함수
 const formatDate = (dateString: string) => {
@@ -19,7 +20,9 @@ const formatDate = (dateString: string) => {
 
 export default function InquiriesPage() {
   const [loading, setLoading] = useState(true)
-  const { inquiries, getInquiries } = useInquiriesStore()
+  const [selectedInquiry, setSelectedInquiry] = useState<any>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const { inquiries, getInquiries, addInquiryReply } = useInquiriesStore()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,6 +34,21 @@ export default function InquiriesPage() {
   }, [getInquiries])
 
   console.log(inquiries)
+
+  const handleOpenModal = (inquiry: any) => {
+    setSelectedInquiry(inquiry)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedInquiry(null)
+  }
+
+  const handleReplySubmit = async (inquiryId: number, reply: string) => {
+    await addInquiryReply(inquiryId, reply)
+    handleCloseModal()
+  }
 
   if (loading) {
     return (
@@ -98,24 +116,38 @@ export default function InquiriesPage() {
                 <tr key={row.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-md text-gray-900">{row.id}</td>
                   <td className="px-4 py-3 text-md text-gray-900">{row.title}</td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-block px-2 py-1 text-sm text-white rounded ${row.statusColor || 'bg-gray-400'}`}>
-                      {row.status || '답변대기'}
-                    </span>
-                  </td>
+                                     <td className="px-4 py-3">
+                     <span className={`inline-block px-2 py-1 text-sm text-white rounded ${
+                       row.reply ? 'bg-green-500' : 'bg-gray-500'
+                     }`}>
+                       {row.reply ? '답변완료' : '답변대기'}
+                     </span>
+                   </td>
                   <td className="px-4 py-3 text-md text-gray-900">{row.name || row.userName}</td>
                   <td className="px-4 py-3 text-md text-gray-900">{formatDate(row.date || row.createdAt)}</td>
                   <td className="px-4 py-3">
-                    <button className="px-3 py-1 bg-[#FFAE00] text-sm rounded border-2 border-black">
-                      <span>상세보기</span>
-                    </button>
-                  </td>
+                     <button 
+                       onClick={() => handleOpenModal(row)}
+                       className="px-3 py-1 bg-[#FFAE00] text-sm rounded border-2 border-black hover:bg-[#FF9500] cursor-pointer"
+                     >
+                       <span>상세보기</span>
+                     </button>
+                   </td>
                 </tr>
+
               ))}
             </tbody>
           </table>
         </div>
       </div>
+                   
+      {/* Inquiry Detail Modal */}
+      <InquiryDetailModal
+        inquiry={selectedInquiry}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onReplySubmit={handleReplySubmit}
+      />
     </div>
   )
 }
