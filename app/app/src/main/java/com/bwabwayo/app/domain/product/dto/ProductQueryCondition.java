@@ -26,5 +26,5 @@ public class ProductQueryCondition {
 
     private String urlPrefix;
 
-    private Boolean onlySaleable;
+    private Boolean getOnlySale;
 }

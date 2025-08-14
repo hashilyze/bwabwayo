@@ -44,5 +44,5 @@ public class ProductQueryRequest {
     @Parameter(hidden = true)
     private String urlPrefix;
 
-    private Boolean onlySalable;
+    private Boolean onlySale;
 }

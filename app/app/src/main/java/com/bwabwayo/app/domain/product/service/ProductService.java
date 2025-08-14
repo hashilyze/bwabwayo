@@ -153,7 +153,7 @@ public class ProductService {
                 .minPrice(minPrice)
                 .maxPrice(maxPrice)
 //                .urlPrefix(requestDTO.getUrlPrefix())
-                .onlySaleable(requestDTO.getOnlySalable())
+                .getOnlySale(requestDTO.getOnlySale())
                 .build();
 
         Page<ProductWithIsLikeDTO> pageData;

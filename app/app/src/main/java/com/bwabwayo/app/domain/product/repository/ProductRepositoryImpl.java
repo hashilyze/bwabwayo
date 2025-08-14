@@ -160,8 +160,8 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
             whereCondition.and(product.price.loe(maxPrice));
         }
 
-        Boolean onlySaleable = queryCondition.getOnlySaleable();
-        if(onlySaleable != null && onlySaleable){
+        Boolean onlySale = queryCondition.getGetOnlySale();
+        if(onlySale != null && onlySale){
             whereCondition.and(product.saleStatus.eq(SaleStatus.AVAILABLE));
         }
 
