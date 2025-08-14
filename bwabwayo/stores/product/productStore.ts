@@ -110,11 +110,11 @@ interface ProductStore {
     page?: number;
     size?: number;
   }) => Promise<void>
-  getNewProducts: (limit?: number) => Promise<void>
+  getNewProducts: (limit?: number, onlySale?: boolean | null) => Promise<void>
   addProduct: (product: ProductFormData) => Promise<number>
   updateProduct: (productId: number, productData: ProductFormData) => Promise<{ success: boolean; message?: string }>;
-  getHotKewordProducts: (title: string) => Promise<void>
-  getVideoCallProducts: () => Promise<void>
+  getHotKewordProducts: (title: string, onlySale?: boolean | null) => Promise<void>
+  getVideoCallProducts: (onlySale?: boolean | null) => Promise<void>
   getProductDetail: (id: number) => Promise<void>
   clearProducts: () => void
   getSimilarProducts: (title: string) => Promise<void>
@@ -190,11 +190,20 @@ export const useProductStore = create<ProductStore>((set, get) => ({
   },
 
   // 최신 상품 조회
-  getNewProducts: async (limit = 20) => {
+  getNewProducts: async (limit = 20, onlySale: boolean | null = null) => {
     set({ loading: true, error: null })
     try {
+      // 쿼리 파라미터 구성
+      const queryParams = new URLSearchParams();
+      queryParams.append('sortBy', 'latest');
+      
+      // onlySale이 null이 아닌 경우에만 쿼리 파라미터에 추가
+      if (onlySale !== null) {
+        queryParams.append('onlySale', String(onlySale));
+      }
+      
       // 최신순으로 정렬하여 상품 조회
-      const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products?sortBy=latest&onlySale=true`)
+      const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products?${queryParams.toString()}`)
       const data = await response.json()
       
       if (data.result && Array.isArray(data.result)) {
@@ -217,10 +226,19 @@ export const useProductStore = create<ProductStore>((set, get) => ({
   },
 
   // 핫 키워드 상품 조회
-  getHotKewordProducts: async (title: string) => {
+  getHotKewordProducts: async (title: string, onlySale: boolean | null = null) => {
     set({ loading: true, error: null })
     try {
-      const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products?keyword=${title}`)
+      // 쿼리 파라미터 구성
+      const queryParams = new URLSearchParams();
+      queryParams.append('keyword', title);
+      
+      // onlySale이 null이 아닌 경우에만 쿼리 파라미터에 추가
+      if (onlySale !== null) {
+        queryParams.append('onlySale', String(onlySale));
+      }
+      
+      const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products?${queryParams.toString()}`)
       
       const data = await response.json()
       console.log('핫 키워드 상품 조회 성공:', data.result)
@@ -235,10 +253,19 @@ export const useProductStore = create<ProductStore>((set, get) => ({
   },
 
   // 화상통화 가능한 상품 조회
-  getVideoCallProducts: async () => {
+  getVideoCallProducts: async (onlySale: boolean | null = null) => {
     set({ loading: true, error: null })
     try {
-      const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products?canVideoCall=true`)
+      // 쿼리 파라미터 구성
+      const queryParams = new URLSearchParams();
+      queryParams.append('canVideoCall', 'true');
+      
+      // onlySale이 null이 아닌 경우에만 쿼리 파라미터에 추가
+      if (onlySale !== null) {
+        queryParams.append('onlySale', String(onlySale));
+      }
+      
+      const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products?${queryParams.toString()}`)
       const data = await response.json()
       console.log(data.result)
 

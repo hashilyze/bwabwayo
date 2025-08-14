@@ -166,9 +166,9 @@ export default function Home() {
         // 네 API를 병렬로 실행 (더 빠름)
         await Promise.all([
           getProducts(),
-          getNewProducts(),
-          getHotKewordProducts(hotKeyword),
-          getVideoCallProducts()
+          getNewProducts(20, true),
+          getHotKewordProducts(hotKeyword, true),
+          getVideoCallProducts(true)
         ]);
       } catch (error) {
         console.error('데이터 로딩 실패:', error);
