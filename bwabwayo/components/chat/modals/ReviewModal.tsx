@@ -10,7 +10,7 @@ interface ReviewTag {
 }
 
 interface ReviewModalProps {
-  roomId: number
+  saleId: number
   buyerId: number
   sellerId: number
   productId: number
@@ -18,7 +18,7 @@ interface ReviewModalProps {
   onCancel: () => void
 }
 
-export default function ReviewModal({ roomId, buyerId, sellerId, productId, onConfirm, onCancel }: ReviewModalProps) {
+export default function ReviewModal({ saleId, buyerId, sellerId, productId, onConfirm, onCancel }: ReviewModalProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [rating, setRating] = useState(0)
   const [reviewTags, setReviewTags] = useState<ReviewTag[]>([])
@@ -84,17 +84,17 @@ export default function ReviewModal({ roomId, buyerId, sellerId, productId, onCo
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          saleId,
           buyerId,
           sellerId,
-          rating,
+          productId,
+          rating: rating,
           evaluationItemsId: selectedTags,
-          productId: productId,
-          saleId: roomId
         }),
       })
 
       if (response.ok) {
-        console.log('리뷰 등록 완료:', roomId)
+        console.log('리뷰 등록 완료:', saleId)
         onConfirm()
       } else {
         console.error('리뷰 등록 실패')

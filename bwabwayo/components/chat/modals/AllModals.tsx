@@ -970,6 +970,7 @@ const ConfirmPurchaseModal = ({ message }: { message: ChatMessage }) => {
 const EndTradeModal = ({ message }: { message: ChatMessage }) => {
   const chatInfo = useChatRoomInfo(); // 전역 정보 사용
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const saleId = message.content
 
   const handleReviewConfirm = () => {
     console.log('리뷰 등록 완료');
@@ -1017,7 +1018,7 @@ const EndTradeModal = ({ message }: { message: ChatMessage }) => {
       {/* ReviewModal */}
       <OverlayPortal open={showReviewModal} onClose={() => setShowReviewModal(false)}>
         <ReviewModal
-          roomId={chatInfo?.roomId || 0}
+          saleId={Number(saleId)}
           buyerId={chatInfo?.buyer.id || 0}
           sellerId={chatInfo?.seller.id || 0}
           productId={chatInfo?.product.id || 0}
