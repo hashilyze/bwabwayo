@@ -8,9 +8,10 @@ import { useSignupStore } from '@/stores/signUpStore'
 function CallbackHandler() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { setToken, authenticatedFetch } = useAuthStore()
+  const { setToken, setAdminStatus, authenticatedFetch } = useAuthStore()
   const accessToken = searchParams?.get('accessToken')
   const isNewUser = searchParams?.get('isNewUser')
+  const isAdmin = searchParams?.get('isAdmin')
   const { setSocialInfo, setEmail, setProfileImage } = useSignupStore();
 
   useEffect(() => {
@@ -55,6 +56,12 @@ function CallbackHandler() {
           // 요청 성공 후, authStore의 setToken 액션을 호출하여 상태를 업데이트하고
           // accessToken을 localStorage에 저장합니다.
           setToken(accessToken)
+          
+          // 기존 유저인 경우에만 관리자 권한 설정
+          if (isAdmin === 'true') {
+            setAdminStatus(true)
+          }
+          
           router.replace(`/`)
         } catch (error) {
           console.error('로그인 초기화 요청 실패:', error)

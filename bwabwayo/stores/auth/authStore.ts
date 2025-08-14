@@ -11,6 +11,7 @@ interface AuthStore {
   token: string | null
   isLoggedIn: boolean
   globalToken: string | null  // 전역 토큰 변수 추가
+  isAdmin: boolean  // 관리자 권한 상태 추가
   
   // 토큰 관리
   setToken: (token: string | null) => void
@@ -20,6 +21,9 @@ interface AuthStore {
   // 전역 토큰 관리
   setGlobalToken: (token: string | null) => void
   getGlobalToken: () => string | null
+  
+  // 관리자 권한 관리
+  setAdminStatus: (isAdmin: boolean) => void
   
   // 자동 토큰 초기화
   initializeAuth: () => void
@@ -88,6 +92,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   token: null,
   isLoggedIn: false,
   globalToken: null, // 전역 토큰 초기화
+  isAdmin: false, // 관리자 권한 초기화
 
   // 토큰 설정
   setToken: (token: string | null) => {
@@ -132,12 +137,26 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     set({ 
       token: null, 
       isLoggedIn: false,
-      globalToken: null  // 전역 토큰도 정리
+      globalToken: null,  // 전역 토큰도 정리
+      isAdmin: false  // 관리자 권한도 정리
     })
     if (typeof window !== 'undefined') {
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
       localStorage.removeItem('globalToken')  // 전역 토큰도 정리
+      localStorage.removeItem('isAdmin')  // 관리자 권한도 정리
+    }
+  },
+
+  // 관리자 권한 설정
+  setAdminStatus: (isAdmin: boolean) => {
+    set({ isAdmin })
+    if (typeof window !== 'undefined') {
+      if (isAdmin) {
+        localStorage.setItem('isAdmin', 'true')
+      } else {
+        localStorage.removeItem('isAdmin')
+      }
     }
   },
 
@@ -172,10 +191,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   initializeAuth: () => {
     if (typeof window !== 'undefined') {
       const accessToken = localStorage.getItem('accessToken')
+      const isAdmin = localStorage.getItem('isAdmin') === 'true'
       if (accessToken) {
         set({ 
           token: accessToken,
-          isLoggedIn: true 
+          isLoggedIn: true,
+          isAdmin
         })
       }
     }
