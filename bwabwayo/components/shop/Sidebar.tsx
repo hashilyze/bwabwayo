@@ -1,40 +1,61 @@
+// 파일 경로: components/shop/Sidebar.tsx
+'use client';
+
 import React from "react";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
-export default function Sidebar(){
-  return(
-    <aside className="w-64 flex-shrink-0 bg-white rounded-xl shadow p-8 hidden lg:block">
-        <h2 className="text-3xl font-bold mb-10">마이페이지</h2>
-        <nav>
-            <ul className="space-y-8">
-                {/* 거래정보 섹션 */}
-                <li>
-                    <h3 className="text-xl font-bold mb-4">거래정보</h3>
-                    <ul className="space-y-3 pl-2">
-                        <li><a href="#" className="text-gray-600 hover:text-blue-600">구매 상품</a></li>
-                        <li><a href="#" className="text-gray-600 hover:text-blue-600">판매 상품</a></li>
-                        <li><a href="#" className="text-gray-600 hover:text-blue-600">찜 상품</a></li>
-                    </ul>
-                </li>
+export default function Sidebar() {
+  const pathname = usePathname();
+  const basePath = '/mypage';
 
-                {/* 화상채팅 섹션 (선으로 구분) */}
-                <li className="border-t border-gray-200 pt-8">
-                    <h3 className="text-xl font-bold mb-4">화상채팅</h3>
-                    <ul className="space-y-3 pl-2">
-                        <li><a href="#" className="text-gray-600 hover:text-blue-600">화상 채팅 일정</a></li>
-                    </ul>
-                </li>
+  const menuItems = {
+    "거래정보": [
+      { name: "구매 상품", href: `${basePath}/purchases` },
+      { name: "판매 상품", href: `${basePath}/sales` },
+      { name: "찜 상품", href: `${basePath}/wishlist` },
+    ],
+    "화상채팅": [
+      { name: "화상 채팅 일정", href: `${basePath}/schedule` },
+    ],
+    "내 정보": [
+      { name: "내 정보 수정", href: `${basePath}/settings` },
+      { name: "주소록", href: `${basePath}/address` },
+      { name: "회원탈퇴", href: `${basePath}/withdrawal` },
+    ]
+  };
 
-                {/* 내 정보 섹션 (선으로 구분) */}
-                <li className="border-t border-gray-200 pt-8">
-                    <h3 className="text-xl font-bold mb-4">내 정보</h3>
-                    <ul className="space-y-3 pl-2">
-                        <li><a href="#" className="text-gray-600 hover:text-blue-600">내 정보 수정</a></li>
-                        <li><a href="#" className="text-gray-600 hover:text-blue-600">회원탈퇴</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </nav>
+  return (
+   <aside className="w-50 flex-shrink-0">
+      <Link href={basePath}>
+        <h2 className="text-2xl font-bold mb-8 cursor-pointer hover:text-yellow-500 transition-colors">마이페이지</h2>
+      </Link>
+      <nav>
+        <ul className="space-y-6">
+          {Object.entries(menuItems).map(([sectionTitle, items], index) => (
+            <li key={sectionTitle} className={index > 0 ? "border-t border-gray-200 pt-6" : ""}>
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">{sectionTitle}</h3>
+              <ul className="space-y-3">
+                {items.map(item => (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      className={`block rounded-md text-md transition-colors ${
+                        pathname === item.href 
+                        ? 'font-semibold text-[#FFAE00]' 
+                        : 'text-gray-600 hover:text-[#FFAE00]'
+                      }`}
+                    >
+                      {item.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </aside>
-  )
-}
-    
+  );
+};
+
