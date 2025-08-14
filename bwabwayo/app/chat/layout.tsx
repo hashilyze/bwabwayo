@@ -110,16 +110,16 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   }, []); // 빈 배열로 한 번만 실행
 
   // 2초마다 채팅방 목록 폴링 (실시간 업데이트 보장)
-  useEffect(() => {
-    const intervalId = setInterval(async () => {
-      try {
-        await getRoomList();
-      } catch (error) {
-      }
-    }, 2000);
+  // useEffect(() => {
+  //   const intervalId = setInterval(async () => {
+  //     try {
+  //       await getRoomList();
+  //     } catch (error) {
+  //     }
+  //   }, 2000);
 
-    return () => clearInterval(intervalId);
-  }, [getRoomList]);
+  //   return () => clearInterval(intervalId);
+  // }, [getRoomList]);
 
   // 채팅방 선택 시
   const handleChatRoomSelect = async (chatRoom: ChatRoom) => {
