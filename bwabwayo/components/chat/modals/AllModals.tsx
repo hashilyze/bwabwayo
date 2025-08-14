@@ -1044,8 +1044,8 @@ const EndTradeModal = ({ message }: { message: ChatMessage }) => {
 
 const ImageModal = ({ message }: { message: ChatMessage }) => {
   return (
-    <div className="h-50 border-2 border-black">
-      <img src={message.content} alt="image" className="h-full" />
+    <div className="w-50 border-1 border-[#eee] rounded-lg overflow-hidden">
+      <img src={message.content} alt="image" className="w-full" />
     </div>
   )
 }

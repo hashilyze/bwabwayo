@@ -172,7 +172,10 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       if (!response.ok) {
         throw new Error(data.message || '상품 조회에 실패했습니다.');
       }
-      set({ products: data.result, totalElements: data.totalItems, totalPages: data.totalPages, loading: false })
+      
+      // 20개만 제한
+      const limitedProducts = data.result.slice(0, 20);
+      set({ products: limitedProducts, totalElements: data.totalItems, totalPages: data.totalPages, loading: false })
     } catch (error) {
       console.error('상품 조회 실패:', error)
       set({ 
