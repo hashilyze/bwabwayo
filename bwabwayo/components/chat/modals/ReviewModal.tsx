@@ -109,7 +109,7 @@ export default function ReviewModal({ roomId, buyerId, sellerId, productId, onCo
   }
 
   return (
-    <div className="bg-white w-[400px] p-6 relative rounded-2xl border-2 border-black shadow">
+    <div className="bg-white w-[450px] p-6 relative rounded-2xl border-2 border-black shadow">
       {/* 닫기 버튼 */}
       <button
         onClick={onCancel}

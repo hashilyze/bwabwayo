@@ -131,6 +131,7 @@ const ReserveVideoCallModal = ({ message }: { message: ChatMessage }) => {
   const [isListButtonHovered, setIsListButtonHovered] = useState(false);
   const [isCancelButtonHovered, setIsCancelButtonHovered] = useState(false);
   const chatInfo = useChatRoomInfo(); // 전역 정보 사용
+  const sechduleTime = message.content
 
   // 메시지에서 예약 정보 파싱
   const parseReservationInfo = () => {
@@ -222,7 +223,7 @@ const ReserveVideoCallModal = ({ message }: { message: ChatMessage }) => {
 
                 <div className="flex flex-col items-start gap-1">
                   <div className="text-[#7c7c7c] text-md">
-                    일정: {formatReservationTime(reservationInfo.startAt)}
+                    일정: ${sechduleTime}
                   </div>
 
                   <div className="text-[#7c7c7c] text-md">
@@ -242,9 +243,9 @@ const ReserveVideoCallModal = ({ message }: { message: ChatMessage }) => {
               onMouseLeave={() => setIsListButtonHovered(false)}
               aria-label="화상 거래 목록 보기"
             >
-              <span className="font-semibold text-black text-md text-center">
+              <Link href="/mypage/schedule" className="font-semibold text-black text-md text-center">
                 화상 거래 목록 보기
-              </span>
+              </Link>
             </button>
 
             <button
@@ -297,9 +298,9 @@ const CancelVideoCallModal = ({ message }: { message: ChatMessage }) => {
                   {chatInfo?.partner.nickname || 'OO'} 님과 화상 거래 예약이 취소되었어요!
                 </p>
 
-                <div className="text-[#7c7c7c] text-md">
-                  일정: 2025-08-06(수) 오전 10:00
-                </div>
+                {/* <div className="text-[#7c7c7c] text-md">
+                  일정: ${sechduleTime}
+                </div> */}
               </div>
             </div>
           </div>
@@ -369,9 +370,9 @@ const StartVideoCallModal = ({ message }: { message: ChatMessage }) => {
               지금, {chatInfo?.partner.nickname || 'OOO'} 님과 화상 거래가 시작되었어요!
             </p>
 
-            <div className="text-[#7c7c7c] text-md">
-              일정: 2025-08-06(수) 오전 10:00
-            </div>
+            {/* <div className="text-[#7c7c7c] text-md">
+              일정: ${sechduleTime}
+            </div> */}
           </div>
         </div>
         <button
@@ -542,9 +543,9 @@ const RequestDepositeModal = ({ message }: { message: ChatMessage }) => {
   const isBuyer = chatInfo?.isCurrentUserBuyer;
 
   // chatInfo가 로드되지 않았거나 buyer가 아니면 모달을 보이지 않음
-  // if (!chatInfo || !isBuyer) {
-  //   return null;
-  // }
+  if (!chatInfo || !isBuyer) {
+    return null;
+  }
 
   return (
     <>
@@ -833,7 +834,6 @@ const StartDeliveryModal = ({ message }: { message: ChatMessage }) => {
         trackingNumber: deliveryData.trackingNumber
       };
     } catch (error) {
-      console.error('배송 정보 파싱 실패:', error);
       return null;
     }
   };
@@ -998,19 +998,21 @@ const EndTradeModal = ({ message }: { message: ChatMessage }) => {
         </div>
       </div>
 
-      <div className="text-md text-gray-600 mt-4 text-center flex flex-col items-center justify-center">
-        <p>
-          '{chatInfo?.partner.nickname}'님과의 거래가 마음에 드셨나요?<br/>
-          거래 후기를 남겨주세요!
-        </p>
-        <button
-          type="button"
-          onClick={() => setShowReviewModal(true)}
-          className="text-gray-600 cursor-pointer mt-2 underline"
-        >
-          후기 남기기
-        </button>
-      </div>
+      {chatInfo?.isCurrentUserBuyer && (
+        <div className="text-md text-gray-600 mt-4 text-center flex flex-col items-center justify-center">
+          <p>
+            '{chatInfo?.partner.nickname}'님과의 거래가 마음에 드셨나요?<br/>
+            거래 후기를 남겨주세요!
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowReviewModal(true)}
+            className="text-gray-600 cursor-pointer mt-2 underline"
+          >
+            후기 남기기
+          </button>
+        </div>
+      )}
 
       {/* ReviewModal */}
       <OverlayPortal open={showReviewModal} onClose={() => setShowReviewModal(false)}>
