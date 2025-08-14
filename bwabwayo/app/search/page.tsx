@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useProductStore, ProductWithSeller } from '@/stores/product/productStore';
@@ -9,7 +9,8 @@ import ProductCard from '@/components/product/ProductCard';
 import Pagination from '@/components/common/Pagination';
 import { transformToProductCardData } from '@/lib/dataTransFormers';
 
-export default function SearchPage() {
+// ✨ useSearchParams를 사용하는 모든 로직을 이 컴포넌트로 분리합니다.
+function SearchResultComponent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { products, totalElements, totalPages, loading, error, getProducts } = useProductStore();
@@ -17,7 +18,7 @@ export default function SearchPage() {
 
     // UI 상태
     const [showMajorCategories, setShowMajorCategories] = useState(false);
-    const [showMinorCategories, setShowMinorCategories] = useState(false); // ✨ 소분류 표시 상태 추가
+    const [showMinorCategories, setShowMinorCategories] = useState(false);
     const [selectedMajorCategoryId, setSelectedMajorCategoryId] = useState<number | null>(null);
     
     // 가격 필터 입력 상태
@@ -80,17 +81,13 @@ export default function SearchPage() {
         
         setSelectedMajorCategoryId(majorCat?.categoryId || null);
         
-        // ✨ 카테고리 탭 표시/숨김 로직 추가
         if (majorCat && !isMinorSelected) {
-            // 대분류가 선택된 경우, 소분류 탭을 보여줍니다.
             setShowMajorCategories(false);
             setShowMinorCategories(true);
         } else {
-            // 소분류가 선택되었거나 아무것도 선택되지 않은 경우, 소분류 탭을 숨깁니다.
             setShowMinorCategories(false);
         }
         
-        // 가격 필터 UI 업데이트
         setMinPrice(minPriceQuery ? formatNumber(minPriceQuery) : '');
         setMaxPrice(maxPriceQuery ? formatNumber(maxPriceQuery) : '');
 
@@ -134,7 +131,6 @@ export default function SearchPage() {
         router.push(createUrlWithParams({ page: pageNumber }));
     };
 
-    // ✨ '+' 버튼 클릭 핸들러 수정
     const handleCategoryToggle = () => {
         if (showMajorCategories) {
             setShowMajorCategories(false);
@@ -182,7 +178,6 @@ export default function SearchPage() {
                         <tr className="border-t-2 border-t-[#000000] border-b border-b-[#dadee5]">
                             <td className="flex justify-between items-center w-36 bg-gray-50 px-4 py-5 text-left">
                                 <div className="text-lg text-black">카테고리</div>
-                                {/* ✨ '+' 버튼 핸들러 연결 */}
                                 <div onClick={handleCategoryToggle} className="cursor-pointer text-lg">
                                     {(showMajorCategories || showMinorCategories) ? '-' : '+'}
                                 </div>
@@ -221,7 +216,7 @@ export default function SearchPage() {
                             </tr>
                         )}
 
-                        {/* ✨ 소분류 선택 행 추가 */}
+                        {/* 소분류 선택 행 */}
                         {showMinorCategories && selectedMajorCategoryId && (
                             <tr className="category border-b border-[#dadee5]">
                                 <td className="w-36 bg-gray-50 p-4 text-lg">소분류 선택</td>
@@ -288,4 +283,13 @@ export default function SearchPage() {
             </div>
         </div>
     )
+}
+
+// ✨ 메인 페이지 컴포넌트는 Suspense로 감싸는 역할만 합니다.
+export default function SearchPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center h-screen">검색 결과를 불러오는 중...</div>}>
+            <SearchResultComponent />
+        </Suspense>
+    );
 }
