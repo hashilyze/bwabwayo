@@ -101,12 +101,11 @@ const ChatInputActive: React.FC<ChatInputActiveProps> = ({ onOpenReservationModa
 
       console.log('S3 업로드 성공:', data);
 
-      // S3에서 받아온 key값들을 바로 images에 저장
-      const imageKeys = data.results.map((item: any) => item.key);
+      // S3에서 받아온 URL들을 저장
       const imageUrls = data.results.map((item: any) => item.url);
 
       setImgPreviews(prev => [...prev, ...imageUrls]);
-      setUploadedImageUrls(prev => [...prev, ...imageKeys]);
+      setUploadedImageUrls(prev => [...prev, ...imageUrls]);
 
     } catch (error) {
       setImgFiles(prev => prev.slice(0, prev.length - files.length));
