@@ -184,6 +184,13 @@ export default function ChatRoomItem({ chatRoom, roomData, onSelect, isSelected 
           <p className="text-md text-gray-500 truncate flex-1 mr-2">
             {(() => {
               const message = layoutRoom?.lastMessage?.content || regularRoom?.lastChatmessageDto?.content || regularRoom?.lastMessageContent || chatRoom?.lastMessage?.content || '메시지 없음';
+              const messageType = layoutRoom?.lastMessage?.type || regularRoom?.lastChatmessageDto?.type || chatRoom?.lastMessage?.type;
+              
+              // IMAGE 타입인 경우 "이미지를 보냈습니다." 표시
+              if (messageType === 'IMAGE') {
+                return '이미지를 보냈습니다.';
+              }
+              
               return message.length > 25 ? message.substring(0, 25) + '...' : message;
             })()}
           </p>

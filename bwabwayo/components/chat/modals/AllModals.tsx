@@ -132,7 +132,7 @@ const ReserveVideoCallModal = ({ message }: { message: ChatMessage }) => {
   const [isCancelButtonHovered, setIsCancelButtonHovered] = useState(false);
   const chatInfo = useChatRoomInfo(); // 전역 정보 사용
   const { deleteSchedule } = useReservationStore();
-  
+
   // 메시지에서 예약 정보 파싱
   const parseReservationInfo = () => {
     try {
@@ -1042,6 +1042,14 @@ const EndTradeModal = ({ message }: { message: ChatMessage }) => {
   )
 }
 
+const ImageModal = ({ message }: { message: ChatMessage }) => {
+  return (
+    <div className="w-50 border-1 border-[#eee] rounded-lg overflow-hidden">
+      <img src={message.content} alt="image" className="w-full" />
+    </div>
+  )
+}
+
 
 export default function AllModals({ message, type }: { message: ChatMessage, type: string }) {
   const chatInfo = useChatRoomInfo();
@@ -1071,6 +1079,7 @@ export default function AllModals({ message, type }: { message: ChatMessage, typ
       {type === 'START_DELIVERY' && <StartDeliveryModal message={message} />}
       {type === 'CONFIRM_PURCHASE' && <ConfirmPurchaseModal message={message} />}
       {type === 'END_TRADE' && <EndTradeModal message={message} />}
+      {type === 'IMAGE' && <ImageModal message={message} />}
     </div>
   )
 }

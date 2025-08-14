@@ -286,7 +286,7 @@ export default function ProductDetailPage() {
                          </svg>
                        </button>
                        
-                                               {/* 드롭다운 메뉴 */}
+                        {/* 드롭다운 메뉴 */}
                         {isDropdownOpen && (
                           <div className="absolute right-0 -mt-1 w-36 bg-white border-2 border-black rounded-lg shadow-lg z-50">
                             <Link
