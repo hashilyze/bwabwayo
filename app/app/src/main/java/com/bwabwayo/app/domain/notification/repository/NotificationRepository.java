@@ -17,18 +17,6 @@ import java.util.List;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
-    Notification getNotificationById(Long id);
-
-    void deleteAllByReceiverId(String receiverId);
-
-    List<Notification> findAllByReceiverId(String receiverId);
-
-    void deleteAllByReceiverIdAndProductId(String receiverId, Long productId);
-
-    List<Notification> findAllByReceiverIdAndIsReadFalseAndUpdatedAtAfter(String receiverId, LocalDateTime createdAtAfter);
-
-    List<Notification> findAllByReceiverIdAndIsReadFalseOrderByUpdatedAtDesc(String receiverId);
-
 
     // 채팅 생성
     @Modifying
@@ -87,7 +75,7 @@ where n.receiver.id = :receiverId and n.product.id = :productId
     @Query("""
 select n
 from Notification n
-where n.receiver.id = :receiverId
+where n.receiver.id = :receiverId and n.unreadCount > 0
 order by n.updatedAt desc
 """)
     Page<Notification> findInbox(@Param("receiverId") String receiverId, Pageable pageable);

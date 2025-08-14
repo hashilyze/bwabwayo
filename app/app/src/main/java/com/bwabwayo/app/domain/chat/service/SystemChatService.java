@@ -6,6 +6,7 @@ import com.bwabwayo.app.domain.chat.dto.MessageDTO;
 import com.bwabwayo.app.domain.chat.dto.request.SetInvoiceNumberRequest;
 import com.bwabwayo.app.domain.chat.dto.request.SetPriceRequest;
 import com.bwabwayo.app.domain.chat.dto.request.SetProductStatusRequest;
+import com.bwabwayo.app.domain.product.domain.Sale;
 import com.bwabwayo.app.domain.product.enums.SaleStatus;
 import com.bwabwayo.app.domain.product.service.ProductService;
 import com.bwabwayo.app.domain.product.service.SaleService;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
@@ -35,21 +37,21 @@ public class SystemChatService {
                 .receiverId(chatRoom.getBuyerId())
                 .roomId(chatRoom.getRoomId())
                 .read(false)
-                .createdAt(LocalDateTime.now().toString())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString())
                 .type(MessageType.START_VIDEOCALL)
                 .build();
 
         chatService.sendChatMessage(messageDTO);
     }
 
-    public void sendReservationMessage(ChatRoom chatRoom, Long id){
+    public void sendReservationMessage(ChatRoom chatRoom, String startAt){
         MessageDTO messageDTO = MessageDTO.builder()
-                .content(id.toString())
+                .content(startAt)
                 .senderId(chatRoom.getSellerId())
                 .receiverId(chatRoom.getBuyerId())
                 .roomId(chatRoom.getRoomId())
                 .read(false)
-                .createdAt(LocalDateTime.now().toString())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString())
                 .type(MessageType.RESERVE_VIDEOCALL)
                 .build();
 
@@ -63,8 +65,24 @@ public class SystemChatService {
                 .receiverId(chatRoom.getBuyerId())
                 .roomId(chatRoom.getRoomId())
                 .read(false)
-                .createdAt(LocalDateTime.now().toString())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString())
                 .type(MessageType.CANCEL_VIDEOCALL)
+                .build();
+
+        chatService.sendChatMessage(messageDTO);
+    }
+
+
+    public void sendPaymentSuccessMessage(Long roomId){
+        ChatRoom chatRoom = chatRoomService.findByRoomId(roomId).orElseThrow(() -> new IllegalArgumentException("해당 채팅방이 존재하지 않습니다"));
+        MessageDTO messageDTO = MessageDTO.builder()
+                .content("")
+                .senderId(chatRoom.getSellerId())
+                .receiverId(chatRoom.getBuyerId())
+                .roomId(chatRoom.getRoomId())
+                .read(false)
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString())
+                .type(MessageType.INPUT_DELIVERY_ADDRESS)
                 .build();
 
         chatService.sendChatMessage(messageDTO);
@@ -83,7 +101,7 @@ public class SystemChatService {
                 .receiverId(chatRoom.getBuyerId())
                 .roomId(roomId)
                 .read(false)
-                .createdAt(LocalDateTime.now().toString())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString())
                 .type(MessageType.START_DELIVERY)
                 .build();
 
@@ -96,7 +114,7 @@ public class SystemChatService {
                 .receiverId(chatRoom.getBuyerId())
                 .roomId(roomId)
                 .read(false)
-                .createdAt(LocalDateTime.now().toString())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString())
                 .type(MessageType.CONFIRM_PURCHASE)
                 .build();
 
@@ -108,14 +126,16 @@ public class SystemChatService {
         ChatRoom chatRoom = chatRoomService.findByRoomId(roomId).orElseThrow(() -> new IllegalArgumentException("해당 채팅방이 존재하지 않습니다."));
         Long productId = chatRoom.getProductId();
         productService.setPrice(request, productId);
+        Sale sale = saleService.findByProductId(productId);
+        sale.setSalePrice(request.getPrice());
 
         MessageDTO messageDTO = MessageDTO.builder()
-                .content("")
+                .content(request.getPrice().toString())
                 .senderId(chatRoom.getSellerId())
                 .receiverId(chatRoom.getBuyerId())
                 .roomId(roomId)
                 .read(false)
-                .createdAt(LocalDateTime.now().toString())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString())
                 .type(MessageType.REQUEST_DEPOSIT)
                 .build();
 
@@ -148,7 +168,7 @@ public class SystemChatService {
                 .receiverId(chatRoom.getBuyerId())
                 .roomId(roomId)
                 .read(false)
-                .createdAt(LocalDateTime.now().toString())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString())
                 .type(MessageType.START_TRADE)
                 .build();
 
@@ -161,24 +181,29 @@ public class SystemChatService {
         ChatRoom chatRoom = chatRoomService.findByRoomId(roomId).orElseThrow(() -> new IllegalArgumentException("해당 채팅방이 존재하지 않습니다."));
         Long productId = chatRoom.getProductId();
 
-        if(!user.getId().equals(chatRoom.getBuyerId()))
-            throw new IllegalAccessException("상품의 구매자만 구매확정을 할 수 있습니다.");
-
+        if(!(user.getId().equals(chatRoom.getBuyerId())))
+            throw new IllegalAccessException("상품의 구매자만 구매확정을 할 수 있습니다.\n" + "유저 아이디: "+user.getId() +"   구매자 아이디: "+chatRoom.getBuyerId() + "   판매자 아이디: "+chatRoom.getSellerId());
+        log.info("1");
         SetProductStatusRequest productStatusRequest = SetProductStatusRequest.builder()
                 .productStatus(SaleStatus.SOLD_OUT).build();
 
-        setProductStatus(productId, productStatusRequest);
+        setProductStatus(roomId, productStatusRequest);
 
         userService.addDealCount(chatRoom.getSellerId());
 
+        Sale sale = saleService.findByProductId(productId);
+
+        //구매 확정 시 포인트 주는 것도 추가해야함...
+
+
         //리뷰작성 메세지
         MessageDTO messageDTO = MessageDTO.builder()
-                .content("")
+                .content(sale.getId().toString())
                 .senderId(chatRoom.getSellerId())
                 .receiverId(chatRoom.getBuyerId())
                 .roomId(roomId)
                 .read(false)
-                .createdAt(LocalDateTime.now().toString())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString())
                 .type(MessageType.END_TRADE)
                 .build();
 

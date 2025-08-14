@@ -28,7 +28,6 @@ public class SseService {
     /**
      * 사용자에게 알림을 보낼 수 있도록 등록
      */
-    @Transactional
     public SseEmitter subscribe(String userId, String lastEventId) {
         SseEmitter emitter = new SseEmitter(timeout);
 
@@ -99,7 +98,7 @@ public class SseService {
 
         notificationService.upsertChat(receiverId, chatId, message, 1);
 
-        pushEvent(receiverId);
+//        pushEvent(receiverId);
     }
 
     public void upsertProductNotification(Long productId, UpsertRequest request){
@@ -108,10 +107,12 @@ public class SseService {
 
         notificationService.upsertProduct(receiverId, productId, message);
 
-        pushEvent(receiverId);
+//        pushEvent(receiverId);
     }
 
     public void handleMessage(MessageDTO message){
+        log.debug("알림 대상: " + message.toString());
+//        if(true) return;
         String contnet = message.getContent();
         switch (message.getType()){
             case TEXT: {
@@ -131,7 +132,6 @@ public class SseService {
             case CONFIRM_PURCHASE: contnet = "구매가 확정되었습니다."; break;
             case END_TRADE: contnet = "거래가 종료됩니다."; break;
         }
-
         upsertChatNotification(message.getRoomId(), UpsertRequest.of(message.getReceiverId(), contnet));
         upsertChatNotification(message.getRoomId(), UpsertRequest.of(message.getSenderId(), contnet));
     }

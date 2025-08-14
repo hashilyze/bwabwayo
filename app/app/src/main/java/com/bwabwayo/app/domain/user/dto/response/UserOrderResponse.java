@@ -4,6 +4,8 @@ import com.bwabwayo.app.domain.product.enums.SaleStatus;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Builder
 public class UserOrderResponse {
@@ -11,6 +13,7 @@ public class UserOrderResponse {
     private Long productId;
     private String thumbnail;
     private String title;
+    private LocalDateTime createdAt;
     private int price;
     private String deliveryStatus;
     private String courierName;

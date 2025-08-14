@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -84,7 +85,7 @@ public class ChatRoomController {
                     .receiverId(request.getSellerId())
                     .roomId(chatRoom.getRoomId())
                     .read(false)
-                    .createdAt(LocalDateTime.now().toString())
+                    .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString())
                     .type(MessageType.CREATE_ROOM).build();
             chatService.sendChatMessage(messageDTO);
         }

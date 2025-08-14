@@ -131,7 +131,8 @@ public class ProductService {
         Integer size = requestDTO.getSize();
         // 기본 정렬 속성은 '최신순'
         ProductSortType sortType = ProductSortType.from(requestDTO.getSortBy());
-        if(sortType == ProductSortType.RELATED && keyword == null){ // 키워드가 없으면 관련 검색 불가
+        if((sortType == ProductSortType.RELATED || sortType == ProductSortType.LATEST_AND_RELATED)
+                && (keyword == null || keyword.isBlank())){ // 키워드가 없으면 관련 검색 불가
             log.warn("키워드가 없어 관련성 검색이 불가합니다; 기본 검색으로 대체");
             sortType = ProductSortType.LATEST;
         }
@@ -151,14 +152,19 @@ public class ProductService {
                 .canDelivery(canDelivery)
                 .minPrice(minPrice)
                 .maxPrice(maxPrice)
-                .urlPrefix(requestDTO.getUrlPrefix())
+//                .urlPrefix(requestDTO.getUrlPrefix())
+                .getOnlySale(requestDTO.getOnlySale())
                 .build();
 
         Page<ProductWithIsLikeDTO> pageData;
         if(sortType == ProductSortType.RELATED) {
             pageData = queryWithRelated(queryCondition, pageable, loginUser);
-        } else{
+        } else if(sortType != ProductSortType.LATEST_AND_RELATED){
             pageData = productRepository.searchByCondition(queryCondition, pageable);
+        } else{
+            Page<ProductWithIsLikeDTO> related = queryWithRelated(queryCondition, pageable, loginUser);
+            Page<ProductWithIsLikeDTO> latest = productRepository.searchByCondition(queryCondition, pageable);
+            pageData = merge(related, latest, pageable.getPageSize());
         }
 
         return PageResponse.from(pageData, dto -> {
@@ -192,6 +198,7 @@ public class ProductService {
 
     private Page<ProductWithIsLikeDTO> queryWithRelated(ProductQueryCondition queryCondition, Pageable pageable, User viewer){
         List<QueryItemDto> query = productEmbeddingService.query(queryCondition, pageable);
+        query = query.stream().filter(dto->dto.getScore() > 0.3).toList();
 
         List<Long> ids = query.stream().map(QueryItemDto::getId).toList();
         if (ids.isEmpty()) return Page.empty(pageable);
@@ -384,5 +391,24 @@ public class ProductService {
 
     public List<Product> getWillDeliveryProducts(){
         return productRepository.findAllByEmptyInvoiceNumberAndDeliveryStatus(DeliveryStatus.PREPARING);
+    }
+
+    private Page<ProductWithIsLikeDTO> merge(Page<ProductWithIsLikeDTO> related, Page<ProductWithIsLikeDTO> latest, int limit){
+        List<ProductWithIsLikeDTO> list = new ArrayList<>(latest.getContent());
+
+        if(latest.getTotalElements() < limit){
+            Set<Long> set = new HashSet<>();
+            for(ProductWithIsLikeDTO r : latest.getContent()) set.add(r.getProduct().getId());
+
+            if(list.size() < limit) {
+                for(ProductWithIsLikeDTO r : related.getContent()){
+                    if(!set.contains(r.getProduct().getId())) {
+                        list.add(r);
+                        if(list.size() == limit) break;
+                    }
+                }
+            }
+        }
+        return new PageImpl<>(list);
     }
 }

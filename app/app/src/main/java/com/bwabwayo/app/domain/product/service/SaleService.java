@@ -64,6 +64,7 @@ public class SaleService {
                     .productId(product.getId())
                     .thumbnail(storageService.getUrlFromKey(product.getThumbnail()))
                     .title(product.getTitle())
+                    .createdAt(sale.getCreatedAt())
                     .price(product.getPrice())
                     .deliveryStatus(deliveryStatus)
                     .courierName(courierName)
@@ -88,7 +89,19 @@ public class SaleService {
 
     public Sale findByBuyerIdAndProductId(String buyerId, Long productId){
         List<Sale> sales = saleRepository.findByBuyerIdAndProductId(buyerId, productId);
-        if(sales == null || sales.isEmpty()) throw new IllegalArgumentException("판매 내역이 존재하지 않습니다.");
+        if(sales == null || sales.isEmpty()) throw new IllegalArgumentException("판매 내역이 존재하지 않습니다: buyerId="+buyerId+", productId="+productId);
+        return sales.get(0);
+    }
+
+    public Sale findByRoomId(Long roomId){
+        List<Sale> sales = saleRepository.findByRoomId(roomId);
+        if(sales == null || sales.isEmpty()) throw new IllegalArgumentException("판매 내역이 존재하지 않습니다: roomId="+roomId);
+        return sales.get(0);
+    }
+
+    public Sale findByProductId(Long productId){
+        List<Sale> sales = saleRepository.findByProductId(productId);
+        if(sales == null || sales.isEmpty()) throw new IllegalArgumentException("판매 내역이 존재하지 않습니다: productId="+productId);
         return sales.get(0);
     }
 
@@ -105,5 +118,4 @@ public class SaleService {
     public void saveSale(Sale sale){
         saleRepository.save(sale);
     }
-
 }

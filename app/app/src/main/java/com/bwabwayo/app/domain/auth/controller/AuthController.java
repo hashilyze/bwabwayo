@@ -221,7 +221,7 @@ public class AuthController {
         }
 
         //출석체크
-        LocalDateTime lastLoginAt = user.getLastLoginAt().plusHours(9);
+        LocalDateTime lastLoginAt = user.getLastLoginAt();
         // 오늘 00:00 (즉, 오늘의 시작 시각)
         ZoneId seoulZone = ZoneId.of("Asia/Seoul");
         LocalDateTime todayStartInSeoul = LocalDate.now(seoulZone).atStartOfDay();

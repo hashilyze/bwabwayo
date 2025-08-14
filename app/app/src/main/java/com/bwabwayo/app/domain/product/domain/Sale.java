@@ -21,8 +21,8 @@ public class Sale {
     private Long id;
 
     // 1:1 Product
-    @OneToOne
-    @JoinColumn(name = "product_id", nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
     // 판매자/구매자
