@@ -201,19 +201,21 @@ public class ProductService {
     }
 
     private List<Long> keywordToCategory(String keyword, List<Long> categoryIds) {
-        if(keyword == null) return categoryIds;
-
-        if(categoryIds == null) categoryIds = new ArrayList<>();
-        String[] tokens = keyword.split(" ");
-        for(String token : tokens) {
-            for (Category category : categoryRepository.findAll()) {
-                if (category.getName().contains(token) || token.contains(category.getName())) {
-                    List<Long> temp = CategoryUtils.getSubCategories(category).stream().map(Category::getId).toList();
-                    categoryIds.addAll(temp);
-                }
-            }
-        }
         return categoryIds;
+//        if(keyword == null) return categoryIds;
+//
+//        if(categoryIds == null) categoryIds = new ArrayList<>();
+//        String[] tokens = keyword.split(" ");
+//        for(String token : tokens) {
+//            for (Category category : categoryRepository.findAll()) {
+//                if (category.getName().contains(token) || token.contains(category.getName())) {
+//                    List<Long> temp = CategoryUtils.getSubCategories(category).stream().map(Category::getId).toList();
+//                    categoryIds.addAll(temp);
+//                }
+//            }
+//        }
+//        log.info("ctegorys={}", Arrays.toString(categoryIds.toArray()));
+//        return categoryIds;
     }
 
     private Page<ProductWithIsLikeDTO> queryWithRelated(ProductQueryCondition queryCondition, Pageable pageable, User viewer){
