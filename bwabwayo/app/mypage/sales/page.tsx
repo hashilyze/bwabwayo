@@ -64,8 +64,21 @@ function SalesContent() {
           <div key={item.product.id} className="bg-white rounded-[30px] border border-[#d9d9d9] p-6">
             <div className="flex items-center gap-6">
               {/* 상품 이미지 */}
-              <div className="w-[118px] h-[118px] bg-gray-200 rounded-xl overflow-hidden flex-shrink-0">
+              <div className="relative w-[118px] h-[118px] bg-gray-200 rounded-xl overflow-hidden flex-shrink-0">
                 <img src={item.product.thumbnail} alt={item.product.title} className="object-cover w-full h-full" />
+                {item.product.saleStatus === '판매완료' && (
+                  <div className="absolute inset-0">
+                    {/* 반투명 오버레이 */}
+                    <div className="absolute inset-0 bg-black/35" />
+                    
+                    {/* 텍스트 오버레이 */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-20 h-20 rounded-full border-2 border-white flex items-center justify-center bg-black/35">
+                        <span className="text-white text-lg font-bold">판매완료</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* 제품명 */}

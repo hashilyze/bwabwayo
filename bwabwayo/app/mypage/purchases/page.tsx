@@ -1,4 +1,4 @@
-// 파일 경로: app/shop/[id]/purchases/page.tsx
+
 'use client';
 
 import React, { useEffect, Suspense } from "react";
@@ -20,28 +20,42 @@ function PurchaseContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // URL 쿼리 파라미터에서 현재 페이지를 가져옵니다. 없으면 1로 설정.
   const currentPage = Number(searchParams.get('page')) || 1;
 
   useEffect(() => {
-    // API는 페이지를 0부터 시작하므로, UI 페이지(1부터 시작)에서 1을 빼서 요청합니다.
     fetchPurchases(currentPage - 1);
   }, [currentPage, fetchPurchases]);
 
   const handlePageChange = (pageNumber: number) => {
-    // 현재 경로를 유지하면서 page 쿼리 파라미터만 변경합니다.
     router.push(`?page=${pageNumber}`);
   };
 
-  // 날짜 포맷팅 함수 (예시)
-  const formatDate = (dateString: string) => {
-    if (!dateString) return '날짜 정보 없음';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    });
+  // ✨ 추가: 배송 상태 텍스트를 변환하는 헬퍼 함수
+  const getDeliveryStatusText = (deliveryStatus: string | null, purchaseStatus: number): string => {
+    // 1. 구매 상태가 '구매완료'이면 항상 '배송 완료'를 반환합니다.
+    if (purchaseStatus === 2) {
+      return "배송 완료";
+    }
+
+    // 2. 그 외의 경우, deliveryStatus에 따라 텍스트를 반환합니다.
+    switch (deliveryStatus) {
+      case 'DIRECT':
+        return '직거래';
+      case 'PREPARING':
+        return '배송준비중';
+      case 'COLLECTED':
+        return '집화완료';
+      case 'IN_TRANSIT':
+        return '배송중';
+      case 'ARRIVED_AT_BRANCH':
+        return '지점 도착';
+      case 'OUT_FOR_DELIVERY':
+        return '배송출발';
+      case 'DELIVERED':
+        return '배송 완료';
+      default:
+        return '정보 없음'; // 예외 처리
+    }
   };
 
   return (
@@ -72,32 +86,20 @@ function PurchaseContent() {
           <div key={item.id} className="bg-white rounded-[30px] border border-[#d9d9d9] p-6">
             <div className="flex items-center gap-6">
               {/* 상품 이미지 */}
-              {/* ✨ 수정: relative 클래스 추가 */}
               <div className="relative w-[118px] h-[118px] bg-gray-200 rounded-xl overflow-hidden flex-shrink-0">
                 <img 
                   src={item.thumbnail} 
                   alt={item.title} 
-                  className="object-cover w-full h-full transition-all" 
+                  className={`object-cover w-full h-full transition-all ${item.purchaseStatus === 2 ? 'brightness-75' : ''}`} 
                 />
-                {/* 테스트용 후에    {item.purchaseStatus=== 2로 반드시 변경 !!*/}
-                {/* ✨ 이미지 위 반투명 어두운 오버레이 */}
                 {item.purchaseStatus === 2 && (
-  <div className="absolute inset-0">
-    {/* 반투명 오버레이 */}
-    <div className="absolute inset-0 bg-black/35" />
-    
-    {/* 텍스트 오버레이 */}
-    <div className="absolute inset-0 flex items-center justify-center">
-      <div className="w-20 h-20 rounded-full border-2 border-white flex items-center justify-center bg-black/35">
-        <span className="text-white text-lg font-bold">구매완료</span>
-      </div>
-    </div>
-  </div>
-)}
-
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-20 h-20 rounded-full border-2 border-white flex items-center justify-center bg-black bg-opacity-25">
+                      <span className="text-white text-lg font-bold">판매완료</span>
+                    </div>
+                  </div>
+                )}
               </div>
-
-
 
               {/* 제품명 */}
               <div className="flex flex-col gap-2 flex-1">
@@ -117,9 +119,9 @@ function PurchaseContent() {
                 {item.price.toLocaleString('ko-KR')}원
               </div>
 
-              {/* 배송 상태 */}
+              {/* ✨ 수정: 배송 상태 표시 부분을 헬퍼 함수 호출로 변경 */}
               <div className="text-black text-base font-normal leading-[20px] w-28 text-center">
-                {item.deliveryStatus || '배송 정보 없음'}
+                {getDeliveryStatusText(item.deliveryStatus, item.purchaseStatus)}
               </div>
 
               {/* 구매상태 (구매확정 버튼) */}

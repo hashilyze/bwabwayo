@@ -30,6 +30,7 @@ export interface myPurchaseProduct {
   courierName: string | null; // 택배사 이름
   trackingNumber: string | null; // 운송장 번호
   purchaseStatus: number; // 구매 진행 상태 (0, 거래중, 1 구매확정 클리가능, 2 구매확정 완료)
+  createdAt: string; // 생성일
 }
 
 // 판매자 정보 타입
@@ -71,6 +72,7 @@ interface RawPurchaseProduct {
   courierName: string | null;
   trackingNumber: string | null;
   purchaseConfirmStatus: number;
+  createdAt: string;
 }
 
 // API 응답 타입 (구매내역 - 페이지네이션)
@@ -370,7 +372,9 @@ export const useMyActivityStore = create<MyActivityStore>((set, get) => ({
         courierName: item.courierName,
         trackingNumber: item.trackingNumber,
         purchaseStatus: item.purchaseConfirmStatus, // purchaseConfirmStatus를 purchaseStatus로 매핑
-      }));
+        createdAt: item.createdAt
+        }));
+
 
       set({
         purchaseList: formattedPurchases, // 페이지 이동 시 새로운 데이터로 교체

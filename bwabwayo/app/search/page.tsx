@@ -239,12 +239,14 @@ function SearchResultComponent() {
                             <td className="w-36 bg-gray-50 p-4">
                                 <h3 className="text-lg font-normal text-black">가격</h3>
                             </td>
-                            <td className="p-4 flex justify-between items-center">
+                            <td className="p-4 flex justify-center gap-6 items-center">
                                 <div className="flex items-center gap-2">
                                     <input type="text" placeholder="최소 가격" value={minPrice} onChange={(e) => setMinPrice(formatNumber(e.target.value))} className="w-36 px-3 py-2 border border-gray-200 rounded-sm text-md text-black focus:outline-none focus:border-[#000000]"/>
                                     <span>~</span>
                                     <input type="text" placeholder="최대 가격" value={maxPrice} onChange={(e) => setMaxPrice(formatNumber(e.target.value))} className="w-36 px-3 py-2 border border-gray-200 rounded-sm text-md text-black focus:outline-none focus:border-[#000000]"/>
-                                    <button onClick={handlePriceApply} className="w-15 h-10 bg-black text-white text-md font-normal rounded-sm cursor-pointer px-4">적용</button>
+                                    <button onClick={handlePriceApply}
+                                     className="w-15 h-10 bg-black text-white text-md font-normal rounded-sm cursor-pointer px-4"
+                                     >적용</button>
                                 </div>
                                 {(minPriceQuery || maxPriceQuery) && (
                                     <div className="inline-flex items-center bg-gray-100 px-3 py-1 rounded-full text-sm">
