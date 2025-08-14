@@ -142,7 +142,7 @@ const adsContainer = () => {
 }
 
 export default function Home() {
-  const { products, hotKeywordProducts, videoCallProducts, loading, error, getProducts, getHotKewordProducts, getVideoCallProducts } = useProductStore();
+  const { products, hotKeywordProducts, videoCallProducts, newProducts, loading, error, getProducts, getHotKewordProducts, getVideoCallProducts, getNewProducts } = useProductStore();
   const { initializeAuth, setGlobalToken, getToken } = useAuthStore();
   const hotKeyword = '라부부';
 
@@ -163,9 +163,10 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 세 API를 병렬로 실행 (더 빠름)
+        // 네 API를 병렬로 실행 (더 빠름)
         await Promise.all([
           getProducts(),
+          getNewProducts(),
           getHotKewordProducts(hotKeyword),
           getVideoCallProducts()
         ]);
@@ -175,7 +176,7 @@ export default function Home() {
     };
     
     fetchData();
-  }, [getProducts, getHotKewordProducts, getVideoCallProducts]);
+  }, [getProducts, getNewProducts, getHotKewordProducts, getVideoCallProducts]);
 
   return (
     <div className="">
@@ -230,8 +231,8 @@ export default function Home() {
             />
             <h1 className="text-[40px] font-bold mb-5 relative z-1 ml-[70px]">NEW ITEMS</h1>
           </div>
-          {products && products.length > 0 ? (
-            <ProductSlider products={products} navigationId="recent" />
+          {newProducts && newProducts.length > 0 ? (
+            <ProductSlider products={newProducts} navigationId="recent" />
           ) : (
             <div className="flex justify-center items-center py-8">
               <div className="text-lg text-[#777]">상품이 없습니다.</div>

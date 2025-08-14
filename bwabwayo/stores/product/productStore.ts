@@ -74,7 +74,7 @@ interface ProductDetail {
   canDirect: boolean
   canNegotiate: boolean
   canVideoCall: boolean
-  categories: any[]
+  categories: { id: number; name: string }[]
   chatCount: number
   createdAt: string
   imageKeys: string[]
@@ -99,6 +99,7 @@ interface ProductStore {
   similarProducts: ProductWithSeller[]
   totalElements: number;
   totalPages: number;
+  newProducts: ProductWithSeller[]
   loading: boolean
   error: string | null
   getProducts: (options?: { 
@@ -109,8 +110,9 @@ interface ProductStore {
     page?: number;
     size?: number;
   }) => Promise<void>
+  getNewProducts: (limit?: number) => Promise<void>
   addProduct: (product: ProductFormData) => Promise<number>
-  updateProduct: (productId: number, productData: ProductFormData) => Promise<any>;
+  updateProduct: (productId: number, productData: ProductFormData) => Promise<{ success: boolean; message?: string }>;
   getHotKewordProducts: (title: string) => Promise<void>
   getVideoCallProducts: () => Promise<void>
   getProductDetail: (id: number) => Promise<void>
@@ -144,6 +146,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
   similarProducts: [],
   totalElements: 0,
   totalPages: 0,
+  newProducts: [],
   loading: false,
   error: null,
 
@@ -186,6 +189,33 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     }
   },
 
+  // 최신 상품 조회
+  getNewProducts: async (limit = 20) => {
+    set({ loading: true, error: null })
+    try {
+      // 최신순으로 정렬하여 상품 조회
+      const response = await useAuthStore.getState().authenticatedFetch(`${baseUrl}/products?sortBy=latest&onlySale=true`)
+      const data = await response.json()
+      
+      if (data.result && Array.isArray(data.result)) {
+        // limit 개수만큼 제한
+        const limitedProducts = data.result.slice(0, limit);
+        set({ newProducts: limitedProducts, loading: false })
+        console.log('최신 상품 조회 성공:', limitedProducts.length, '개')
+      } else {
+        set({ newProducts: [], loading: false })
+        console.log('최신 상품 데이터가 없습니다.')
+      }
+    } catch (error) {
+      console.error('최신 상품 조회 실패:', error)
+      set({ 
+        newProducts: [], 
+        loading: false, 
+        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다' 
+      })
+    }
+  },
+
   // 핫 키워드 상품 조회
   getHotKewordProducts: async (title: string) => {
     set({ loading: true, error: null })
@@ -212,7 +242,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       const data = await response.json()
       console.log(data.result)
 
-      const filteredProducts = data.result.filter((item: any) => item.product.canVideoCall)
+      const filteredProducts = data.result.filter((item: ProductWithSeller) => item.product.canVideoCall)
       
       // 20개만 제한
       const limitedProducts = filteredProducts.slice(0, 20);
