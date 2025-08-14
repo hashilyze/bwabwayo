@@ -19,7 +19,7 @@ export default function Navbar() {
     const [showCategory, setShowCategory] = useState(false); // 카테고리 표시 상태
     const [showNotifications, setShowNotifications] = useState(false); // 알림 드롭다운 상태
 
-    const { isLoggedIn, logout, initializeAuth, authenticatedFetch, getToken } = useAuthStore(); // 새로운 authStore 사용
+    const { isLoggedIn, isAdmin, logout, initializeAuth, authenticatedFetch, getToken } = useAuthStore(); // 새로운 authStore 사용
     const { openLoginModal } = useModalStore();
     const { unreadCount, fetchNotifications, startPolling, stopPolling, isPolling } = useNotificationStore();
     const [isScrolled, setIsScrolled] = useState(false) // 스크롤 상태 추가
@@ -157,9 +157,11 @@ export default function Navbar() {
                     <Link href="/cs-center">
                         <span className="text-md text-gray-700 cursor-pointer hover:text-black">고객센터</span>
                     </Link>
-                    <Link href="/admin">
-                        <span className="text-md text-gray-700 cursor-pointer hover:text-black">관리자</span>
-                    </Link>
+                    {isLoggedIn && isAdmin && (
+                        <Link href="/admin">
+                            <span className="text-md text-gray-700 cursor-pointer hover:text-black">관리자</span>
+                        </Link>
+                    )}
                 </div>
 
                 {/* 네비게이션 바 */}

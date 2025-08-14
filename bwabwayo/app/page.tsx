@@ -130,13 +130,19 @@ const adsContainer = () => {
     id:1,
     url: `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/banner/banner-1.png`,
     alt: '광고 배너 1',
-    link: '/',
+    link: 'https://i13e202.p.ssafy.io/fe/',
   },
   {
     id:2,
     url: `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/banner/banner-2.png`,
     alt: '광고 배너 2',
-    link: '/',
+    link: 'https://www.ssafy.com/ksp/jsp/swp/swpMain.jsp',
+  },
+  {
+    id:2,
+    url: `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/banner/banner-3.png`,
+    alt: '광고 배너 3',
+    link: 'https://i13e206.p.ssafy.io:8445/',
   }
   ]
 }
