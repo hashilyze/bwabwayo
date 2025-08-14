@@ -16,6 +16,7 @@ import com.bwabwayo.app.domain.product.dto.response.*;
 import com.bwabwayo.app.domain.product.enums.DeliveryStatus;
 import com.bwabwayo.app.domain.product.enums.ProductSortType;
 import com.bwabwayo.app.domain.product.exception.ProductNotFoundException;
+import com.bwabwayo.app.domain.product.repository.CategoryRepository;
 import com.bwabwayo.app.domain.product.repository.CourierRepository;
 import com.bwabwayo.app.domain.product.repository.ProductImageRepository;
 import com.bwabwayo.app.domain.product.repository.ProductRepository;
@@ -54,6 +55,7 @@ public class ProductService {
     private final ViewCountService viewCountService;
     private final ProductEmbeddingService productEmbeddingService;
     private final ReviewAggService reviewAggService;
+    private final CategoryRepository categoryRepository;
 
     @Value("${storage.path.temp}")
     private String tempPath;
@@ -123,6 +125,8 @@ public class ProductService {
                 categoryIds = List.of(categoryId);
             }
         }
+
+        keywordToCategory(keyword, categoryIds);
 
         // 페이징 조건
         // 페이지는 1부터 시작
@@ -194,6 +198,15 @@ public class ProductService {
                     .seller(sellerDTO)
                     .build();
         });
+    }
+
+    private void keywordToCategory(String keyword, List<Long> categoryIds) {
+        for (Category category : categoryRepository.findAll()) {
+            if(keyword.contains(category.getName())){
+                List<Long> temp = CategoryUtils.getSubCategories(category).stream().map(Category::getId).toList();
+                categoryIds.addAll(temp);
+            }
+        }
     }
 
     private Page<ProductWithIsLikeDTO> queryWithRelated(ProductQueryCondition queryCondition, Pageable pageable, User viewer){
