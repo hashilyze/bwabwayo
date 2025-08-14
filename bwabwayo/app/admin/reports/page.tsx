@@ -55,17 +55,19 @@ export default function ReportsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg">로딩 중...</div>
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">로딩 중...</div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 pb-10">
       {/* Breadcrumbs */}
       <div className="text-sm text-gray-500 mb-4">
-        ▲ &gt; 고객지원 &gt; 신고내용
+        홈 &gt; 고객지원 &gt; 신고내용
       </div>
 
       {/* Page Title */}
@@ -73,11 +75,8 @@ export default function ReportsPage() {
 
       {/* Search Section */}
       <div className="bg-gray-50 p-6 rounded-lg mb-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Search Options */}
-          <div>
-            <div className="font-medium mb-3">상태별 필터</div>
-            <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="grid grid-cols-4 gap-2 text-md">
               <label className="flex items-center space-x-2">
                 <input type="checkbox" className="rounded" />
                 <span>전체</span>
@@ -92,33 +91,8 @@ export default function ReportsPage() {
               </label>
               <label className="flex items-center space-x-2">
                 <input type="checkbox" className="rounded" />
-                <span>처리중</span>
-              </label>
-              <label className="flex items-center space-x-2">
-                <input type="checkbox" className="rounded" />
                 <span>검토중</span>
               </label>
-            </div>
-          </div>
-
-          {/* Search Input */}
-          <div>
-            <div className="font-medium mb-3">검색</div>
-            <div className="flex space-x-2">
-              <select className="px-3 py-2 border rounded text-sm">
-                <option>전체</option>
-                <option>제목</option>
-                <option>작성자</option>
-                <option>내용</option>
-              </select>
-              <input 
-                type="text" 
-                placeholder="검색어를 입력해주세요." 
-                className="flex-1 px-3 py-2 border rounded text-sm"
-              />
-              <button className="px-4 py-2 bg-blue-600 text-white rounded text-sm">검색</button>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -136,7 +110,6 @@ export default function ReportsPage() {
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">제목</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">상태</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">신고자</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">이메일</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">신고일</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">상세보기</th>
               </tr>
@@ -144,18 +117,17 @@ export default function ReportsPage() {
             <tbody className="divide-y divide-gray-200">
               {tableData.map((row, index) => (
                 <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-900">{row.id}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{row.title}</td>
+                  <td className="px-4 py-3 text-md text-gray-900">{row.id}</td>
+                  <td className="px-4 py-3 text-md text-gray-900">{row.title}</td>
                   <td className="px-4 py-3">
-                    <span className={`inline-block px-2 py-1 text-xs text-white rounded ${row.statusColor}`}>
+                    <span className={`inline-block px-2 py-1 text-sm text-white rounded ${row.statusColor}`}>
                       {row.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{row.user}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{row.email}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{row.date}</td>
+                  <td className="px-4 py-3 text-md text-gray-900">{row.user}</td>
+                  <td className="px-4 py-3 text-md text-gray-900">{row.date}</td>
                   <td className="px-4 py-3">
-                    <button className="px-3 py-1 bg-blue-600 text-white text-xs rounded flex items-center space-x-1">
+                    <button className="px-3 py-1 bg-blue-600 text-white text-sm rounded flex items-center space-x-1">
                       <span>🔍</span>
                       <span>상세보기</span>
                     </button>
@@ -164,13 +136,6 @@ export default function ReportsPage() {
               ))}
             </tbody>
           </table>
-        </div>
-        
-        <div className="p-4 border-t">
-          <button className="text-blue-600 text-sm flex items-center space-x-1">
-            <span>✓</span>
-            <span>더 보기 (1/1)</span>
-          </button>
         </div>
       </div>
     </div>
