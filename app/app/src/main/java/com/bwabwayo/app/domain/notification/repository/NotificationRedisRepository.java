@@ -15,10 +15,12 @@ import java.time.ZoneId;
 import java.util.*;
 
 @Repository
-@RequiredArgsConstructor
 public class NotificationRedisRepository {
 
-    @Qualifier("notificationRedisTemplate")
+    public NotificationRedisRepository(@Qualifier("notificationRedisTemplate") RedisTemplate<String, String> template) {
+        this.template = template;
+    }
+
     private final RedisTemplate<String, String> template;
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
