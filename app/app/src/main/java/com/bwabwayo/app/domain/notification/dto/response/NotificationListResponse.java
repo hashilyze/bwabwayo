@@ -13,13 +13,16 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class NotificationListResponse {
-    int size;
+    Long totalUnread;
+
+    Integer size;
 
     @Builder.Default
     List<NotificationResponse> results = new ArrayList<>();
 
-    public static NotificationListResponse of(List<NotificationResponse> notificationDTOs) {
+    public static NotificationListResponse of(List<NotificationResponse> notificationDTOs, Long totalUnread) {
         return NotificationListResponse.builder()
+                .totalUnread(totalUnread)
                 .size(notificationDTOs.size())
                 .results(notificationDTOs)
                 .build();

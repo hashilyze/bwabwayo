@@ -54,7 +54,7 @@ public class NotificationController {
         Page<NotificationDTO> notifications = notificationService.findInbox(user.getId(), PageRequest.of(0, request.getLimit()));
         List<NotificationResponse> dtos = notifications.getContent().stream().map(notificationService::build).toList();
 
-        return ResponseEntity.ok(NotificationListResponse.of(dtos));
+        return ResponseEntity.ok(NotificationListResponse.of(dtos, notifications.getTotalElements()));
     }
 
     @Operation(summary = "알림 보내기")
