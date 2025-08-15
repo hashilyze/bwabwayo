@@ -39,7 +39,8 @@ public class NotificationService {
 
     @Transactional
     public void upsert(String receiverId, Long productId, Long roomId, String message){
-        notificationRepository.upsert(receiverId, productId, roomId, message, LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+        log.info("upsert receiverId: {}, productId: {}, roomId: {}, message: {}", receiverId, productId, roomId, message);
+//        notificationRepository.upsert(receiverId, productId, roomId, message, LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         notificationRedisRepository.upsert(receiverId, productId, roomId, message, LocalDateTime.now(ZoneId.of("Asia/Seoul")));
     }
 
@@ -47,7 +48,7 @@ public class NotificationService {
 
     @Transactional
     public void markRead(String receiverId, Long notificationId){
-        notificationRepository.markRead(receiverId, notificationId);
+//        notificationRepository.markRead(receiverId, notificationId);
         notificationRedisRepository.markRead(receiverId, notificationId);
     }
 
