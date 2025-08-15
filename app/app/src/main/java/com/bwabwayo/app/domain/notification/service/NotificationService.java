@@ -16,6 +16,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -31,7 +34,7 @@ public class NotificationService {
 
     @Transactional
     public void upsert(String receiverId, Long productId, Long roomId, String message){
-        notificationRepository.upsert(receiverId, productId, roomId, message);
+        notificationRepository.upsert(receiverId, productId, roomId, message, LocalDateTime.now(ZoneId.of("Asia/Seoul")));
     }
 
     // ===================== mark-read =======================

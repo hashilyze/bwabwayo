@@ -26,14 +26,16 @@ INSERT INTO notification
 VALUES (:receiverId, :productId, :roomId, :message, NOW(3), false, 1)
 ON DUPLICATE KEY UPDATE
   message = VALUES(message),
-  updated_at = CONVERT_TZ(NOW(3), 'UTC', 'Asia/Seoul'),
+  updated_at = :updatedAt,
   is_read = false,
   unread_count = unread_count + 1
 """, nativeQuery = true)
     void upsert(@Param("receiverId") String receiverId,
                 @Param("productId") Long productId,
                 @Param("roomId") Long roomId,
-                @Param("message") String message);
+                @Param("message") String message,
+                @Param("updatedAt") LocalDateTime updatedAt
+    );
 
     // 알림 읽음 표시
     @Modifying
