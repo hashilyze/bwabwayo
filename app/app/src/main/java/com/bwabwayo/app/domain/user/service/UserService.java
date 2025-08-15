@@ -196,17 +196,16 @@ public class UserService {
         }
 
         String profileImage = request.getProfileImage();
-        String targetKey;
-        if(profileImage == null || profileImage.isEmpty()){
-            targetKey = "profiles/20250811162152_6cccbdf7-b8be-4ca9-adea-09bba6a90e1b.png";
-        } else {
+
+        if(profileImage != null && !profileImage.isEmpty()){
+            String targetKey;
             if (URLValidator.isValidURL(request.getProfileImage())) { // 다운로드 후 S3 업로드
                 targetKey = storageService.upload(profileImage, profilePath);
             } else { // S3의 profile로 이동
                 targetKey = storageUtil.copyToDirectory(profileImage, tempPath, profilePath);
             }
+            user.setProfileImage(targetKey);
         }
-        user.setProfileImage(targetKey);
 
         if (request.getBio() != null) {
             user.setBio(request.getBio());
