@@ -4,6 +4,7 @@ import com.bwabwayo.app.domain.chat.dto.MessageDTO;
 import com.bwabwayo.app.domain.notification.dto.request.UpsertRequest;
 import com.bwabwayo.app.domain.notification.dto.response.NotificationResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.internal.function.CheckedConsumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -11,18 +12,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class SseService {
 
-    private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
+    private final Map<String, Set<SseEmitter>> emitters = new ConcurrentHashMap<>();
     private final NotificationService notificationService;
 
-    private final Long TIMEOUT = 1000L * 30;
+    private final Long TIMEOUT = 0L;
 
 
     // ============= subscribe ==================
@@ -30,37 +34,37 @@ public class SseService {
     /** 사용자에게 알림을 보낼 수 있도록 등록 */
     public SseEmitter subscribe(String userId, String lastEventId) {
         // 새로운 emitter 연결
-        SseEmitter emitter = new SseEmitter(0L);
+        SseEmitter emitter = new SseEmitter(TIMEOUT);
 
-        // 연결종료, 타임아웃, 에러발생 시 emitter 제거 (메모리 누수 방지)
+        Set<SseEmitter> userEmitters = emitters.computeIfAbsent(userId, k -> ConcurrentHashMap.newKeySet());
+        userEmitters.add(emitter);
+
+        Consumer<String> cleanup = (String message) -> {
+            Set<SseEmitter> set = emitters.get(userId);
+            if (set != null) {
+                set.remove(emitter);
+                if (set.isEmpty()) {
+                    emitters.remove(userId);
+                }
+            }
+            log.info(message + ": userId={}", userId);
+        };
+
         log.info("SSE 구독 시작: userId={}", userId);
-        emitter.onCompletion(() -> {
-            emitters.remove(userId);
-            log.info("SSE 연결 종료: userId={}", userId);
-        });
-        emitter.onTimeout(() -> {
-            emitters.remove(userId);
-            log.info("SSE 타임 아웃: userId={}", userId);
-        });
-        emitter.onError((e) -> {
-            emitters.remove(userId);
-            log.info("SSE 에러 발생: userId={}", userId);
-        });
+        emitter.onCompletion(()->cleanup.accept("SSE 연결 종료"));
+        emitter.onTimeout(()->cleanup.accept("SSE 타임 아웃"));
+        emitter.onTimeout(()->cleanup.accept("SSE 에러 발생"));
 
-        // 이전 연결 제거
-        SseEmitter old = emitters.put(userId, emitter);
-        if (old != null) old.complete();
-
-//        try {
-//            // 연결 확인용 event 발송
-//            emitter.send(SseEmitter.event()
-//                    .id(String.valueOf(System.currentTimeMillis()))
-//                    .name("connect")
-//                    .data("connected")
-//                    .reconnectTime(3000));
-//        } catch (IOException e) {
-//            emitter.completeWithError(e);
-//        }
+        // 연결 확인용 event 발송
+        try {
+            emitter.send(SseEmitter.event()
+                    .id(String.valueOf(System.currentTimeMillis()))
+                    .name("connect")
+                    .data("connected")
+                    .reconnectTime(3000));
+        } catch (IOException e) {
+            emitter.completeWithError(e);
+        }
 
         pushEvent(userId);
 
@@ -75,8 +79,9 @@ public class SseService {
     }
     /** 메시지 전송 */
     public void pushEvent(String userId, String channel, String message){
-        SseEmitter emitter = emitters.get(userId);
-        pushEvent(emitter, userId, channel, message);
+        for(SseEmitter emitter : emitters.get(userId)){
+            pushEvent(emitter, userId, channel, message);
+        }
     }
 
     private void pushEvent(SseEmitter emitter, String userId, String channel, String message){
@@ -159,13 +164,30 @@ public class SseService {
     }
 
 
-    @Scheduled(fixedRate = 15000) // 15초
+    @Scheduled(fixedRate = 15000, initialDelay = 5_000) // 15초
     public void sendKeepAlive() {
-        for (SseEmitter e : emitters.values()) {
-            try {
-                e.send(SseEmitter.event().name("ping").comment("keepalive"));
-            } catch (IOException ex) {
-                e.complete();
+        for (Map.Entry<String, Set<SseEmitter>> entry : emitters.entrySet()) {
+            String userId = entry.getKey();
+            Set<SseEmitter> set = entry.getValue();
+
+            // 스냅샷으로 순회(동시 제거 안전)
+            for (SseEmitter e : List.copyOf(set)) {
+                try {
+                    // 같은 emitter로의 동시 send 보호(간단 동기화)
+                    synchronized (e) {
+                        e.send(SseEmitter.event()
+                                .name("ping")
+                                .data("keepalive")  // comment만 보내지 말고 data 포함!
+                                .reconnectTime(3000));
+                    }
+                } catch (IllegalStateException | IOException ex) {
+                    // 전송 실패 -> 정리
+                    try { e.complete(); } catch (Exception ignore) {}
+                    set.remove(e);
+                    if (set.isEmpty()) {
+                        emitters.remove(userId);
+                    }
+                }
             }
         }
     }
