@@ -60,6 +60,12 @@ public class UserService {
     @Value("${storage.path.profileImage}")
     private String profilePath;
 
+    @Transactional(readOnly = true)
+    public List<User> findAll(){
+        return userRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
     public User findById(String id){
         return userRepository.findUserById(id);
     }
@@ -364,5 +370,10 @@ public class UserService {
     public ReviewAgg findReviewAggByUser(String userId) {
         return reviewAggRepository.findByUserId(userId)
                 .orElse(ReviewAgg.builder().userId(userId).build());
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isActive(String userId){
+        return findById(userId).isActive();
     }
 }

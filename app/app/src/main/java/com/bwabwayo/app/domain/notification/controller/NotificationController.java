@@ -1,4 +1,5 @@
 package com.bwabwayo.app.domain.notification.controller;
+import com.bwabwayo.app.domain.auth.annotation.LoginUserId;
 import com.bwabwayo.app.domain.notification.domain.Notification;
 import com.bwabwayo.app.domain.notification.dto.request.UpsertRequest;
 import com.bwabwayo.app.domain.notification.dto.response.NotificationDTO;
@@ -38,9 +39,9 @@ public class NotificationController {
     @GetMapping(value="/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(
             @RequestHeader(value = "Last-Event-ID", required = false) String lastEventId,
-            @LoginUser User user
+            @LoginUserId String userId
     ){
-        return sseService.subscribe(user.getId(), lastEventId);
+        return sseService.subscribe(userId, lastEventId);
     }
 
     @Operation(summary = "인박스 알림 가져오기")

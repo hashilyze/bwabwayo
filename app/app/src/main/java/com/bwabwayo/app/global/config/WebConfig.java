@@ -1,6 +1,7 @@
 package com.bwabwayo.app.global.config;
 
 import com.bwabwayo.app.domain.auth.annotation.LoginUserArgumentResolver;
+import com.bwabwayo.app.domain.auth.annotation.LoginUserIdArgumentResolver;
 import com.bwabwayo.app.domain.auth.utils.JWTUtils;
 import com.bwabwayo.app.domain.auth.utils.JwtProperties;
 import com.bwabwayo.app.domain.user.service.UserService;
@@ -27,5 +28,6 @@ public class WebConfig implements WebMvcConfigurer {
     //커스텀한 어노테이션 추가
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
         resolvers.add(new LoginUserArgumentResolver(userService, jwtUtils,  jwtProperties));
+        resolvers.add(new LoginUserIdArgumentResolver(userService, jwtUtils,  jwtProperties));
     }
 }
