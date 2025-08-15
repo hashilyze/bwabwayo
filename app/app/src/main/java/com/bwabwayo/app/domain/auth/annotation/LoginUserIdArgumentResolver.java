@@ -6,6 +6,7 @@ import com.bwabwayo.app.domain.auth.utils.JwtProperties;
 import com.bwabwayo.app.domain.user.domain.User;
 import com.bwabwayo.app.domain.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -13,6 +14,7 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 //어노테이션을 설정했을 때 자동으로 주입해주는 클래스
+@Slf4j
 public class LoginUserIdArgumentResolver implements HandlerMethodArgumentResolver {
 
     private final UserService userService;
@@ -49,6 +51,7 @@ public class LoginUserIdArgumentResolver implements HandlerMethodArgumentResolve
         // 인증이 안된 사용자 (예외 발생), (사실, jwtFilter와 SecurityFilter로 인증 안된 사용자는 걸러지긴 함, 그래도 이중체크)
         if(accessToken == null) {
             if(loginUserId.required()) {
+                log.info("AccessToken이 존재하지 않습니다. 인증에 실패하였습니다.");
                 throw new UnauthorizedException("AccessToken이 존재하지 않습니다. 인증에 실패하였습니다.");
             }
             return null;
@@ -57,6 +60,7 @@ public class LoginUserIdArgumentResolver implements HandlerMethodArgumentResolve
         String type = jwtUtils.getTokenType(accessToken);
         if(type == null || !type.equals(jwtProperties.getTypeAccess())){
             if(loginUserId.required()) {
+                log.info("AcessToken이 아닙니다. 인증에 실패하였습니다.");
                 throw new UnauthorizedException("AcessToken이 아닙니다. 인증에 실패하였습니다.");
             }
             return null;
@@ -67,6 +71,7 @@ public class LoginUserIdArgumentResolver implements HandlerMethodArgumentResolve
         // userId 존재여부 확인
         if(userId == null) {
             if(loginUserId.required()) {
+                log.info("userId가 존재하지 않습니다. 인증에 실패하였습니다.");
                 throw new UnauthorizedException("userId가 존재하지 않습니다. 인증에 실패하였습니다.");
             }
             return null;
