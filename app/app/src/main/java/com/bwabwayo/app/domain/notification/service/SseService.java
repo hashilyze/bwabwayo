@@ -91,7 +91,7 @@ public class SseService {
         } catch (IOException e) {
             emitters.remove(userId);
             emitter.completeWithError(e);
-            throw new RuntimeException("SSE 알림 전송 중 예외 발생");
+            log.error("message={}", e.getMessage(), e);
         }
     }
 
