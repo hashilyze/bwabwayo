@@ -71,6 +71,13 @@ public class NotificationController {
         return ResponseEntity.ok(Map.of("result", "알림 읽음: notificationId="+notificationId));
     }
 
+    @Operation(summary = "채팅 알림 읽기")
+    @PostMapping("/mark/chat/{chatroomId}")
+    public ResponseEntity<?> markChatRead(@PathVariable Long chatroomId, @LoginUser User user){
+        notificationService.markChatRead(user.getId(), chatroomId);
+        return ResponseEntity.ok(Map.of("result", "알림 읽음: chatroomId="+chatroomId));
+    }
+
     @Operation(summary = "힌트 보내기")
     @PostMapping("/hint")
     public ResponseEntity<?> upsertHint(@RequestBody UpsertRequest request){
