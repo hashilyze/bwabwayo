@@ -57,6 +57,13 @@ public class NotificationController {
         return ResponseEntity.ok(NotificationListResponse.of(dtos, notifications.getTotalElements()));
     }
 
+    @Operation
+    @GetMapping("/count")
+    public ResponseEntity<NotificationListResponse> getUnreadNotificationCount(@LoginUser User user){
+        Page<NotificationDTO> notifications = notificationService.findInbox(user.getId(), PageRequest.of(0, 1));
+        return ResponseEntity.ok(NotificationListResponse.of(List.of(), notifications.getTotalElements()));
+    }
+
     @Operation(summary = "알림 보내기")
     @PostMapping("/send")
     public ResponseEntity<?> upsertNotification(@RequestBody UpsertRequest request){
