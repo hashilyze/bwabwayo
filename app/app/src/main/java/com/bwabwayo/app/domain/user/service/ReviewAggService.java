@@ -49,4 +49,17 @@ public class ReviewAggService {
         agg.addReview(rating); // 도메인 메서드
         reviewAggRepository.saveAndFlush(agg);
     }
+
+    @Transactional
+    public void updateReviewAggReSignUp(String userId) {
+        ReviewAgg reviewAgg = reviewAggRepository.findByUserId(userId)
+            .orElseGet(() -> ReviewAgg.builder()
+                    .userId(userId)
+                    .reviewCount(0)
+                    .avgRating(0f)
+                    .build());
+        reviewAgg.setReviewCount(0);
+        reviewAgg.setAvgRating(0);
+        reviewAggRepository.save(reviewAgg);
+    }
 }
