@@ -151,13 +151,12 @@ public class SseService {
 
         String contnet = message.getContent();
         switch (message.getType()){
-            case TEXT: {
+            case IMAGE: contnet = "이미지 파일입니다.";
+            case TEXT:{
                 upsertNotification(UpsertRequest.of(message.getReceiverId(), null, message.getRoomId(), contnet));
-                return;
-            }
-            case IMAGE: contnet = "이미지 파일입니다."; break;
+            } return;
             case CREATE_ROOM: contnet = "채팅방이 생성되었습니다."; break;
-            case RESERVE_VIDEOCALL: contnet = "화상 거래가 예약되었습니다"; break;
+            case RESERVE_VIDEOCALL: contnet = "화상 거래가 예약되었습니다";break;
             case CANCEL_VIDEOCALL: contnet = "화상 거래가 취소되었습니다"; break;
             case START_VIDEOCALL: contnet = "화상 거래가 시작되었습니다"; break;
             case START_TRADE: contnet = "거래가 시작되었습니다"; break;
@@ -169,7 +168,7 @@ public class SseService {
             case END_TRADE: contnet = "거래가 종료됩니다."; break;
         }
         upsertNotification(UpsertRequest.of(message.getReceiverId(), null, message.getRoomId(), contnet));
-        upsertNotification(UpsertRequest.of(message.getReceiverId(), null, message.getRoomId(), contnet));
+        upsertNotification(UpsertRequest.of(message.getSenderId(), null, message.getRoomId(), contnet));
     }
 
 
