@@ -1,6 +1,5 @@
 package com.bwabwayo.app.domain.notification.dto;
 
-import com.bwabwayo.app.domain.notification.domain.Notification;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -26,17 +25,4 @@ public class NotificationDTO {
     private boolean isRead;
 
     private int unreadCount;
-
-    public static NotificationDTO from(Notification notification){
-        return NotificationDTO.builder()
-                .id(notification.getId())
-                .receiverId(notification.getReceiver().getId())
-                .productId(notification.getProduct() == null ? null : notification.getProduct().getId())
-                .chatroomId(notification.getChatRoom() == null ? null : notification.getChatRoom().getRoomId())
-                .message(notification.getMessage())
-                .updatedAt(notification.getUpdatedAt())
-                .isRead(notification.isRead())
-                .unreadCount(notification.getUnreadCount())
-                .build();
-    }
 }

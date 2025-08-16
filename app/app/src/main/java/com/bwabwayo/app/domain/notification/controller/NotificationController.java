@@ -1,6 +1,5 @@
 package com.bwabwayo.app.domain.notification.controller;
 import com.bwabwayo.app.domain.auth.annotation.LoginUserId;
-import com.bwabwayo.app.domain.notification.domain.Notification;
 import com.bwabwayo.app.domain.notification.dto.NotificationDTO;
 import com.bwabwayo.app.domain.notification.dto.request.InboxRequest;
 import com.bwabwayo.app.domain.notification.dto.request.UpsertRequest;

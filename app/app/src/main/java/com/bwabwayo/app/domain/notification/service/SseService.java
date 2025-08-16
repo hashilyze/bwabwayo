@@ -4,7 +4,6 @@ import com.bwabwayo.app.domain.chat.dto.MessageDTO;
 import com.bwabwayo.app.domain.notification.dto.request.UpsertRequest;
 import com.bwabwayo.app.domain.notification.dto.response.NotificationResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mongodb.internal.function.CheckedConsumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
