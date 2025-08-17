@@ -179,6 +179,7 @@ public class ProductService {
             Product product = dto.getProduct();
 
             ProductDTO productDTO = ProductDTO.builder()
+                    .isMine(product.getSeller().equals(loginUser))
                     .id(product.getId())
                     .categoryId(product.getCategory().getId())
                     .thumbnail(storageService.getUrlFromKey(product.getThumbnail()))

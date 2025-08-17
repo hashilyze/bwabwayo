@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class ProductDTO {
+    private Boolean isMine;
     private Long id; // 상품 ID
     private Long categoryId; // 카테고리 ID
     private String thumbnail; // 썸네일 URL
