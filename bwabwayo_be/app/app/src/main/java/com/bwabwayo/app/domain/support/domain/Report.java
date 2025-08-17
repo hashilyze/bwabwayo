@@ -7,6 +7,8 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -23,6 +25,11 @@ public class Report{
     @Column(nullable = false)
     public String title;
 
+    @Setter(AccessLevel.NONE)
+    @Builder.Default
+    @OneToMany(mappedBy = "report", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ReportImage> reportImages = new ArrayList<>();
+
     @Column(nullable = false)
     public String description;
 
@@ -30,11 +37,11 @@ public class Report{
     private String reply; // 신고 답변
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reporter_id", nullable = false)
+    @JoinColumn(name = "reporter_id", nullable = false, updatable = false)
     public User reporter; // 신고자
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "target_id", nullable = false)
+    @JoinColumn(name = "target_id", nullable = false, updatable = false)
     public User target; // 신고 대상자
 
     @Column(name = "created_at", nullable = false, updatable = false)

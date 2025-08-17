@@ -21,7 +21,15 @@ export default function Category(){
         setMajorCategory(catName);
         if (categories && categories.length > 0) {
             const found = categories.find(cat => cat.categoryName === catName);
-            setMinorCategories(found ? found.subCategories || [] : []);
+            const subCategories = found ? found.subCategories || [] : [];
+            setMinorCategories(subCategories);
+            
+            // 하위 카테고리가 없으면 즉시 라우팅
+            if (subCategories.length === 0) {
+                if (found) {
+                    handleCategoryClick(found.categoryId);
+                }
+            }
         } else {
             setMinorCategories([]);
         }
@@ -62,14 +70,14 @@ export default function Category(){
                       magorCate(cat.categoryName);
                     }}
                     onMouseLeave={() => setIsHovered('')}
-                    className={`px-6 py-3 text-sm cursor-pointer hover:bg-blue-50 hover:text-blue-600 ${
-                      isHovered === cat.categoryName ? 'bg-blue-50 text-blue-600 font-medium' : ''
+                    className={`px-6 py-3 text-md cursor-pointer hover:bg-[#fff9ea] hover:text-[#ffae00] ${
+                      isHovered === cat.categoryName ? 'bg-[#fff9ea] text-[#ffae00] font-semibold' : ''
                     }`}
                   >
                     {cat.categoryName}
                   </li>
                 )) : (
-                  <li className="px-6 py-3 text-sm text-gray-400">
+                  <li className="px-6 py-3 text-md text-gray-400">
                     {loading ? '카테고리를 불러오는 중...' : '카테고리가 없습니다.'}
                   </li>
                 )}
@@ -86,7 +94,7 @@ export default function Category(){
                     <li
                       key={subCat.categoryId}
                       onClick={() => handleCategoryClick(subCat.categoryId)}
-                      className={`px-4 py-3 text-sm cursor-pointer hover:bg-gray-100`}
+                      className={`px-4 py-3 text-md cursor-pointer hover:bg-[#fff9ea] hover:text-[#ffae00] hover:font-semibold`}
                     >
                       {subCat.categoryName}
                     </li>

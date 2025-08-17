@@ -1,16 +1,15 @@
 package com.bwabwayo.app.domain.product.service;
 
 import com.bwabwayo.app.domain.product.domain.Category;
+import com.bwabwayo.app.domain.product.dto.response.CategoryListResponse;
 import com.bwabwayo.app.domain.product.dto.response.CategoryTreeDTO;
+import com.bwabwayo.app.domain.product.exception.CategoryNotFoundException;
 import com.bwabwayo.app.domain.product.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -19,48 +18,58 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
 
     /**
-     * 최상위 카테고리 조회
-     */
-    @Transactional(readOnly = true)
-    public List<CategoryTreeDTO> getTopCategories() {
-        List<Category> categories = categoryRepository.findAll();
-        return buildCategoryTree(categories);
-    }
-
-    /**
      * 카테고리 가져오기
      */
-    public Category getCategoryById(Long categoryId){
-        return  categoryRepository.getCategoryById(categoryId);
+    @Transactional(readOnly = true)
+    public Category findById(Long categoryId){
+        return categoryRepository.findById(categoryId)
+                .orElseThrow(()->new CategoryNotFoundException(categoryId));
+
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Category> findByIdOptional(Long categoryId){
+        return categoryRepository.findById(categoryId);
     }
 
     /**
      * 카테고리 존재 여부 확인
      */
-    public boolean existsCategoryById(Long categoryId){
-        return categoryRepository.existsCategoryById(categoryId);
+    @Transactional(readOnly = true)
+    public boolean existsById(Long categoryId){
+        return categoryRepository.existsById(categoryId);
     }
 
+    /**
+     * 최상위 카테고리 조회
+     */
+    @Transactional(readOnly = true)
+    public CategoryListResponse getTopCategories() {
+        List<Category> categories = categoryRepository.findAll();
+        List<CategoryTreeDTO> categoryTreeDTOs = buildCategoryTree(categories);
 
+        return CategoryListResponse.builder()
+                .totalCategories(categories.size())
+                .totalTopCategories(categoryTreeDTOs.size())
+                .categories(categoryTreeDTOs)
+                .build();
+    }
 
     /**
-     * flat한 카테고리를 tree로 변환
+     * 카테고리의 flatList를 tree로 재구성
      */
     private List<CategoryTreeDTO> buildCategoryTree(List<Category> flatList) {
-        // id → DTO 매핑
-        Map<Long, CategoryTreeDTO> dtoMap = new HashMap<>();
-        // id → Entity 매핑 (부모 ID 확인용)
-        Map<Long, Category> entityMap = new HashMap<>();
-
         List<CategoryTreeDTO> roots = new ArrayList<>();
 
-        // DTO 초기 생성 및 매핑 저장
+        Map<Long, CategoryTreeDTO> dtoMap = new HashMap<>();
+
+        // DTOMap과 EntityMap 초기화
         for (Category category : flatList) {
-            dtoMap.put(category.getId(), CategoryTreeDTO.builder()
+            CategoryTreeDTO dto = CategoryTreeDTO.builder()
                     .categoryId(category.getId())
                     .categoryName(category.getName())
-                    .build());
-            entityMap.put(category.getId(), category);
+                    .build();
+            dtoMap.put(category.getId(), dto);
         }
 
         // 트리 구성
@@ -71,15 +80,12 @@ public class CategoryService {
             if (parent == null) {
                 roots.add(dto);
             } else {
-                Long parentId = parent.getId(); // parent는 실제로는 프록시일 수 있음
+                Long parentId = parent.getId();
                 CategoryTreeDTO parentDto = dtoMap.get(parentId);
-                if (parentDto != null) {
-                    parentDto.getSubCategories().add(dto);
-                }
+                parentDto.getSubCategories().add(dto);
             }
         }
 
         return roots;
     }
-
 }

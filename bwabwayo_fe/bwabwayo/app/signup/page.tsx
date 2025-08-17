@@ -1,88 +1,159 @@
 // 파일 경로: app/signup/page.tsx
 'use client';
 
-import React, { useRef, ChangeEvent, FormEvent, useEffect } from 'react';
-import { useRouter } from 'next/navigation'; // useRouter import
-import { useSignupStore } from '@/stores/signUpStore'; // Zustand 스토어를 import 합니다.
+import React, { useRef, ChangeEvent, FormEvent, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSignupStore } from '@/stores/signUpStore';
 import Script from 'next/script';
+import SignupSuccessModal from '@/components/signup/SignupSuccessModal'; // 성공 모달 컴포넌트 추가
+
+import { UserCircleIcon, XCircleIcon } from '@/components/signup/Icons'; // 아이콘 컴포넌트 경로가 맞는지 확인해주세요.
 
 // --- 타입 정의 ---
-interface DaumPostcodeData { 
-    address: string;
-    addressType: 'R' | 'J';
-    bname: string;
-    buildingName: string;
-    zonecode: string;
-}
-
-declare global {
-  interface Window {
-    daum: {
-        Postcode: new (options: { oncomplete: (data: DaumPostcodeData) => void }) => { open: () => void };
-    };
-  }
-}
-
-// --- 아이콘 컴포넌트 ---
-const UserCircleIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 text-gray-400">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-);
-const PlusCircleIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-500">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-);
-const MinusCircleIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-500">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-);
+import { DaumPostcodeData } from '@/types/daum';
 
 const BANK_LIST = [
-    '기업은행', '국민은행', '우리은행', 'NH농협은행', '부산은행', 
-    '신한은행', '하나은행', '광주은행', '우체국', 'IM뱅크(대구은행)', '경남은행'
-];
-
+    '기업은행', '국민은행', '우리은행', 'NH농협은행', '부산은행',
+    '신한은행', '하나은행', '광주은행', '우체국', 'IM뱅크(대구은행)', '경남은행'
+  ];
 // --- 회원가입 페이지 컴포넌트 ---
-export default function SignUpPage({ searchParams }: { searchParams?: { email?: string; profileImage?: string } }) {
-    // --- Zustand 스토어에서 상태와 액션을 모두 가져옵니다. ---
+export default function SignUpPage() {
+    // --- Zustand 스토어에서 상태와 액션을 모두 가져옵니다. ---
     const {
-        // 상태 (State)
-        showOptionalFields, profileImage, nickname, phoneNumber, email,
-        accountNumber, bankName, accountHolder, address, addressDetail, zipcode,
-        recipientName, recipientPhoneNumber, agreements, loading, error, isSuccess,
-        // 액션 (Actions)
-        setShowOptionalFields, setProfileImage, setNickname, setPhoneNumber, setEmail,
-        setAccountNumber, setBankName, setAccountHolder, setAddress,
-        setAddressDetail, setZipcode, setRecipientName, setRecipientPhoneNumber,
-        setAgreement, submitSignup, reset
+        showOptionalFields, profileImage, nickname, phoneNumber, email,
+        accountNumber, bankName, accountHolder, address, addressDetail, zipcode,
+        recipientName, recipientPhoneNumber, agreements, loading, error, isSuccess,
+        loginPoint, signUpPoint, // loginPoint와 signUpPoint 추가
+        setShowOptionalFields, setProfileImage, setNickname, setPhoneNumber, setEmail,
+        setAccountNumber, setBankName, setAccountHolder, setAddress,
+        setAddressDetail, setZipcode, setRecipientName, setRecipientPhoneNumber,
+        setAgreement, submitSignup, reset, setSocialInfo
     } = useSignupStore();
 
+    // --- 이미지 업로드 관련 로컬 상태 ---
+    const [isUploading, setIsUploading] = useState(false);
+    const [preview, setPreview] = useState<string | null>(null);
+    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false); // 성공 모달 상태 추가
+
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const router = useRouter(); // useRouter 훅 사용
+    const router = useRouter();
 
-    // --- 개선된 부분: URL 파라미터로 스토어 상태 초기화 ---
-    // 페이지에 처음 진입하거나 URL 파라미터가 변경될 때,
-    // 소셜 로그인으로부터 받은 이메일과 프로필 이미지로 폼을 채웁니다.
-    // 파라미터가 없으면 필드를 깨끗하게 비웁니다.
-     useEffect(() => {
-        setEmail(searchParams?.email ?? '');
-        setProfileImage(searchParams?.profileImage ?? null);
-    }, [searchParams, setEmail, setProfileImage]); // searchParams가 바뀔 때마다 이 효과를 다시 실행합니다.
+    // 소셜 로그인 정보는 콜백 페이지에서 Zustand 스토어에 미리 저장됩니다.
+    // 이 페이지는 스토어에서 값을 읽어와 UI를 채우기만 하므로,
+    // URL 파라미터를 파싱하는 별도의 useEffect 로직이 필요 없습니다.
+    // 컴포넌트가 렌더링될 때 useSignupStore() 훅이 최신 상태를 가져와
+    // email, profileImage 등의 값을 input에 자동으로 채워줍니다.
+    
+    // 스토어에 프로필 이미지가 있으면 미리보기에 설정
+    useEffect(() => {
+        if (profileImage) {
+            setPreview(profileImage);
+        }
+    }, [profileImage]);
 
-    // --- 이벤트 핸들러 ---
-    const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setProfileImage(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
+    // 컴포넌트 언마운트 시 생성된 Object URL 해제 (메모리 누수 방지)
+    useEffect(() => {
+        return () => {
+            if (preview && preview.startsWith('blob:')) {
+                URL.revokeObjectURL(preview);
+            }
+        };
+    }, [preview]);
+
+    // --- 이미지 업로드 관련 핸들러 ---
+    const handleUploadClick = () => {
+        if (isUploading) {
+            alert('이미지 업로드 중입니다. 잠시만 기다려주세요.');
+            return;
+        }
+        fileInputRef.current?.click();
+    };
+
+    const uploadProfileImage = async (file: File) => {
+        setIsUploading(true);
+        const formData = new FormData();
+        formData.append('files', file);
+
+        try {
+            const response = await fetch('https://i13e202.p.ssafy.io/be/api/storage/upload/profile', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) throw new Error('이미지 업로드에 실패했습니다.');
+
+            const data = await response.json();
+            const imageUrl = data.results[0]?.url;
+
+            if (!imageUrl) throw new Error('업로드된 이미지 URL을 받지 못했습니다.');
+
+            setProfileImage(imageUrl);
+            setPreview(imageUrl);
+
+        } catch (error) {
+            console.error('프로필 이미지 업로드 오류:', error);
+            alert('이미지 업로드 중 오류가 발생했습니다.');
+            setPreview(null);
+            setProfileImage(null);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (preview && preview.startsWith('blob:')) URL.revokeObjectURL(preview);
+
+        const tempPreviewUrl = URL.createObjectURL(file);
+        setPreview(tempPreviewUrl);
+
+        await uploadProfileImage(file);
+
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
+    const handleDeleteImage = () => {
+        if (preview && preview.startsWith('blob:')) URL.revokeObjectURL(preview);
+        setPreview(null);
+        setProfileImage(null);
+    };
+
+    const handleAccountHolderChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const { value } = e.target;
+        // 한글만 입력 가능하도록 정규식 사용
+        const koreanOnly = value.replace(/[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '');
+        setAccountHolder(koreanOnly);
+    };
+
+    const handleAccountNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const { value } = e.target;
+        // 숫자만 입력 가능하도록 정규식 사용
+        const numbersOnly = value.replace(/[^0-9]/g, '');
+        setAccountNumber(numbersOnly);
+    };
+
+    const handleNicknameChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const { value } = e.target;
+        // 특수문자 제외 (영문, 숫자, 한글만 허용)
+        const validNickname = value.replace(/[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣]/g, '');
+        setNickname(validNickname);
+    };
+
+    const handlePhoneNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const { value } = e.target;
+        // 숫자만 입력 가능하도록 정규식 사용하고, 11자로 제한합니다.
+        const numbersOnly = value.replace(/[^0-9]/g, '').slice(0, 11);
+        setPhoneNumber(numbersOnly);
+    };
+
+    const handleRecipientPhoneNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const { value } = e.target;
+        // 숫자만 입력 가능하도록 정규식 사용하고, 11자로 제한합니다.
+        const numbersOnly = value.replace(/[^0-9]/g, '').slice(0, 11);
+        setRecipientPhoneNumber(numbersOnly);
+    };
 
     const handleAddressSearch = () => {
         if (window.daum && window.daum.Postcode) {
@@ -90,15 +161,11 @@ export default function SignUpPage({ searchParams }: { searchParams?: { email?: 
                 oncomplete: function(data: DaumPostcodeData) {
                     let fullAddress = data.address;
                     let extraAddress = '';
-
                     if (data.addressType === 'R') {
                         if (data.bname !== '') extraAddress += data.bname;
-                        if (data.buildingName !== '') {
-                            extraAddress += (extraAddress !== '' ? `, ${data.buildingName}` : data.buildingName);
-                        }
+                        if (data.buildingName !== '') extraAddress += (extraAddress !== '' ? `, ${data.buildingName}` : data.buildingName);
                         fullAddress += (extraAddress !== '' ? ` (${extraAddress})` : '');
                     }
-                    // 스토어의 액션을 호출하여 주소와 우편번호를 업데이트합니다.
                     setAddress(fullAddress);
                     setZipcode(data.zonecode);
                 }
@@ -113,209 +180,211 @@ export default function SignUpPage({ searchParams }: { searchParams?: { email?: 
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+
+        // 약관 동의 확인
         if (!agreements.terms || !agreements.privacy) {
             alert('필수 약관에 동의해주세요.');
             return;
         }
 
-        // 선택 정보 그룹 유효성 검사 헬퍼 함수
-        const validateOptionalGroup = (fields: string[], groupName: string): boolean => {
-            const filledFields = fields.filter(field => field.trim() !== '');
-            // 일부만 입력된 경우
-            if (filledFields.length > 0 && filledFields.length < fields.length) {
-                alert(`${groupName} 정보를 모두 입력해야 합니다.`);
-                return false;
-            }
-            return true;
-        };
-
-        // 배송지 정보 유효성 검사
-        const deliveryFields = [recipientName, recipientPhoneNumber, zipcode, address, addressDetail];
-        if (!validateOptionalGroup(deliveryFields, '배송지')) {
+        // 필수 입력 필드 유효성 검사
+        if (!nickname.trim()) {
+            alert('닉네임을 입력해주세요.');
+            return;
+        }
+        if (!accountHolder.trim() || !bankName.trim() || !accountNumber.trim()) {
+            alert('계좌 정보(예금주, 은행, 계좌번호)는 필수입니다.');
             return;
         }
 
-        // 계좌 정보 유효성 검사
-        const accountFields = [accountNumber, accountHolder, bankName];
-        if (!validateOptionalGroup(accountFields, '계좌')) {
+        // 배송지 정보 유효성 검사: 하나라도 입력되면 모두 필수
+        const addressInfoProvided = recipientName.trim() || recipientPhoneNumber.trim() || zipcode.trim() || address.trim() || addressDetail.trim();
+        const allAddressInfoProvided = recipientName.trim() && recipientPhoneNumber.trim() && zipcode.trim() && address.trim() && addressDetail.trim();
+
+        if (addressInfoProvided && !allAddressInfoProvided) {
+            alert('배송지 관련 정보를 모두 입력해주세요.');
             return;
         }
 
-        // 스토어에 있는 submitSignup 액션을 호출합니다.
-        const isSuccess = await submitSignup();
-
-        
-        // 성공적으로 완료되면 알림을 띄우고 메인 페이지로 이동합니다.
-        if (isSuccess) {
-            alert('회원가입에 성공했습니다!');
-            reset(); // 스토어 상태 초기화
-            router.replace('/'); // basePath는 Next.js가 자동으로 처리하므로 루트 경로로 지정합니다.
-        }
+        await submitSignup();
     };
+
+    useEffect(() => {
+        if (isSuccess) {
+            setIsSuccessModalOpen(true);
+        }
+    }, [isSuccess]);
+
+    const handleSuccessConfirm = () => {
+        setIsSuccessModalOpen(false);
+        reset();
+        router.replace('/');
+    };
 
     const allRequiredAgreed = agreements.terms && agreements.privacy;
 
-   return (
+  return (
     <>
-        <Script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js" strategy="afterInteractive" />
-
+        <Script
+            src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"
+            strategy="afterInteractive"
+        />
         <div className="min-h-screen bg-gray-50 flex justify-center py-12 px-4">
-            <div className="w-full max-w-2xl">
-                <h1 className="text-3xl font-bold text-center mb-10">회원가입</h1>
-                
-                <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-lg space-y-8">
-                    <div className="flex flex-col items-center">
-                        <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageChange} className="hidden" />
-                        <div onClick={() => fileInputRef.current?.click()} className="w-32 h-32 rounded-full bg-gray-100 flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed hover:border-blue-500">
-                            {profileImage ? (
-                                <img src={profileImage} alt="프로필 미리보기" className="w-full h-full object-cover" />
-                            ) : (
-                                <UserCircleIcon />
-                            )}
+        <div className="w-full max-w-4xl">
+            <h1 className="text-3xl font-bold mb-8 text-left">회원가입</h1>
+            <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-md space-y-8">
+                {/* 프로필 사진 업로드 */}
+                 <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
+                     <label className="font-bold text-lg">프로필 사진</label>
+                     <div className="md:col-span-2 flex items-center gap-4 justify-start">
+                         <input
+                             type="file"
+                             accept="image/*"
+                             ref={fileInputRef}
+                             onChange={handleFileChange}
+                             className="hidden"
+                         />
+                         <div className="relative w-24 h-24">
+                             <div
+                                 onClick={handleUploadClick}
+                                 className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed hover:border-yellow-400 transition-all"
+                             >
+                                 {preview ? (
+                                     <img src={preview} alt="프로필 미리보기" className="w-full h-full object-cover" />
+                                 ) : (
+                                     <UserCircleIcon />
+                                 )}
+                                 {isUploading && (
+                                     <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-full">
+                                         <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full"></div>
+                                     </div>
+                                 )}
+                             </div>
+                             {preview && !isUploading && (
+                                 <button type="button" onClick={handleDeleteImage} className="absolute -top-1 -right-1 bg-white rounded-full text-gray-500 hover:text-red-500 transition-colors" aria-label="이미지 삭제">
+                                     <XCircleIcon />
+                                 </button>
+                             )}
+                         </div>
+                         <div>
+                             <button type="button" className="px-6 py-2 bg-yellow-300 border border-black rounded-full font-bold text-base hover:bg-yellow-200" onClick={handleUploadClick} disabled={isUploading}>
+                                 {isUploading ? '업로드 중...' : '이미지 등록'}
+                             </button>
+                             <p className="text-sm text-gray-500 mt-2">최대 10MB의 JPG, PNG, GIF파일</p>
+                         </div>
+                     </div>
+                 </div>
+
+                {/* 닉네임, 휴대폰 번호, 이메일 */}
+                <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
+                    <label className="font-bold text-lg">닉네임 <span className="text-red-500">*</span></label>
+                    <div className="md:col-span-2 max-w-xs">
+                        <input type="text" value={nickname} onChange={handleNicknameChange} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" required />
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
+                    <label className="font-bold text-lg">휴대폰 번호</label>
+                    <div className="md:col-span-2 max-w-xs">
+                        <input type="tel" value={phoneNumber} onChange={handlePhoneNumberChange} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" maxLength={11} />
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
+                    <label className="font-bold text-lg">이메일</label>
+                    <div className="md:col-span-2 max-w-xs">
+                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" />
+                    </div>
+                </div>
+
+                <hr className="my-6 border-t border-gray-200" />
+
+                {/* 계좌 정보 */}
+                <div className="space-y-6">
+                    <h2 className="text-xl font-bold">계좌 정보<span className="text-red-500"> *</span></h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
+                        <label className="font-bold text-lg">예금주 </label>
+                        <div className="md:col-span-2 max-w-xs">
+                            <input type="text" value={accountHolder}
+                             onChange={handleAccountHolderChange}
+                            className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                            required />
                         </div>
-                        <p className="text-sm text-gray-500 mt-2">프로필 이미지 등록 (선택)</p>
                     </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">닉네임</label>
-                        <input type="text" value={nickname} onChange={(e) => setNickname(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" required />
+                    <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
+                        <label className="font-bold text-lg">은행 </label>
+                        <div className="md:col-span-2 max-w-xs">
+                            <select 
+                            value={bankName} 
+                            onChange={(e) => setBankName(e.target.value)} 
+                            className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300 bg-white"
+                            required>
+                                <option value="">은행선택</option>
+                                {BANK_LIST.map((bank) => (<option key={bank} value={bank}>{bank}</option>))}
+                            </select>
+                        </div>
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">이메일 (선택)</label>
-                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" />
+                    <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
+                        <label className="font-bold text-lg">계좌번호 </label>
+                        <div className="md:col-span-2 max-w-xs">
+                            <input type="text" value={accountNumber} onChange={handleAccountNumberChange}
+                            className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" placeholder="'-' 없이 숫자만 입력"
+                            required />
+                        </div>
                     </div>
+                </div>
 
-                    <div className="border-t pt-8 min-h-[580px]">
-                        {showOptionalFields ? (
-                            <div className="space-y-6">
-                                <div className="space-y-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">휴대폰 번호 (선택)</label>
-                                        <input type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" />
-                                    </div>
-                                </div>
+                <hr className="my-6 border-t border-gray-200" />
 
-                                <div className="space-y-4 border-t pt-6">
-                                    <label className="block text-sm font-medium text-gray-700">계좌 정보 (선택)</label>
-                                    <p className="text-xs text-gray-500 -mt-2">계좌 정보를 입력하시려면 은행, 예금주명, 계좌번호를 모두 입력해주세요.</p>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label htmlFor="bankName" className="block text-sm font-medium text-gray-700 mb-1">은행</label>
-                                            <select id="bankName" value={bankName} onChange={(e) => setBankName(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white">
-                                                <option value="">은행 선택</option>
-                                                {BANK_LIST.map(bank => (
-                                                    <option key={bank} value={bank}>{bank}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label htmlFor="accountHolder" className="block text-sm font-medium text-gray-700 mb-1">예금주명</label>
-                                            <input id="accountHolder" type="text" value={accountHolder} onChange={(e) => setAccountHolder(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-700 mb-1">계좌번호</label>
-                                        <input 
-                                            id="accountNumber"
-                                            type="text" 
-                                            value={accountNumber} onChange={(e) => setAccountNumber(e.target.value.replace(/[^0-9]/g, ''))} 
-                                            placeholder="'-' 없이 숫자만 입력" 
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" />
-                                    </div>
-                                </div>
+                {/* 배송지 정보 */}
+                <div className="space-y-6">
+                    <h2 className="text-xl font-bold">배송지 정보</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
+                        <label className="font-bold text-lg">받는 사람</label>
+                        <div className="md:col-span-2 max-w-xs">
+                            <input type="text" value={recipientName} onChange={(e) => setRecipientName(e.target.value)} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 justify-start">
+                        <label className="font-bold text-lg">배송지 전화번호</label>
+                        <div className="md:col-span-2 max-w-xs">
+                            <input type="tel" value={recipientPhoneNumber} onChange={handleRecipientPhoneNumberChange} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" maxLength={11} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 justify-start">
+                        <label className="font-bold text-lg pt-2">주소</label>
+                        <div className="md:col-span-2 space-y-2 max-w-xs">
+                            <div className="flex gap-4 justify-start">
+                                <input type="text" value={zipcode} className="w-32 border border-gray-300 rounded-xl px-4 py-2 bg-gray-50" placeholder="우편번호" readOnly />
+                                <button type="button" onClick={handleAddressSearch} className="px-4 bg-yellow-300 border border-black rounded-full font-bold text-sm hover:bg-yellow-200 flex-shrink-0">우편번호 찾기</button>
 
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">배송지 정보 (선택)</label>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label htmlFor="recipientName" className="block text-sm font-medium text-gray-700 mb-1">배송지 이름</label>
-                                            <input
-                                                id="recipientName"
-                                                type="text"
-                                                value={recipientName}
-                                                onChange={(e) => setRecipientName(e.target.value)}
-                                                placeholder="받는 분 이름"
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="recipientPhoneNumber" className="block text-sm font-medium text-gray-700 mb-1">배송지 전화번호</label>
-                                            <input
-                                                id="recipientPhoneNumber"
-                                                type="tel"
-                                                value={recipientPhoneNumber}
-                                                onChange={(e) => setRecipientPhoneNumber(e.target.value)}
-                                                placeholder="받는 분 전화번호"
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                                            />
-                                        </div>
-                                    </div>
-                                    {/* 주소 입력 폼 */}
-                                    <div className="mt-4">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">주소 (선택)</label>
-                                        <div className="flex gap-2 mb-2">
-                                            <input
-                                                type="text"
-                                                value={zipcode}
-                                                readOnly
-                                                placeholder="우편번호"
-                                                className="w-32 px-4 py-2 border border-gray-300 rounded-md bg-gray-100"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={handleAddressSearch}
-                                                className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900"
-                                            >
-                                                주소 검색
-                                            </button>
-                                        </div>
-                                        <input
-                                            type="text"
-                                            value={address}
-                                            readOnly
-                                            placeholder="주소"
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100 mb-2"
-                                        />
-                                        <input
-                                            type="text"
-                                            value={addressDetail}
-                                            onChange={(e) => setAddressDetail(e.target.value)}
-                                            placeholder="상세주소"
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                                        />
-                                    </div>
-                                </div>
-                                <button type="button" onClick={() => setShowOptionalFields(false)} className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50 hover:border-gray-400 transition-colors">
-                                    <MinusCircleIcon />
-                                    <span>추가 정보 닫기</span>
-                                </button>
                             </div>
-                        ) : (
-                            <div>
-                                <p className="text-center text-sm text-gray-500 mb-4">
-                                    추가 정보 입력 시 알림톡 기능과 기본 배송지 등록이 가능합니다.
-                                </p>
-                                <button type="button" onClick={() => setShowOptionalFields(true)} className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50 hover:border-gray-400 transition-colors">
-                                    <PlusCircleIcon />
-                                    <span>추가 정보 입력 (선택)</span>
-                                </button>
-                            </div>
-                        )}
+                            <input type="text" value={address} className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-gray-50" placeholder="주소" readOnly />
+                            <input type="text" value={addressDetail} onChange={(e) => setAddressDetail(e.target.value)} className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300" placeholder="상세주소" />
+                        </div>
                     </div>
+                </div>
 
-                    <div className="space-y-4 border-t pt-6">
-                        <div className="flex items-center"><input type="checkbox" id="terms" name="terms" checked={agreements.terms} onChange={handleAgreementChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded" /><label htmlFor="terms" className="ml-2 block text-sm text-gray-900">(필수) 이용약관 동의</label></div>
-                        <div className="flex items-center"><input type="checkbox" id="privacy" name="privacy" checked={agreements.privacy} onChange={handleAgreementChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded" /><label htmlFor="privacy" className="ml-2 block text-sm text-gray-900">(필수) 개인정보 수집 및 이용 동의</label></div>
-                        <div className="flex items-center"><input type="checkbox" id="marketing" name="marketing" checked={agreements.marketing} onChange={handleAgreementChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded" /><label htmlFor="marketing" className="ml-2 block text-sm text-gray-900">(선택) 마케팅 정보 수신 동의</label></div>
-                    </div>
-
-                    <button type="submit" disabled={!allRequiredAgreed || loading} className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">
-                        {loading ? '가입 처리 중...' : '가입하기'}
+                {/* 약관 동의 */}
+                <div className="space-y-4 border-t pt-8">
+                    <div className="flex items-center"><input type="checkbox" id="terms" name="terms" checked={agreements.terms} onChange={handleAgreementChange} className="h-4 w-4 text-yellow-400 border-gray-300 rounded focus:ring-yellow-300" /><label htmlFor="terms" className="ml-2 block text-sm text-gray-900">(필수) 이용약관 동의</label></div>
+                    <div className="flex items-center"><input type="checkbox" id="privacy" name="privacy" checked={agreements.privacy} onChange={handleAgreementChange} className="h-4 w-4 text-yellow-400 border-gray-300 rounded focus:ring-yellow-300" /><label htmlFor="privacy" className="ml-2 block text-sm text-gray-900">(필수) 개인정보 수집 및 이용 동의</label></div>
+                    <div className="flex items-center"><input type="checkbox" id="marketing" name="marketing" checked={agreements.marketing} onChange={handleAgreementChange} className="h-4 w-4 text-yellow-400 border-gray-300 rounded focus:ring-yellow-300" /><label htmlFor="marketing" className="ml-2 block text-sm text-gray-900">(선택) 마케팅 정보 수신 동의</label></div>
+                </div>
+                
+                {/* 저장하기 버튼 */}
+                <div className="flex justify-center pt-4">
+                    <button type="submit" disabled={!allRequiredAgreed || loading} className="w-48 py-3 bg-yellow-400 border border-black rounded-full font-bold text-lg hover:bg-yellow-300 transition disabled:bg-gray-300">
+                        {loading ? '저장 중...' : '저장하기'}
                     </button>
-                    {error && <p className="text-red-500 text-sm text-center mt-2">{error}</p>}
-                </form>
-            </div>
+                </div>
+                {error && <p className="text-red-500 text-sm text-center mt-2">{error}</p>}
+            </form>
+            <SignupSuccessModal 
+                isOpen={isSuccessModalOpen} 
+                onConfirm={handleSuccessConfirm}
+                loginPoint={loginPoint}
+                signUpPoint={signUpPoint}
+            />
         </div>
-    </>
-);
+    </div></>
+  );
 }
