@@ -87,6 +87,8 @@ public class ProductService {
      */
     @Transactional
     public void delete(Product product) {
+        wishService.deleteAllByProduct(product);
+
         // 삭제할 이미지 URL 기록
         List<ProductImage> productImages = product.getProductImages();
         List<String> imageKeys = productImages.stream().map(ProductImage::getUrl).toList();
