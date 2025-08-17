@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from "react"
-import MyVideo from "@/components/chat/MyVideo"
 import ChatInput from "@/components/chat/ChatInput"
 
 export default function WebTest(){
@@ -19,7 +18,7 @@ export default function WebTest(){
     }
 
     return(
-        <div className="custom-gradient rounded-lg flex gap-10 items-center px-8 py-12 relative overflow-hidden mb-20">
+        <div className="custom-gradient rounded-lg flex gap-10 items-end px-8 py-12 relative overflow-hidden mb-20">
           <div>
             <div className="flex gap-2 items-center"><img width={16} src="/icon/security-green.svg" alt="" /><p className="text-[#BBF7D0]">안심하고 믿을만하게 할 수 있는</p></div>
             <h1 className="flex flex-col text-white text-4xl font-bold gap-1 mt-5 mb-6">화상채팅<span className='text-[#85EDAD]'>중고거래 서비스</span><span className='text-[#FDBA74]'>TrustTrade</span></h1>
@@ -53,9 +52,6 @@ export default function WebTest(){
                   </div>
               </li>
             </ul>
-            <div className='bg-white cursor-pointer py-3 mt-6 rounded-lg flex items-center justify-center w-[150px] text-[#2857DB] text-md'
-              onClick={handleStart}>지금 시작하기
-            </div>
             
             {/* 화상 테스트.. */}
             {showVideo &&
@@ -74,7 +70,6 @@ export default function WebTest(){
                       bg-white rounded-xl overflow-hidden shadow-lg
                     `}
                 >
-                    <MyVideo ref={videoRef} />
                     <div className="flex flex-col flex-wrap">
                       {/* chat-title */}
                       <div className="chat-title flex flex-col gap-2 border-b-1 border-[#eee] p-4">

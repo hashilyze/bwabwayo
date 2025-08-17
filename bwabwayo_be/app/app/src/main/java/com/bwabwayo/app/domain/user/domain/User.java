@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(of = "id")
 @Table(
         name = "user",
         uniqueConstraints = {
@@ -24,8 +25,11 @@ import java.time.LocalDateTime;
 public class User {
 
     @Id
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false)
     private String id; // 소셜 로그인 공급자 ID (ex. kakao_12345)
+
+    @Version
+    private Long version;
 
     @Column(nullable = false, length = 10)
     @Enumerated(EnumType.STRING)
@@ -40,7 +44,7 @@ public class User {
     @Column(name = "phone_number", unique = true, length = 11)
     private String phoneNumber;
 
-    @Column(name = "profile_image", length = 255)
+    @Column(name = "profile_image", length = 2083)
     private String profileImage;
 
     @Column(nullable = false, columnDefinition = "TEXT")

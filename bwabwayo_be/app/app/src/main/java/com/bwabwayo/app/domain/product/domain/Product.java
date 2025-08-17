@@ -20,7 +20,6 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @ToString
-// 상품 및 판매글
 public class Product {
 
     @Id
@@ -32,7 +31,7 @@ public class Product {
     private Category category; // 상품 카테고리
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "seller_id", nullable = false)
+    @JoinColumn(name = "seller_id", nullable = false, updatable = false)
     private User seller; // 판매자
 
     @Column(length = 255, nullable = false)
@@ -44,9 +43,10 @@ public class Product {
     @Column(nullable = false)
     private int price; // 판매가
 
-    @Column(length = 1024, nullable = false)
+    @Column(length = 2083, nullable = false)
     private String thumbnail; // 썸네일 key
 
+    @Setter(AccessLevel.NONE)
     @Builder.Default
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> productImages = new ArrayList<>(); // 상품 이미지
@@ -109,5 +109,9 @@ public class Product {
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+    }
+
+    public void addChatCount(){
+        this.chatCount += 1;
     }
 }

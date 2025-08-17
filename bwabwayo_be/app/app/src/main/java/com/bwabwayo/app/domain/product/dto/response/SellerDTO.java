@@ -5,14 +5,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/**
+ * 판매자 요약 정보 DTO
+ */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class SellerDTO {
-    String id;
-    String nickname;
-    String profileImage;
-    Integer score;
-    Double rating;
+    private String id; // 판매자 ID
+    private String nickname; // 판매자 닉네임
 }

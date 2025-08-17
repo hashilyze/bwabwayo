@@ -1,27 +1,39 @@
 package com.bwabwayo.app.domain.product.service;
 
+import com.bwabwayo.app.domain.ai.dto.response.QueryItemDto;
+import com.bwabwayo.app.domain.ai.service.ProductEmbeddingService;
+import com.bwabwayo.app.domain.chat.dto.request.SetInvoiceNumberRequest;
+import com.bwabwayo.app.domain.chat.dto.request.SetPriceRequest;
+import com.bwabwayo.app.domain.chat.dto.request.SetProductStatusRequest;
 import com.bwabwayo.app.domain.product.domain.Category;
+import com.bwabwayo.app.domain.product.domain.Courier;
 import com.bwabwayo.app.domain.product.domain.Product;
 import com.bwabwayo.app.domain.product.domain.ProductImage;
-import com.bwabwayo.app.domain.product.dto.ResponseMessage;
-import com.bwabwayo.app.domain.product.dto.request.ProductCreateAndUpdateRequestDTO;
-import com.bwabwayo.app.domain.product.dto.request.ProductSearchRequestDTO;
+import com.bwabwayo.app.domain.product.dto.ProductQueryCondition;
+import com.bwabwayo.app.domain.product.dto.request.ProductUpsertRequest;
+import com.bwabwayo.app.domain.product.dto.request.ProductQueryRequest;
 import com.bwabwayo.app.domain.product.dto.response.*;
-import com.bwabwayo.app.domain.product.event.ProductDeletedEvent;
-import com.bwabwayo.app.domain.product.exception.UnauthorizedProductAccessException;
+import com.bwabwayo.app.domain.product.enums.DeliveryStatus;
+import com.bwabwayo.app.domain.product.enums.ProductSortType;
+import com.bwabwayo.app.domain.product.exception.ProductNotFoundException;
+import com.bwabwayo.app.domain.product.repository.CategoryRepository;
+import com.bwabwayo.app.domain.product.repository.CourierRepository;
 import com.bwabwayo.app.domain.product.repository.ProductImageRepository;
 import com.bwabwayo.app.domain.product.repository.ProductRepository;
-import com.bwabwayo.app.domain.user.domain.Role;
+import com.bwabwayo.app.domain.product.util.CategoryUtils;
 import com.bwabwayo.app.domain.user.domain.User;
-import com.bwabwayo.app.global.s3.service.S3Service;
-import jakarta.persistence.EntityNotFoundException;
+import com.bwabwayo.app.domain.user.service.ReviewAggService;
+import com.bwabwayo.app.domain.wish.service.WishService;
+import com.bwabwayo.app.global.page.PageResponse;
+import com.bwabwayo.app.global.storage.util.StorageUtil;
+import com.bwabwayo.app.global.storage.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,183 +48,257 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
     private final CategoryService categoryService;
-    private final S3Service s3Service;
-    private final ApplicationEventPublisher eventPublisher;
+    private final StorageService storageService;
+    private final StorageUtil storageUtil;
+    private final WishService wishService;
+    private final CourierRepository courierRepository;
+    private final ViewCountService viewCountService;
+    private final ProductEmbeddingService productEmbeddingService;
+    private final ReviewAggService reviewAggService;
+    private final CategoryRepository categoryRepository;
+
+    @Value("${storage.path.temp}")
+    private String tempPath;
+    @Value("${storage.path.productImage}")
+    private String productPath;
+
+    @Value("${product.detail.others}")
+    private Integer otherCount;
 
 
     /**
      * 상품 등록
      */
     @Transactional
-    public ProductCreateResponseDTO createProduct(ProductCreateAndUpdateRequestDTO requestDTO, User user) {
-        Category category = categoryService.getCategoryById(requestDTO.getCategoryId());
+    public Product createProduct(ProductUpsertRequest requestDTO, User user) {
+        return upsert(requestDTO, new Product(), user);
+    }
 
-        Product product = Product.builder()
-                .category(category)
-                .seller(user)
-                .title(requestDTO.getTitle())
-                .description(requestDTO.getDescription())
-                .price(requestDTO.getPrice())
-                .shippingFee(requestDTO.getShippingFee())
-                .canNegotiate(requestDTO.getCanNegotiate())
-                .canDirect(requestDTO.getCanDirect())
-                .canDelivery(requestDTO.getCanDelivery())
-                .canVideoCall(requestDTO.getCanVideoCall())
-                .build();
+    /**
+     * 상품 정보 갱신
+     */
+    @Transactional
+    public void update(Product product, ProductUpsertRequest requestDTO) {
+        upsert(requestDTO, product, product.getSeller());
+    }
 
-        List<String> imageKeys = requestDTO.getImages();
-        if(imageKeys == null) throw new IllegalArgumentException("유효한 이미지가 존재하지 않습니다.");
-        productImageRepository.flush();
-        int index = 0;
-        for (String key : imageKeys) {
-            if(!s3Service.exists(key)) {
-                log.warn("등록하려는 이미지가 존재하지 않음: key={}", key);
-                continue;
-            }
+    /**
+     * 상품 삭제
+     */
+    @Transactional
+    public void delete(Product product) {
+        wishService.deleteAllByProduct(product);
 
-            ProductImage image = ProductImage.builder()
-                    .product(product)
-                    .no(++index)
-                    .url(key)
-                    .build();
-            product.getProductImages().add(image);
-        }
-        if(index == 0) throw new IllegalArgumentException("유효한 이미지가 존재하지 않습니다.");
-        product.setThumbnail(product.getProductImages().get(0).getUrl());
+        // 삭제할 이미지 URL 기록
+        List<ProductImage> productImages = product.getProductImages();
+        List<String> imageKeys = productImages.stream().map(ProductImage::getUrl).toList();
 
-        productRepository.save(product);
-
-        return ProductCreateResponseDTO.builder()
-                .message(ResponseMessage.PRODUCT_CREATE_SUCCESS.getText())
-                .id(product.getId())
-                .build();
+        // Product 삭제
+        productRepository.delete(product);
+        imageKeys.forEach(storageUtil::deleteWithoutException);
     }
 
     /**
      * 상품 검색
      */
-    @Transactional
-    public ProductSearchResponseDTO searchProducts(ProductSearchRequestDTO requestDTO) {
+    @Transactional(readOnly = true)
+    public PageResponse<ProductQueryResult> query(ProductQueryRequest requestDTO, User loginUser) {
+        // 검색 조건
         String keyword = requestDTO.getKeyword();
+        Long productId = requestDTO.getProductId();
+        if(keyword == null & productId != null){
+            keyword = productRepository.getProductById(productId).getTitle();
+        }
         Long categoryId = requestDTO.getCategoryId();
-        int page = requestDTO.getPage();
-        int size = requestDTO.getSize();
-        String sortBy = requestDTO.getSortBy() != null ? requestDTO.getSortBy() : "latest";
+        String sellerId = requestDTO.getSellerId();
 
-        Sort.Order option = switch (sortBy){
-            case "oldest" -> Sort.Order.asc("createdAt");
-            case "views" -> Sort.Order.desc("view_count");
-            case "wishes" -> Sort.Order.desc("wish_count");
-//            case "latest" -> Sort.Order.desc("createdAt");
-            default -> Sort.Order.desc("createdAt");
-        };
+        Boolean canVideoCall = requestDTO.getCanVideoCall();
+        Boolean canNegotiate = requestDTO.getCanNegotiate();
+        Boolean canDirect =  requestDTO.getCanDirect();
+        Boolean canDelivery = requestDTO.getCanDelivery();
 
-        // 최신순 정렬; ID순 정렬
-        Sort sort = Sort.by(option, Sort.Order.asc("id"));
-
-        // 페이지네이션
-        Pageable pageable = PageRequest.of(page - 1, size, sort);
+        Integer minPrice = requestDTO.getMinPrice();
+        Integer maxPrice = requestDTO.getMaxPrice();
         
-        // 하위 카테고리 포함 카테고리 ID
-        List<Long> categoryIds = new ArrayList<>();
+        // 현재 카테고리에 포함되는 모든 카테고리의 모음 생성
+        List<Long> categoryIds = null;
         if(categoryId != null){
-            if(!categoryService.existsCategoryById(categoryId)) {
-                categoryIds.add(categoryId);
-            } else {
-                Category topCategory = categoryService.getCategoryById(categoryId);
-                getSubCategoryIds(topCategory, categoryIds);
+            Category topCategory = categoryService.findByIdOptional(categoryId).orElse(null);
+            categoryIds = CategoryUtils.getSubCategories(topCategory).stream().map(Category::getId).toList();
+
+            // fallback
+            if(categoryIds.isEmpty()) {
+                categoryIds = List.of(categoryId);
             }
         }
+
+        categoryIds = keywordToCategory(keyword, categoryIds);
+
+        // 페이징 조건
+        // 페이지는 1부터 시작
+        Integer page = requestDTO.getPage();
+        // 각 페이지에는 최소 0개가 할당
+        Integer size = requestDTO.getSize();
+        // 기본 정렬 속성은 '최신순'
+        ProductSortType sortType = ProductSortType.from(requestDTO.getSortBy());
+        if((sortType == ProductSortType.RELATED || sortType == ProductSortType.LATEST_AND_RELATED)
+                && (keyword == null || keyword.isBlank())){ // 키워드가 없으면 관련 검색 불가
+            log.warn("키워드가 없어 관련성 검색이 불가합니다; 기본 검색으로 대체");
+            sortType = ProductSortType.LATEST;
+        }
+
+        // 페이지네이션 생성
+        Pageable pageable = PageRequest.of(page - 1, size, sortType.getSort());
         
         // DB 조회
-        Page<Product> pageData = productRepository.searchByCondition(keyword, categoryIds, pageable);
-        List<Product> content = pageData.getContent();
+        ProductQueryCondition queryCondition = ProductQueryCondition.builder()
+                .viewerId(loginUser != null ? loginUser.getId() : null)
+                .keyword(keyword)
+                .categoryIn(categoryIds)
+                .sellerId(sellerId)
+                .canVideoCall(canVideoCall)
+                .canNegotiate(canNegotiate)
+                .canDirect(canDirect)
+                .canDelivery(canDelivery)
+                .minPrice(minPrice)
+                .maxPrice(maxPrice)
+//                .urlPrefix(requestDTO.getUrlPrefix())
+                .getOnlySale(requestDTO.getOnlySale())
+                .build();
 
-        List<ProductSearchResultDTO> result = content.stream().map(product -> {
-            ProductSimpleDTO productDTO = ProductSimpleDTO.builder()
+        Page<ProductWithIsLikeDTO> pageData;
+        if(sortType == ProductSortType.RELATED) {
+            pageData = queryWithRelated(queryCondition, pageable, loginUser);
+        } else if(sortType != ProductSortType.LATEST_AND_RELATED){
+            pageData = productRepository.searchByCondition(queryCondition, pageable);
+        } else{
+            Page<ProductWithIsLikeDTO> related = queryWithRelated(queryCondition, pageable, loginUser);
+            Page<ProductWithIsLikeDTO> latest = productRepository.searchByCondition(queryCondition, pageable);
+            pageData = merge(related, latest, pageable.getPageSize());
+        }
+
+        return PageResponse.from(pageData, dto -> {
+            Product product = dto.getProduct();
+
+            ProductDTO productDTO = ProductDTO.builder()
+                    .isMine(product.getSeller().equals(loginUser))
                     .id(product.getId())
                     .categoryId(product.getCategory().getId())
-                    .thumbnail(s3Service.getUrl(product.getThumbnail()))
+                    .thumbnail(storageService.getUrlFromKey(product.getThumbnail()))
                     .title(product.getTitle())
                     .price(product.getPrice())
-                    .viewCount(product.getViewCount())
+                    .viewCount(viewCountService.getViewCount(product.getId()).intValue())
                     .wishCount(product.getWishCount())
                     .chatCount(product.getChatCount())
-                    .isLike(false) // 위시 리스트 미구현
+                    .isLike(dto.getIsLike())
                     .canVideoCall(product.isCanVideoCall())
                     .saleStatusCode(product.getSaleStatus().getLevel())
                     .saleStatus(product.getSaleStatus().getDescription())
                     .createdAt(product.getCreatedAt())
                     .build();
 
-            User user = product.getSeller();
-            UserSimpleDTO userDTO = new UserSimpleDTO(user.getId(), user.getNickname());
+            User seller = product.getSeller();
+            SellerDTO sellerDTO = new SellerDTO(seller.getId(), seller.getNickname());
 
-            return ProductSearchResultDTO.builder()
+            return ProductQueryResult.builder()
                     .product(productDTO)
-                    .seller(userDTO)
+                    .seller(sellerDTO)
                     .build();
-        }).toList();
+        });
+    }
 
-        int current = pageData.getNumber() + 1;
-        int end = (int) Math.ceil(current / 10.0) * 10; // 마지막 페이지 블록
-        int start = end - 9; // 처음 페이지 블록
-        int last = Math.min(end, pageData.getTotalPages()); // 실제 마지막 페이지 블록
+    private List<Long> keywordToCategory(String keyword, List<Long> categoryIds) {
+        return categoryIds;
+//        if(keyword == null) return categoryIds;
+//
+//        if(categoryIds == null) categoryIds = new ArrayList<>();
+//        String[] tokens = keyword.split(" ");
+//        for(String token : tokens) {
+//            for (Category category : categoryRepository.findAll()) {
+//                if (category.getName().contains(token) || token.contains(category.getName())) {
+//                    List<Long> temp = CategoryUtils.getSubCategories(category).stream().map(Category::getId).toList();
+//                    categoryIds.addAll(temp);
+//                }
+//            }
+//        }
+//        log.info("ctegorys={}", Arrays.toString(categoryIds.toArray()));
+//        return categoryIds;
+    }
 
+    private Page<ProductWithIsLikeDTO> queryWithRelated(ProductQueryCondition queryCondition, Pageable pageable, User viewer){
+        List<QueryItemDto> query = productEmbeddingService.query(queryCondition, pageable);
+        query = query.stream().filter(dto->dto.getScore() > 0.3).toList();
 
-        return ProductSearchResponseDTO.builder()
-                .message(ResponseMessage.PRODUCT_SEARCH_SUCCESS.getText())
-                .result(result)
-                .start(start)
-                .last(last)
-                .prev(current > 1)
-                .next(pageData.hasNext())
-                .current(current)
-                .totalPages(pageData.getTotalPages())
-                .totalItems(pageData.getTotalElements())
+        List<Long> ids = query.stream().map(QueryItemDto::getId).toList();
+        if (ids.isEmpty()) return Page.empty(pageable);
+
+        List<ProductWithIsLikeDTO> products = productRepository.findByIdsInOrder(ids, viewer != null ? viewer.getId() : null);
+
+        return new PageImpl<>(products, pageable, productRepository.getCount(queryCondition));
+    }
+
+    public List<Product> recommendTopK(String keyword, int k){
+        ProductQueryCondition condition = ProductQueryCondition.builder()
+                .keyword(keyword)
                 .build();
+        Pageable pageable = PageRequest.of(0, k);
+        return queryWithRelated(condition, pageable, null).map(ProductWithIsLikeDTO::getProduct).toList();
     }
 
     /**
      * 상품 상세 정보 조회
      */
     @Transactional(readOnly = true)
-    public ProductDetailResponseDTO getProductDetail(Long id) {
-        Product product = getProductById(id);
-
+    public ProductDetailResponse getProductDetail(Product product, User loginUser) {
         // 상품이 속한 카테고리부터 조상 카테고리까지의 모음
-        // 조상 카테고리가 먼저 저장됨
-        List<CategoryDTO> superCategories = resolveSuperCategories(product.getCategory());
+        List<CategoryDTO> superCategories = CategoryUtils.getSupperCategories(product.getCategory())
+                .stream().map(CategoryDTO::from).toList();
 
         // 상품에 포함된 이미지 URL 모음
-        List<String> imageUrls = product.getProductImages().stream()
-                .map(i -> s3Service.getUrl(i.getUrl())).toList();
         List<String> imageKeys = product.getProductImages().stream()
                 .map(ProductImage::getUrl).toList();
+        List<String> imageUrls = imageKeys.stream()
+                .map(storageService::getUrlFromKey).toList();
+
         
+        // 판매자 평균 평점 가져오기
+        float avgRating = reviewAggService.getAvgRating(product.getSeller().getId());
+        avgRating = Math.round(avgRating * 10.f) / 10.f;
+        long reviewCount = reviewAggService.getReviewCount(product.getSeller().getId());
+
         // 판매자 정보
         User seller = product.getSeller();
-        SellerDTO sellerDTO = SellerDTO.builder()
+        List<ProductDTO> others = query(ProductQueryRequest.builder().sellerId(seller.getId()).size(otherCount + 1).urlPrefix("http").build(), loginUser)
+                .getResult().stream()
+                .map(ProductQueryResult::getProduct)
+                .filter(p ->!p.getId().equals(product.getId()))
+                .limit(otherCount)
+                .toList();
+
+        SellerDetailDTO sellerDTO = SellerDetailDTO.builder()
                 .id(seller.getId())
                 .nickname(seller.getNickname())
-//                .profileImage(s3Service.getUrl(seller.getProfileImage()))
-                .profileImage(seller.getProfileImage())
+                .bio(seller.getBio())
+                .profileImage(storageService.getUrlFromKey(seller.getProfileImage()))
                 .score(seller.getScore())
-                .rating(4.5) // TODO: 리뷰 통계와 연결 필요
+                .rating(avgRating)
+                .reviewCount(reviewCount)
+                .otherProducts(others)
                 .build();
 
-        return ProductDetailResponseDTO.builder()
-                .message(ResponseMessage.PRODUCT_DETAIL_SUCCESS.getText())
+        return ProductDetailResponse.builder()
+                .isMine(product.getSeller().equals(loginUser))
                 .title(product.getTitle())
                 .description(product.getDescription())
                 .price(product.getPrice())
                 .saleStatus(product.getSaleStatus().getLevel())
+                .shippingFee(product.getShippingFee())
                 .canNegotiate(product.isCanNegotiate())
                 .canDirect(product.isCanDirect())
                 .canDelivery(product.isCanDelivery())
                 .canVideoCall(product.isCanVideoCall())
-                .isWish(false) // TODO: 위시리스트와 연결 필요
-                .viewCount(product.getViewCount())
+                .isLike(loginUser != null && wishService.existsWish(product, loginUser))
+                .viewCount(viewCountService.getViewCount(product.getId()).intValue())
                 .wishCount(product.getWishCount())
                 .chatCount(product.getChatCount())
                 .createdAt(product.getCreatedAt())
@@ -223,110 +309,135 @@ public class ProductService {
                 .build();
     }
 
-    /**
-     * 상품 정보 갱신
-     */
     @Transactional
-    public void updateProduct(Long productId, ProductCreateAndUpdateRequestDTO requestDTO) {
-        Product product = getProductById(productId);
-        Category category = categoryService.getCategoryById(requestDTO.getCategoryId());
+    public void setInvoiceNumber(SetInvoiceNumberRequest request, Long productId) {
+        Product product = productRepository.getProductById(productId);
+        product.setInvoiceNumber(request.getTrackingNumber());
+        Courier courier = courierRepository.findByCode(request.getCourierCode());
+        product.setCourier(courier);
+        if(product.getDeliveryStatus() == null){
+            product.setDeliveryStatus(DeliveryStatus.PREPARING);
+        }
+    }
 
+    @Transactional
+    public void setPrice(SetPriceRequest request, Long productId) {
+        Product product = productRepository.getProductById(productId);
+        product.setPrice(request.getPrice());
+    }
+    @Transactional
+    public void setStatus(SetProductStatusRequest request, Long productId) {
+        Product product = productRepository.getProductById(productId);
+        System.out.println(productId +" " + product.getSaleStatus());
+        product.setSaleStatus(request.getProductStatus());
+        System.out.println(product.getSaleStatus());
+    }
+
+    public Product findById(Long productId) {
+        return productRepository.findById(productId).orElseThrow(() -> new ProductNotFoundException(productId));
+    }
+
+    private Product upsert(ProductUpsertRequest dto, Product product, User seller){
+        if(seller != null && product.getSeller() == null)  product.setSeller(seller);
+
+        Category category = categoryService.findById(dto.getCategoryId());
+        while(!category.getChildren().isEmpty()){ // 상품이 말단 카테고리에 소속되도록 강제
+            category = category.getChildren().get(0);
+        }
         product.setCategory(category);
-        product.setTitle(requestDTO.getTitle());
-        product.setDescription(requestDTO.getDescription());
-        product.setPrice(requestDTO.getPrice());
-        product.setShippingFee(requestDTO.getShippingFee());
-        product.setCanNegotiate(requestDTO.getCanNegotiate());
-        product.setCanDirect(requestDTO.getCanDirect());
-        product.setCanDelivery(requestDTO.getCanDelivery());
-        product.setCanVideoCall(requestDTO.getCanVideoCall());
-        
-        
-        Set<String> orphanImages = new HashSet<>();
-        for(ProductImage image : product.getProductImages()){
-            orphanImages.add(image.getUrl());
+
+        product.setTitle(dto.getTitle());
+        product.setDescription(dto.getDescription());
+        product.setPrice(dto.getPrice());
+        product.setShippingFee(dto.getShippingFee());
+
+        product.setCanNegotiate(dto.getCanNegotiate());
+        product.setCanDirect(dto.getCanDirect());
+        product.setCanDelivery(dto.getCanDelivery());
+        product.setCanVideoCall(dto.getCanVideoCall());
+
+        // 이미지 저장
+        List<String> requestedImageKeys = dto.getImages();
+        List<String> storedImageKeys;
+        int oldImageCount;
+
+        try {
+            storedImageKeys = storageUtil.copyToDirectory(requestedImageKeys, tempPath, productPath);
+            
+            // 이전 이미지 제거
+            List<ProductImage> productImages = product.getProductImages();
+            oldImageCount = productImages != null ? productImages.size() : 0;
+            if(oldImageCount > 0){
+                product.getProductImages().clear();
+                productImageRepository.deleteAllByProduct(product);
+                productImageRepository.flush();
+            }
+
+            setProductImages(product, storedImageKeys);
+
+            productRepository.save(product);
+        } catch (Exception e) {
+            // 상품 등록에 실패하면 영구 저장소로 복사한 이미지 롤백
+            storageUtil.rollback(requestedImageKeys, tempPath, productPath);
+            throw e;
         }
 
-        List<String> imageKeys = requestDTO.getImages();
-        if (imageKeys == null) throw new IllegalArgumentException("유효한 이미지가 존재하지 않습니다.");
+        // 이전 이미지 중 상품에 포함되지 않는 이미지를 삭제
+        if(oldImageCount > 0){
+            Set<String> updatedImages = new HashSet<>(storedImageKeys);
+            for (String key : requestedImageKeys) {
+                if(!updatedImages.contains(key)) {
+                    storageUtil.deleteWithoutException(key);
+                }
+            }
+        }
 
-        product.getProductImages().clear();
-        productImageRepository.deleteAllByProduct(product);
+        return product;
+    }
+
+    private void setProductImages(Product product, List<String> imageKeys) {
+        if(imageKeys == null || imageKeys.isEmpty()){
+            throw new IllegalArgumentException("유효한 이미지가 존재하지 않습니다.");
+        }
 
         int index = 0;
         for (String key : imageKeys) {
-            if(!s3Service.exists(key)) {
-                log.warn("등록하려는 이미지가 존재하지 않음: key={}", key);
-                continue;
-            }
-
             ProductImage image = ProductImage.builder()
                     .product(product)
                     .no(++index)
                     .url(key)
                     .build();
             product.getProductImages().add(image);
-            orphanImages.remove(key);
         }
-        if(index == 0) throw new IllegalArgumentException("유효한 이미지가 존재하지 않습니다.");
+
+        // 썸네일 지정
         product.setThumbnail(product.getProductImages().get(0).getUrl());
-
-        // 이미지 삭제
-        for(String key : orphanImages){
-            s3Service.deleteFile(key);
-        }
     }
 
-    /**
-     * 상품 삭제
-     */
-    @Transactional
-    public void deleteProductById(Long productId, User user) {
-        // 상품이 존재하는지 확인
-        Product product = getProductById(productId);
-
-        // 상품을 삭제하려는 사용자가 상품의 판매자 또는 관리자인지 확인
-        if(user.getRole() == Role.ADMIN ||
-                !product.getSeller().getId().equals(user.getId())) {
-            throw new UnauthorizedProductAccessException("상품을 삭제할 권한이 없습니다: 자신이 등록한 상품만 삭제할 수 있습니다.");
-        }
-
-        // 삭제할 이미지 URL 기록
-        List<ProductImage> productImages = product.getProductImages();
-        List<String> imageKeys = productImages.stream().map(ProductImage::getUrl).toList();
-
-        // Product 삭제
-        productRepository.delete(product);
-
-        // 이벤트 발행
-        eventPublisher.publishEvent(new ProductDeletedEvent(imageKeys));
-    }
-    
-    /**
-     * 현재 카테고리와 그 하위의 카테고리의 ID의 리스트 생성
-     */
-    private void getSubCategoryIds(Category category, List<Long> result){
-        if(category == null) return;
-
-        result.add(category.getId());
-        for(Category subCategory : category.getChildren()){
-            getSubCategoryIds(subCategory, result);
-        }
+    public List<Product> getDeliveringProductsByDeliveryStatus(DeliveryStatus status){
+        return productRepository.findAllByDeliveryStatus(status);
     }
 
-    private List<CategoryDTO> resolveSuperCategories(Category category) {
-        List<CategoryDTO> result = new ArrayList<>();
-        while (category != null) {
-            result.add(new CategoryDTO(category.getId(), category.getName()));
-            category = category.getParent();
-        }
-        Collections.reverse(result);
-        return result;
+    public List<Product> getWillDeliveryProducts(){
+        return productRepository.findAllByEmptyInvoiceNumberAndDeliveryStatus(DeliveryStatus.PREPARING);
     }
 
-    public Product getProductById(Long id) {
-        return productRepository
-                .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다. id=" + id));
+    private Page<ProductWithIsLikeDTO> merge(Page<ProductWithIsLikeDTO> related, Page<ProductWithIsLikeDTO> latest, int limit){
+        List<ProductWithIsLikeDTO> list = new ArrayList<>(latest.getContent());
+
+        if(latest.getTotalElements() < limit){
+            Set<Long> set = new HashSet<>();
+            for(ProductWithIsLikeDTO r : latest.getContent()) set.add(r.getProduct().getId());
+
+            if(list.size() < limit) {
+                for(ProductWithIsLikeDTO r : related.getContent()){
+                    if(!set.contains(r.getProduct().getId())) {
+                        list.add(r);
+                        if(list.size() == limit) break;
+                    }
+                }
+            }
+        }
+        return new PageImpl<>(list);
     }
 }

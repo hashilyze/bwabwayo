@@ -1,0 +1,66 @@
+.infiniteLoop {
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.infiniteLoop__slider {
+  display: flex;
+  width: fit-content;
+  animation: loop 30s linear infinite;
+  pointer-events: none;
+}
+
+.infiniteLoop__slider > * {
+  flex-shrink: 0;
+}
+
+@keyframes loop {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.bannerItem {
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  min-width: 200px;
+  pointer-events: none;
+}
+
+.bannerItem__image {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+}
+
+.bannerItem__content {
+  margin-left: 10px;
+}
+
+.bannerItem__content h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 5px 0;
+  color: #333;
+}
+
+.bannerItem__content p {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}

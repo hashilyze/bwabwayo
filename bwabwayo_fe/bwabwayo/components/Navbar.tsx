@@ -3,22 +3,29 @@
 import { useRouter } from 'next/navigation'
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
-
-import Category from '@/components/Category';
 import { useCategoryStore } from '@/stores/categoryStore';
-import LoginModal from '@/components/auth/LoginModal'
 import { useAuthStore } from '@/stores/auth/authStore';
+import { useModalStore } from '@/stores/modalStore';
+import { useNotificationStore } from '@/stores/notificationStore';
+import Category from '@/components/Category';
+import NewCategory from '@/components/NewCategory';
+import NotificationDropdown from './NotificationDropdown';
+import { EventSourcePolyfill } from "event-source-polyfill";
 
+
+// 새로운 카테고리
 export default function Navbar() {
     const [title, setTitle] = useState('')
-    const [showCategory, setShowCategory] = useState(false);
-    const [showLoginModal, setShowLoginModal] = useState(false); // 모달 상태 추가
     const [showMyPageMenu, setShowMyPageMenu] = useState(false); // 내상점 메뉴 상태
-    const { isAuthenticated, clearToken, initializeAuth, authenticatedFetch, getToken } = useAuthStore(); // 새로운 authStore 사용
+    const [showCategory, setShowCategory] = useState(false); // 카테고리 표시 상태
+    const [showNotifications, setShowNotifications] = useState(false); // 알림 드롭다운 상태
+
+    const { isLoggedIn, isAdmin, logout, initializeAuth, authenticatedFetch, getToken, isSignupRequired } = useAuthStore(); // 새로운 authStore 사용
+    const { openLoginModal } = useModalStore();
+    const { unreadCount, delayedUnreadCount, fetchNotifications, startSSE, stopSSE, isSSEConnected } = useNotificationStore();
     const [isScrolled, setIsScrolled] = useState(false) // 스크롤 상태 추가
-    const categoryRef = useRef<HTMLDivElement>(null);
     const myPageMenuRef = useRef<HTMLDivElement>(null); // 내상점 메뉴 참조
+    const categoryRef = useRef<HTMLDivElement>(null); // 카테고리 참조
     const router = useRouter()
     const { getCategories } = useCategoryStore();
 
@@ -31,6 +38,37 @@ export default function Navbar() {
     useEffect(() => {
         initializeAuth();
     }, [initializeAuth]);
+
+    // 알림 수신 방식 설정 (SSE만 사용)
+    useEffect(() => {
+        if (!isLoggedIn) {
+            stopSSE();
+            return;
+        }
+
+        // SSE 사용
+        startSSE();
+        
+        // 컴포넌트 언마운트 시 알림 수신 중지
+        return () => {
+            stopSSE();
+        };
+    }, [isLoggedIn, startSSE, stopSSE]);
+
+    // 알림 드롭다운 상태에 따른 API 호출 관리
+    useEffect(() => {
+        // ✅ 1. 로그인 상태이면서 회원가입이 완료된 경우에만 알림 관련 API를 호출하도록 가드를 추가합니다.
+        const token = getToken();
+        if (isLoggedIn && !isSignupRequired && token) {
+            if (showNotifications) {
+                // 드롭다운이 열려있을 때는 전체 알림 목록을 가져옴
+                fetchNotifications();
+            } else {
+                // 드롭다운이 닫혀있을 때는 읽지 않은 알림 수만 가져옴
+                useNotificationStore.getState().fetchUnreadCount();
+            }
+        }
+    }, [isLoggedIn, isSignupRequired, showNotifications, fetchNotifications, getToken]);
 
     // 스크롤 이벤트 리스너 추가
     useEffect(() => {
@@ -57,197 +95,193 @@ export default function Navbar() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [showMyPageMenu]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    router.push(`/search?title=${encodeURIComponent(title)}`)
-  }
-
-  const handleLogout = async () => {
-    try {
-      // 서버에 로그아웃 요청을 보냅니다.
-      // 강화된 authenticatedFetch가 자동으로 토큰 관리, 갱신, 재시도를 처리합니다.
-      await authenticatedFetch('https://i13e202.p.ssafy.io/be/api/auth/refresh/logout', {
-        method: 'POST'
-      });
-    } catch (error) {
-      // 서버 요청 실패 시에도 클라이언트 측 로그아웃은 진행되도록 합니다.
-      console.error('Logout failed on server:', error);
-    } finally {
-      // AuthStore의 clearToken 액션을 호출합니다.
-      clearToken();
-      // 사용자 정보도 초기화
-      setShowMyPageMenu(false);
-      router.replace('/'); 
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault()
+        router.push(`/search?title=${encodeURIComponent(title)}`)
     }
-  };
 
-  return (
-    <nav className={`bg-white border-b-1 border-[#eee] fixed top-0 left-0 right-0 z-99 transition-shadow duration-200 ${isScrolled ? 'shadow' : ''}`}>
-      {/* top-nav */}
-      {/* <div className="flex flex-col bg-[#fafafa]">
-        <div className="w-[1280px] m-auto py-2 flex justify-end text-sm text-gray-500 gap-4">
-          <div className="flex gap-4">
-            <button onClick={() => setShowLoginModal(true)} className="text-sm text-[#666] cursor-pointer">
-              로그인/회원가입
-            </button>
-            <button className='cursor-pointer' onClick={handleMyPageClick}>내상점</button>
-          </div>
-        </div>
-      </div> */}
+    const handleLogout = async () => {
+        try {
+            // 서버에 로그아웃 요청을 보냅니다.
+            // 강화된 authenticatedFetch가 자동으로 토큰 관리, 갱신, 재시도를 처리합니다.
+            await authenticatedFetch('https://i13e202.p.ssafy.io/be/api/auth/refresh/logout', {
+                method: 'POST'
+            });
+        } catch (error) {
+            // 서버 요청 실패 시에도 클라이언트 측 로그아웃은 진행되도록 합니다.
+            console.error('Logout failed on server:', error);
+        } finally {
+            // AuthStore의 logout 액션을 호출합니다.
+            logout();
+            // 사용자 정보도 초기화
+            setShowMyPageMenu(false);
+            alert('로그아웃 되었습니다.');
+            router.replace('/'); 
+        }
+    };
 
-
-    {/* center-nav */}
-    <div className="center-nav border-t border-[#eee]">
-        <div className="w-[1280px] m-auto py-4 pb-2 flex items-center justify-between">
-            <div className="logo-wrap flex items-center gap-2 flex-1 mr-16">
-                <div className="logo text-xl font-bold">
-                    
-                    <Link href="/"><Image src="/logo.png" alt="logo" className="h-[40px]" width={97} height={40} /></Link>
-                </div>
-                <form className="flex items-center ml-[80px] flex-1 px-2 border-1 border-[#eee] rounded-lg bg-[#fff]" onSubmit={handleSubmit}>
-                    <div className="flex items-center px-3">
-                        <svg 
-                            width="16" 
-                            height="16" 
-                            viewBox="0 0 16 16" 
-                            fill="none" 
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path 
-                                d="M7.5 13.5C10.8137 13.5 13.5 10.8137 13.5 7.5C13.5 4.18629 10.8137 1.5 7.5 1.5C4.18629 1.5 1.5 4.18629 1.5 7.5C1.5 10.8137 4.18629 13.5 7.5 13.5Z" 
-                                stroke="#9CA3AF" 
-                                strokeWidth="1.5" 
-                                strokeLinecap="round" 
-                                strokeLinejoin="round"
-                            />
-                            <path 
-                                d="M11.5 11.5L14.5 14.5" 
-                                stroke="#9CA3AF" 
-                                strokeWidth="1.5" 
-                                strokeLinecap="round" 
-                                strokeLinejoin="round"
-                            />
-                        </svg>
-                    </div>
-                    <input
-                        type="text"
-                        placeholder="상품명을 검색해보세요."
-                        value={title}
-                        onChange={(e)=> setTitle(e.target.value)}
-                        className="flex-1 pl-0 pr-3 py-3 text-sm focus:outline-none"
-                    />
-                    {title && (
-                        <button 
-                            type="button" 
-                            onClick={() => setTitle('')}
-                            className="flex items-center justify-center w-4 h-4 mx-3 cursor-pointer bg-gray-400 rounded-full"
-                        >
-                            <svg 
-                                width="12" 
-                                height="12" 
-                                viewBox="0 0 12 12" 
-                                fill="none" 
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <path 
-                                    d="M9 3L3 9M3 3L9 9" 
-                                    stroke="#ffffff" 
-                                    strokeWidth="1.5" 
-                                    strokeLinecap="round" 
-                                    strokeLinejoin="round"
-                                />
-                            </svg>
-                        </button>
-                    )}
-                </form>
-            </div>
-            <div className="nav-btn-wrap flex gap-3">
-                <Link href="/product/new" className="bg-orange-500 text-white text-sm px-4 py-2 rounded hover:bg-orange-600">판매하기</Link>
-                <Link href="/chat" className="text-[#2B6CEE] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BFDBFE]">채팅목록</Link>
-                <Link href="#" className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0]">알림</Link>
-            
-                <div 
-                    className="relative"
-                    ref={myPageMenuRef}
-                >
-                    <button 
-                        onClick={() => {
-                            if (isAuthenticated) {
-                                // 로그인된 상태: 마이페이지 메뉴 토글
-                                setShowMyPageMenu(prev => !prev)
-                            } else {
-                                // 로그인 안된 상태: 로그인 모달 띄우기
-                                setShowLoginModal(true)
-                            }
-                        }}
-                        className="text-[#1BA54E] text-sm px-4 py-2 border border-[#eee] rounded hover:bg-[#BBF7D0] flex items-center gap-2"
-                    >
-                        <span>내상점</span>
-                    </button>
-                    
-                    {/* 로그인된 상태일 때만 드롭다운 메뉴 표시 */}
-                    {isAuthenticated && showMyPageMenu && (
-                        <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-20">
-                            {/* 사용자 정보 헤더 */}
-                            <ul className="py-1">
-                                <li>
-                                    <Link href="/shop" className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
-                                        <span>마이페이지</span>
-                                    </Link>
-                                </li>
-                                <li className="border-t border-gray-100 mt-1 pt-1">
-                                    <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
-                                        <span>로그아웃</span>
-                                    </button>
-                                </li>
-                            </ul>
+    return (
+        <nav className={`bg-white border-b-2 border-black fixed top-0 left-0 right-0 z-98 transition-shadow duration-200 ${isScrolled ? 'shadow' : ''}`}>
+            <header className="w-[1280px] mx-auto">
+                {/* 유틸리티 바 */}
+                <div className="py-4 flex justify-end items-center gap-4 relative">
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 text-xs" style={{display: 'none'}}>
+                            <span className="text-gray-600">알림 방식:</span>
+                            <span className="text-blue-500 font-medium">SSE</span>
+                            {isSSEConnected && (
+                                <span className="text-green-500 text-xs">●</span>
+                            )}
+                            {!isSSEConnected && (
+                                <span className="text-red-500 text-xs">●</span>
+                            )}
                         </div>
+                        
+                        {/* 알림 버튼 */}
+                        <span 
+                            className="text-md text-gray-700 cursor-pointer hover:text-black relative"
+                            onClick={() => setShowNotifications(!showNotifications)}
+                        >
+                            알림
+                            {delayedUnreadCount > 0 && (
+                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                                    {delayedUnreadCount > 9 ? '9+' : delayedUnreadCount}
+                                </span>
+                            )}
+                        </span>
+                        <NotificationDropdown 
+                            isOpen={showNotifications} 
+                            onClose={() => setShowNotifications(false)} 
+                        />
+                    </div>
+                    {isLoggedIn && !isSignupRequired ? (
+                        <button onClick={handleLogout} className="text-md text-gray-700 cursor-pointer hover:text-black">
+                            로그아웃
+                        </button>
+                    ) : isLoggedIn && isSignupRequired ? (
+                        <span className="text-md text-gray-700">회원가입 진행 중</span>
+                    ) : (
+                        <button onClick={openLoginModal} className="text-md text-gray-700 cursor-pointer hover:text-black">로그인/회원가입</button>
+                    )}
+                    <Link href="/cs-center">
+                        <span className="text-md text-gray-700 cursor-pointer hover:text-black">고객센터</span>
+                    </Link>
+                    {isLoggedIn && isAdmin && (
+                        <Link href="/admin">
+                            <span className="text-md text-gray-700 cursor-pointer hover:text-black">관리자</span>
+                        </Link>
                     )}
                 </div>
-            </div>
-        </div>
-    </div>
 
-    {/* btm-nav */}
-    <div className="btm-nav">
-        <div className="category-wrap relative w-[1280px] m-auto flex items-center gap-3" ref={categoryRef}>
-            <div 
-                className="flex items-center gap-3 cursor-pointer group relative before:absolute before:left-0 before:top-full before:w-full before:h-4 before:bg-transparent before:z-10"
-                onMouseEnter={() => setShowCategory(true)}
-                onMouseLeave={() => setShowCategory(false)}
-            >
-                <ul className="category-btn flex flex-col justify-between gap-[5px]">
-                    <li className="w-5 h-[2px] bg-black"></li>
-                    <li className="w-5 h-[2px] bg-black"></li>
-                    <li className="w-5 h-[2px] bg-black"></li>
-                </ul>
-                <div className="text-sm">카테고리</div>
-            </div>
-            <ul className="flex items-center ml-2 text-[15px] font-normal">
-                <li><Link className="nav-link block text-sm text-[#666] p-3 py-4 relative" href="/cs-center">고객센터</Link></li>
-                <li><Link className="nav-link block text-sm text-[#666] p-3 py-4 relative" href="#">전체상품</Link></li>
-            </ul>
-            {showCategory && (
-            <div 
-                className="absolute left-0 top-full z-20"
-                onMouseEnter={() => setShowCategory(true)}
-                onMouseLeave={() => setShowCategory(false)}
-            >
-                <Category />
-            </div>
-            )}
-        </div>
-    </div>
-        {/* ✅ 모달은 nav 바깥에서 조건부로 렌더링 */}
-        {showLoginModal && (
-        <LoginModal
-            isOpen={showLoginModal} 
-            onClose={() => setShowLoginModal(false)}
-        />
-        )}
+                {/* 네비게이션 바 */}
+                <nav className="bg-white ">
+                    <div className="flex items-center justify-between h-15">
+                        <div className="flex items-center gap-8 -ml-2">
+                            <Link href="/">
+                                <div className="relative h-[58px] w-[150px]">
+                                    <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/logo.png`} alt="봐봐요" style={{objectFit: 'contain'}} />
+                                </div>
+                            </Link>
+                        </div>
+                        <div className="flex items-center gap-8"> 
+                            <form className="flex bg-[#fafafa] border-2 border-black rounded-[16px] px-6 items-center justify-between w-[450px]" onSubmit={handleSubmit}>
+                                <input
+                                    type="text"
+                                    placeholder="검색어를 입력하세요"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    className="w-full text-md font-semibold text-gray-900 py-4 focus:outline-none"
+                                />
+                                <button type="submit" className="relative w-5 h-5">
+                                    <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/search.svg`} alt="검색" />
+                                </button>
+                            </form>
+                            <div className="flex items-center gap-6">
+                                <button 
+                                    onClick={() => {
+                                        if (isLoggedIn) {
+                                            router.push('/chat')
+                                        } else {
+                                            openLoginModal()
+                                        }
+                                    }}
+                                    className="cursor-pointer flex gap-3 text-xl items-end"
+                                >
+                                    <div className="relative w-6 h-6 mb-0.5">
+                                        <img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/chat.svg`} alt="채팅" />
+                                    </div>
+                                    채팅하기
+                                </button>
+                                {/* <Link href="/mypage/wishlist" className="cursor-pointer flex gap-2 text-xl items-end" >
+                                    <div className="relative w-6 h-6"><img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/heart-off.svg`} alt="찜" /></div>
+                                    찜 목록
+                                </Link> */}
+                                <button 
+                                    onClick={() => {
+                                        if (isLoggedIn) {
+                                            router.push('/mypage')
+                                        } else {
+                                            openLoginModal()
+                                        }
+                                    }}
+                                    className="cursor-pointer flex gap-2 text-xl items-end"
+                                >
+                                    <div className="relative w-6 h-6"><img src={`${process.env.NEXT_PUBLIC_PUBLIC_URL}/icon/people-white.svg`} alt="프로필" /></div>
+                                    마이페이지
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
 
-    </nav>
-        
-        
-  )
+                {/* 하단 메뉴 바 */}
+                <div className="flex items-center relative">
+                    <div
+                        ref={categoryRef}
+                        className="flex items-center cursor-pointer pt-8 pb-5 after:content-[''] after:mx-8 after:w-px after:h-6 after:bg-black"
+                        onMouseEnter={() => setShowCategory(true)}
+                        onMouseLeave={() => setShowCategory(false)}
+                    >
+                        <ul className="category-btn flex flex-col justify-between mr-4 gap-[5px]">
+                            <li className="w-5 h-[2px] bg-black"></li>
+                            <li className="w-5 h-[2px] bg-black"></li>
+                            <li className="w-5 h-[2px] bg-black"></li>
+                        </ul>
+                        <span className="text-xl font-semibold">전체 카테고리</span>
+                        {/* {showCategory && (
+                            <div className="absolute top-full left-0 z-50 border-t-2 border-black">
+                                <Category />
+                            </div>
+                        )} */}
+                    </div>
+                    <div className="flex items-center gap-6 pt-8 pb-5">
+                        <button 
+                            onClick={() => {
+                                if (isLoggedIn) {
+                                    router.push('/product/new')
+                                } else {
+                                    openLoginModal()
+                                }
+                            }}
+                            className="text-xl font-semibold text-[#ffae00] cursor-pointer"
+                        >
+                            판매하기
+                        </button>
+                        <span onClick={() => router.push('/search')} className="text-xl font-semibold cursor-pointer">판매글 보기</span>
+                    </div>
+                </div>
+                
+                {/* 카테고리 드롭다운 */}
+                <div 
+                    className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                        showCategory ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+                    }`}
+                    onMouseEnter={() => setShowCategory(true)}
+                    onMouseLeave={() => setShowCategory(false)}
+                >
+                    <NewCategory showCategory={showCategory} />
+                </div>
+            </header>
+        </nav>
+    )
 }
