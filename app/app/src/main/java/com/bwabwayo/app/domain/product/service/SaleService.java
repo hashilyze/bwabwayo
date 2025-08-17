@@ -46,15 +46,13 @@ public class SaleService {
             Product product = sale.getProduct();
 
             String courierName = null;
-            String trackingNumber = null;
-            String deliveryStatus = null;
+            String trackingNumber = product.getInvoiceNumber();
+            String deliveryStatus = product.getDeliveryStatus() != null
+                    ? product.getDeliveryStatus().name()
+                    : null;
 
             if (product.getCourier() != null) {
                 courierName = product.getCourier().getName();
-                trackingNumber = product.getInvoiceNumber();
-                deliveryStatus = product.getDeliveryStatus() != null
-                        ? product.getDeliveryStatus().name()
-                        : null;
             }
 
             int purchaseConfirmStatus = getPurchaseConfirmStatus(trackingNumber, product);

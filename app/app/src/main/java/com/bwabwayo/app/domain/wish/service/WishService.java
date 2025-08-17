@@ -107,4 +107,8 @@ public class WishService {
     public boolean existsWish(Product productId, User userId){
         return wishRepository.existsByProductIdAndUserId(productId.getId(), userId.getId());
     }
+
+    public void deleteAllByProduct(Product product){
+        wishRepository.deleteByProductId(product.getId());
+    }
 }

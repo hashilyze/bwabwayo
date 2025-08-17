@@ -90,7 +90,8 @@ public class AuthService {
                 deliveryAddressService.updateAddressOnReSignup(defaultUser, request);
             }
 
-
+            // 5. 리뷰통계테이블에 기본값 설정
+//            reviewAggService.updateReviewAggReSignUp(defaultUser.getId());
         } else {
             //신규가입 유저
 
@@ -118,15 +119,15 @@ public class AuthService {
                     request.getAddressDetail() != null) {
                 deliveryAddressService.createAddressOnReSignup(user, request);
             }
-        }
 
-        // 5. 리뷰통계테이블에 기본값 설정
-        ReviewAgg reviewAgg = ReviewAgg.builder()
-                .userId(request.getId())
-                .avgRating(0f)
-                .reviewCount(0)
-                .build();
-        reviewAggService.saveReviewAgg(reviewAgg);
+            // 5. 리뷰통계테이블에 기본값 설정
+            ReviewAgg reviewAgg = ReviewAgg.builder()
+                    .userId(request.getId())
+                    .avgRating(0f)
+                    .reviewCount(0)
+                    .build();
+            reviewAggService.saveReviewAgg(reviewAgg);
+        }
 
 
         // 6. 토큰 응답 반환

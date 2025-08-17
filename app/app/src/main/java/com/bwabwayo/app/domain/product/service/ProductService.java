@@ -87,6 +87,8 @@ public class ProductService {
      */
     @Transactional
     public void delete(Product product) {
+        wishService.deleteAllByProduct(product);
+
         // 삭제할 이미지 URL 기록
         List<ProductImage> productImages = product.getProductImages();
         List<String> imageKeys = productImages.stream().map(ProductImage::getUrl).toList();
@@ -103,6 +105,10 @@ public class ProductService {
     public PageResponse<ProductQueryResult> query(ProductQueryRequest requestDTO, User loginUser) {
         // 검색 조건
         String keyword = requestDTO.getKeyword();
+        Long productId = requestDTO.getProductId();
+        if(keyword == null & productId != null){
+            keyword = productRepository.getProductById(productId).getTitle();
+        }
         Long categoryId = requestDTO.getCategoryId();
         String sellerId = requestDTO.getSellerId();
 
@@ -175,6 +181,7 @@ public class ProductService {
             Product product = dto.getProduct();
 
             ProductDTO productDTO = ProductDTO.builder()
+                    .isMine(product.getSeller().equals(loginUser))
                     .id(product.getId())
                     .categoryId(product.getCategory().getId())
                     .thumbnail(storageService.getUrlFromKey(product.getThumbnail()))
