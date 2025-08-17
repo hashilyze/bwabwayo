@@ -142,7 +142,7 @@ const adsContainer = () => {
     id:2,
     url: `${process.env.NEXT_PUBLIC_PUBLIC_URL}/image/banner/banner-3.png`,
     alt: '광고 배너 3',
-    link: 'https://i13e206.p.ssafy.io:8445/',
+    link: 'https://i13e206.p.ssafy.io/',
   }
   ]
 }
