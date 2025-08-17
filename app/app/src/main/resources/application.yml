@@ -65,7 +65,7 @@ jwt:
 
 
 server:
-  port: 8081
+  port: 8082
 
 openai:
   secret-key: S13P11E202-b866ef0e-647a-4e68-aabe-9953140f6092
@@ -125,3 +125,9 @@ product:
 
 sweet-tracker:
   api-key: FezwHddl3sDTP67yZHfbgQ
+
+springdoc:
+  api-docs:
+    path: /api/v3/api-docs
+  swagger-ui:
+    path: /api/swagger-ui
