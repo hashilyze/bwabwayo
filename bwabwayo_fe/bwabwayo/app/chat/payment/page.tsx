@@ -40,7 +40,25 @@ function PaymentSuccessContent() {
         setResponseData(data);
         console.log("✅ 결제 확인 완료");
         
-        router.push(`/chat/${searchParams.get("roomId")}`);
+        // roomId가 유효한지 확인
+        const roomId = searchParams.get("roomId");
+        if (roomId && roomId !== "null" && roomId !== "undefined") {
+          try {
+            router.push(`/chat/${roomId}`);
+          } catch (error) {
+            console.error("라우팅 실패:", error);
+            // 라우팅 실패 시 창 닫기
+            setTimeout(() => {
+              window.close();
+            }, 1000);
+          }
+        } else {
+          console.error("유효하지 않은 roomId:", roomId);
+          // roomId가 유효하지 않으면 창 닫기
+          setTimeout(() => {
+            window.close();
+          }, 1000);
+        }
       })
       .catch((error) => {
         console.log(error);
