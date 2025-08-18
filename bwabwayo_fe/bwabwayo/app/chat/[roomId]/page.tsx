@@ -193,27 +193,18 @@ export default function ChatRoomPage() {
   }, [isConnected, stompClient, isConnecting, roomId, connectStomp]);
 
 
-  // 1초마다 메시지 히스토리 확인
-  // useEffect(() => {
-  //   if (!isInitialized || !roomId) return;
 
-  //   const intervalId = setInterval(async () => {
-  //     await getMessageHistory(roomId);
-  //   }, 1000); // 1초마다 확인
-
-  //   return () => {
-  //     clearInterval(intervalId);
-  //   };
-  // }, [isInitialized, roomId, getMessageHistory]);
 
   // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동 (개선된 버전)
   useEffect(() => {
     if (messages && messages.length > 0 && chatContainerRef.current) {
       const container = chatContainerRef.current;
+      const lastMessage = messages[messages.length - 1];
+      const isLastMessageNotice = lastMessage && lastMessage.type !== "TEXT";
       const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
 
-      if (isNearBottom) {
-        // 즉시 맨 아래로 스크롤 (부드럽게 하지 않음)
+      // 기타 공지글이거나 하단 근처에 있을 때 스크롤
+      if (isLastMessageNotice || isNearBottom) {
         setTimeout(() => {
           if (chatContainerRef.current) {
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
