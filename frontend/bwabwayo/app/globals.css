@@ -1,0 +1,211 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'SUITE-Regular';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2304-2@1.0/SUITE-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* 2) 전역에 폰트 지정 */
+html, body, * {
+  font-family: 'SUITE-Regular', sans-serif !important;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --container-width: 1280px;
+  --container-width-wide: 1420px;
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+ul,li{list-style: none;}
+
+body {
+  background: #ffffff;
+  color: #171717;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.custom-gradient {
+  background: linear-gradient(
+    130deg,
+    rgba(46, 102, 231, 1) 45%,
+    rgba(87, 199, 133, 1) 100%
+  );
+}
+
+.btn-gradient {
+  background: linear-gradient(
+      90deg,
+    rgba(57, 127, 245, 1) 0%,
+    rgba(38, 99, 226, 1) 100%);
+}
+
+
+@keyframes rotate-cw {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes rotate-ccw {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
+}
+.animate-rotate-cw {
+  animation: rotate-cw 4s linear infinite;
+}
+.animate-rotate-ccw {
+  animation: rotate-ccw 4s linear infinite;
+}
+
+@keyframes swing {
+  0% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+  100% { transform: rotate(-3deg); }
+}
+.animate-swing {
+  animation: swing 1.2s ease-in-out infinite;
+}
+.delay-0   { animation-delay: 0s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-600 { animation-delay: 0.6s; }
+.delay-900 { animation-delay: 0.9s; }
+
+/* 광고 Swiper 페이지네이션 커스텀 */
+.ad-swiper .swiper-pagination {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: absolute !important;
+  bottom: 20px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 10 !important;
+}
+
+.ad-swiper .swiper-pagination-bullet {
+  width: 15px !important;
+  height: 15px !important;
+  background: #ffffff !important;
+  opacity: 1 !important;
+  margin: 0 4px !important;
+  border: 2px solid black !important;
+  transition: all 0.3s ease;
+}
+
+.ad-swiper .swiper-pagination-bullet-active {
+  background: #FFAE00 !important;
+  border: 2px solid black !important;
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 10px !important;
+}
+
+/* Swiper 페이지네이션 커스텀 */
+.swiper-pagination {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  bottom: 0 !important;
+  margin-top: 40px;
+}
+
+.swiper-pagination-bullet {
+  width: 15px !important;
+  height: 15px !important;
+  background: #ffffff !important;
+  opacity: 1 !important;
+  margin: 0 4px !important;
+  border: 2px solid black !important;
+  transition: all 0.3s ease;
+}
+
+.swiper-pagination-bullet-active {
+  background: #FFAE00 !important;
+  border: 2px solid black !important;
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 10px !important;
+}
+
+/* Navigation Link Hover Effect */
+.nav-link::before {
+  content: '';
+  position: absolute;bottom: 0px;left: 0px;right: 0px;
+  width:100%;height: 3px;
+  background-color: black;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.nav-link:hover::before {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.nav-link:not(:hover)::before {
+  transform: scaleX(0);
+  transform-origin: right;
+}
+
+
+/* 채팅방 화상예약 달력 */
+.calender-wrap .react-calendar{width: 100%;border: unset;}
+
+
+/* Container 유틸리티 클래스 */
+.container-default {
+  width: var(--container-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container-wide {
+  width: var(--container-width-wide);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Swiper 슬라이드 높이 동일화 */
+.swiper-slide {
+  height: auto !important;
+  display: flex !important;
+}
+
+.swiper-slide > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Grid 레이아웃에서 ProductCard 높이 동일화 */
+.grid li {
+  display: flex !important;
+  height: 100% !important;
+}
+
+.grid li > div {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* 채팅방 스크롤바 숨김 */
+.chat-container {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.chat-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
